@@ -11,7 +11,7 @@ A self-hosted CV generator built with PocketBase and Angular.
 ## Quick Start
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 - Frontend: http://localhost:4200
@@ -20,12 +20,11 @@ docker-compose up -d
 ## Development
 
 ```bash
-# Start PocketBase only
-docker-compose up -d pocketbase
-
-# Start Angular dev server
-cd frontend && npm install && ng serve
+# Start the full development stack
+docker compose up -d
 ```
+
+The Angular dev server proxies `/api` requests to PocketBase, so the frontend can use the same API base path locally and in GitHub Codespaces.
 
 ## Structure
 
