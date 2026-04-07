@@ -1,0 +1,77 @@
+{
+  "cv_profiles": [
+    {
+      "id": "cv1",
+      "slug": "theo-perotti",
+      "name": "Théo Perotti - Full-Stack Developer",
+      "template": "classic",
+      "is_default": true,
+      "created": "2026-04-07T00:00:00Z",
+      "updated": "2026-04-07T00:00:00Z"
+    }
+  ],
+  "persons": [
+    {
+      "id": "person1",
+      "cv_profile": "cv1",
+      "name": "Théo Perotti",
+      "email": "theo.perotti@gmail.com",
+      "phone": "06 42 75 25 79",
+      "linkedin": "https://linkedin.com/in/théo-perotti-265999205",
+      "github": "https://github.com/Theodagan",
+      "website": "https://oai-lab.com",
+      "profile_title": "Développeur Full-Stack",
+      "summary": "Développeur Full-Stack avec plus de 5 ans d'expérience en développement web et e-commerce. Expert en architecture Java Spring Boot / Angular et spécialiste Shopify/Liquid."
+    }
+  ],
+  "emplois": [
+    {
+      "id": "job1",
+      "cv_profile": "cv1",
+      "company": "SFP Expansion Group",
+      "position": "Full-stack Developer",
+      "location": "Aix-les-Milles, France",
+      "date_start": "2025-01",
+      "date_end": null,
+      "responsibilities": "Développement full-stack (Java Spring Boot / Angular)\nArchitecture et maintenance d'applications web\nIntégration continue et déploiement",
+      "sort_order": 0
+    },
+    {
+      "id": "job2",
+      "cv_profile": "cv1",
+      "company": "Golf des Marques",
+      "position": "Graphiste Web",
+      "location": "Fuveau, France",
+      "date_start": "2023-01",
+      "date_end": "2024-03",
+      "responsibilities": "Développement et maintenance du site e-commerce Shopify\nIntégration et configuration de plugins Shopify App Store\nPersonnalisation du thème Liquid et optimisation UX\nDéveloppement de fonctionnalités sur-mesure",
+      "sort_order": 1
+    }
+  ],
+  "projets": [
+    { "id": "proj1", "cv_profile": "cv1", "name": "Template Full-Stack Angular/Spring Boot", "description": "Architecture full-stack avec Docker Compose, backend Spring Boot, frontend Angular", "date": "2024", "sort_order": 0 },
+    { "id": "proj2", "cv_profile": "cv1", "name": "Module Bannière Shopify", "description": "Module personnalisable dans l'éditeur de thème Shopify", "date": "2023", "sort_order": 1 },
+    { "id": "proj3", "cv_profile": "cv1", "name": "Calculateur Prix Prestashop 8", "description": "Module avec calculateur de prix, création BDD, parsing CSV", "date": "2023", "sort_order": 2 },
+    { "id": "proj4", "cv_profile": "cv1", "name": "Site Vitrine UL CGL1", "description": "Site vitrine responsive, intégration CMS", "date": "2020", "sort_order": 3 }
+  ],
+  "competences": [
+    { "id": "skill1", "cv_profile": "cv1", "name": "Angular", "category": "Frontend", "type": "Technical", "level": 90, "sort_order": 0 },
+    { "id": "skill2", "cv_profile": "cv1", "name": "TypeScript", "category": "Frontend", "type": "Technical", "level": 90, "sort_order": 1 },
+    { "id": "skill3", "cv_profile": "cv1", "name": "JavaScript", "category": "Frontend", "type": "Technical", "level": 95, "sort_order": 2 },
+    { "id": "skill4", "cv_profile": "cv1", "name": "Java Spring Boot", "category": "Backend", "type": "Technical", "level": 85, "sort_order": 3 },
+    { "id": "skill5", "cv_profile": "cv1", "name": "PostgreSQL", "category": "Backend", "type": "Technical", "level": 80, "sort_order": 4 },
+    { "id": "skill6", "cv_profile": "cv1", "name": "Shopify", "category": "E-commerce", "type": "Technical", "level": 95, "sort_order": 5 },
+    { "id": "skill7", "cv_profile": "cv1", "name": "Liquid", "category": "E-commerce", "type": "Technical", "level": 95, "sort_order": 6 },
+    { "id": "skill8", "cv_profile": "cv1", "name": "Docker", "category": "DevOps", "type": "Technical", "level": 75, "sort_order": 7 },
+    { "id": "skill9", "cv_profile": "cv1", "name": "Git/GitHub", "category": "DevOps", "type": "Technical", "level": 90, "sort_order": 8 },
+    { "id": "skill10", "cv_profile": "cv1", "name": "Gestion de Projet", "category": "Project Management", "type": "Professional", "level": 80, "sort_order": 9 },
+    { "id": "skill11", "cv_profile": "cv1", "name": "Méthodologie Agile", "category": "Project Management", "type": "Professional", "level": null, "sort_order": 10 },
+    { "id": "skill12", "cv_profile": "cv1", "name": "CI/CD & DevOps", "category": "DevOps", "type": "Professional", "level": null, "sort_order": 11 },
+    { "id": "skill13", "cv_profile": "cv1", "name": "English", "category": "", "type": "Language", "level": null, "sort_order": 12 },
+    { "id": "skill14", "cv_profile": "cv1", "name": "French", "category": "", "type": "Language", "level": null, "sort_order": 13 }
+  ],
+  "diplomes": [
+    { "id": "dip1", "cv_profile": "cv1", "title": "Expert en architecture et développement logiciel", "school": "OpenClassroom", "year": "2026", "level": "Master (Bac +5)", "sort_order": 0 },
+    { "id": "dip2", "cv_profile": "cv1", "title": "TP Concepteur Designer UI/UX", "school": "Webforce3", "year": "2022", "level": "Licence (Bac +3)", "sort_order": 1 }
+  ]
+}
