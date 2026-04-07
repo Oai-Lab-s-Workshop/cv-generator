@@ -1,23 +1,14 @@
 #!/bin/bash
 set -e
 
-echo "=== CV Generator Setup ==="
-
-# Install Angular CLI
-npm install -g @angular/cli@latest
-
-# Install frontend dependencies
-cd /workspaces/cv-generator/frontend
-npm install
-
-# Start PocketBase
-cd /workspaces/cv-generator
-docker compose up -d pocketbase
+echo "Starting Docker Compose development stack"
+docker compose up -d --build
 
 echo ""
-echo "PocketBase: http://localhost:8090"
-echo "PocketBase Admin: http://localhost:8090/_/"
-echo "Admin: admin@cv-generator.local / changeme123"
+echo "Services"
+docker compose ps
+
 echo ""
-echo "To start Angular: cd frontend && npm start"
-echo "Angular will be at: http://localhost:4200"
+echo "Angular Dev:       http://localhost:4200"
+echo "PocketBase Admin:  http://localhost:8090/_/"
+echo "PocketBase API:    http://localhost:8090/api/"
