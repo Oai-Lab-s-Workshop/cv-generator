@@ -1,19 +1,23 @@
 {
   "name": "CV Generator",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/node:1": { "version": "20" }
   },
-  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
   "forwardPorts": [4200, 8090],
   "portsAttributes": {
-    "4200": { "label": "Angular", "onAutoForward": "openPreview" },
-    "8090": { "label": "PocketBase", "onAutoForward": "silent" }
+    "4200": { "label": "Angular Dev Server", "onAutoForward": "openPreview" },
+    "8090": { "label": "PocketBase API", "onAutoForward": "silent" }
   },
   "customizations": {
     "vscode": {
-      "extensions": ["angular.ng-template", "ms-azuretools.vscode-docker"]
+      "extensions": [
+        "angular.ng-template",
+        "ms-azuretools.vscode-docker",
+        "dbaeumer.vscode-eslint"
+      ]
     }
   }
 }
