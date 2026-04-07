@@ -5,8 +5,12 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/node:1": { "version": "20" }
   },
-  "postCreateCommand": "npm install --prefix frontend",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
   "forwardPorts": [4200, 8090],
+  "portsAttributes": {
+    "4200": { "label": "Angular", "onAutoForward": "openPreview" },
+    "8090": { "label": "PocketBase", "onAutoForward": "silent" }
+  },
   "customizations": {
     "vscode": {
       "extensions": ["angular.ng-template", "ms-azuretools.vscode-docker"]
