@@ -8,8 +8,7 @@ services:
     ports:
       - "8090:8090"
     environment:
-      - POCKETBASE_ADMIN_EMAIL=admin@cv-generator.local
-      - POCKETBASE_ADMIN_PASSWORD=changeme123
+      - TZ=UTC
     volumes:
       - ./pb_data:/pb_data
       - ./pb_migrations:/pb_migrations
@@ -18,16 +17,3 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  frontend:
-    image: node:20-alpine
-    container_name: cv-generator-frontend
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - "4200:4200"
-    command: sh -c "npm install && npx ng serve --host 0.0.0.0"
-    depends_on:
-      - pocketbase
