@@ -33,6 +33,7 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": { "buildTarget": "cv-generator:build" },
           "configurations": { "production": { "buildTarget": "cv-generator:build:production" } }
         }
       }

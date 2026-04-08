@@ -17,6 +17,13 @@ docker compose up -d
 - Frontend: http://localhost:4200
 - PocketBase Admin: http://localhost:8090/_/
 
+PocketBase seeds a super admin automatically on startup:
+
+- Email: `admin@cv-generator.local`
+- Password: `changeme123!`
+
+Override those defaults with `PB_ADMIN_EMAIL` and `PB_ADMIN_PASSWORD` in your shell or a local `.env` file.
+
 ## Development
 
 ```bash
