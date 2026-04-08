@@ -7,6 +7,7 @@ const EMPLOIS_COLLECTION_ID = "emplois00001abc";
 const PROJETS_COLLECTION_ID = "projets00001abc";
 const COMPETENCES_COLLECTION_ID = "competence01abc";
 const DIPLOMES_COLLECTION_ID = "diplomes0001abc";
+const FILES_COLLECTION_ID = "files00000001ab";
 
 function createPublicBaseCollection(id, name, fields) {
   return new Collection({
@@ -146,40 +147,6 @@ migrate(
     );
 
     app.save(
-      createPublicBaseCollection(PROJETS_COLLECTION_ID, "projets", [
-        {
-          name: "cv_profile",
-          type: "relation",
-          collectionId: CV_PROFILES_COLLECTION_ID,
-          required: true,
-          cascadeDelete: true,
-          maxSelect: 1,
-        },
-        {
-          name: "name",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "description",
-          type: "editor",
-        },
-        {
-          name: "url",
-          type: "url",
-        },
-        {
-          name: "date",
-          type: "text",
-        },
-        {
-          name: "sort_order",
-          type: "number",
-        },
-      ]),
-    );
-
-    app.save(
       createPublicBaseCollection(COMPETENCES_COLLECTION_ID, "competences", [
         {
           name: "cv_profile",
@@ -250,8 +217,86 @@ migrate(
         },
       ]),
     );
+
+    app.save(
+      createPublicBaseCollection(FILES_COLLECTION_ID, "files", [
+        {
+          name: "cv_profile",
+          type: "relation",
+          collectionId: CV_PROFILES_COLLECTION_ID,
+          required: true,
+          cascadeDelete: true,
+          maxSelect: 1,
+        },
+        {
+          name: "name",
+          type: "text",
+        },
+        {
+          name: "file",
+          type: "file",
+          maxSelect: 1,
+          required: true,
+        },
+        {
+          name: "alt",
+          type: "text",
+        },
+        {
+          name: "kind",
+          type: "select",
+          values: ["image", "video", "document", "other"],
+          maxSelect: 1,
+        },
+        {
+          name: "sort_order",
+          type: "number",
+        },
+      ]),
+    );
+
+    app.save(
+      createPublicBaseCollection(PROJETS_COLLECTION_ID, "projets", [
+        {
+          name: "cv_profile",
+          type: "relation",
+          collectionId: CV_PROFILES_COLLECTION_ID,
+          required: true,
+          cascadeDelete: true,
+          maxSelect: 1,
+        },
+        {
+          name: "name",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "description",
+          type: "editor",
+        },
+        {
+          name: "url",
+          type: "url",
+        },
+        {
+          name: "date",
+          type: "text",
+        },
+        {
+          name: "file",
+          type: "relation",
+          collectionId: FILES_COLLECTION_ID,
+          maxSelect: 1,
+        },
+        {
+          name: "sort_order",
+          type: "number",
+        },
+      ]),
+    );
   },
   (app) => {
+    app.delete(app.findCollectionByNameOrId("files"));
     app.delete(app.findCollectionByNameOrId("diplomes"));
     app.delete(app.findCollectionByNameOrId("competences"));
     app.delete(app.findCollectionByNameOrId("projets"));

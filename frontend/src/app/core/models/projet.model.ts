@@ -1,3 +1,5 @@
+import { MediaFile } from './file.model';
+
 export interface Projet {
   id: string;
   cv_profile: string;
@@ -5,5 +7,9 @@ export interface Projet {
   description?: string;
   url?: string;
   date?: string;
+  file?: string;
   sort_order?: number;
+  expand?: {
+    file?: MediaFile;
+  };
 }

@@ -40,6 +40,7 @@ export class PocketBaseService {
     return this.pb.collection<Projet>('projets').getFullList({
       filter: `cv_profile="${cvProfileId}"`,
       sort: '+sort_order,-date',
+      expand: 'file',
     });
   }
 
