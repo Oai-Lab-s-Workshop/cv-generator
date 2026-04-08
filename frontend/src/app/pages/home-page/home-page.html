@@ -1,0 +1,36 @@
+<main class="home-page">
+  <section class="hero">
+    <p class="eyebrow">CV Profiles</p>
+    <h1>Choose a published CV</h1>
+    <p class="lede">
+      Each link opens a template-specific public CV route backed by PocketBase data.
+    </p>
+  </section>
+
+  @if (isLoading()) {
+    <section class="state-card">
+      <p>Loading CV profiles...</p>
+    </section>
+  } @else if (errorMessage()) {
+    <section class="state-card state-card--error">
+      <h2>Unable to load profiles</h2>
+      <p>{{ errorMessage() }}</p>
+    </section>
+  } @else if (profiles().length === 0) {
+    <section class="state-card">
+      <h2>No CV profiles yet</h2>
+      <p>Create profiles in PocketBase and they will appear here.</p>
+    </section>
+  } @else {
+    <section class="profile-grid">
+      @for (profile of profiles(); track profile.id) {
+        <article class="profile-card">
+          <p class="profile-card__template">{{ profile.template }}</p>
+          <h2>{{ profile.name }}</h2>
+          <p class="profile-card__slug">/{{ profile.slug }}</p>
+          <a [routerLink]="['/', profile.slug]" class="profile-card__link">Open CV</a>
+        </article>
+      }
+    </section>
+  }
+</main>

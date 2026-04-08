@@ -1,8 +1,12 @@
 import { Routes } from '@angular/router';
-import { CvComponent } from './cv/cv.component';
-import { HomeComponent } from './home/home.component';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: ':slug', component: CvComponent }
+  {
+    path: '',
+    loadComponent: () => import('./pages/home-page/home-page').then((module) => module.HomePage),
+  },
+  {
+    path: ':slug',
+    loadComponent: () => import('./pages/cv-shell-page/cv-shell-page').then((module) => module.CvShellPage),
+  },
 ];
