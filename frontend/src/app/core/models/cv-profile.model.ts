@@ -6,4 +6,6 @@ export interface CvProfile {
   name: string;
   template: CvTemplate;
   is_default?: boolean;
+  profile_picture?: string;
+  cover_picture?: string;
 }
