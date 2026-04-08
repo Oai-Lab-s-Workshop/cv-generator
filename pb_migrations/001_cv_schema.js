@@ -49,6 +49,16 @@ migrate(
           name: "is_default",
           type: "bool",
         },
+        {
+          name: "profile_picture",
+          type: "file",
+          maxSelect: 1,
+        },
+        {
+          name: "cover_picture",
+          type: "file",
+          maxSelect: 1,
+        },
       ]),
     );
 
