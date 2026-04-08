@@ -1,0 +1,112 @@
+@if (isLoading()) {
+  <main class="modern-cv-page modern-cv-page--state">
+    <p>Loading CV...</p>
+  </main>
+} @else if (errorMessage()) {
+  <main class="modern-cv-page modern-cv-page--state">
+    <h1>Unable to load CV</h1>
+    <p>{{ errorMessage() }}</p>
+  </main>
+} @else if (cvData(); as data) {
+  <main class="modern-cv-page">
+    <aside class="sidebar">
+      <p class="sidebar__template">{{ data.profile.template }}</p>
+      <h1>{{ data.person?.name ?? data.profile.name }}</h1>
+      @if (data.person?.profile_title) {
+        <p class="sidebar__title">{{ data.person?.profile_title }}</p>
+      }
+
+      <section class="sidebar__section">
+        <h2>Contact</h2>
+        @if (data.person?.email) {
+          <p>{{ data.person?.email }}</p>
+        }
+        @if (data.person?.phone) {
+          <p>{{ data.person?.phone }}</p>
+        }
+        @if (data.person?.linkedin) {
+          <p>{{ data.person?.linkedin }}</p>
+        }
+        @if (data.person?.github) {
+          <p>{{ data.person?.github }}</p>
+        }
+        @if (data.person?.website) {
+          <p>{{ data.person?.website }}</p>
+        }
+      </section>
+
+      @if (data.competences.length > 0) {
+        <section class="sidebar__section">
+          <h2>Skills</h2>
+          <div class="skill-list">
+            @for (skill of data.competences; track skill.id) {
+              <div class="skill-list__item">
+                <span>{{ skill.name }}</span>
+                @if (skill.level) {
+                  <strong>{{ skill.level }}%</strong>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      }
+    </aside>
+
+    <section class="content">
+      @if (data.person?.summary) {
+        <section class="content__section">
+          <h2>About</h2>
+          <p>{{ data.person?.summary }}</p>
+        </section>
+      }
+
+      <section class="content__section">
+        <h2>Experience</h2>
+        @for (job of data.emplois; track job.id) {
+          <article class="timeline-item">
+            <p class="timeline-item__date">{{ job.date_start || 'Start' }} - {{ job.date_end || 'Present' }}</p>
+            <h3>{{ job.position }}</h3>
+            <p class="timeline-item__meta">{{ job.company }}@if (job.location) { · {{ job.location }} }</p>
+            @if (job.responsibilities) {
+              <p>{{ job.responsibilities }}</p>
+            }
+          </article>
+        }
+      </section>
+
+      @if (data.projets.length > 0) {
+        <section class="content__section">
+          <h2>Selected Projects</h2>
+          <div class="project-grid">
+            @for (project of data.projets; track project.id) {
+              <article class="project-card">
+                <h3>{{ project.name }}</h3>
+                @if (project.description) {
+                  <p>{{ project.description }}</p>
+                }
+                @if (project.url) {
+                  <a [href]="project.url" target="_blank" rel="noreferrer">Visit project</a>
+                }
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      @if (data.diplomes.length > 0) {
+        <section class="content__section">
+          <h2>Education</h2>
+          @for (diploma of data.diplomes; track diploma.id) {
+            <article class="timeline-item timeline-item--education">
+              <h3>{{ diploma.title }}</h3>
+              <p class="timeline-item__meta">{{ diploma.school }}@if (diploma.year) { · {{ diploma.year }} }</p>
+              @if (diploma.level) {
+                <p>{{ diploma.level }}</p>
+              }
+            </article>
+          }
+        </section>
+      }
+    </section>
+  </main>
+}
