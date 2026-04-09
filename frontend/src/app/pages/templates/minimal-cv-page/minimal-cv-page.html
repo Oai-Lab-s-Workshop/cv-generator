@@ -1,0 +1,109 @@
+@if (isLoading()) {
+  <main class="minimal-cv-page minimal-cv-page--state">
+    <p>Loading CV...</p>
+  </main>
+} @else if (errorMessage()) {
+  <main class="minimal-cv-page minimal-cv-page--state">
+    <h1>Unable to load CV</h1>
+    <p>{{ errorMessage() }}</p>
+  </main>
+} @else if (cvData(); as data) {
+  <main class="minimal-cv-page">
+    <header class="header">
+      <p class="header__template">{{ data.profile.template }}</p>
+      <h1>{{ data.person?.name ?? data.profile.name }}</h1>
+      @if (data.person?.profile_title) {
+        <p class="header__title">{{ data.person?.profile_title }}</p>
+      }
+    </header>
+
+    <section class="section section--inline">
+      @if (data.person?.email) {
+        <span>{{ data.person?.email }}</span>
+      }
+      @if (data.person?.phone) {
+        <span>{{ data.person?.phone }}</span>
+      }
+      @if (data.person?.linkedin) {
+        <span>{{ data.person?.linkedin }}</span>
+      }
+      @if (data.person?.github) {
+        <span>{{ data.person?.github }}</span>
+      }
+      @if (data.person?.website) {
+        <span>{{ data.person?.website }}</span>
+      }
+    </section>
+
+    @if (data.person?.summary) {
+      <section class="section">
+        <h2>Summary</h2>
+        <p>{{ data.person?.summary }}</p>
+      </section>
+    }
+
+    <section class="section">
+      <h2>Experience</h2>
+      @for (job of data.emplois; track job.id) {
+        <article class="line-item">
+          <div>
+            <h3>{{ job.position }}</h3>
+            <p>{{ job.company }}@if (job.location) { · {{ job.location }} }</p>
+          </div>
+          <p>{{ job.date_start || 'Start' }} - {{ job.date_end || 'Present' }}</p>
+        </article>
+        @if (job.responsibilities) {
+          <p class="line-item__copy">{{ job.responsibilities }}</p>
+        }
+      }
+    </section>
+
+    @if (data.projets.length > 0) {
+      <section class="section">
+        <h2>Projects</h2>
+        @for (project of data.projets; track project.id) {
+          <article class="line-item line-item--stacked">
+            <div>
+              <h3>{{ project.name }}</h3>
+              @if (project.description) {
+                <p>{{ project.description }}</p>
+              }
+            </div>
+            @if (project.url) {
+              <a [href]="project.url" target="_blank" rel="noreferrer">{{ project.url }}</a>
+            }
+          </article>
+        }
+      </section>
+    }
+
+    <section class="section grid">
+      <section>
+        <h2>Skills</h2>
+        @for (skill of data.competences; track skill.id) {
+          <article class="line-item line-item--tight">
+            <span>{{ skill.name }}</span>
+            @if (skill.level) {
+              <strong>{{ skill.level }}%</strong>
+            }
+          </article>
+        }
+      </section>
+
+      @if (data.diplomes.length > 0) {
+        <section>
+          <h2>Education</h2>
+          @for (diploma of data.diplomes; track diploma.id) {
+            <article class="line-item line-item--stacked">
+              <div>
+                <h3>{{ diploma.title }}</h3>
+                <p>{{ diploma.school }}</p>
+              </div>
+              <p>{{ diploma.year }}</p>
+            </article>
+          }
+        </section>
+      }
+    </section>
+  </main>
+}

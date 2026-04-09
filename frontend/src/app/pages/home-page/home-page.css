@@ -1,0 +1,95 @@
+.home-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+  color: #18202b;
+}
+
+.hero {
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.05;
+}
+
+.lede {
+  max-width: 42rem;
+  margin: 1rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #4b5563;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.profile-card,
+.state-card {
+  border: 1px solid #d7deea;
+  border-radius: 1rem;
+  background: #fff;
+  padding: 1.25rem;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+}
+
+.state-card--error {
+  border-color: #f0b7b7;
+  background: #fff7f7;
+}
+
+.profile-card__template,
+.profile-card__slug {
+  margin: 0;
+  color: #6b7280;
+}
+
+.profile-card__template {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.profile-card h2 {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.profile-card__slug {
+  font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.profile-card__link {
+  display: inline-flex;
+  margin-top: 1rem;
+  color: #0f3d8c;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.profile-card__link:hover,
+.profile-card__link:focus-visible {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .home-page {
+    padding: 2rem 1rem 3rem;
+  }
+}

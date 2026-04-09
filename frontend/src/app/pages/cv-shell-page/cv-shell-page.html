@@ -1,0 +1,21 @@
+@if (parsedSlug(); as parsed) {
+  @switch (parsed.template) {
+    @case ('classic') {
+      <app-classic-cv-page [cvProfileId]="parsed.cvProfileId"></app-classic-cv-page>
+    }
+    @case ('modern') {
+      <app-modern-cv-page [cvProfileId]="parsed.cvProfileId"></app-modern-cv-page>
+    }
+    @case ('minimal') {
+      <app-minimal-cv-page [cvProfileId]="parsed.cvProfileId"></app-minimal-cv-page>
+    }
+  }
+} @else {
+  <main class="cv-shell-page">
+    <section class="state-card">
+      <p class="state-card__eyebrow">Invalid CV URL</p>
+      <h1>This route does not match the expected CV slug format.</h1>
+      <p>Expected format: <code>template--cvProfileId</code>.</p>
+    </section>
+  </main>
+}
