@@ -1,0 +1,168 @@
+.classic-cv-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+  color: #1f2937;
+  background: linear-gradient(180deg, #f7f9fc 0%, #ffffff 22rem);
+}
+
+.classic-cv-page--state {
+  min-height: 50vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  margin-bottom: 2rem;
+}
+
+.hero__eyebrow {
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #667085;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0.35rem;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 0.95;
+}
+
+.hero__title {
+  margin-bottom: 0;
+  font-size: 1.1rem;
+  color: #475467;
+}
+
+.contact-card,
+.section--panel,
+.item {
+  background: #ffffff;
+  border: 1px solid #d8dee9;
+  border-radius: 1rem;
+}
+
+.contact-card {
+  padding: 1rem 1.15rem;
+}
+
+.contact-card p:last-child,
+.copy:last-child,
+.item:last-child {
+  margin-bottom: 0;
+}
+
+.section {
+  margin-top: 1.5rem;
+}
+
+.section > h2 {
+  margin-bottom: 0.8rem;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #667085;
+}
+
+.stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.stack--compact {
+  gap: 0.75rem;
+}
+
+.item {
+  padding: 1rem 1.15rem;
+}
+
+.item__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.item__meta,
+.item__period,
+.copy {
+  color: #4b5563;
+  line-height: 1.65;
+}
+
+.item__period {
+  white-space: nowrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+  background: #eff4ff;
+  color: #173b70;
+}
+
+a {
+  color: #0f4aa5;
+}
+
+@media (max-width: 760px) {
+  .classic-cv-page {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .hero,
+  .grid,
+  .item__header {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .item__period {
+    white-space: normal;
+  }
+}
+
+@media print {
+  .classic-cv-page {
+    padding: 0;
+    background: #fff;
+  }
+
+  .contact-card,
+  .section--panel,
+  .item {
+    box-shadow: none;
+  }
+}

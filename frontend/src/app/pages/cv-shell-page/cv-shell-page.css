@@ -1,0 +1,30 @@
+.cv-shell-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 3rem 1.25rem;
+}
+
+.state-card {
+  border: 1px solid #f0c7c7;
+  border-radius: 1rem;
+  background: #fff7f7;
+  padding: 1.5rem;
+}
+
+.state-card__eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9f3a3a;
+}
+
+h1 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

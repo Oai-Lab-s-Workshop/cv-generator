@@ -1,23 +1,38 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-echo "=== CV Generator Setup ==="
+mkdir -p .local/pocketbase/pb_data
 
-# Install Angular CLI
-npm install -g @angular/cli@latest
+echo "Starting Docker Compose development stack"
+docker compose -f docker-compose.yml -f docker-compose.devcontainer.yml up -d --build
 
-# Install frontend dependencies
-cd /workspaces/cv-generator/frontend
-npm install
+echo "Waiting for PocketBase..."
+for i in {1..20}; do
+  if curl -fsS "http://localhost:8090/api/health" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 2
+done
 
-# Start PocketBase
-cd /workspaces/cv-generator
-docker compose up -d pocketbase
+echo "Waiting for Angular dev server..."
+for i in {1..30}; do
+  if curl -fsS "http://localhost:4200" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 2
+done
 
 echo ""
-echo "PocketBase: http://localhost:8090"
-echo "PocketBase Admin: http://localhost:8090/_/"
-echo "Admin: admin@cv-generator.local / changeme123"
+echo "Services"
+docker compose -f docker-compose.yml -f docker-compose.devcontainer.yml ps
+
 echo ""
-echo "To start Angular: cd frontend && npm start"
-echo "Angular will be at: http://localhost:4200"
+echo "URLs"
+echo "Angular Dev:       http://localhost:4200"
+echo "PocketBase Admin:  http://localhost:8090/_/"
+echo "PocketBase API:    http://localhost:8090/api/"
+echo "PocketBase Data:   .local/pocketbase/pb_data"
+echo ""
+echo "PocketBase super admin"
+echo "Email:    ${PB_ADMIN_EMAIL:-admin@cv-generator.local}"
+echo "Password: ${PB_ADMIN_PASSWORD:-changeme123!}"
