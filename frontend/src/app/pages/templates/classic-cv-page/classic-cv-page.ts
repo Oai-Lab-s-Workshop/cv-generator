@@ -28,6 +28,7 @@ export class ClassicCvPage implements OnInit {
     );
   }
 
+  //TODO: factor out common loading logic into a reusable service
   private async loadCvData(cvProfileId: string): Promise<void> {
     const currentRequestId = ++this.requestId;
     this.isLoading.set(true);
