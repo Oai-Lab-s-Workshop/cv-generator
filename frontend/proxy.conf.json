@@ -4,6 +4,11 @@
     "secure": false,
     "changeOrigin": true
   },
+  "/api/**": {
+    "target": "http://pocketbase:8090",
+    "secure": false,
+    "changeOrigin": true
+  },
   "/_/": {
     "target": "http://pocketbase:8090",
     "secure": false,

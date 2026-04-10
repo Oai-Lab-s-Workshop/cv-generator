@@ -10,6 +10,7 @@ const PROJECTS_COLLECTION_ID = "projects000001ab";
 const JOBS_COLLECTION_ID = "jobs0000000001ab";
 const DEGREES_COLLECTION_ID = "degrees0000001ab";
 const FILES_COLLECTION_ID = "files00000001ab";
+const OWNER_CAN_UPDATE_CV_PROFILE_RULE = "@request.auth.id != \"\" && user = @request.auth.id";
 
 function createPublicBaseCollection(id, name, fields) {
   return new Collection({
@@ -33,8 +34,8 @@ function importUsersAuthCollection(app) {
         name: "users",
         type: "auth",
         system: false,
-        listRule: null,
-        viewRule: null,
+        listRule: "",
+        viewRule: "",
         createRule: "",
         updateRule: null,
         deleteRule: null,
@@ -514,10 +515,11 @@ migrate(
         },
         {
           name: "template",
-          type: "select",
-          required: true,
-          values: ["classic", "modern", "minimal"],
-          maxSelect: 1,
+          type: "text",
+        },
+        {
+          name: "public",
+          type: "bool",
         },
         createSingleRelationField("user", USERS_COLLECTION_ID, true),
         {
@@ -542,6 +544,10 @@ migrate(
         },
       ]),
     );
+
+    const cvProfilesCollection = app.findCollectionByNameOrId(CV_PROFILES_COLLECTION_ID);
+    cvProfilesCollection.updateRule = OWNER_CAN_UPDATE_CV_PROFILE_RULE;
+    app.save(cvProfilesCollection);
   },
   (app) => {
     app.delete(app.findCollectionByNameOrId("cv_profiles"));

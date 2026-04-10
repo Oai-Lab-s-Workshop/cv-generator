@@ -1,0 +1,29 @@
+<main class="login-page">
+  <section class="login-card">
+    <p class="eyebrow">PocketBase Auth</p>
+    <h1>Sign in</h1>
+    <p class="lede">Use your PocketBase identity and password to access your generated CVs.</p>
+
+    <form class="login-form" (ngSubmit)="submit()">
+      <label>
+        <span>Identity</span>
+        <input [ngModel]="identity()" (ngModelChange)="identity.set($event)" name="identity" type="text" autocomplete="username" required />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" type="password" autocomplete="current-password" required />
+      </label>
+
+      @if (errorMessage()) {
+        <p class="error-message">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Signing in...' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="hint">Generated CVs stay on <a routerLink="/home">home</a> once signed in.</p>
+  </section>
+</main>

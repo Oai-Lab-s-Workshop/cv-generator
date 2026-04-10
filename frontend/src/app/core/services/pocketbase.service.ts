@@ -1,6 +1,4 @@
-import { Injectable } from '@angular/core';
-import PocketBase from 'pocketbase';
-import { environment } from '../../../environments/environment';
+import { Injectable, inject } from '@angular/core';
 import { Achievement } from '../models/achievement.model';
 import { CvData } from '../models/cv-data.model';
 import { CvProfile } from '../models/cv-profile.model';
@@ -10,10 +8,14 @@ import { Job } from '../models/job.model';
 import { Project } from '../models/project.model';
 import { Skill } from '../models/skill.model';
 import { User } from '../models/user.model';
+import { AuthService } from './auth.service';
+import { PocketBaseClientService } from './pocketbase-client.service';
 
 @Injectable({ providedIn: 'root' })
 export class PocketBaseService {
-  private readonly pb = new PocketBase(environment.pocketbaseUrl);
+  private readonly pocketBaseClient = inject(PocketBaseClientService);
+  private readonly authService = inject(AuthService);
+  private readonly pb = this.pocketBaseClient.pb;
 
   async getCvProfileById(cvProfileId: string): Promise<CvProfile> {
     return this.pb.collection<CvProfile>('cv_profiles').getOne(cvProfileId, {
@@ -66,6 +68,40 @@ export class PocketBaseService {
     });
   }
 
+  async getCurrentUserCvProfiles(): Promise<CvProfile[]> {
+    const currentUserId = this.requireCurrentUserId();
+
+    return this.pb.collection<CvProfile>('cv_profiles').getFullList({
+      filter: `user="${currentUserId}"`,
+      sort: '+profileName',
+      expand: 'user',
+    });
+  }
+
+  async setTemplateForCurrentUserCvProfile(profileId: string, template: string, isPublic: boolean): Promise<CvProfile> {
+    const currentUserId = this.requireCurrentUserId();
+    const profile = await this.pb
+      .collection<CvProfile>('cv_profiles')
+      .getFirstListItem(`id="${profileId}" && user="${currentUserId}"`);
+
+    return this.pb.collection<CvProfile>('cv_profiles').update(profile.id, {
+      template,
+      public: isPublic,
+      slug: `${template}--${profile.id}`,
+    });
+  }
+
+  async setPublicForCurrentUserCvProfile(profileId: string, isPublic: boolean): Promise<CvProfile> {
+    const currentUserId = this.requireCurrentUserId();
+    const profile = await this.pb
+      .collection<CvProfile>('cv_profiles')
+      .getFirstListItem(`id="${profileId}" && user="${currentUserId}"`);
+
+    return this.pb.collection<CvProfile>('cv_profiles').update(profile.id, {
+      public: isPublic,
+    });
+  }
+
   async getCvDataByProfileId(cvProfileId: string): Promise<CvData> {
     const profile = await this.getCvProfileById(cvProfileId);
     const user = profile.expand?.user ?? (await this.getUser(profile.user));
@@ -109,5 +145,15 @@ export class PocketBaseService {
     const recordsById = new Map(records.map((record) => [record.id, record]));
 
     return recordIds.map((recordId) => recordsById.get(recordId)).filter((record): record is T => !!record);
+  }
+
+  private requireCurrentUserId(): string {
+    const currentUserId = this.authService.getCurrentUserId();
+
+    if (!currentUserId) {
+      throw new Error('Authentication required.');
+    }
+
+    return currentUserId;
   }
 }

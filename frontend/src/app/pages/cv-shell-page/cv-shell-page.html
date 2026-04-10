@@ -1,21 +1,21 @@
-@if (parsedSlug(); as parsed) {
-  @switch (parsed.template) {
-    @case ('classic') {
-      <app-classic-cv-page [cvProfileId]="parsed.cvProfileId"></app-classic-cv-page>
-    }
-    @case ('modern') {
-      <app-modern-cv-page [cvProfileId]="parsed.cvProfileId"></app-modern-cv-page>
-    }
-    @case ('minimal') {
-      <app-minimal-cv-page [cvProfileId]="parsed.cvProfileId"></app-minimal-cv-page>
-    }
+@if (profile(); as profile) {
+  @if (templateComponent(); as templateComponent) {
+    <!-- TODO: change syntax  -->
+    <ng-container *ngComponentOutlet="templateComponent; inputs: { cvProfileId: profile.id }"></ng-container>
+  } @else {
+    <main class="cv-shell-page">
+      <section class="state-card">
+        <p class="state-card__eyebrow">Unknown Template</p>
+        <h1>This CV profile has no known frontend template.</h1>
+        <p>Assign a supported template on the authenticated home page or in PocketBase.</p>
+      </section>
+    </main>
   }
 } @else {
   <main class="cv-shell-page">
     <section class="state-card">
-      <p class="state-card__eyebrow">Invalid CV URL</p>
-      <h1>This route does not match the expected CV slug format.</h1>
-      <p>Expected format: <code>template--cvProfileId</code>.</p>
+      <p class="state-card__eyebrow">Unknown CV</p>
+      <h1>This CV route could not be resolved.</h1>
     </section>
   </main>
 }

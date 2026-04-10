@@ -105,20 +105,26 @@ function mapRelationIds(collection, ids) {
 
 async function importUsers(token) {
   for (const user of seed.users || []) {
-    const created = await createRecord(token, 'users', {
-      email: user.email,
-      password: DEFAULT_USER_PASSWORD,
-      passwordConfirm: DEFAULT_USER_PASSWORD,
-      verified: true,
-      emailVisibility: false,
-      name: `${user.firstName} ${user.lastName}`.trim(),
-      firstName: user.firstName,
-      lastName: user.lastName,
-      linkedin: user.linkedin,
-      github: user.github,
-      website: user.website,
-      phone: user.phone,
-    });
+    let created;
+
+    try {
+      created = await createRecord(token, 'users', {
+        email: user.email,
+        password: DEFAULT_USER_PASSWORD,
+        passwordConfirm: DEFAULT_USER_PASSWORD,
+        verified: true,
+        emailVisibility: false,
+        name: `${user.firstName} ${user.lastName}`.trim(),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        linkedin: user.linkedin,
+        github: user.github,
+        website: user.website,
+        phone: user.phone,
+      });
+    } catch (error) {
+      throw new Error(`Failed importing users:${user.id} - ${error.message}`);
+    }
 
     idMaps.users.set(user.id, created.id);
   }
@@ -127,21 +133,34 @@ async function importUsers(token) {
 async function importSimpleCollection(token, collection) {
   for (const record of seed[collection] || []) {
     const { id, ...body } = record;
-    const created = await createRecord(token, collection, body);
+    let created;
+
+    try {
+      created = await createRecord(token, collection, body);
+    } catch (error) {
+      throw new Error(`Failed importing ${collection}:${id} - ${error.message}`);
+    }
+
     idMaps[collection].set(id, created.id);
   }
 }
 
 async function importProjects(token) {
   for (const project of seed.projects || []) {
-    const created = await createRecord(token, 'projects', {
-      name: project.name,
-      description: project.description,
-      url: project.url,
-      date: project.date,
-      sortOrder: project.sortOrder,
-      achievements: mapRelationIds('achievements', project.achievements),
-    });
+    let created;
+
+    try {
+      created = await createRecord(token, 'projects', {
+        name: project.name,
+        description: project.description,
+        url: project.url,
+        date: project.date,
+        sortOrder: project.sortOrder,
+        achievements: mapRelationIds('achievements', project.achievements),
+      });
+    } catch (error) {
+      throw new Error(`Failed importing projects:${project.id} - ${error.message}`);
+    }
 
     idMaps.projects.set(project.id, created.id);
   }
@@ -149,20 +168,26 @@ async function importProjects(token) {
 
 async function importJobs(token) {
   for (const job of seed.jobs || []) {
-    const created = await createRecord(token, 'jobs', {
-      label: job.label,
-      company: job.company,
-      position: job.position,
-      location: job.location,
-      startDate: job.startDate,
-      endDate: job.endDate,
-      responsibilities: job.responsibilities,
-      sortOrder: job.sortOrder,
-      type: job.type,
-      skills: mapRelationIds('skills', job.skills),
-      projects: mapRelationIds('projects', job.projects),
-      achievements: mapRelationIds('achievements', job.achievements),
-    });
+    let created;
+
+    try {
+      created = await createRecord(token, 'jobs', {
+        label: job.label,
+        company: job.company,
+        position: job.position,
+        location: job.location,
+        startDate: job.startDate,
+        endDate: job.endDate,
+        responsibilities: job.responsibilities,
+        sortOrder: job.sortOrder,
+        type: job.type,
+        skills: mapRelationIds('skills', job.skills),
+        projects: mapRelationIds('projects', job.projects),
+        achievements: mapRelationIds('achievements', job.achievements),
+      });
+    } catch (error) {
+      throw new Error(`Failed importing jobs:${job.id} - ${error.message}`);
+    }
 
     idMaps.jobs.set(job.id, created.id);
   }
@@ -170,19 +195,26 @@ async function importJobs(token) {
 
 async function importCvProfiles(token) {
   for (const [index, profile] of (seed.cv_profiles || []).entries()) {
-    const created = await createRecord(token, 'cv_profiles', {
-      slug: `${profile.template}--seed-${index + 1}`,
-      profileName: profile.profileName,
-      template: profile.template,
-      user: idMaps.users.get(profile.user),
-      professionalSummary: profile.professionalSummary,
-      achievements: mapRelationIds('achievements', profile.achievements),
-      projects: mapRelationIds('projects', profile.projects),
-      hobbies: mapRelationIds('hobbies', profile.hobbies),
-      jobs: mapRelationIds('jobs', profile.jobs),
-      degrees: mapRelationIds('degrees', profile.degrees),
-      skills: mapRelationIds('skills', profile.skills),
-    });
+    let created;
+
+    try {
+      created = await createRecord(token, 'cv_profiles', {
+        slug: `${profile.template}--seed-${index + 1}`,
+        profileName: profile.profileName,
+        template: profile.template,
+        public: profile.public !== false,
+        user: idMaps.users.get(profile.user),
+        professionalSummary: profile.professionalSummary,
+        achievements: mapRelationIds('achievements', profile.achievements),
+        projects: mapRelationIds('projects', profile.projects),
+        hobbies: mapRelationIds('hobbies', profile.hobbies),
+        jobs: mapRelationIds('jobs', profile.jobs),
+        degrees: mapRelationIds('degrees', profile.degrees),
+        skills: mapRelationIds('skills', profile.skills),
+      });
+    } catch (error) {
+      throw new Error(`Failed importing cv_profiles:${profile.id} - ${error.message}`);
+    }
 
     await updateRecord(token, 'cv_profiles', created.id, {
       slug: `${created.template}--${created.id}`,

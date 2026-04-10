@@ -4,4 +4,4 @@ dist/
 *-plan.md
 .local/
 pb_data/
-.angular/
+.angular/*
