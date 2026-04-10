@@ -130,6 +130,7 @@
       "slug": "classic--cv1",
       "profileName": "Full-Stack Developer",
       "template": "classic",
+      "public": true,
       "user": "user1",
       "professionalSummary": "Full-stack developer with 5+ years of experience in web development and e-commerce, focused on Angular, Spring Boot, and custom Shopify delivery.",
       "achievements": ["ach1", "ach2"],

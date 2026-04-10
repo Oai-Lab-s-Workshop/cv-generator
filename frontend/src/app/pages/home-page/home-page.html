@@ -1,36 +1,107 @@
 <main class="home-page">
-  <section class="hero">
-    <p class="eyebrow">CV Profiles</p>
-    <h1>Choose a published CV</h1>
-    <p class="lede">
-      Each link opens a template-specific public CV route backed by PocketBase data.
-    </p>
+  <section class="hero hero--split">
+    <div>
+      <p class="eyebrow">Authenticated Home</p>
+      <h1>{{ currentUserName() }}</h1>
+      <p class="lede">Manage generated CV routes for your own profiles and choose a template for drafts.</p>
+    </div>
+
+    <button class="secondary-button" type="button" (click)="logout()">Sign out</button>
   </section>
 
   @if (isLoading()) {
     <section class="state-card">
-      <p>Loading CV profiles...</p>
+      <p>Loading your generated CVs...</p>
     </section>
   } @else if (errorMessage()) {
     <section class="state-card state-card--error">
-      <h2>Unable to load profiles</h2>
+      <h2>Unable to load your CV profiles</h2>
       <p>{{ errorMessage() }}</p>
     </section>
-  } @else if (profiles().length === 0) {
-    <section class="state-card">
-      <h2>No CV profiles yet</h2>
-      <p>Create profiles in PocketBase and they will appear here.</p>
-    </section>
   } @else {
-    <section class="profile-grid">
-      @for (profile of profiles(); track profile.id) {
-        <article class="profile-card">
-          <p class="profile-card__template">{{ profile.template }}</p>
-          <h2>{{ profile.profileName }}</h2>
-          <p class="profile-card__slug">/{{ profile.slug }}</p>
-          <a [routerLink]="['/', profile.slug]" class="profile-card__link">Open CV</a>
-        </article>
-      }
+    <section class="section-header">
+      <h2>Generated CVs</h2>
+      <p>Only profiles with a template are listed here.</p>
     </section>
+
+    @if (generatedProfiles().length === 0) {
+      <section class="state-card">
+        <h2>No generated CVs yet</h2>
+        <p>Choose a template for one of your drafts below to generate a CV route.</p>
+      </section>
+    } @else {
+      <section class="profile-grid">
+        @for (profile of generatedProfiles(); track profile.id) {
+          <!-- TODO: factorize to a separate component -->
+          <article class="profile-card"> 
+            <p class="profile-card__template">{{ profile.template }}</p>
+            <h2>{{ profile.profileName }}</h2>
+            <p class="profile-card__slug">/{{ profile.slug }}</p>
+
+            <label class="toggle-row">
+              <span>Public route</span>
+              <input
+                type="checkbox"
+                [checked]="publicSelections()[profile.id]"
+                [disabled]="isSaving() === profile.id"
+                (change)="togglePublic(profile, $any($event.target).checked)"
+              />
+            </label>
+
+            <!-- TODO: add an edit button to change the assigned template and regenerate the CV without changing the slug -->
+
+            <a [routerLink]="['/', profile.slug]" class="profile-card__link">Open CV</a>
+          </article>
+        }
+      </section>
+    }
+
+    <section class="section-header">
+      <h2>Draft Profiles</h2>
+      <p>Choose a template to generate a routed CV.</p>
+    </section>
+
+    @if (draftProfiles().length === 0) {
+      <section class="state-card">
+        <h2>No draft profiles</h2>
+        <p>All your current profiles already have a template assigned.</p>
+      </section>
+    } @else {
+      <section class="profile-grid">
+        @for (profile of draftProfiles(); track profile.id) {
+          <article class="profile-card">
+            <p class="profile-card__template">Draft</p>
+            <h2>{{ profile.profileName }}</h2>
+
+            <label class="form-row">
+              <span>Template</span>
+              <select
+                [ngModel]="templateSelections()[profile.id]"
+                (ngModelChange)="updateTemplateSelection(profile.id, $event)"
+              >
+                @for (template of templateOptions; track template.id) {
+                  <option [value]="template.id">{{ template.label }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="toggle-row">
+              <span>Public route</span>
+              <input
+                type="checkbox"
+                [checked]="publicSelections()[profile.id]"
+                [disabled]="isSaving() === profile.id"
+                (change)="togglePublic(profile, $any($event.target).checked)"
+              />
+            </label>
+
+            <button class="primary-button" type="button" [disabled]="isSaving() === profile.id" (click)="assignTemplate(profile)">
+              {{ isSaving() === profile.id ? 'Saving...' : 'Generate CV' }}
+            </button>
+          </article>
+        }
+      </section>
+    }
+    <!-- TODO: add a section to preview templates with mock data -->
   }
 </main>

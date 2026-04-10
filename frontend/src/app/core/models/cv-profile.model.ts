@@ -1,12 +1,11 @@
 import { User } from './user.model';
 
-export type CvTemplate = 'classic' | 'modern' | 'minimal';
-
 export interface CvProfile {
   id: string;
   slug: string;
   profileName: string;
-  template: CvTemplate;
+  template?: string;
+  public?: boolean;
   user: string;
   professionalSummary?: string;
   achievements?: string[];
