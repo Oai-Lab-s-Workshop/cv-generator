@@ -1,12 +1,14 @@
 // CV Generator Database Schema
 // Migration: 001_cv_schema.js
 
+const USERS_COLLECTION_ID = "_pb_users_auth_";
 const CV_PROFILES_COLLECTION_ID = "cvprofile001abc";
-const PERSONS_COLLECTION_ID = "persons000001abc";
-const EMPLOIS_COLLECTION_ID = "emplois00001abc";
-const PROJETS_COLLECTION_ID = "projets00001abc";
-const COMPETENCES_COLLECTION_ID = "competence01abc";
-const DIPLOMES_COLLECTION_ID = "diplomes0001abc";
+const ACHIEVEMENTS_COLLECTION_ID = "achievements1ab";
+const HOBBIES_COLLECTION_ID = "hobbies000001ab";
+const SKILLS_COLLECTION_ID = "skills00000001ab";
+const PROJECTS_COLLECTION_ID = "projects000001ab";
+const JOBS_COLLECTION_ID = "jobs0000000001ab";
+const DEGREES_COLLECTION_ID = "degrees0000001ab";
 const FILES_COLLECTION_ID = "files00000001ab";
 
 function createPublicBaseCollection(id, name, fields) {
@@ -23,221 +25,282 @@ function createPublicBaseCollection(id, name, fields) {
   });
 }
 
+function importUsersAuthCollection(app) {
+  app.importCollections(
+    [
+      {
+        id: USERS_COLLECTION_ID,
+        name: "users",
+        type: "auth",
+        system: false,
+        listRule: null,
+        viewRule: null,
+        createRule: "",
+        updateRule: null,
+        deleteRule: null,
+        fields: [
+          {
+            id: "text3208210256",
+            name: "id",
+            type: "text",
+            system: true,
+            required: true,
+            primaryKey: true,
+            presentable: false,
+            hidden: false,
+            min: 15,
+            max: 15,
+            pattern: "^[a-z0-9]+$",
+            autogeneratePattern: "[a-z0-9]{15}",
+          },
+          {
+            id: "password901924565",
+            name: "password",
+            type: "password",
+            system: true,
+            required: true,
+            presentable: false,
+            hidden: true,
+            min: 8,
+            max: 0,
+            pattern: "",
+            cost: 0,
+          },
+          {
+            id: "text2504183744",
+            name: "tokenKey",
+            type: "text",
+            system: true,
+            required: true,
+            primaryKey: false,
+            presentable: false,
+            hidden: true,
+            min: 30,
+            max: 60,
+            pattern: "",
+            autogeneratePattern: "[a-zA-Z0-9]{50}",
+          },
+          {
+            id: "email3885137012",
+            name: "email",
+            type: "email",
+            system: true,
+            required: true,
+            presentable: false,
+            hidden: false,
+            exceptDomains: null,
+            onlyDomains: null,
+          },
+          {
+            id: "bool1547992806",
+            name: "emailVisibility",
+            type: "bool",
+            system: true,
+            required: false,
+            presentable: false,
+            hidden: false,
+          },
+          {
+            id: "bool256245529",
+            name: "verified",
+            type: "bool",
+            system: true,
+            required: false,
+            presentable: false,
+            hidden: false,
+          },
+          {
+            id: "text1579384326",
+            name: "name",
+            type: "text",
+            system: false,
+            required: false,
+            primaryKey: false,
+            presentable: false,
+            hidden: false,
+            min: 0,
+            max: 255,
+            pattern: "",
+            autogeneratePattern: "",
+          },
+          {
+            id: "file376926767",
+            name: "avatar",
+            type: "file",
+            system: false,
+            required: false,
+            presentable: false,
+            hidden: false,
+            maxSelect: 1,
+            maxSize: 0,
+            mimeTypes: ["image/jpeg", "image/png", "image/svg+xml", "image/gif", "image/webp"],
+            protected: false,
+            thumbs: null,
+          },
+          {
+            id: "textfirstname01",
+            name: "firstName",
+            type: "text",
+            system: false,
+            required: true,
+            primaryKey: false,
+            presentable: false,
+            hidden: false,
+            min: 0,
+            max: 0,
+            pattern: "",
+            autogeneratePattern: "",
+          },
+          {
+            id: "textlastname001",
+            name: "lastName",
+            type: "text",
+            system: false,
+            required: true,
+            primaryKey: false,
+            presentable: false,
+            hidden: false,
+            min: 0,
+            max: 0,
+            pattern: "",
+            autogeneratePattern: "",
+          },
+          {
+            id: "urllinkedin001",
+            name: "linkedin",
+            type: "url",
+            system: false,
+            required: false,
+            presentable: false,
+            hidden: false,
+          },
+          {
+            id: "urlgithub0001",
+            name: "github",
+            type: "url",
+            system: false,
+            required: false,
+            presentable: false,
+            hidden: false,
+          },
+          {
+            id: "urlwebsite001",
+            name: "website",
+            type: "url",
+            system: false,
+            required: false,
+            presentable: false,
+            hidden: false,
+          },
+          {
+            id: "textphone00001",
+            name: "phone",
+            type: "text",
+            system: false,
+            required: false,
+            primaryKey: false,
+            presentable: false,
+            hidden: false,
+            min: 0,
+            max: 0,
+            pattern: "",
+            autogeneratePattern: "",
+          },
+          {
+            id: "fileprofile001",
+            name: "profilePicture",
+            type: "file",
+            system: false,
+            required: false,
+            presentable: false,
+            hidden: false,
+            maxSelect: 1,
+            maxSize: 0,
+            mimeTypes: null,
+            protected: false,
+            thumbs: null,
+          },
+          {
+            id: "filecover00001",
+            name: "coverPicture",
+            type: "file",
+            system: false,
+            required: false,
+            presentable: false,
+            hidden: false,
+            maxSelect: 1,
+            maxSize: 0,
+            mimeTypes: null,
+            protected: false,
+            thumbs: null,
+          },
+          {
+            id: "autodate2990389176",
+            name: "created",
+            type: "autodate",
+            system: false,
+            presentable: false,
+            hidden: false,
+            onCreate: true,
+            onUpdate: false,
+          },
+          {
+            id: "autodate3332085495",
+            name: "updated",
+            type: "autodate",
+            system: false,
+            presentable: false,
+            hidden: false,
+            onCreate: true,
+            onUpdate: true,
+          },
+        ],
+        indexes: [],
+        options: {
+          allowEmailAuth: true,
+          allowOAuth2Auth: false,
+          allowUsernameAuth: false,
+          exceptEmailDomains: null,
+          manageRule: null,
+          minPasswordLength: 8,
+          onlyEmailDomains: null,
+          onlyVerified: false,
+          requireEmail: true,
+        },
+      },
+    ],
+    false,
+  );
+}
+
+function createSingleRelationField(name, collectionId, required = false) {
+  return {
+    name,
+    type: "relation",
+    collectionId,
+    required,
+    cascadeDelete: false,
+    maxSelect: 1,
+  };
+}
+
+function createMultiRelationField(name, collectionId) {
+  return {
+    name,
+    type: "relation",
+    collectionId,
+    required: false,
+    cascadeDelete: false,
+    maxSelect: 999,
+  };
+}
+
 migrate(
   (app) => {
-    app.save(
-      createPublicBaseCollection(CV_PROFILES_COLLECTION_ID, "cv_profiles", [
-        {
-          name: "slug",
-          type: "text",
-          required: true,
-          unique: true,
-        },
-        {
-          name: "name",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "template",
-          type: "select",
-          required: true,
-          values: ["classic", "modern", "minimal"],
-          maxSelect: 1,
-        },
-        {
-          name: "is_default",
-          type: "bool",
-        },
-        {
-          name: "profile_picture",
-          type: "file",
-          maxSelect: 1,
-        },
-        {
-          name: "cover_picture",
-          type: "file",
-          maxSelect: 1,
-        },
-      ]),
-    );
-
-    app.save(
-      createPublicBaseCollection(PERSONS_COLLECTION_ID, "persons", [
-        {
-          name: "cv_profile",
-          type: "relation",
-          collectionId: CV_PROFILES_COLLECTION_ID,
-          required: true,
-          cascadeDelete: true,
-          maxSelect: 1,
-        },
-        {
-          name: "name",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "email",
-          type: "email",
-        },
-        {
-          name: "phone",
-          type: "text",
-        },
-        {
-          name: "linkedin",
-          type: "url",
-        },
-        {
-          name: "github",
-          type: "url",
-        },
-        {
-          name: "website",
-          type: "url",
-        },
-        {
-          name: "summary",
-          type: "editor",
-        },
-        {
-          name: "profile_title",
-          type: "text",
-        },
-        {
-          name: "profile_picture",
-          type: "file",
-          maxSelect: 1,
-        },
-      ]),
-    );
-
-    app.save(
-      createPublicBaseCollection(EMPLOIS_COLLECTION_ID, "emplois", [
-        {
-          name: "cv_profile",
-          type: "relation",
-          collectionId: CV_PROFILES_COLLECTION_ID,
-          required: true,
-          cascadeDelete: true,
-          maxSelect: 1,
-        },
-        {
-          name: "company",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "position",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "location",
-          type: "text",
-        },
-        {
-          name: "date_start",
-          type: "text",
-        },
-        {
-          name: "date_end",
-          type: "text",
-        },
-        {
-          name: "responsibilities",
-          type: "editor",
-        },
-        {
-          name: "sort_order",
-          type: "number",
-        },
-      ]),
-    );
-
-    app.save(
-      createPublicBaseCollection(COMPETENCES_COLLECTION_ID, "competences", [
-        {
-          name: "cv_profile",
-          type: "relation",
-          collectionId: CV_PROFILES_COLLECTION_ID,
-          required: true,
-          cascadeDelete: true,
-          maxSelect: 1,
-        },
-        {
-          name: "name",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "category",
-          type: "select",
-          values: ["Frontend", "Backend", "DevOps", "E-commerce", "Design", "Mobile", "Motion"],
-          maxSelect: 1,
-        },
-        {
-          name: "type",
-          type: "select",
-          values: ["Technical", "Professional", "Language"],
-          maxSelect: 1,
-        },
-        {
-          name: "level",
-          type: "number",
-        },
-        {
-          name: "sort_order",
-          type: "number",
-        },
-      ]),
-    );
-
-    app.save(
-      createPublicBaseCollection(DIPLOMES_COLLECTION_ID, "diplomes", [
-        {
-          name: "cv_profile",
-          type: "relation",
-          collectionId: CV_PROFILES_COLLECTION_ID,
-          required: true,
-          cascadeDelete: true,
-          maxSelect: 1,
-        },
-        {
-          name: "title",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "school",
-          type: "text",
-        },
-        {
-          name: "year",
-          type: "text",
-        },
-        {
-          name: "level",
-          type: "text",
-        },
-        {
-          name: "sort_order",
-          type: "number",
-        },
-      ]),
-    );
+    importUsersAuthCollection(app);
 
     app.save(
       createPublicBaseCollection(FILES_COLLECTION_ID, "files", [
-        {
-          name: "cv_profile",
-          type: "relation",
-          collectionId: CV_PROFILES_COLLECTION_ID,
-          required: true,
-          cascadeDelete: true,
-          maxSelect: 1,
-        },
         {
           name: "name",
           type: "text",
@@ -259,22 +322,80 @@ migrate(
           maxSelect: 1,
         },
         {
-          name: "sort_order",
+          name: "sortOrder",
           type: "number",
         },
       ]),
     );
 
     app.save(
-      createPublicBaseCollection(PROJETS_COLLECTION_ID, "projets", [
+      createPublicBaseCollection(ACHIEVEMENTS_COLLECTION_ID, "achievements", [
         {
-          name: "cv_profile",
-          type: "relation",
-          collectionId: CV_PROFILES_COLLECTION_ID,
+          name: "title",
+          type: "text",
           required: true,
-          cascadeDelete: true,
+        },
+        {
+          name: "description",
+          type: "editor",
+        },
+        {
+          name: "sortOrder",
+          type: "number",
+        },
+      ]),
+    );
+
+    app.save(
+      createPublicBaseCollection(HOBBIES_COLLECTION_ID, "hobbies", [
+        {
+          name: "name",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "description",
+          type: "editor",
+        },
+        {
+          name: "sortOrder",
+          type: "number",
+        },
+      ]),
+    );
+
+    app.save(
+      createPublicBaseCollection(SKILLS_COLLECTION_ID, "skills", [
+        {
+          name: "name",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "category",
+          type: "select",
+          values: ["Frontend", "Backend", "DevOps", "E-commerce", "Design", "Mobile", "Motion", "Project Management"],
           maxSelect: 1,
         },
+        {
+          name: "type",
+          type: "select",
+          values: ["Technical", "Professional", "Language"],
+          maxSelect: 1,
+        },
+        {
+          name: "level",
+          type: "number",
+        },
+        {
+          name: "sortOrder",
+          type: "number",
+        },
+      ]),
+    );
+
+    app.save(
+      createPublicBaseCollection(PROJECTS_COLLECTION_ID, "projects", [
         {
           name: "name",
           type: "text",
@@ -292,26 +413,144 @@ migrate(
           name: "date",
           type: "text",
         },
+        createSingleRelationField("file", FILES_COLLECTION_ID),
+        createMultiRelationField("achievements", ACHIEVEMENTS_COLLECTION_ID),
         {
-          name: "file",
-          type: "relation",
-          collectionId: FILES_COLLECTION_ID,
+          name: "sortOrder",
+          type: "number",
+        },
+      ]),
+    );
+
+    app.save(
+      createPublicBaseCollection(JOBS_COLLECTION_ID, "jobs", [
+        {
+          name: "label",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "company",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "position",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "location",
+          type: "text",
+        },
+        {
+          name: "startDate",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "endDate",
+          type: "text",
+        },
+        {
+          name: "responsibilities",
+          type: "editor",
+        },
+        {
+          name: "sortOrder",
+          type: "number",
+        },
+        {
+          name: "type",
+          type: "select",
+          required: true,
+          values: ["freelance", "sideproject", "work project"],
+          maxSelect: 1,
+        },
+        createMultiRelationField("skills", SKILLS_COLLECTION_ID),
+        createMultiRelationField("projects", PROJECTS_COLLECTION_ID),
+        createMultiRelationField("achievements", ACHIEVEMENTS_COLLECTION_ID),
+      ]),
+    );
+
+    app.save(
+      createPublicBaseCollection(DEGREES_COLLECTION_ID, "degrees", [
+        {
+          name: "title",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "school",
+          type: "text",
+        },
+        {
+          name: "year",
+          type: "text",
+        },
+        {
+          name: "level",
+          type: "text",
+        },
+        {
+          name: "sortOrder",
+          type: "number",
+        },
+      ]),
+    );
+
+    app.save(
+      createPublicBaseCollection(CV_PROFILES_COLLECTION_ID, "cv_profiles", [
+        {
+          name: "slug",
+          type: "text",
+          required: true,
+          unique: true,
+        },
+        {
+          name: "profileName",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "template",
+          type: "select",
+          required: true,
+          values: ["classic", "modern", "minimal"],
+          maxSelect: 1,
+        },
+        createSingleRelationField("user", USERS_COLLECTION_ID, true),
+        {
+          name: "professionalSummary",
+          type: "editor",
+        },
+        createMultiRelationField("achievements", ACHIEVEMENTS_COLLECTION_ID),
+        createMultiRelationField("projects", PROJECTS_COLLECTION_ID),
+        createMultiRelationField("hobbies", HOBBIES_COLLECTION_ID),
+        createMultiRelationField("jobs", JOBS_COLLECTION_ID),
+        createMultiRelationField("degrees", DEGREES_COLLECTION_ID),
+        createMultiRelationField("skills", SKILLS_COLLECTION_ID),
+        {
+          name: "profilePicture",
+          type: "file",
           maxSelect: 1,
         },
         {
-          name: "sort_order",
-          type: "number",
+          name: "coverPicture",
+          type: "file",
+          maxSelect: 1,
         },
       ]),
     );
   },
   (app) => {
-    app.delete(app.findCollectionByNameOrId("files"));
-    app.delete(app.findCollectionByNameOrId("diplomes"));
-    app.delete(app.findCollectionByNameOrId("competences"));
-    app.delete(app.findCollectionByNameOrId("projets"));
-    app.delete(app.findCollectionByNameOrId("emplois"));
-    app.delete(app.findCollectionByNameOrId("persons"));
     app.delete(app.findCollectionByNameOrId("cv_profiles"));
+    app.delete(app.findCollectionByNameOrId("degrees"));
+    app.delete(app.findCollectionByNameOrId("jobs"));
+    app.delete(app.findCollectionByNameOrId("projects"));
+    app.delete(app.findCollectionByNameOrId("skills"));
+    app.delete(app.findCollectionByNameOrId("hobbies"));
+    app.delete(app.findCollectionByNameOrId("achievements"));
+    app.delete(app.findCollectionByNameOrId("files"));
   },
 );

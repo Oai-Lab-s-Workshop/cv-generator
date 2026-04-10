@@ -11,35 +11,33 @@
   <main class="modern-cv-page">
     <aside class="sidebar">
       <p class="sidebar__template">{{ data.profile.template }}</p>
-      <h1>{{ data.person?.name ?? data.profile.name }}</h1>
-      @if (data.person?.profile_title) {
-        <p class="sidebar__title">{{ data.person?.profile_title }}</p>
-      }
+      <h1>{{ data.user ? data.user.firstName + ' ' + data.user.lastName : data.profile.profileName }}</h1>
+      <p class="sidebar__title">{{ data.profile.profileName }}</p>
 
       <section class="sidebar__section">
         <h2>Contact</h2>
-        @if (data.person?.email) {
-          <p>{{ data.person?.email }}</p>
+        @if (data.user?.email) {
+          <p>{{ data.user?.email }}</p>
         }
-        @if (data.person?.phone) {
-          <p>{{ data.person?.phone }}</p>
+        @if (data.user?.phone) {
+          <p>{{ data.user?.phone }}</p>
         }
-        @if (data.person?.linkedin) {
-          <p>{{ data.person?.linkedin }}</p>
+        @if (data.user?.linkedin) {
+          <p>{{ data.user?.linkedin }}</p>
         }
-        @if (data.person?.github) {
-          <p>{{ data.person?.github }}</p>
+        @if (data.user?.github) {
+          <p>{{ data.user?.github }}</p>
         }
-        @if (data.person?.website) {
-          <p>{{ data.person?.website }}</p>
+        @if (data.user?.website) {
+          <p>{{ data.user?.website }}</p>
         }
       </section>
 
-      @if (data.competences.length > 0) {
+      @if (data.skills.length > 0) {
         <section class="sidebar__section">
           <h2>Skills</h2>
           <div class="skill-list">
-            @for (skill of data.competences; track skill.id) {
+            @for (skill of data.skills; track skill.id) {
               <div class="skill-list__item">
                 <span>{{ skill.name }}</span>
                 @if (skill.level) {
@@ -53,18 +51,18 @@
     </aside>
 
     <section class="content">
-      @if (data.person?.summary) {
+      @if (data.profile.professionalSummary) {
         <section class="content__section">
           <h2>About</h2>
-          <p>{{ data.person?.summary }}</p>
+          <p>{{ data.profile.professionalSummary }}</p>
         </section>
       }
 
       <section class="content__section">
         <h2>Experience</h2>
-        @for (job of data.emplois; track job.id) {
+        @for (job of data.jobs; track job.id) {
           <article class="timeline-item">
-            <p class="timeline-item__date">{{ job.date_start || 'Start' }} - {{ job.date_end || 'Present' }}</p>
+            <p class="timeline-item__date">{{ job.startDate || 'Start' }} - {{ job.endDate || 'Present' }}</p>
             <h3>{{ job.position }}</h3>
             <p class="timeline-item__meta">{{ job.company }}@if (job.location) { · {{ job.location }} }</p>
             @if (job.responsibilities) {
@@ -74,11 +72,11 @@
         }
       </section>
 
-      @if (data.projets.length > 0) {
+      @if (data.projects.length > 0) {
         <section class="content__section">
           <h2>Selected Projects</h2>
           <div class="project-grid">
-            @for (project of data.projets; track project.id) {
+            @for (project of data.projects; track project.id) {
               <article class="project-card">
                 <h3>{{ project.name }}</h3>
                 @if (project.description) {
@@ -93,10 +91,10 @@
         </section>
       }
 
-      @if (data.diplomes.length > 0) {
+      @if (data.degrees.length > 0) {
         <section class="content__section">
           <h2>Education</h2>
-          @for (diploma of data.diplomes; track diploma.id) {
+          @for (diploma of data.degrees; track diploma.id) {
             <article class="timeline-item timeline-item--education">
               <h3>{{ diploma.title }}</h3>
               <p class="timeline-item__meta">{{ diploma.school }}@if (diploma.year) { · {{ diploma.year }} }</p>

@@ -1,14 +1,14 @@
 import { MediaFile } from './file.model';
 
-export interface Projet {
+export interface Project {
   id: string;
-  cv_profile: string;
   name: string;
   description?: string;
   url?: string;
   date?: string;
   file?: string;
-  sort_order?: number;
+  sortOrder?: number;
+  achievements?: string[];
   expand?: {
     file?: MediaFile;
   };

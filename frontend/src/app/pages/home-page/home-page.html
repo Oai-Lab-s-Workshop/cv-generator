@@ -26,7 +26,7 @@
       @for (profile of profiles(); track profile.id) {
         <article class="profile-card">
           <p class="profile-card__template">{{ profile.template }}</p>
-          <h2>{{ profile.name }}</h2>
+          <h2>{{ profile.profileName }}</h2>
           <p class="profile-card__slug">/{{ profile.slug }}</p>
           <a [routerLink]="['/', profile.slug]" class="profile-card__link">Open CV</a>
         </article>
