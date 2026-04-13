@@ -19,7 +19,7 @@ export class SkillsPalette implements OnInit {
   ngOnInit(): void {
     this.pocketBaseService.getSkills(this.skillsID()).then(data => {
       data.forEach(element => {
-        let icon = (element as Skill).icon;
+        let icon = (element as Skill).icon ?? 'assets/default-skill-icon.png';
         let label = (element as Skill).name;
         this.logiciels.push({icon, name: label});
       });
