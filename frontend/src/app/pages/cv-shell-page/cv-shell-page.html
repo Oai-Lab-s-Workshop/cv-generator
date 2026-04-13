@@ -1,3 +1,6 @@
+@if(isAuthenticated()) {
+  <div id="adminbar">ADMIN BAR PLACEHOLDER</div>
+}
 @if (profile(); as profile) {
   @if (templateComponent(); as templateComponent) {
     <!-- TODO: change syntax  -->
