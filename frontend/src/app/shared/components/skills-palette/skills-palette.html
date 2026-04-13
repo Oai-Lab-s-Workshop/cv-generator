@@ -1,0 +1,74 @@
+<div class="tile-body">
+    <div class="tile-header">
+        <h2>Mes outils</h2>
+    </div>
+    <div id="container" class="tile-scroll">
+        <div class="scrolldiv">
+            <div class='scroll-element primary' id='scroll1'>
+                @for(item of logiciels; track $index){
+                    @if($index <= 2){
+                        <div class='item'>
+                            <img src="{{item.icon}}" alt="">
+                            <p>{{item.name}}</p>
+                        </div>
+                    }
+                }
+            </div>
+            <div class='scroll-element secondary' id='scroll2'>
+                @for(item of logiciels; track $index){
+                    @if($index <= 2){
+                        <div class='item'>
+                            <img src="{{item.icon}}" alt="">
+                            <p>{{item.name}}</p>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <div class="scrolldiv">
+            <div class='scroll-element primary'>
+                @for(item of logiciels; track $index){
+                    @if($index <= 5 && $index > 2){
+                        <div class='item'>
+                            <img src="{{item.icon}}" alt="">
+                            <p>{{item.name}}</p>
+                        </div>
+                    }
+                }
+            </div>
+            <div class='scroll-element secondary'>
+                @for(item of logiciels; track $index){
+                    @if($index <= 5 && $index > 2){
+                        <div class='item'>
+                            <img src="{{item.icon}}" alt="">
+                            <p>{{item.name}}</p>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <div class="scrolldiv">
+            <div class='scroll-element primary'>
+                @for(item of logiciels; track $index){
+                    @if($index <= 8 && $index > 5){
+                        <div class='item'>
+                            <img src="{{item.icon}}" alt="">
+                            <p>{{item.name}}</p>
+                        </div>
+                    }
+                }
+            </div>
+            <div class='scroll-element secondary'>
+                @for(item of logiciels; track $index){
+                    @if($index <= 8 && $index > 5){
+                        <div class='item'>
+                            <img src="{{item.icon}}" alt="">
+                            <p>{{item.name}}</p>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <div class='fade'></div>
+    </div>
+</div>

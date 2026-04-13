@@ -5,4 +5,5 @@ export interface Skill {
   type?: string;
   level?: number;
   sortOrder?: number;
+  icon?: string;
 }

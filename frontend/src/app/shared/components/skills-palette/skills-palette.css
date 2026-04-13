@@ -1,0 +1,106 @@
+#container{
+    height: fit-content;
+    transform: rotate(-30deg) scale(1.25) translateX(5%) translateY(25%);
+}
+
+.scrolldiv{
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    padding: 1vh 0;
+    gap: 5%;
+    left: -0%;
+    animation: loop 10s linear infinite;
+}
+
+.scroll-element{
+    display: flex;
+    justify-content: space-around;
+    min-width: calc(110% + 2.5vw);
+    width: fit-content;
+    gap: 5%;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.item {
+    padding: .5%;
+    text-wrap: nowrap;
+    /* width: 100%; */
+    border-radius: 6px;
+    background-color: var(--bgTileColor, white);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.item img{
+    /* padding-top: 1%; */
+    height: 1rem;
+    aspect-ratio: 1;
+    object-fit: contain;
+    margin-left: 1%;
+}
+
+.item p{
+    margin: 0 10px;
+    font-size: clamp(.8rem, 2.5vw, 1.3rem);
+    color: rgb(105, 105, 105);
+}
+
+.tile-scroll{
+    height: 50%;
+    width: 100%;
+    /* overflow: hidden; */
+}
+
+.fade {
+    --col: var(--bgTileColor, white);
+    width: 200%;
+    height: 110%;
+    position: relative;
+    top: -110% !important;
+    left: -50% !important;
+    background: linear-gradient(
+        90deg,
+        var(--col),
+        var(--col) 25%,
+        transparent 50%,
+        var(--col) 75%,
+        var(--col)
+    );
+
+    inset: 0;
+    /* pointer-event: none; */
+}
+
+@keyframes loop {
+    0% {
+        left: -0%;
+    }
+    100% {
+        left: calc(-115% - 2.5vw);
+    }
+}
+
+.scrolldiv:nth-child(2){
+    transform:translateX(-20%);
+}
+
+@media screen and (min-width: 1200px) {
+    .scroll-element{
+        min-width: calc(130% + 2.5vw);
+    }
+    .scrolldiv{
+        animation: loop2 10s linear infinite;
+    }
+    @keyframes loop2 {
+        0% {
+            left: -0%;
+        }
+        100% {
+            left: calc(-135% - 2.5vw);
+        }
+    }
+}
