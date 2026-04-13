@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, Injector,
 import { CvProfile } from '../../core/models/cv-profile.model';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { CV_TEMPLATE_OPTIONS_BY_ID } from '../../core/templates/cv-template-registry';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-cv-shell-page',
@@ -13,11 +14,13 @@ import { CV_TEMPLATE_OPTIONS_BY_ID } from '../../core/templates/cv-template-regi
 })
 export class CvShellPage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
+  private readonly authService = inject(AuthService);
   private readonly injector = inject(Injector);
   private requestId = 0;
 
   readonly slug = input.required<string>();
   readonly profile = signal<CvProfile | null>(null);
+  readonly isAuthenticated = this.authService.isAuthenticated;
 
   ngOnInit(): void {
     effect(
