@@ -446,12 +446,12 @@ migrate(
         },
         {
           name: "startDate",
-          type: "text",
+          type: "date",
           required: true,
         },
         {
           name: "endDate",
-          type: "text",
+          type: "date",
         },
         {
           name: "responsibilities",
