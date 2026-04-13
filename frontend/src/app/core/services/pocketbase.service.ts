@@ -156,4 +156,13 @@ export class PocketBaseService {
 
     return currentUserId;
   }
+
+  public toDate(value?: string | null): Date | undefined {
+    if (!value) {
+      return undefined;
+    }
+    const isoValue = value.replace(' ', 'T');
+    const date = new Date(isoValue);
+    return Number.isNaN(date.getTime()) ? undefined : date;
+  }
 }
