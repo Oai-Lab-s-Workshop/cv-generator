@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+.project-chip {
+  background: #ffffff;
+  border: 1px solid #d8dee9;
+  border-radius: 1rem;
+  padding: 1rem 1.15rem;
+}
+
+.project-chip__header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.project-chip__date,
+.project-chip__description,
+.project-chip__link {
+  color: #4b5563;
+  line-height: 1.65;
+}
+
+.project-chip__date {
+  white-space: nowrap;
+}
+
+.project-chip__link {
+  color: #0f4aa5;
+}
+
+@media (max-width: 760px) {
+  .project-chip__header {
+    flex-direction: column;
+  }
+
+  .project-chip__date {
+    white-space: normal;
+  }
+}
