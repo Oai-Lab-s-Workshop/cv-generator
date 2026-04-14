@@ -3,6 +3,7 @@ import { CvData } from '../../../core/models/cv-data.model';
 import { Job } from '../../../core/models/job.model';
 import { PocketBaseService } from '../../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../../core/utils/error-message';
+import { ProjectChip } from '../../../shared/components/project-chip/project-chip';
 
 type JobGroup = {
   company: string;
@@ -11,6 +12,7 @@ type JobGroup = {
 
 @Component({
   selector: 'app-classic-cv-page',
+  imports: [ProjectChip],
   templateUrl: './classic-cv-page.html',
   styleUrl: './classic-cv-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,0 +1,22 @@
+<article class="project-chip">
+    <div class="project-chip__header">
+        <h3>{{ project().name }}</h3>
+        @if (project().date) {
+            <p class="project-chip__date">{{ project().date }}</p>
+        }
+    </div>
+
+    @if (project().description) {
+        <p class="project-chip__description">{{ project().description }}</p>
+    }
+
+    @if (project().url){
+        <a href=""></a>
+    }
+
+    @if (project().url) {
+        <a class="project-chip__link" [href]="project().url" target="_blank" rel="noreferrer">
+            {{ project().url }}
+        </a>
+    }
+</article>

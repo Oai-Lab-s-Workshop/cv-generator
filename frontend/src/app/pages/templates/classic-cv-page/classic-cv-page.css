@@ -41,7 +41,7 @@ main :first-child{
   flex-grow: 2;
 }
 main :nth-child(2){
-  flex-shrink: 2;
+  flex-shrink: 1.5;
 }
 
 h1,
@@ -63,7 +63,6 @@ h1 {
   color: #475467;
 }
 
-.contact-card,
 .item {
   background: #ffffff;
   border: 1px solid #d8dee9;
@@ -75,7 +74,11 @@ h1 {
 }
 
 .contact-card > div {
-  margin-bottom: 12px;
+  margin-bottom: 6px;
+}
+
+.contact-card .label {
+  font-weight: 600;
 }
 
 .contact-card p:last-child,
@@ -84,16 +87,18 @@ h1 {
   margin-bottom: 0;
 }
 
-.section {
+section {
   margin-top: 1.5rem;
 }
 
-.section > h2 {
-  margin-bottom: 0.8rem;
-  font-size: 0.82rem;
+section > h2 {
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  padding-bottom: 0.6rem;
+  border-bottom: solid 1px #d8dee9;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: #667085;
+  color: black;
 }
 
 .stack {

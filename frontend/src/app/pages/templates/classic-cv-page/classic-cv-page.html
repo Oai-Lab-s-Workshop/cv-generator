@@ -24,10 +24,9 @@
           </div>
 
           <h1>{{ data.user ? data.user.firstName + ' ' + data.user.lastName : data.profile.profileName }}</h1>
-          <p class="hero__title">{{ data.profile.profileName }}</p>
           @if (data.profile.professionalSummary) {
-            <div class="section">
-              <h2>Profile</h2>
+            <h2 class="hero__title">{{ data.profile.profileName }}</h2>
+            <div class="item">
               <p class="copy">{{ data.profile.professionalSummary }}</p>
             </div>
           }
@@ -35,7 +34,7 @@
 
         <main>
           <div class="col">
-            <section class="section">
+            <section class="">
               <h2>Experience</h2>
               <div class="stack">
                 @for (jobGroup of groupJobsByCompany(data.jobs); track jobGroup.company) {
@@ -62,60 +61,50 @@
               </div>
             </section>
             @if (data.projects.length > 0) {
-              <section class="section">
+              <section class="">
                 <h2>Projects</h2>
                 <div class="stack stack--compact">
                   @for (project of data.projects; track project.id) {
-                    <article class="item">
-                      <div class="item__header">
-                        <h3>{{ project.name }}</h3>
-                        @if (project.date) {
-                          <p class="item__period">{{ project.date }}</p>
-                        }
-                      </div>
-                      @if (project.description) {
-                        <p class="copy">{{ project.description }}</p>
-                      }
-                      @if (project.url) {
-                        <a [href]="project.url" target="_blank" rel="noreferrer">{{ project.url }}</a>
-                      }
-                    </article>
+                    <app-project-chip [project]="project"></app-project-chip>
                   }
                 </div>
               </section>
             }
           </div>
           <div class="col">
-            <div class="contact-card">
-              @if (data.user?.email) {
-                <div>
-                  <p>{{ data.user?.email }}</p>
-                </div>
-              }
-              @if (data.user?.phone) {
-                <div>
-                  <p>{{ data.user?.phone }}</p>
-                </div>
-              }
-              @if (data.user?.linkedin) {
-                <div>
-                  <p>{{ data.user?.linkedin }}</p>
-                </div>
-              }
-              @if (data.user?.github) {
-                <div>
-                  <p>{{ data.user?.github }}</p>
-                </div>
-              }
-              @if (data.user?.website) {
-                <div>
-                  <p>{{ data.user?.website }}</p>
-                </div>
-              }
-            </div>
+            <section>
+              <h2>Contact</h2>
+              <div class="contact-card">
+                @if (data.user?.email) {
+                  <div>
+                    <p><span class="label">✉️ Email</span> : {{ data.user?.email }}</p>
+                  </div>
+                }
+                @if (data.user?.phone) {
+                  <div>
+                    <p><span class="label">📞 Téléphone</span> : {{ data.user?.phone }}</p>
+                  </div>
+                }
+                @if (data.user?.linkedin) {
+                  <div>
+                    <p><span class="label">💼 LinkedIn</span> : {{ data.user?.linkedin }}</p>
+                  </div>
+                }
+                @if (data.user?.github) {
+                  <div>
+                    <p><span class="label">💻 GitHub</span> : {{ data.user?.github }}</p>
+                  </div>
+                }
+                @if (data.user?.website) {
+                  <div>
+                    <p><span class="label">🌐 Website</span> : {{ data.user?.website }}</p>
+                  </div>
+                }
+              </div>
+            </section>
 
             @if (data.degrees.length > 0) {
-              <section class="section section--panel">
+              <section class="section--panel">
                 <h2>Education</h2>
                 <div class="stack stack--compact">
                   @for (diploma of data.degrees; track diploma.id) {
