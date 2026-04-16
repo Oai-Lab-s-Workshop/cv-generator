@@ -1,0 +1,52 @@
+:host {
+    display: block;
+}
+
+.project-chip {
+    background: #ffffff;
+    border: 1px solid #d8dee9;
+    border-radius: 1rem;
+    padding: 1rem 1.15rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.achievement-chip__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+    padding-bottom: 6px;
+    padding-inline-end: 10px;
+    padding-inline-start: 10px;
+    padding-top: 8px;
+}
+
+h3{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.project-chip__date {
+    color: #4b5563;
+    line-height: 1.65;
+}
+
+.project-chip__date {
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 5px;
+}
+
+@media (max-width: 760px) {
+    .project-chip__header {
+        flex-direction: column;
+    }
+    
+    .project-chip__date {
+        white-space: normal;
+    }
+}
