@@ -1,0 +1,12 @@
+@if (profile().professionalSummary) {
+  <div class="profile-summary-chip">
+    <div class="profile-summary-chip__title">
+      <i class="bi bi-chat-quote-fill" aria-hidden="true"></i>
+      <h2>{{ profile().profileName }}</h2>
+    </div>
+
+    <div class="profile-summary-chip__body">
+      <p>{{ profile().professionalSummary }}</p>
+    </div>
+  </div>
+}

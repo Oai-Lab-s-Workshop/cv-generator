@@ -1,0 +1,18 @@
+:host {
+  display: block;
+}
+article{
+  display: flex;
+  gap: 10px;
+}
+i{
+  font-size: 18px;
+}
+
+div{
+  color: #888888;
+}
+
+h3{
+  color: black;
+}
