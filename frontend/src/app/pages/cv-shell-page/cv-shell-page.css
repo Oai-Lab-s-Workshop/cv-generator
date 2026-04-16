@@ -1,3 +1,12 @@
+#adminbar{
+  position: absolute;
+  top: 0;
+  z-index: 1000;
+  background-color: #0000002f;
+  padding: 12px;
+  width: 100%;
+}
+
 .cv-shell-page {
   max-width: 860px;
   margin: 0 auto;
@@ -27,4 +36,10 @@ h1 {
 
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media print {
+  .adminbar {
+    display: none !important;
+  }
 }

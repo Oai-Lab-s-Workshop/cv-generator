@@ -1,0 +1,10 @@
+<article class="item">
+	<i class="bi bi-mortarboard-fill"></i>
+	<div>
+		<h3>{{ diploma().title }}</h3>
+		<!-- <p class="item__meta">{{ diploma().school }}@if (diploma().year) { · {{ diploma().year }} }</p> -->
+		@if (diploma().level) {
+			<p class="copy">{{ diploma().level }}</p>
+		}
+	</div>
+</article>
