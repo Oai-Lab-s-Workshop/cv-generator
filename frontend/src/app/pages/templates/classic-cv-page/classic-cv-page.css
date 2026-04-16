@@ -51,6 +51,46 @@ p {
   margin-top: 0;
 }
 
+h3{
+  font-size: 21px;
+  padding-bottom: 3px;
+  padding-inline-end: 2px;
+  padding-inline-start: 2px;
+  padding-top: 3px;
+  line-break: after-white-space;
+  line-height: 27.3px;
+  word-break: break-word;
+}
+
+.job {
+  margin-top: 14px;
+}
+
+h4 {
+  font-size: 17.5px;
+  overflow-wrap: break-word;
+  padding-bottom: 3px;
+  padding-inline-end: 2px;
+  padding-inline-start: 2px;
+  padding-top: 3px;
+  line-height: 22.75px;
+}
+
+.job .item__meta {
+  font-size : 14px;
+  height: auto;
+  isolation: auto;
+  line-height: 21px;
+  outline-color: rgb(44, 44, 43);
+  outline-style: none;
+  outline-width: 0px;
+  text-size-adjust: 100%;
+  text-wrap-mode: wrap;
+  white-space-collapse: break-spaces;
+}
+
+
+
 h1 {
   margin-bottom: 0.35rem;
   font-size: clamp(2.5rem, 5vw, 4rem);
@@ -93,8 +133,14 @@ section {
 
 section > h2 {
   margin-bottom: 1rem;
-  font-size: 1.3rem;
-  padding-bottom: 0.6rem;
+  font-size: 26.25px;
+  font-weight: 600;
+  line-break: after-white-space;
+  line-height: 34.125px;
+  padding-bottom: 12px;
+  padding-inline-end: 2px;
+  padding-inline-start: 2px;
+  padding-top: 3px;
   border-bottom: solid 1px #d8dee9;
   text-transform: uppercase;
   letter-spacing: 0.16em;
@@ -122,10 +168,35 @@ section > h2 {
 }
 
 .item__meta,
-.item__period,
-.copy {
+.item__period {
   color: #4b5563;
   line-height: 1.65;
+}
+
+.copy {
+  color: rgb(125, 122, 117);
+  color-scheme: light;
+  cursor: text;
+  fill: rgb(125, 122, 117);
+  font-family: ui-sans-serif, -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 14px;
+  height: auto;
+  isolation: auto;
+  line-height: 21px;
+  outline-color: rgb(125, 122, 117);
+  outline-style: none;
+  outline-width: 0px;
+  padding-bottom: 3px;
+  padding-inline-end: 2px;
+  padding-inline-start: 2px;
+  padding-top: 3px;
+}
+
+hr {
+  width: 80%;
+  border: none;
+  border-top: solid 1px #d8dee9;
+  margin: 1.5rem 0;
 }
 
 .item__period {
@@ -134,7 +205,7 @@ section > h2 {
 
 .grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-top: 1.5rem;
 }
@@ -151,6 +222,11 @@ section > h2 {
 
 a {
   color: #0f4aa5;
+}
+
+.avoid-break {
+  break-inside: avoid;
+  page-break-inside: avoid; /* legacy */
 }
 
 @media (max-width: 760px) {
@@ -171,14 +247,205 @@ a {
 }
 
 @media print {
-  .classic-cv-page {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    margin: 0;
     padding: 0;
     background: #fff;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #cover_picture {
+    display: block;
+    height: 32mm;
+    max-height: none;
+    margin: 0 0 8mm;
+
+    position: absolute;
+    top: 0;
+    width: 210mm;
+    left: 0;
+  }
+
+  .print-body{
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 12mm 14mm 14mm;
+
+    height: 297mm;
+    overflow: visible;
+    border: 1px solid red;
+  }
+  
+
+  .classic-cv-page {
+    box-sizing: border-box;
+    background: #fff;
+    color: #111;
+    font-size: 10.5pt;
+    line-height: 1.35;
+  }
+
+  main {
+    gap: 8mm;
+  }
+
+  main :first-child{
+    flex-grow: 1;
+  }
+  main :nth-child(2){
+    flex-shrink: 1;
+  }
+
+  section,
+  article,
+  .item,
+  .job,
+  .contact-card,
+  .grid,
+  .stack {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  section {
+    margin-top: 6mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  section > h2 {
+    margin-bottom: 3mm;
+    padding: 0 0 2mm;
+    font-size: 12pt;
+    line-height: 1.2;
+    letter-spacing: 0.12em;
+  }
+
+  .grid {
+    gap: 4mm;
+    margin-top: 4mm;
+  }
+
+  .stack {
+    gap: 4mm;
+  }
+
+  .item,
+  .contact-card {
+    padding: 3.5mm 4mm;
   }
 
   .contact-card,
   .section--panel,
   .item {
     box-shadow: none;
+  }
+
+  .hero {
+    gap: 4mm;
+    margin-bottom: 6mm;
+  }
+
+  .hero__eyebrow {
+    top: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  p,
+  .copy,
+  .item__meta,
+  .item__period,
+  .skill {
+    color: #111;
+  }
+
+  h1 {
+    margin-bottom: 2mm;
+    font-size: 22pt;
+    line-height: 1.05;
+  }
+
+  .hero__title {
+    font-size: 11pt;
+    line-height: 1.3;
+    color: #444;
+  }
+
+  h3 {
+    padding: 0;
+    font-size: 11pt;
+    line-height: 1.25;
+  }
+
+  h4 {
+    padding: 0;
+    font-size: 10pt;
+    line-height: 1.25;
+  }
+
+  h5 {
+    margin: 0 0 2mm;
+    font-size: 9pt;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .job {
+    margin-top: 4mm;
+  }
+
+  .job .item__meta,
+  .item__meta,
+  .item__period,
+  .copy,
+  .contact-card p,
+  .skill {
+    font-size: 9pt;
+    line-height: 1.35;
+  }
+
+  .copy {
+    padding: 0;
+  }
+
+  .item__header {
+    gap: 3mm;
+  }
+
+  .contact-card > div {
+    margin-bottom: 2mm;
+  }
+
+  hr {
+    margin: 4mm 0;
+  }
+
+  .skill {
+    margin: 1.5mm 1.5mm 0 0;
+    padding: 1.5mm 2.5mm;
+    border: 1px solid #d8dee9;
+    border-radius: 0;
+    background: #fff;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
   }
 }

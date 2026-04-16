@@ -7,13 +7,29 @@
   border: 1px solid #d8dee9;
   border-radius: 1rem;
   padding: 1rem 1.15rem;
+  height: 100%;
 }
 
 .project-chip__header {
   display: flex;
   align-items: baseline;
-  gap: 1rem;
-  justify-content: space-between;
+  gap: 4px;
+  justify-content: flex-start;
+  font-size: 14px;
+  font-weight: 600;
+  padding-bottom: 6px;
+  padding-inline-end: 10px;
+  padding-top: 8px;
+}
+.project-chip__header i {
+    margin-inline-start: 2px;
+    margin-top: 0px;
+}
+
+h3{
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .project-chip__date,
@@ -23,8 +39,15 @@
   line-height: 1.65;
 }
 
+.project-chip__description{
+    font-size: 12px;
+    line-height: 18px;
+}
+
 .project-chip__date {
   white-space: nowrap;
+  font-size: 12px;
+  padding: 5px;
 }
 
 .project-chip__link {
@@ -32,10 +55,6 @@
 }
 
 @media (max-width: 760px) {
-  .project-chip__header {
-    flex-direction: column;
-  }
-
   .project-chip__date {
     white-space: normal;
   }
