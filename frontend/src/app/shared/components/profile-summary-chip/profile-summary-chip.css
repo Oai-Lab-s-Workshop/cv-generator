@@ -1,0 +1,41 @@
+:host {
+  display: block;
+}
+
+.profile-summary-chip {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.profile-summary-chip__title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #475467;
+}
+
+.profile-summary-chip__title i {
+  color: #0f4aa5;
+  font-size: 1rem;
+}
+
+.profile-summary-chip__title h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.profile-summary-chip__body {
+  background: #ffffff;
+  border: 1px solid #d8dee9;
+  border-radius: 1rem;
+  padding: 1rem 1.15rem;
+}
+
+.profile-summary-chip__body p {
+  margin: 0;
+  color: rgb(125, 122, 117);
+  font-family: ui-sans-serif, -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 14px;
+  line-height: 21px;
+}

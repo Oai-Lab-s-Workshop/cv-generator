@@ -5,6 +5,8 @@ import { PocketBaseService } from '../../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../../core/utils/error-message';
 import { ProjectChip } from '../../../shared/components/project-chip/project-chip';
 import { AchievementChip } from '../../../shared/components/achievement-chip/achievement-chip';
+import { EducationChip } from '../../../shared/components/education-chip/education-chip';
+import { ProfileSummaryChip } from '../../../shared/components/profile-summary-chip/profile-summary-chip';
 
 type JobGroup = {
   company: string;
@@ -13,7 +15,7 @@ type JobGroup = {
 
 @Component({
   selector: 'app-classic-cv-page',
-  imports: [ProjectChip, AchievementChip],
+  imports: [ProjectChip, AchievementChip, EducationChip, ProfileSummaryChip],
   templateUrl: './classic-cv-page.html',
   styleUrl: './classic-cv-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -37,3 +37,9 @@ h1 {
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
+
+@media print {
+  .adminbar {
+    display: none !important;
+  }
+}
