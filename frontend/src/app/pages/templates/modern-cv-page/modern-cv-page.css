@@ -124,3 +124,21 @@ a {
     color: #475467;
   }
 }
+
+:host-context(.cv-preview-enabled) .modern-cv-page {
+  display: block;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  background: #fff;
+}
+
+:host-context(.cv-preview-enabled) .sidebar {
+  background: #fff;
+  color: #102030;
+}
+
+:host-context(.cv-preview-enabled) .sidebar__template,
+:host-context(.cv-preview-enabled) .sidebar__title {
+  color: #475467;
+}
