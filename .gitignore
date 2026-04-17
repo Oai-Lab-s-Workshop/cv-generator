@@ -3,5 +3,7 @@ node_modules/
 dist/
 *-plan.md
 .local/
-pb_data/
-.angular/*
+frontend/.angular/
+.angular/
+pb_data/backups/
+pb_data/types.d.ts

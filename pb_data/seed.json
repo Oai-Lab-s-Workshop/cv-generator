@@ -1,0 +1,145 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "firstName": "Alex",
+      "lastName": "Example",
+      "email": "alex@example.com",
+      "linkedin": "https://linkedin.com/in/alex-example",
+      "github": "https://github.com/example",
+      "website": "https://example.dev"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "ach1",
+      "title": "Delivered product features end-to-end",
+      "description": "Implemented full-stack features across frontend, backend, and deployment workflows.",
+      "sortOrder": 0
+    },
+    {
+      "id": "ach2",
+      "title": "Improved delivery quality",
+      "description": "Reduced turnaround time by introducing reusable patterns and stronger release practices.",
+      "sortOrder": 1
+    }
+  ],
+  "hobbies": [
+    {
+      "id": "hobby1",
+      "name": "Photography",
+      "description": "Street and travel photography.",
+      "sortOrder": 0
+    },
+    {
+      "id": "hobby2",
+      "name": "Running",
+      "description": "Regular endurance training and local races.",
+      "sortOrder": 1
+    }
+  ],
+  "jobs": [
+    {
+      "id": "job1",
+      "label": "Example Studio - Full-stack Developer",
+      "company": "Example Studio",
+      "position": "Full-stack Developer",
+      "location": "Remote",
+      "startDate": "2025-01-01 00:00:00.000Z",
+      "type": "work project",
+      "responsibilities": "Full-stack development\nArchitecture and maintenance of web applications\nContinuous integration and deployment",
+      "sortOrder": 0,
+      "skills": ["skill1", "skill2", "skill4", "skill8", "skill9"],
+      "projects": ["proj1"],
+      "achievements": ["ach1"]
+    },
+    {
+      "id": "job2",
+      "label": "Example Commerce - Frontend Developer",
+      "company": "Example Commerce",
+      "position": "Frontend Developer",
+      "location": "Remote",
+      "startDate": "2023-01-01 00:00:00.000Z",
+      "endDate": "2024-03-01 00:00:00.000Z",
+      "type": "work project",
+      "responsibilities": "Frontend development and maintenance\nTheme customization and UX improvements\nCustom feature delivery for storefront needs",
+      "sortOrder": 1,
+      "skills": ["skill6", "skill7", "skill10", "skill11", "skill12"],
+      "projects": ["proj2", "proj3"],
+      "achievements": ["ach2"]
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj1",
+      "name": "Angular / API Starter",
+      "description": "Full-stack architecture with containerized services, API backend, and Angular frontend.",
+      "date": "2024",
+      "sortOrder": 0,
+      "achievements": ["ach1"]
+    },
+    {
+      "id": "proj2",
+      "name": "Storefront Banner Module",
+      "description": "Customizable module integrated into an e-commerce theme editor.",
+      "date": "2023",
+      "sortOrder": 1,
+      "achievements": ["ach2"]
+    },
+    {
+      "id": "proj3",
+      "name": "Pricing Calculator",
+      "description": "Custom module with pricing logic, persistence, and CSV import support.",
+      "date": "2023",
+      "sortOrder": 2,
+      "achievements": []
+    },
+    {
+      "id": "proj4",
+      "name": "Marketing Website",
+      "description": "Responsive showcase website with CMS integration.",
+      "date": "2020",
+      "sortOrder": 3,
+      "achievements": []
+    }
+  ],
+  "skills": [
+    { "id": "skill1", "name": "Angular", "category": "Frontend", "type": "Technical", "level": 90, "sortOrder": 0 },
+    { "id": "skill2", "name": "TypeScript", "category": "Frontend", "type": "Technical", "level": 90, "sortOrder": 1 },
+    { "id": "skill3", "name": "JavaScript", "category": "Frontend", "type": "Technical", "level": 95, "sortOrder": 2 },
+    { "id": "skill4", "name": "Node.js", "category": "Backend", "type": "Technical", "level": 85, "sortOrder": 3 },
+    { "id": "skill5", "name": "PostgreSQL", "category": "Backend", "type": "Technical", "level": 80, "sortOrder": 4 },
+    { "id": "skill6", "name": "E-commerce", "category": "Product", "type": "Technical", "level": 95, "sortOrder": 5 },
+    { "id": "skill7", "name": "Design Systems", "category": "Frontend", "type": "Technical", "level": 95, "sortOrder": 6 },
+    { "id": "skill8", "name": "Docker", "category": "DevOps", "type": "Technical", "level": 75, "sortOrder": 7 },
+    { "id": "skill9", "name": "GitHub", "category": "DevOps", "type": "Technical", "level": 90, "sortOrder": 8 },
+    { "id": "skill10", "name": "Project Management", "category": "Project Management", "type": "Professional", "level": 80, "sortOrder": 9 },
+    { "id": "skill11", "name": "Agile Delivery", "category": "Project Management", "type": "Professional", "level": null, "sortOrder": 10 },
+    { "id": "skill12", "name": "CI/CD", "category": "DevOps", "type": "Professional", "level": null, "sortOrder": 11 },
+    { "id": "skill13", "name": "English", "type": "Language", "level": null, "sortOrder": 12 },
+    { "id": "skill14", "name": "French", "type": "Language", "level": null, "sortOrder": 13 }
+  ],
+  "degrees": [
+    { "id": "deg1", "title": "Software Engineering", "school": "Example Institute", "year": "2026", "level": "Master", "sortOrder": 0 },
+    { "id": "deg2", "title": "Product Design", "school": "Example Academy", "year": "2022", "level": "Bachelor", "sortOrder": 1 }
+  ],
+  "cv_profiles": [
+    {
+      "id": "cv1",
+      "slug": "classic--cv1",
+      "profileName": "Full-Stack Developer",
+      "template": "classic",
+      "public": true,
+      "user": "user1",
+      "professionalSummary": "Example profile data for local development and demo imports.",
+      "achievements": ["ach1", "ach2"],
+      "projects": ["proj1", "proj2", "proj3", "proj4"],
+      "hobbies": ["hobby1", "hobby2"],
+      "jobs": ["job1", "job2"],
+      "degrees": ["deg1", "deg2"],
+      "skills": ["skill1", "skill2", "skill3", "skill4", "skill5", "skill6", "skill7", "skill8", "skill9", "skill10", "skill11", "skill12", "skill13", "skill14"],
+      "created": "2026-04-07T00:00:00Z",
+      "updated": "2026-04-07T00:00:00Z"
+    }
+  ]
+}
