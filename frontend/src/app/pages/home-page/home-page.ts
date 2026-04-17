@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CvProfile } from '../../core/models/cv-profile.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
@@ -17,10 +17,13 @@ import { getErrorMessage } from '../../core/utils/error-message';
 export class HomePage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly generatedProfiles = signal<CvProfile[]>([]);
   readonly draftProfiles = signal<CvProfile[]>([]);
   readonly isLoading = signal(true);
+  readonly isCreating = signal(false);
+  readonly newProfileName = signal('');
   readonly errorMessage = signal<string | null>(null);
   readonly isSaving = signal<string | null>(null);
   readonly templateSelections = signal<Record<string, string>>({});
@@ -29,7 +32,7 @@ export class HomePage implements OnInit {
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
   readonly currentUserName = computed(() => {
     const user = this.currentUser();
-    return user ? `${user.firstName} ${user.lastName}` : 'Authenticated user';
+    return user ? `${user.firstName} ${user.lastName}` : 'Utilisateur authentifie';
   });
 
   ngOnInit(): void {
@@ -44,12 +47,13 @@ export class HomePage implements OnInit {
       const profiles = await this.pocketBaseService.getCurrentUserCvProfiles();
       const generatedProfiles = profiles.filter((profile) => !!profile.template);
       const draftProfiles = profiles.filter((profile) => !profile.template);
+      const allProfiles = [...generatedProfiles, ...draftProfiles];
 
       this.templateSelections.set(
-        Object.fromEntries(draftProfiles.map((profile) => [profile.id, this.templateOptions[0]?.id ?? 'classic'])),
+        Object.fromEntries(allProfiles.map((profile) => [profile.id, profile.template || this.templateOptions[0]?.id || 'classic'])),
       );
       this.publicSelections.set(
-        Object.fromEntries([...generatedProfiles, ...draftProfiles].map((profile) => [profile.id, profile.public !== false])),
+        Object.fromEntries(allProfiles.map((profile) => [profile.id, profile.public !== false])),
       );
       this.generatedProfiles.set(generatedProfiles);
       this.draftProfiles.set(draftProfiles);
@@ -82,6 +86,28 @@ export class HomePage implements OnInit {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
       this.isSaving.set(null);
+    }
+  }
+
+  async createProfile(): Promise<void> {
+    const profileName = this.newProfileName().trim();
+
+    if (!profileName) {
+      this.errorMessage.set('Le nom du profil est obligatoire.');
+      return;
+    }
+
+    this.isCreating.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      const profile = await this.pocketBaseService.createCurrentUserCvProfile(profileName);
+      this.newProfileName.set('');
+      await this.router.navigate(['/home/profiles', profile.id, 'edit']);
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.isCreating.set(false);
     }
   }
 

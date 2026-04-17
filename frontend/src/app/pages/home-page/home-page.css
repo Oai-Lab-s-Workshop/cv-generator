@@ -9,6 +9,55 @@
   margin-bottom: 2rem;
 }
 
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin: 0 0 2rem;
+}
+
+.quick-actions__create {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex: 1 1 30rem;
+}
+
+.quick-actions__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 18rem;
+  flex: 1 1 18rem;
+}
+
+.quick-actions__field span {
+  font-weight: 600;
+}
+
+.quick-actions__field input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+  background: #fff;
+}
+
+.quick-actions__button {
+  width: auto;
+  margin-top: 0;
+}
+
+.quick-actions__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 .hero--split {
   display: flex;
   align-items: flex-start;
@@ -104,6 +153,12 @@ h1 {
   text-decoration: none;
 }
 
+.profile-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
 .profile-card__link:hover,
 .profile-card__link:focus-visible {
   text-decoration: underline;
@@ -166,6 +221,8 @@ select {
   }
 
   .hero--split,
+  .quick-actions,
+  .quick-actions__create,
   .form-row,
   .toggle-row {
     flex-direction: column;

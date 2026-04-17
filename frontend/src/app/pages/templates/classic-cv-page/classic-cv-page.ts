@@ -26,7 +26,8 @@ export class ClassicCvPage implements OnInit {
   private requestId = 0;
   private readonly responsibilitiesHtmlCache = new Map<string, string>();
 
-  readonly cvProfileId = input.required<string>();
+  readonly cvProfileId = input<string | null>(null);
+  readonly previewData = input<CvData | null>(null);
   readonly cvData = signal<CvData | null>(null);
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
@@ -101,7 +102,24 @@ export class ClassicCvPage implements OnInit {
   ngOnInit(): void {
     effect(
       () => {
-        void this.loadCvData(this.cvProfileId());
+        const previewData = this.previewData();
+
+        if (previewData) {
+          this.cvData.set(previewData);
+          this.isLoading.set(false);
+          this.errorMessage.set(null);
+          return;
+        }
+
+        const cvProfileId = this.cvProfileId();
+
+        if (!cvProfileId) {
+          this.cvData.set(null);
+          this.isLoading.set(false);
+          return;
+        }
+
+        void this.loadCvData(cvProfileId);
       },
       { injector: this.injector },
     );
