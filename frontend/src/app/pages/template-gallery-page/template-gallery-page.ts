@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import { getTemplatePreviewData, TemplatePreviewSeedData } from '../../core/data/template-preview-fr.data';
 import { CV_TEMPLATE_OPTIONS } from '../../core/templates/cv-template-registry';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-template-gallery-page',
@@ -12,6 +13,7 @@ import { CV_TEMPLATE_OPTIONS } from '../../core/templates/cv-template-registry';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TemplateGalleryPage implements OnInit {
+  private readonly previewSeedUrl = environment.previewSeedUrl;
   readonly previewCards = signal<Array<(typeof CV_TEMPLATE_OPTIONS)[number] & { previewData: ReturnType<typeof getTemplatePreviewData> }>>([]);
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
@@ -21,7 +23,7 @@ export class TemplateGalleryPage implements OnInit {
     this.errorMessage.set(null);
 
     try {
-      const response = await fetch('/app-data/seed.json');
+      const response = await fetch(this.previewSeedUrl);
 
       if (!response.ok) {
         throw new Error('Impossible de charger les donnees de previsualisation.');
