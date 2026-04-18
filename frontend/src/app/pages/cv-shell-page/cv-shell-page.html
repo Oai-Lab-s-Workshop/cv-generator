@@ -1,10 +1,43 @@
-@if(isAuthenticated()) {
-  <div id="adminbar">ADMIN BAR PLACEHOLDER</div>
+@if (showAdminBar()) {
+  <aside class="admin-bar">
+    <div class="admin-bar__inner">
+      <div>
+        <p class="admin-bar__meta">
+          @if (templateLabel()) {
+            <span>{{ templateLabel() }}</span>
+          }
+          @if (profile(); as profile) {
+            <span>/{{ profile.slug }}</span>
+            <span>{{ profile.public === false ? 'Private route' : 'Public route' }}</span>
+          }
+        </p>
+      </div>
+
+      <div class="admin-bar__actions">
+        <button class="secondary-button" type="button" (click)="togglePreviewMode()">
+          {{ isPreviewMode() ? 'Exit Preview' : 'Preview' }}
+        </button>
+        <button class="secondary-button" type="button" (click)="printCv()">Print</button>
+        <button class="secondary-button" type="button" [disabled]="isExportingPdf()" (click)="downloadPdf()">
+          {{ isExportingPdf() ? 'Exporting...' : 'Download PDF' }}
+        </button>
+        <a [routerLink]="['/home']" class="secondary-button secondary-button--link">Manage</a>
+        <button class="secondary-button secondary-button--ghost" type="button" (click)="dismissAdminBar()">Close</button>
+      </div>
+    </div>
+
+    @if (statusMessage()) {
+      <p class="admin-bar__status" [class.admin-bar__status--error]="statusTone() === 'error'">{{ statusMessage() }}</p>
+    }
+  </aside>
 }
 @if (profile(); as profile) {
   @if (templateComponent(); as templateComponent) {
-    <!-- TODO: change syntax  -->
-    <ng-container *ngComponentOutlet="templateComponent; inputs: { cvProfileId: profile.id }"></ng-container>
+    <section class="cv-shell-page" [class.cv-preview-enabled]="isPreviewMode()">
+      <div id="cv-document" class="cv-shell-page__document" [class.cv-shell-page__document--preview]="isPreviewMode()">
+        <ng-container *ngComponentOutlet="templateComponent; inputs: { cvProfileId: profile.id }"></ng-container>
+      </div>
+    </section>
   } @else {
     <main class="cv-shell-page">
       <section class="state-card">
