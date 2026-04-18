@@ -2,52 +2,58 @@
   "users": [
     {
       "id": "user1",
-      "firstName": "Alex",
-      "lastName": "Example",
-      "email": "alex@example.com",
-      "linkedin": "https://linkedin.com/in/alex-example",
-      "github": "https://github.com/example",
-      "website": "https://example.dev"
+      "firstName": "Alexandre",
+      "lastName": "Exemple",
+      "email": "alexandre.cv@gmail.com",
+      "linkedin": "https://linkedin.com/in/alexandre-exemple",
+      "github": "https://github.com/alexandre-exemple",
+      "website": "https://alexandre-exemple.dev",
+      "phone": "+33 6 12 34 56 78"
     }
   ],
   "achievements": [
     {
       "id": "ach1",
-      "title": "Delivered product features end-to-end",
-      "description": "Implemented full-stack features across frontend, backend, and deployment workflows.",
+      "user": "user1",
+      "title": "Livraison de fonctionnalites produit de bout en bout",
+      "description": "Implementation de fonctionnalites full-stack sur le frontend, le backend et la mise en production.",
       "sortOrder": 0
     },
     {
       "id": "ach2",
-      "title": "Improved delivery quality",
-      "description": "Reduced turnaround time by introducing reusable patterns and stronger release practices.",
+      "user": "user1",
+      "title": "Amelioration de la qualite de livraison",
+      "description": "Reduction des delais grace a des composants reutilisables et une meilleure discipline de mise en production.",
       "sortOrder": 1
     }
   ],
   "hobbies": [
     {
       "id": "hobby1",
-      "name": "Photography",
-      "description": "Street and travel photography.",
+      "user": "user1",
+      "name": "Photographie",
+      "description": "Photographie de rue et de voyage.",
       "sortOrder": 0
     },
     {
       "id": "hobby2",
-      "name": "Running",
-      "description": "Regular endurance training and local races.",
+      "user": "user1",
+      "name": "Course a pied",
+      "description": "Entrainement d'endurance et courses locales.",
       "sortOrder": 1
     }
   ],
   "jobs": [
     {
       "id": "job1",
-      "label": "Example Studio - Full-stack Developer",
-      "company": "Example Studio",
-      "position": "Full-stack Developer",
-      "location": "Remote",
+      "user": "user1",
+      "label": "Studio Horizon - Developpeur full-stack",
+      "company": "Studio Horizon",
+      "position": "Developpeur full-stack",
+      "location": "Paris",
       "startDate": "2025-01-01 00:00:00.000Z",
       "type": "work project",
-      "responsibilities": "Full-stack development\nArchitecture and maintenance of web applications\nContinuous integration and deployment",
+      "responsibilities": "Developpement full-stack\nArchitecture et maintenance d'applications web\nIntegration continue et deploiement",
       "sortOrder": 0,
       "skills": ["skill1", "skill2", "skill4", "skill8", "skill9"],
       "projects": ["proj1"],
@@ -55,14 +61,15 @@
     },
     {
       "id": "job2",
-      "label": "Example Commerce - Frontend Developer",
-      "company": "Example Commerce",
-      "position": "Frontend Developer",
-      "location": "Remote",
+      "user": "user1",
+      "label": "Atelier Commerce - Developpeur frontend",
+      "company": "Atelier Commerce",
+      "position": "Developpeur frontend",
+      "location": "Lyon",
       "startDate": "2023-01-01 00:00:00.000Z",
       "endDate": "2024-03-01 00:00:00.000Z",
       "type": "work project",
-      "responsibilities": "Frontend development and maintenance\nTheme customization and UX improvements\nCustom feature delivery for storefront needs",
+      "responsibilities": "Developpement et maintenance frontend\nPersonnalisation de theme et ameliorations UX\nLivraison de fonctionnalites sur mesure pour le storefront",
       "sortOrder": 1,
       "skills": ["skill6", "skill7", "skill10", "skill11", "skill12"],
       "projects": ["proj2", "proj3"],
@@ -72,66 +79,70 @@
   "projects": [
     {
       "id": "proj1",
-      "name": "Angular / API Starter",
-      "description": "Full-stack architecture with containerized services, API backend, and Angular frontend.",
+      "user": "user1",
+      "name": "Socle Angular et API",
+      "description": "Architecture full-stack avec services conteneurises, backend API et frontend Angular.",
       "date": "2024",
       "sortOrder": 0,
       "achievements": ["ach1"]
     },
     {
       "id": "proj2",
-      "name": "Storefront Banner Module",
-      "description": "Customizable module integrated into an e-commerce theme editor.",
+      "user": "user1",
+      "name": "Module de banniere storefront",
+      "description": "Module personnalisable integre dans un editeur de theme e-commerce.",
       "date": "2023",
       "sortOrder": 1,
       "achievements": ["ach2"]
     },
     {
       "id": "proj3",
-      "name": "Pricing Calculator",
-      "description": "Custom module with pricing logic, persistence, and CSV import support.",
+      "user": "user1",
+      "name": "Calculateur tarifaire",
+      "description": "Module sur mesure avec logique de prix, persistence et import CSV.",
       "date": "2023",
       "sortOrder": 2,
       "achievements": []
     },
     {
       "id": "proj4",
-      "name": "Marketing Website",
-      "description": "Responsive showcase website with CMS integration.",
+      "user": "user1",
+      "name": "Site vitrine marketing",
+      "description": "Site responsive avec integration CMS.",
       "date": "2020",
       "sortOrder": 3,
       "achievements": []
     }
   ],
   "skills": [
-    { "id": "skill1", "name": "Angular", "category": "Frontend", "type": "Technical", "level": 90, "sortOrder": 0 },
-    { "id": "skill2", "name": "TypeScript", "category": "Frontend", "type": "Technical", "level": 90, "sortOrder": 1 },
-    { "id": "skill3", "name": "JavaScript", "category": "Frontend", "type": "Technical", "level": 95, "sortOrder": 2 },
-    { "id": "skill4", "name": "Node.js", "category": "Backend", "type": "Technical", "level": 85, "sortOrder": 3 },
-    { "id": "skill5", "name": "PostgreSQL", "category": "Backend", "type": "Technical", "level": 80, "sortOrder": 4 },
-    { "id": "skill6", "name": "E-commerce", "category": "Product", "type": "Technical", "level": 95, "sortOrder": 5 },
-    { "id": "skill7", "name": "Design Systems", "category": "Frontend", "type": "Technical", "level": 95, "sortOrder": 6 },
-    { "id": "skill8", "name": "Docker", "category": "DevOps", "type": "Technical", "level": 75, "sortOrder": 7 },
-    { "id": "skill9", "name": "GitHub", "category": "DevOps", "type": "Technical", "level": 90, "sortOrder": 8 },
-    { "id": "skill10", "name": "Project Management", "category": "Project Management", "type": "Professional", "level": 80, "sortOrder": 9 },
-    { "id": "skill11", "name": "Agile Delivery", "category": "Project Management", "type": "Professional", "level": null, "sortOrder": 10 },
-    { "id": "skill12", "name": "CI/CD", "category": "DevOps", "type": "Professional", "level": null, "sortOrder": 11 },
-    { "id": "skill13", "name": "English", "type": "Language", "level": null, "sortOrder": 12 },
-    { "id": "skill14", "name": "French", "type": "Language", "level": null, "sortOrder": 13 }
+    { "id": "skill1", "user": "user1", "name": "Angular", "category": "Frontend", "type": "Technical", "level": 90, "sortOrder": 0 },
+    { "id": "skill2", "user": "user1", "name": "TypeScript", "category": "Frontend", "type": "Technical", "level": 90, "sortOrder": 1 },
+    { "id": "skill3", "user": "user1", "name": "JavaScript", "category": "Frontend", "type": "Technical", "level": 95, "sortOrder": 2 },
+    { "id": "skill4", "user": "user1", "name": "Node.js", "category": "Backend", "type": "Technical", "level": 85, "sortOrder": 3 },
+    { "id": "skill5", "user": "user1", "name": "PostgreSQL", "category": "Backend", "type": "Technical", "level": 80, "sortOrder": 4 },
+    { "id": "skill6", "user": "user1", "name": "E-commerce", "category": "E-commerce", "type": "Technical", "level": 95, "sortOrder": 5 },
+    { "id": "skill7", "user": "user1", "name": "Design system", "category": "Design", "type": "Technical", "level": 95, "sortOrder": 6 },
+    { "id": "skill8", "user": "user1", "name": "Docker", "category": "DevOps", "type": "Technical", "level": 75, "sortOrder": 7 },
+    { "id": "skill9", "user": "user1", "name": "GitHub", "category": "DevOps", "type": "Technical", "level": 90, "sortOrder": 8 },
+    { "id": "skill10", "user": "user1", "name": "Gestion de projet", "category": "Project Management", "type": "Professional", "level": 80, "sortOrder": 9 },
+    { "id": "skill11", "user": "user1", "name": "Livraison agile", "category": "Project Management", "type": "Professional", "level": null, "sortOrder": 10 },
+    { "id": "skill12", "user": "user1", "name": "CI/CD", "category": "DevOps", "type": "Professional", "level": null, "sortOrder": 11 },
+    { "id": "skill13", "user": "user1", "name": "Anglais", "type": "Language", "level": null, "sortOrder": 12 },
+    { "id": "skill14", "user": "user1", "name": "Francais", "type": "Language", "level": null, "sortOrder": 13 }
   ],
   "degrees": [
-    { "id": "deg1", "title": "Software Engineering", "school": "Example Institute", "year": "2026", "level": "Master", "sortOrder": 0 },
-    { "id": "deg2", "title": "Product Design", "school": "Example Academy", "year": "2022", "level": "Bachelor", "sortOrder": 1 }
+    { "id": "deg1", "user": "user1", "title": "Ingenierie logicielle", "school": "Institut Numerique de Paris", "year": "2026", "level": "Master", "sortOrder": 0 },
+    { "id": "deg2", "user": "user1", "title": "Design produit numerique", "school": "Academie Creative de Lyon", "year": "2022", "level": "Licence", "sortOrder": 1 }
   ],
   "cv_profiles": [
     {
       "id": "cv1",
       "slug": "classic--cv1",
-      "profileName": "Full-Stack Developer",
+      "profileName": "Developpeur full-stack",
       "template": "classic",
       "public": true,
       "user": "user1",
-      "professionalSummary": "Example profile data for local development and demo imports.",
+      "professionalSummary": "Developpeur full-stack oriente produit, j'aime concevoir des interfaces claires, des APIs robustes et des experiences de candidature soignee.",
       "achievements": ["ach1", "ach2"],
       "projects": ["proj1", "proj2", "proj3", "proj4"],
       "hobbies": ["hobby1", "hobby2"],

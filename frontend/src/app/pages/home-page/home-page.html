@@ -1,46 +1,71 @@
 <main class="home-page">
   <section class="hero hero--split">
     <div>
-      <p class="eyebrow">Authenticated Home</p>
+      <p class="eyebrow">Administration</p>
       <h1>{{ currentUserName() }}</h1>
-      <p class="lede">Manage generated CV routes for your own profiles and choose a template for drafts.</p>
+      <p class="lede">Gerez vos profils CV, changez de template, modifiez vos contenus et previsualisez tous les templates.</p>
     </div>
 
-    <button class="secondary-button" type="button" (click)="logout()">Sign out</button>
+    <button class="secondary-button" type="button" (click)="logout()">Se deconnecter</button>
   </section>
 
-  <!-- TODO: use @template decorators -->
+  <section class="quick-actions">
+    <div class="quick-actions__create">
+      <label class="quick-actions__field">
+        <span>Nom du profil</span>
+        <input [ngModel]="newProfileName()" (ngModelChange)="newProfileName.set($event)" type="text" placeholder="Ex. Developpeur frontend senior" />
+      </label>
+
+      <button class="primary-button quick-actions__button" type="button" [disabled]="isCreating()" (click)="createProfile()">
+        {{ isCreating() ? 'Creation...' : 'Creer un nouveau profil CV' }}
+      </button>
+    </div>
+
+    <a class="secondary-button quick-actions__link" routerLink="/home/templates">Previsualiser tous les templates</a>
+  </section>
+
   @if (isLoading()) {
     <section class="state-card">
-      <p>Loading your generated CVs...</p>
+      <p>Chargement de vos profils CV...</p>
     </section>
   } @else if (errorMessage()) {
     <section class="state-card state-card--error">
-      <h2>Unable to load your CV profiles</h2>
+      <h2>Impossible de charger vos profils CV</h2>
       <p>{{ errorMessage() }}</p>
     </section>
   } @else {
     <section class="section-header">
-      <h2>Generated CVs</h2>
-      <p>Only profiles with a template are listed here.</p>
+      <h2>CV generes</h2>
+      <p>Profils avec un template assigne.</p>
     </section>
 
     @if (generatedProfiles().length === 0) {
       <section class="state-card">
-        <h2>No generated CVs yet</h2>
-        <p>Choose a template for one of your drafts below to generate a CV route.</p>
+        <h2>Aucun CV genere pour le moment</h2>
+        <p>Choisissez un template sur un brouillon pour generer une route CV.</p>
       </section>
     } @else {
       <section class="profile-grid">
         @for (profile of generatedProfiles(); track profile.id) {
-          <!-- TODO: factorize to a separate component -->
-          <article class="profile-card"> 
+          <article class="profile-card">
             <p class="profile-card__template">{{ profile.template }}</p>
             <h2>{{ profile.profileName }}</h2>
             <p class="profile-card__slug">/{{ profile.slug }}</p>
 
+            <label class="form-row">
+              <span>Template</span>
+              <select
+                [ngModel]="templateSelections()[profile.id]"
+                (ngModelChange)="updateTemplateSelection(profile.id, $event)"
+              >
+                @for (template of templateOptions; track template.id) {
+                  <option [value]="template.id">{{ template.label }}</option>
+                }
+              </select>
+            </label>
+
             <label class="toggle-row">
-              <span>Public route</span>
+              <span>Route publique</span>
               <input
                 type="checkbox"
                 [checked]="publicSelections()[profile.id]"
@@ -49,29 +74,34 @@
               />
             </label>
 
-            <!-- TODO: add an edit button to change the assigned template and regenerate the CV without changing the slug -->
+            <button class="primary-button" type="button" [disabled]="isSaving() === profile.id" (click)="assignTemplate(profile)">
+              {{ isSaving() === profile.id ? 'Enregistrement...' : 'Mettre a jour le template' }}
+            </button>
 
-            <a [routerLink]="['/', profile.slug]" class="profile-card__link">Open CV</a>
+            <div class="profile-card__actions">
+              <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="profile-card__link">Editer</a>
+              <a [routerLink]="['/', profile.slug]" class="profile-card__link">Ouvrir le CV</a>
+            </div>
           </article>
         }
       </section>
     }
 
     <section class="section-header">
-      <h2>Draft Profiles</h2>
-      <p>Choose a template to generate a routed CV.</p>
+      <h2>Profils brouillon</h2>
+      <p>Choisissez un template puis gerez les relations du profil.</p>
     </section>
 
     @if (draftProfiles().length === 0) {
       <section class="state-card">
-        <h2>No draft profiles</h2>
-        <p>All your current profiles already have a template assigned.</p>
+        <h2>Aucun brouillon</h2>
+        <p>Tous vos profils actuels ont deja un template assigne.</p>
       </section>
     } @else {
       <section class="profile-grid">
         @for (profile of draftProfiles(); track profile.id) {
           <article class="profile-card">
-            <p class="profile-card__template">Draft</p>
+            <p class="profile-card__template">Brouillon</p>
             <h2>{{ profile.profileName }}</h2>
 
             <label class="form-row">
@@ -87,7 +117,7 @@
             </label>
 
             <label class="toggle-row">
-              <span>Public route</span>
+              <span>Route publique</span>
               <input
                 type="checkbox"
                 [checked]="publicSelections()[profile.id]"
@@ -97,12 +127,13 @@
             </label>
 
             <button class="primary-button" type="button" [disabled]="isSaving() === profile.id" (click)="assignTemplate(profile)">
-              {{ isSaving() === profile.id ? 'Saving...' : 'Generate CV' }}
+              {{ isSaving() === profile.id ? 'Enregistrement...' : 'Generer le CV' }}
             </button>
+
+            <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="profile-card__link">Editer le profil</a>
           </article>
         }
       </section>
     }
-    <!-- TODO: add a section to preview templates with mock data -->
   }
 </main>
