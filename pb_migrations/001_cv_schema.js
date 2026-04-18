@@ -10,6 +10,9 @@ const PROJECTS_COLLECTION_ID = "projects000001ab";
 const JOBS_COLLECTION_ID = "jobs0000000001ab";
 const DEGREES_COLLECTION_ID = "degrees0000001ab";
 const FILES_COLLECTION_ID = "files00000001ab";
+const OWNER_CAN_LIST_CV_PROFILE_RULE = "@request.auth.id != \"\" && user = @request.auth.id";
+const PUBLIC_OR_OWNER_CAN_VIEW_CV_PROFILE_RULE = "public = true || (@request.auth.id != \"\" && user = @request.auth.id)";
+const AUTHENTICATED_CAN_CREATE_CV_PROFILE_RULE = "@request.auth.id != \"\"";
 const OWNER_CAN_UPDATE_CV_PROFILE_RULE = "@request.auth.id != \"\" && user = @request.auth.id";
 
 function createPublicBaseCollection(id, name, fields) {
@@ -546,6 +549,9 @@ migrate(
     );
 
     const cvProfilesCollection = app.findCollectionByNameOrId(CV_PROFILES_COLLECTION_ID);
+    cvProfilesCollection.listRule = OWNER_CAN_LIST_CV_PROFILE_RULE;
+    cvProfilesCollection.viewRule = PUBLIC_OR_OWNER_CAN_VIEW_CV_PROFILE_RULE;
+    cvProfilesCollection.createRule = AUTHENTICATED_CAN_CREATE_CV_PROFILE_RULE;
     cvProfilesCollection.updateRule = OWNER_CAN_UPDATE_CV_PROFILE_RULE;
     app.save(cvProfilesCollection);
   },

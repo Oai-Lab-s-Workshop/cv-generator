@@ -16,6 +16,17 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/home-page/home-page').then((module) => module.HomePage),
   },
   {
+    path: 'home/profiles/:profileId/edit',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/profile-editor-page/profile-editor-page').then((module) => module.ProfileEditorPage),
+  },
+  {
+    path: 'home/templates',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/template-gallery-page/template-gallery-page').then((module) => module.TemplateGalleryPage),
+  },
+  {
     path: ':slug',
     canActivate: [cvAccessGuard],
     loadComponent: () => import('./pages/cv-shell-page/cv-shell-page').then((module) => module.CvShellPage),

@@ -22,6 +22,14 @@ for i in {1..30}; do
   sleep 2
 done
 
+echo "Waiting for preview seed asset..."
+for i in {1..20}; do
+  if curl -fsS "http://localhost:4200/app-data/seed.json" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 2
+done
+
 echo ""
 echo "Services"
 docker compose -f docker-compose.yml -f docker-compose.devcontainer.yml ps
@@ -29,6 +37,7 @@ docker compose -f docker-compose.yml -f docker-compose.devcontainer.yml ps
 echo ""
 echo "URLs"
 echo "Angular Dev:       http://localhost:4200"
+echo "Preview Seed:      http://localhost:4200/app-data/seed.json"
 echo "PocketBase Admin:  http://localhost:8090/_/"
 echo "PocketBase API:    http://localhost:8090/api/"
 echo "PocketBase Data:   .local/pocketbase/pb_data"

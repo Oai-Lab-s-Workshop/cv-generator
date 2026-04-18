@@ -1,0 +1,36 @@
+<main class="template-gallery-page">
+  <section class="template-gallery-page__hero">
+    <div>
+      <p class="template-gallery-page__eyebrow">Apercus</p>
+      <h1>Tous les templates</h1>
+      <p>Cette galerie utilise des donnees de demonstration en francais issues du seed du projet.</p>
+    </div>
+
+    <a routerLink="/home" class="template-gallery-page__back">Retour a l'accueil</a>
+  </section>
+
+  @if (isLoading()) {
+    <section class="template-gallery-page__state">
+      <p>Chargement des apercus...</p>
+    </section>
+  } @else if (errorMessage()) {
+    <section class="template-gallery-page__state template-gallery-page__state--error">
+      <p>{{ errorMessage() }}</p>
+    </section>
+  } @else {
+    <section class="template-gallery-page__grid">
+      @for (card of previewCards(); track card.id) {
+        <article class="template-card">
+          <header class="template-card__header">
+            <p>{{ card.label }}</p>
+            <span>{{ card.id }}</span>
+          </header>
+
+          <div class="template-card__preview">
+            <ng-container *ngComponentOutlet="card.component; inputs: { previewData: card.previewData }"></ng-container>
+          </div>
+        </article>
+      }
+    </section>
+  }
+</main>

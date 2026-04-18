@@ -1,0 +1,354 @@
+<main class="profile-editor-page">
+  <section class="profile-editor-page__hero">
+    <div>
+      <p class="profile-editor-page__eyebrow">Edition</p>
+      <h1>Gerer votre profil CV</h1>
+      <p>Cette page gere uniquement le profil CV, son template, sa visibilite et ses relations. Les contenus des jobs, projets, competences et autres donnees se modifient dans PocketBase.</p>
+    </div>
+
+    <div class="profile-editor-page__hero-actions">
+      <a routerLink="/home" class="profile-editor-page__link">Retour a l'accueil</a>
+      @if (editorState()?.profile?.template && editorState()?.profile?.slug) {
+        <a [routerLink]="['/', editorState()!.profile.slug]" class="profile-editor-page__link profile-editor-page__link--primary">Voir le CV</a>
+      }
+    </div>
+  </section>
+
+  @if (isLoading()) {
+    <section class="editor-card">
+      <p>Chargement du profil...</p>
+    </section>
+  } @else if (errorMessage()) {
+    <section class="editor-card editor-card--error">
+      <h2>Impossible de charger ce profil</h2>
+      <p>{{ errorMessage() }}</p>
+    </section>
+  } @else if (editorState(); as state) {
+    @if (successMessage()) {
+      <section class="editor-card editor-card--success">
+        <p>{{ successMessage() }}</p>
+      </section>
+    }
+
+    <section class="editor-card editor-card--form">
+      <div class="editor-card__header">
+        <div>
+          <p class="editor-card__eyebrow">Profil</p>
+          <h2>{{ state.profile.profileName }}</h2>
+        </div>
+
+        <button class="editor-save" type="button" [disabled]="isSaving()" (click)="save()">
+          {{ isSaving() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+        </button>
+      </div>
+
+      <div class="editor-grid">
+        <label class="editor-field">
+          <span>Nom du profil</span>
+          <input [(ngModel)]="state.profile.profileName" name="profileName" type="text" />
+        </label>
+
+        <label class="editor-field">
+          <span>Template</span>
+          <select [(ngModel)]="state.profile.template" name="template">
+            <option value="">Aucun</option>
+            @for (template of templateOptions; track template.id) {
+              <option [value]="template.id">{{ template.label }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="editor-field editor-field--checkbox">
+          <span>Route publique</span>
+          <input [(ngModel)]="state.profile.public" name="public" type="checkbox" [ngModelOptions]="{ standalone: true }" />
+        </label>
+
+        <div class="editor-field">
+          <span>Photo de profil</span>
+          @if (state.profile.profilePicture) {
+            <img [src]="state.profile.profilePicture" alt="Photo de profil" class="editor-image" />
+          }
+          <input type="file" accept="image/*" (change)="onProfilePictureSelected($event)" />
+        </div>
+
+        <div class="editor-field">
+          <span>Image de couverture</span>
+          @if (state.profile.coverPicture) {
+            <img [src]="state.profile.coverPicture" alt="Image de couverture" class="editor-image editor-image--cover" />
+          }
+          <input type="file" accept="image/*" (change)="onCoverPictureSelected($event)" />
+        </div>
+      </div>
+    </section>
+
+    <section class="editor-card">
+      <div class="editor-card__header">
+        <div>
+          <p class="editor-card__eyebrow">Relations</p>
+          <h2>Jobs</h2>
+        </div>
+      </div>
+
+      <div class="relation-grid">
+        <section class="relation-column">
+          <h3>Lies au profil</h3>
+          @if (getLinkedJobs(state).length === 0) {
+            <p class="relation-empty">Aucun job lie.</p>
+          } @else {
+            @for (job of getLinkedJobs(state); track job.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ job.company }}</h4>
+                  <p>{{ job.position }}</p>
+                </div>
+                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('jobs', job.id)">Retirer</button>
+              </article>
+            }
+          }
+        </section>
+
+        <section class="relation-column">
+          <h3>Disponibles</h3>
+          @if (getAvailableJobs(state).length === 0) {
+            <p class="relation-empty">Aucun job disponible.</p>
+          } @else {
+            @for (job of getAvailableJobs(state); track job.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ job.company }}</h4>
+                  <p>{{ job.position }}</p>
+                </div>
+                <button type="button" class="relation-action" (click)="addRelation('jobs', job.id)">Ajouter</button>
+              </article>
+            }
+          }
+        </section>
+      </div>
+    </section>
+
+    <section class="editor-card">
+      <div class="editor-card__header">
+        <div>
+          <p class="editor-card__eyebrow">Relations</p>
+          <h2>Projets</h2>
+        </div>
+      </div>
+
+      <div class="relation-grid">
+        <section class="relation-column">
+          <h3>Lies au profil</h3>
+          @if (getLinkedProjects(state).length === 0) {
+            <p class="relation-empty">Aucun projet lie.</p>
+          } @else {
+            @for (project of getLinkedProjects(state); track project.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ project.name }}</h4>
+                  <p>{{ project.date || 'Sans date' }}</p>
+                </div>
+                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('projects', project.id)">Retirer</button>
+              </article>
+            }
+          }
+        </section>
+
+        <section class="relation-column">
+          <h3>Disponibles</h3>
+          @if (getAvailableProjects(state).length === 0) {
+            <p class="relation-empty">Aucun projet disponible.</p>
+          } @else {
+            @for (project of getAvailableProjects(state); track project.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ project.name }}</h4>
+                  <p>{{ project.date || 'Sans date' }}</p>
+                </div>
+                <button type="button" class="relation-action" (click)="addRelation('projects', project.id)">Ajouter</button>
+              </article>
+            }
+          }
+        </section>
+      </div>
+    </section>
+
+    <section class="editor-card">
+      <div class="editor-card__header">
+        <div>
+          <p class="editor-card__eyebrow">Relations</p>
+          <h2>Competences</h2>
+        </div>
+      </div>
+
+      <div class="relation-grid">
+        <section class="relation-column">
+          <h3>Lies au profil</h3>
+          @if (getLinkedSkills(state).length === 0) {
+            <p class="relation-empty">Aucune competence liee.</p>
+          } @else {
+            @for (skill of getLinkedSkills(state); track skill.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ skill.name }}</h4>
+                  <p>{{ skill.type || skill.category || 'Sans type' }}</p>
+                </div>
+                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('skills', skill.id)">Retirer</button>
+              </article>
+            }
+          }
+        </section>
+
+        <section class="relation-column">
+          <h3>Disponibles</h3>
+          @if (getAvailableSkills(state).length === 0) {
+            <p class="relation-empty">Aucune competence disponible.</p>
+          } @else {
+            @for (skill of getAvailableSkills(state); track skill.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ skill.name }}</h4>
+                  <p>{{ skill.type || skill.category || 'Sans type' }}</p>
+                </div>
+                <button type="button" class="relation-action" (click)="addRelation('skills', skill.id)">Ajouter</button>
+              </article>
+            }
+          }
+        </section>
+      </div>
+    </section>
+
+    <section class="editor-card">
+      <div class="editor-card__header">
+        <div>
+          <p class="editor-card__eyebrow">Relations</p>
+          <h2>Diplomes</h2>
+        </div>
+      </div>
+
+      <div class="relation-grid">
+        <section class="relation-column">
+          <h3>Lies au profil</h3>
+          @if (getLinkedDegrees(state).length === 0) {
+            <p class="relation-empty">Aucun diplome lie.</p>
+          } @else {
+            @for (degree of getLinkedDegrees(state); track degree.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ degree.title }}</h4>
+                  <p>{{ degree.school || 'Sans ecole' }}</p>
+                </div>
+                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('degrees', degree.id)">Retirer</button>
+              </article>
+            }
+          }
+        </section>
+
+        <section class="relation-column">
+          <h3>Disponibles</h3>
+          @if (getAvailableDegrees(state).length === 0) {
+            <p class="relation-empty">Aucun diplome disponible.</p>
+          } @else {
+            @for (degree of getAvailableDegrees(state); track degree.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ degree.title }}</h4>
+                  <p>{{ degree.school || 'Sans ecole' }}</p>
+                </div>
+                <button type="button" class="relation-action" (click)="addRelation('degrees', degree.id)">Ajouter</button>
+              </article>
+            }
+          }
+        </section>
+      </div>
+    </section>
+
+    <section class="editor-card">
+      <div class="editor-card__header">
+        <div>
+          <p class="editor-card__eyebrow">Relations</p>
+          <h2>Realisations</h2>
+        </div>
+      </div>
+
+      <div class="relation-grid">
+        <section class="relation-column">
+          <h3>Lies au profil</h3>
+          @if (getLinkedAchievements(state).length === 0) {
+            <p class="relation-empty">Aucune realisation liee.</p>
+          } @else {
+            @for (achievement of getLinkedAchievements(state); track achievement.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ achievement.title }}</h4>
+                  <p>{{ achievement.description || 'Sans description' }}</p>
+                </div>
+                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('achievements', achievement.id)">Retirer</button>
+              </article>
+            }
+          }
+        </section>
+
+        <section class="relation-column">
+          <h3>Disponibles</h3>
+          @if (getAvailableAchievements(state).length === 0) {
+            <p class="relation-empty">Aucune realisation disponible.</p>
+          } @else {
+            @for (achievement of getAvailableAchievements(state); track achievement.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ achievement.title }}</h4>
+                  <p>{{ achievement.description || 'Sans description' }}</p>
+                </div>
+                <button type="button" class="relation-action" (click)="addRelation('achievements', achievement.id)">Ajouter</button>
+              </article>
+            }
+          }
+        </section>
+      </div>
+    </section>
+
+    <section class="editor-card">
+      <div class="editor-card__header">
+        <div>
+          <p class="editor-card__eyebrow">Relations</p>
+          <h2>Loisirs</h2>
+        </div>
+      </div>
+
+      <div class="relation-grid">
+        <section class="relation-column">
+          <h3>Lies au profil</h3>
+          @if (getLinkedHobbies(state).length === 0) {
+            <p class="relation-empty">Aucun loisir lie.</p>
+          } @else {
+            @for (hobby of getLinkedHobbies(state); track hobby.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ hobby.name }}</h4>
+                  <p>{{ hobby.description || 'Sans description' }}</p>
+                </div>
+                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('hobbies', hobby.id)">Retirer</button>
+              </article>
+            }
+          }
+        </section>
+
+        <section class="relation-column">
+          <h3>Disponibles</h3>
+          @if (getAvailableHobbies(state).length === 0) {
+            <p class="relation-empty">Aucun loisir disponible.</p>
+          } @else {
+            @for (hobby of getAvailableHobbies(state); track hobby.id) {
+              <article class="relation-card">
+                <div>
+                  <h4>{{ hobby.name }}</h4>
+                  <p>{{ hobby.description || 'Sans description' }}</p>
+                </div>
+                <button type="button" class="relation-action" (click)="addRelation('hobbies', hobby.id)">Ajouter</button>
+              </article>
+            }
+          }
+        </section>
+      </div>
+    </section>
+  }
+</main>

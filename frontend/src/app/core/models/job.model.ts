@@ -1,5 +1,6 @@
 export interface Job {
   id: string;
+  user?: string;
   label: string;
   company: string;
   position: string;

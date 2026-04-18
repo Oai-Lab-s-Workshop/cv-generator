@@ -136,7 +136,10 @@ async function importSimpleCollection(token, collection) {
     let created;
 
     try {
-      created = await createRecord(token, collection, body);
+      created = await createRecord(token, collection, {
+        ...body,
+        user: body.user ? idMaps.users.get(body.user) : undefined,
+      });
     } catch (error) {
       throw new Error(`Failed importing ${collection}:${id} - ${error.message}`);
     }
@@ -151,6 +154,7 @@ async function importProjects(token) {
 
     try {
       created = await createRecord(token, 'projects', {
+        user: idMaps.users.get(project.user),
         name: project.name,
         description: project.description,
         url: project.url,
@@ -172,6 +176,7 @@ async function importJobs(token) {
 
     try {
       created = await createRecord(token, 'jobs', {
+        user: idMaps.users.get(job.user),
         label: job.label,
         company: job.company,
         position: job.position,

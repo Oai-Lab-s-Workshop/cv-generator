@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  pocketbaseUrl: '/'
+  pocketbaseUrl: '/',
+  previewSeedUrl: '/app-data/seed.json',
 };

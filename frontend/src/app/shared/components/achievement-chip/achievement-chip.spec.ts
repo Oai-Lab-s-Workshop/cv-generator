@@ -14,6 +14,11 @@ describe('AchievementChip', () => {
 
     fixture = TestBed.createComponent(AchievementChip);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('achievement', {
+      id: 'ach1',
+      title: 'Realisation test',
+      description: 'Description test',
+    });
     fixture.detectChanges();
   });
 

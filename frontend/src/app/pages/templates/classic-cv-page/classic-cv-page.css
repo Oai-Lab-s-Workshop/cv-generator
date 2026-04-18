@@ -27,9 +27,10 @@
 
 .hero__eyebrow {
   position: absolute;
-  top: 2em;
+  left: 45px;
   border-radius: 6px;
   border: solid 1px #d8dee9;
+  margin-top: 12mm;
 }
 
 main{
