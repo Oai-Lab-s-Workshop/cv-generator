@@ -8,3 +8,4 @@ frontend/.angular/
 pb_data/backups/
 pb_data/types.d.ts
 dist/*
+docs/
