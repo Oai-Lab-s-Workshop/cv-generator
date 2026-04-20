@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { RecordModel } from 'pocketbase';
 import { Achievement } from '../models/achievement.model';
+import { AiToken, CreateAiTokenInput, CreatedAiTokenResult } from '../models/ai-token.model';
 import { CvData } from '../models/cv-data.model';
 import { CvProfile } from '../models/cv-profile.model';
 import { Degree } from '../models/degree.model';
@@ -9,6 +10,7 @@ import { Job } from '../models/job.model';
 import { Project } from '../models/project.model';
 import { Skill } from '../models/skill.model';
 import { User } from '../models/user.model';
+import { generateAiTokenSecret, getAiTokenPrefix, hashAiTokenSecret } from '../utils/ai-token';
 import { AuthService } from './auth.service';
 import { PocketBaseClientService } from './pocketbase-client.service';
 
@@ -215,6 +217,60 @@ export class PocketBaseService {
     };
   }
 
+  async getCurrentUserAiTokens(): Promise<AiToken[]> {
+    const currentUserId = this.requireCurrentUserId();
+    const tokens = await this.pb.collection<AiToken>('ai_tokens').getFullList({
+      filter: `user="${currentUserId}"`,
+      sort: '-created',
+    });
+
+    return tokens.map((token) => this.normalizeAiToken(token));
+  }
+
+  async createCurrentUserAiToken(input: CreateAiTokenInput): Promise<CreatedAiTokenResult> {
+    const currentUserId = this.requireCurrentUserId();
+    const rawToken = generateAiTokenSecret();
+    const tokenHash = await hashAiTokenSecret(rawToken);
+    const label = input.label.trim();
+    const allowedTemplates = [...new Set(input.allowedTemplates)];
+
+    if (!label) {
+      throw new Error('Le label du token est obligatoire.');
+    }
+
+    if (allowedTemplates.length === 0) {
+      throw new Error('Selectionnez au moins un template autorise.');
+    }
+
+    const created = await this.pb.collection<AiToken>('ai_tokens').create({
+      token_hash: tokenHash,
+      token_prefix: getAiTokenPrefix(rawToken),
+      user: currentUserId,
+      label,
+      status: 'active',
+      expiresAt: input.expiresAt || null,
+      canChooseTemplate: input.canChooseTemplate,
+      allowedTemplates,
+      maxProfileCreates: input.maxProfileCreates ?? null,
+      profileCreatesCount: 0,
+      lastUsedAt: null,
+    });
+
+    return {
+      record: this.normalizeAiToken(created),
+      rawToken,
+    };
+  }
+
+  async revokeCurrentUserAiToken(tokenId: string): Promise<AiToken> {
+    const token = await this.getCurrentUserAiTokenById(tokenId);
+    const updated = await this.pb.collection<AiToken>('ai_tokens').update(token.id, {
+      status: 'revoked',
+    });
+
+    return this.normalizeAiToken(updated);
+  }
+
   async getCvDataByProfileId(cvProfileId: string): Promise<CvData> {
     const profile = await this.getCvProfileById(cvProfileId);
     const user = profile.expand?.user ?? (await this.getUser(profile.user));
@@ -300,6 +356,29 @@ export class PocketBaseService {
       ...user,
       profilePicture: this.getFileFieldUrl(user as unknown as RecordModel, user.profilePicture),
       coverPicture: this.getFileFieldUrl(user as unknown as RecordModel, user.coverPicture),
+    };
+  }
+
+  private async getCurrentUserAiTokenById(tokenId: string): Promise<AiToken> {
+    const currentUserId = this.requireCurrentUserId();
+    const token = await this.pb
+      .collection<AiToken>('ai_tokens')
+      .getFirstListItem(`id="${tokenId}" && user="${currentUserId}"`);
+
+    return this.normalizeAiToken(token);
+  }
+
+  private normalizeAiToken(token: AiToken | null): AiToken {
+    if (!token) {
+      throw new Error('AI token not found.');
+    }
+
+    return {
+      ...token,
+      canChooseTemplate: token.canChooseTemplate ?? false,
+      allowedTemplates: [...(token.allowedTemplates ?? [])],
+      maxProfileCreates: token.maxProfileCreates ?? null,
+      profileCreatesCount: token.profileCreatesCount ?? 0,
     };
   }
 
