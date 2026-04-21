@@ -48,7 +48,7 @@
             <h3>{{ job.position }}</h3>
             <p>{{ job.company }}@if (job.location) { · {{ job.location }} }</p>
           </div>
-          <p>{{ job.startDate || 'Start' }} - {{ job.endDate || 'Present' }}</p>
+          <p>{{ getDate(job.startDate) || 'Start' }} - {{ getDate(job.endDate) || 'Present' }}</p>
         </article>
         @if (job.responsibilities) {
           <p class="line-item__copy">{{ job.responsibilities }}</p>
