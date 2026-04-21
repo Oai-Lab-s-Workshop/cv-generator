@@ -132,6 +132,45 @@ public class PocketBaseClient {
         return Objects.requireNonNull(created, "PocketBase created profile payload is required.");
     }
 
+    public CreatedProjectRecord createProject(String userId, CreateProjectPayload payload) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("user", userId);
+        body.put("name", payload.name());
+        putIfHasText(body, "description", payload.description());
+        putIfHasText(body, "url", payload.url());
+        putIfHasText(body, "date", payload.date());
+        body.put("achievements", defaultList(payload.achievementIds()));
+        putIfNotNull(body, "sortOrder", payload.sortOrder());
+
+        CreatedProjectRecord created = restClient.post()
+                .uri("/api/collections/projects/records")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
+                .body(body)
+                .retrieve()
+                .body(CreatedProjectRecord.class);
+
+        return Objects.requireNonNull(created, "PocketBase created project payload is required.");
+    }
+
+    public CreatedAchievementRecord createAchievement(String userId, CreateAchievementPayload payload) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("user", userId);
+        body.put("title", payload.title());
+        putIfHasText(body, "description", payload.description());
+        putIfNotNull(body, "sortOrder", payload.sortOrder());
+
+        CreatedAchievementRecord created = restClient.post()
+                .uri("/api/collections/achievements/records")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
+                .body(body)
+                .retrieve()
+                .body(CreatedAchievementRecord.class);
+
+        return Objects.requireNonNull(created, "PocketBase created achievement payload is required.");
+    }
+
     public void markTokenUsed(String tokenId, int profileCreatesCount) {
         Map<String, Object> body = Map.of(
                 "profileCreatesCount", profileCreatesCount,
@@ -229,6 +268,18 @@ public class PocketBaseClient {
         return values == null ? List.of() : values;
     }
 
+    private static void putIfHasText(Map<String, Object> body, String key, String value) {
+        if (StringUtils.hasText(value)) {
+            body.put(key, value);
+        }
+    }
+
+    private static void putIfNotNull(Map<String, Object> body, String key, Object value) {
+        if (value != null) {
+            body.put(key, value);
+        }
+    }
+
     private static String slugify(String value) {
         StringBuilder slug = new StringBuilder();
         boolean lastWasDash = false;
@@ -301,6 +352,23 @@ public class PocketBaseClient {
     ) {
     }
 
+    public record CreateProjectPayload(
+            String name,
+            String description,
+            String url,
+            String date,
+            List<String> achievementIds,
+            Integer sortOrder
+    ) {
+    }
+
+    public record CreateAchievementPayload(
+            String title,
+            String description,
+            Integer sortOrder
+    ) {
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record AuthResponse(String token) {
     }
@@ -330,6 +398,23 @@ public class PocketBaseClient {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record CreatedProfileRecord(String id, String slug) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record CreatedProjectRecord(
+            String id,
+            String user,
+            String name,
+            List<String> achievements
+    ) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record CreatedAchievementRecord(
+            String id,
+            String user,
+            String title
+    ) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

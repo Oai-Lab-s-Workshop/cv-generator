@@ -3,8 +3,12 @@ package com.resumate.mcp.tool;
 import com.resumate.mcp.config.FrontendProperties;
 import com.resumate.mcp.security.AiTokenPrincipal;
 import com.resumate.mcp.service.PocketBaseClient;
+import com.resumate.mcp.service.PocketBaseClient.CreateAchievementPayload;
 import com.resumate.mcp.service.PocketBaseClient.CreateProfilePayload;
+import com.resumate.mcp.service.PocketBaseClient.CreateProjectPayload;
+import com.resumate.mcp.service.PocketBaseClient.CreatedAchievementRecord;
 import com.resumate.mcp.service.PocketBaseClient.CreatedProfileRecord;
+import com.resumate.mcp.service.PocketBaseClient.CreatedProjectRecord;
 import com.resumate.mcp.service.PocketBaseClient.ProfileMaterialBundle;
 import com.resumate.mcp.service.PocketBaseClient.TemplateDescriptor;
 import org.springframework.ai.tool.annotation.Tool;
@@ -70,6 +74,45 @@ public class CvMcpTools {
         );
     }
 
+    @Tool(description = "Create a new achievement record for the authenticated delegated AI token owner.")
+    public CreateAchievementResponse createAchievement(CreateAchievementRequest request) {
+        AiTokenPrincipal principal = currentPrincipal();
+        String title = requireText(request.title(), "title");
+
+        CreatedAchievementRecord created = pocketBaseClient.createAchievement(
+                principal.userId(),
+                new CreateAchievementPayload(
+                        title,
+                        normalizeOptionalText(request.description()),
+                        request.sortOrder()
+                )
+        );
+
+        return new CreateAchievementResponse(created.id(), created.user(), created.title());
+    }
+
+    @Tool(description = "Create a new project record for the authenticated delegated AI token owner.")
+    public CreateProjectResponse createProject(CreateProjectRequest request) {
+        AiTokenPrincipal principal = currentPrincipal();
+        String name = requireText(request.name(), "name");
+
+        pocketBaseClient.validateOwnedRecordIds("achievements", principal.userId(), request.achievementIds());
+
+        CreatedProjectRecord created = pocketBaseClient.createProject(
+                principal.userId(),
+                new CreateProjectPayload(
+                        name,
+                        normalizeOptionalText(request.description()),
+                        normalizeOptionalText(request.url()),
+                        normalizeOptionalText(request.date()),
+                        request.achievementIds(),
+                        request.sortOrder()
+                )
+        );
+
+        return new CreateProjectResponse(created.id(), created.user(), created.name(), created.achievements());
+    }
+
     private void validateOwnedSelections(String userId, CreateTailoredCvProfileRequest request) {
         pocketBaseClient.validateOwnedRecordIds("skills", userId, request.skillIds());
         pocketBaseClient.validateOwnedRecordIds("jobs", userId, request.jobIds());
@@ -115,6 +158,23 @@ public class CvMcpTools {
         return principal;
     }
 
+    private String requireText(String value, String fieldName) {
+        String normalizedValue = normalizeOptionalText(value);
+        if (!StringUtils.hasText(normalizedValue)) {
+            throw new IllegalArgumentException(fieldName + " is required.");
+        }
+
+        return normalizedValue;
+    }
+
+    private String normalizeOptionalText(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+
+        return value.trim();
+    }
+
     private String frontendBaseUrl() {
         String baseUrl = frontendProperties.baseUrl();
         String normalizedBaseUrl = Objects.requireNonNullElse(baseUrl, "");
@@ -141,5 +201,37 @@ public class CvMcpTools {
     }
 
     public record CreateTailoredCvProfileResponse(String profileId, String slug, String frontendUrl) {
+    }
+
+    public record CreateAchievementRequest(
+            String title,
+            String description,
+            Integer sortOrder
+    ) {
+    }
+
+    public record CreateAchievementResponse(
+            String id,
+            String userId,
+            String title
+    ) {
+    }
+
+    public record CreateProjectRequest(
+            String name,
+            String description,
+            String url,
+            String date,
+            List<String> achievementIds,
+            Integer sortOrder
+    ) {
+    }
+
+    public record CreateProjectResponse(
+            String id,
+            String userId,
+            String name,
+            List<String> achievementIds
+    ) {
     }
 }

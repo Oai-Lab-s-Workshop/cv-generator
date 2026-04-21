@@ -89,6 +89,98 @@ onRecordUpdateRequest((e) => {
   return e.next();
 }, 'ai_tokens');
 
+onRecordCreateRequest((e) => {
+  if (!e.auth) {
+    throw new UnauthorizedError('Authentication required.');
+  }
+
+  const hasSuperuserAccess = e.hasSuperuserAuth();
+  const record = e.record;
+  if (!record) {
+    throw new BadRequestError('Project record is missing.');
+  }
+
+  const requestedOwnerId = record.getString('user');
+  const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
+
+  if (hasSuperuserAccess) {
+    return e.next();
+  }
+
+  if (isMcpServiceAccount) {
+    if (!requestedOwnerId) {
+      throw new BadRequestError('Project owner is required for MCP-created records.');
+    }
+
+    return e.next();
+  }
+
+  record.set('user', e.auth.id);
+  return e.next();
+}, 'projects');
+
+onRecordUpdateRequest((e) => {
+  if (!e.auth) {
+    throw new UnauthorizedError('Authentication required.');
+  }
+
+  if (e.hasSuperuserAuth()) {
+    return e.next();
+  }
+
+  if (e.auth.getBool('isMcpServiceAccount')) {
+    throw new ForbiddenError('MCP service accounts cannot edit projects.');
+  }
+
+  return e.next();
+}, 'projects');
+
+onRecordCreateRequest((e) => {
+  if (!e.auth) {
+    throw new UnauthorizedError('Authentication required.');
+  }
+
+  const hasSuperuserAccess = e.hasSuperuserAuth();
+  const record = e.record;
+  if (!record) {
+    throw new BadRequestError('Achievement record is missing.');
+  }
+
+  const requestedOwnerId = record.getString('user');
+  const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
+
+  if (hasSuperuserAccess) {
+    return e.next();
+  }
+
+  if (isMcpServiceAccount) {
+    if (!requestedOwnerId) {
+      throw new BadRequestError('Achievement owner is required for MCP-created records.');
+    }
+
+    return e.next();
+  }
+
+  record.set('user', e.auth.id);
+  return e.next();
+}, 'achievements');
+
+onRecordUpdateRequest((e) => {
+  if (!e.auth) {
+    throw new UnauthorizedError('Authentication required.');
+  }
+
+  if (e.hasSuperuserAuth()) {
+    return e.next();
+  }
+
+  if (e.auth.getBool('isMcpServiceAccount')) {
+    throw new ForbiddenError('MCP service accounts cannot edit achievements.');
+  }
+
+  return e.next();
+}, 'achievements');
+
 routerAdd('PATCH', '/api/custom/ai-tokens/{id}/revoke', (e) => {
   const id = e.request.pathValue('id');
   const auth = e.auth;

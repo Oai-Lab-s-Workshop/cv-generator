@@ -30,7 +30,10 @@
   left: 45px;
   border-radius: 6px;
   border: solid 1px #d8dee9;
-  margin-top: 12mm;
+  margin-top: 26mm;
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
 }
 
 main{
@@ -356,7 +359,7 @@ a {
   }
 
   .hero__eyebrow {
-    top: 6mm;
+    top: -10mm;
   }
 
   h1,
