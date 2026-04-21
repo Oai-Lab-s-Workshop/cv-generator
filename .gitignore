@@ -6,6 +6,7 @@ dist/
 frontend/.angular/
 .angular/
 pb_data/backups/
+pb_data/storage
 pb_data/types.d.ts
 dist/*
 docs/
