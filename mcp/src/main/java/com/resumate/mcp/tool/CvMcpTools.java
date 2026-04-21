@@ -31,18 +31,18 @@ public class CvMcpTools {
         this.frontendProperties = frontendProperties;
     }
 
-    @Tool(description = "List the templates allowed for the authenticated delegated AI token.")
+    @Tool(description = "List the CV/resume templates available to the authenticated user. Call this before creating a tailored profile to find out which templates the user is allowed to choose from.")
     public ListTemplatesResponse listTemplates() {
         AiTokenPrincipal principal = currentPrincipal();
         return new ListTemplatesResponse(pocketBaseClient.resolveAllowedTemplates(principal.allowedTemplatesList()));
     }
 
-    @Tool(description = "Load the authenticated user's reusable CV material including identity, skills, jobs, projects, achievements, degrees, and hobbies.")
+    @Tool(description = "Load the authenticated user's reusable CV/resume material including identity, skills, jobs, projects, achievements, degrees, and hobbies. Call this before creating a tailored profile to gather the user's existing records.")
     public ProfileMaterialBundle listProfileMaterial() {
         return pocketBaseClient.loadProfileMaterial(currentPrincipal().userId());
     }
 
-    @Tool(description = "Create a tailored public CV profile for a pasted job listing and selected owner-scoped records.")
+    @Tool(description = "Create a tailored public CV/resume profile for a specific job listing when the user asks to craft, tailor, adapt, or customize their resume for that role. Selects from the user's existing records and an allowed template to produce a shareable profile URL.")
     public CreateTailoredCvProfileResponse createTailoredCvProfile(CreateTailoredCvProfileRequest request) {
         AiTokenPrincipal principal = currentPrincipal();
         requireProfileCreationQuota(principal);
@@ -74,7 +74,7 @@ public class CvMcpTools {
         );
     }
 
-    @Tool(description = "Create a new achievement record for the authenticated delegated AI token owner.")
+    @Tool(description = "Create a new achievement record for the authenticated user's CV/resume when the user wants to add an accomplishment before tailoring their profile.")
     public CreateAchievementResponse createAchievement(CreateAchievementRequest request) {
         AiTokenPrincipal principal = currentPrincipal();
         String title = requireText(request.title(), "title");
@@ -91,7 +91,7 @@ public class CvMcpTools {
         return new CreateAchievementResponse(created.id(), created.user(), created.title());
     }
 
-    @Tool(description = "Create a new project record for the authenticated delegated AI token owner.")
+    @Tool(description = "Create a new project record for the authenticated user's CV/resume when the user wants to add a project before tailoring their profile.")
     public CreateProjectResponse createProject(CreateProjectRequest request) {
         AiTokenPrincipal principal = currentPrincipal();
         String name = requireText(request.name(), "name");
