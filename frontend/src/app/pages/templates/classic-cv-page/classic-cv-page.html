@@ -10,12 +10,10 @@
 				@if (data.profile.coverPicture) {
 					<img [src]="data.profile.coverPicture" alt="" id="cover_picture">
 				} @else {
-					<img src="https://placehold.co/1200" alt="" id="cover_picture">
+					<span id="cover_picture">CV</span>
 				}
 				@if (data.profile.profilePicture) {
 					<img [src]="data.profile.profilePicture" alt="" class="hero__eyebrow">
-				} @else {
-					<img src="https://placehold.co/100" alt="" class="hero__eyebrow">
 				}
 				
 				<div class="classic-cv-page">
