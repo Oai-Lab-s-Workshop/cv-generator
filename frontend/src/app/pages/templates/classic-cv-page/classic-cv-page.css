@@ -30,7 +30,8 @@
   left: 45px;
   border-radius: 6px;
   border: solid 1px #d8dee9;
-  margin-top: 26mm;
+  margin-top: clamp(4vh, 350px, calc(18vh - 35px));
+  top: 0;
   width: 100px;
   height: 100px;
   object-fit: cover;

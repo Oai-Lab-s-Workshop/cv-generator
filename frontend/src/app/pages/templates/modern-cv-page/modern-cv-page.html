@@ -62,7 +62,7 @@
         <h2>Experience</h2>
         @for (job of data.jobs; track job.id) {
           <article class="timeline-item">
-            <p class="timeline-item__date">{{ job.startDate || 'Start' }} - {{ job.endDate || 'Present' }}</p>
+            <p class="timeline-item__date">{{ getDate(job.startDate) || 'Start' }} - {{ getDate(job.endDate) || 'Present' }}</p>
             <h3>{{ job.position }}</h3>
             <p class="timeline-item__meta">{{ job.company }}@if (job.location) { · {{ job.location }} }</p>
             @if (job.responsibilities) {

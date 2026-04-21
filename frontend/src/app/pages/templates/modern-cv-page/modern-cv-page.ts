@@ -20,6 +20,16 @@ export class ModernCvPage implements OnInit {
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
 
+  protected getDate(dateStr: string | null | undefined): string {
+    const date = this.pocketBaseService.toDate(dateStr);
+
+    if (!date || Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+  }
+
   ngOnInit(): void {
     effect(
       () => {
