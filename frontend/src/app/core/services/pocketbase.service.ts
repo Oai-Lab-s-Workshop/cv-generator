@@ -262,13 +262,11 @@ export class PocketBaseService {
     };
   }
 
-  async revokeCurrentUserAiToken(tokenId: string): Promise<AiToken> {
-    const token = await this.getCurrentUserAiTokenById(tokenId);
-    const updated = await this.pb.collection<AiToken>('ai_tokens').update(token.id, {
-      status: 'revoked',
+  async revokeCurrentUserAiToken(tokenId: string): Promise<void> {
+    await this.pb.send(`/api/custom/ai-tokens/${tokenId}/revoke`, {
+      method: 'PATCH',
+      requestKey: `revoke-${tokenId}`,
     });
-
-    return this.normalizeAiToken(updated);
   }
 
   async getCvDataByProfileId(cvProfileId: string): Promise<CvData> {

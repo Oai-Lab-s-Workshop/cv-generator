@@ -1,0 +1,127 @@
+<main class="token-management-page">
+  <section class="hero hero--split">
+    <div>
+      <p class="eyebrow">Administration</p>
+      <h1>Tokens MCP</h1>
+      <p class="lede">Creez des tokens delegues pour un agent AI et revoquez-les sans exposer vos identifiants PocketBase.</p>
+    </div>
+
+    <a class="secondary-button" routerLink="/home">Retour a l'accueil</a>
+  </section>
+
+  @if (errorMessage()) {
+    <section class="state-card state-card--error">
+      <h2>Erreur</h2>
+      <p>{{ errorMessage() }}</p>
+    </section>
+  }
+
+  <section class="token-layout">
+    <article class="state-card token-form-card">
+      <label class="quick-actions__field">
+        <span>Label</span>
+        <input [ngModel]="newAiTokenLabel()" (ngModelChange)="newAiTokenLabel.set($event)" type="text" placeholder="Ex. Assistant principal" />
+      </label>
+
+      <div class="token-form-card__grid">
+        <label class="quick-actions__field">
+          <span>Expiration</span>
+          <input
+            [ngModel]="newAiTokenExpiresAt()"
+            (ngModelChange)="newAiTokenExpiresAt.set($event)"
+            type="datetime-local"
+          />
+        </label>
+
+        <label class="quick-actions__field">
+          <span>Quota max de creations</span>
+          <input
+            [ngModel]="newAiTokenMaxProfileCreates()"
+            (ngModelChange)="newAiTokenMaxProfileCreates.set($event)"
+            type="number"
+            min="0"
+            placeholder="Illimite"
+          />
+        </label>
+      </div>
+
+      <div class="token-form-card__choice">
+        <p>Choix du template</p>
+
+        <label class="toggle-row">
+          <span>L'IA peut choisir le template</span>
+          <input
+            type="checkbox"
+            [checked]="newAiTokenCanChooseTemplate()"
+            (change)="setAiTokenTemplateChoice($any($event.target).checked)"
+          />
+        </label>
+      </div>
+
+      <div class="template-permissions">
+        <label class="quick-actions__field">
+          <span>Templates autorises</span>
+          <select
+            multiple
+            [ngModel]="newAiTokenAllowedTemplates()"
+            (ngModelChange)="newAiTokenAllowedTemplates.set($event)"
+          >
+            @for (template of templateOptions; track template.id) {
+              <option [value]="template.id">{{ template.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <button class="primary-button" type="button" [disabled]="isCreatingAiToken()" (click)="createAiToken()">
+        {{ isCreatingAiToken() ? 'Creation...' : 'Creer un token MCP' }}
+      </button>
+    </article>
+
+    <div class="token-stack">
+      @if (latestCreatedAiToken()) {
+        <article class="state-card state-card--success">
+          <h2>Token genere</h2>
+          <p>Copiez ce token maintenant. Il n'est plus affichable apres cette session.</p>
+          <code class="token-secret">{{ latestCreatedAiToken() }}</code>
+          <button class="secondary-button token-copy-button" type="button" (click)="copyLatestAiToken()">Copier</button>
+        </article>
+      }
+
+      @if (isLoadingAiTokens()) {
+        <article class="state-card">
+          <p>Chargement des tokens MCP...</p>
+        </article>
+      } @else if (aiTokens().length === 0) {
+        <article class="state-card">
+          <h2>Aucun token MCP</h2>
+          <p>Creez un premier token pour autoriser un agent a lire vos donnees CV et generer des profils.</p>
+        </article>
+      } @else {
+        <section class="profile-grid">
+          @for (token of aiTokens(); track token.id) {
+            <article class="profile-card">
+              <p class="profile-card__template">{{ token.status }}</p>
+              <h2>{{ token.label }}</h2>
+              <p class="profile-card__slug">{{ token.token_prefix }}...</p>
+              <p class="token-meta">{{ formatAiTokenTemplateScope(token) }}</p>
+              <p class="token-meta">
+                {{ token.maxProfileCreates ? (token.profileCreatesCount ?? 0) + ' / ' + token.maxProfileCreates + ' creations' : 'Quota illimite' }}
+              </p>
+              <p class="token-meta">{{ token.expiresAt ? 'Expire le ' + (token.expiresAt | date: 'medium') : 'Sans expiration' }}</p>
+
+              <button
+                class="secondary-button token-revoke-button"
+                type="button"
+                [disabled]="token.status !== 'active' || activeAiTokenMutationId() === token.id"
+                (click)="revokeAiToken(token)"
+              >
+                {{ activeAiTokenMutationId() === token.id ? 'Revocation...' : 'Revoquer' }}
+              </button>
+            </article>
+          }
+        </section>
+      }
+    </div>
+  </section>
+</main>
