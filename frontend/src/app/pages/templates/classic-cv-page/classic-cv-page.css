@@ -1,3 +1,13 @@
+img, #cover_picture {
+  background-color: #000000;
+  color: white;
+  display: inline-block;
+  font-size: 142px;
+  line-height: clamp(2mm, 400px, 18vh);
+  font-weight: 900;
+  text-align: right;
+  object-fit: cover;
+}
 
 .classic-cv-page--state {
   min-height: 50vh;
@@ -275,6 +285,8 @@ a {
     max-height: none;
     margin: 0 0 8mm;
 
+    line-height: 32mm;
+
     position: absolute;
     top: 0;
     width: 210mm;
@@ -357,10 +369,12 @@ a {
   .hero {
     gap: 4mm;
     margin-bottom: 6mm;
+    margin-top: 6mm;
   }
 
   .hero__eyebrow {
-    top: -10mm;
+    margin-top: 12mm;
+    top: 0;
   }
 
   h1,
