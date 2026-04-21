@@ -3,6 +3,7 @@ onRecordCreateRequest((e) => {
     throw new UnauthorizedError('Authentication required.');
   }
 
+  const hasSuperuserAccess = e.hasSuperuserAuth();
   const record = e.record;
   if (!record) {
     throw new BadRequestError('CV profile record is missing.');
@@ -11,11 +12,12 @@ onRecordCreateRequest((e) => {
   const requestedOwnerId = record.getString('user');
   const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
 
-  if (isMcpServiceAccount && requestedOwnerId) {
-    return;
+  if (hasSuperuserAccess || (isMcpServiceAccount && requestedOwnerId)) {
+    return e.next();
   }
 
   record.set('user', e.auth.id);
+  return e.next();
 }, 'cv_profiles');
 
 onRecordUpdateRequest((e) => {
@@ -23,6 +25,7 @@ onRecordUpdateRequest((e) => {
     throw new UnauthorizedError('Authentication required.');
   }
 
+  const hasSuperuserAccess = e.hasSuperuserAuth();
   const record = e.record;
   if (!record) {
     throw new BadRequestError('CV profile record is missing.');
@@ -31,13 +34,14 @@ onRecordUpdateRequest((e) => {
   const currentOwnerId = record.getString('user');
   const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
 
-  if (!isMcpServiceAccount && currentOwnerId && currentOwnerId !== e.auth.id) {
+  if (!hasSuperuserAccess && !isMcpServiceAccount && currentOwnerId && currentOwnerId !== e.auth.id) {
     throw new ForbiddenError('You cannot edit another user\'s CV profile.');
   }
 
-  if (!isMcpServiceAccount) {
+  if (!hasSuperuserAccess && !isMcpServiceAccount) {
     record.set('user', e.auth.id);
   }
+  return e.next();
 }, 'cv_profiles');
 
 onRecordCreateRequest((e) => {
@@ -45,18 +49,20 @@ onRecordCreateRequest((e) => {
     throw new UnauthorizedError('Authentication required.');
   }
 
+  const hasSuperuserAccess = e.hasSuperuserAuth();
   const record = e.record;
   if (!record) {
     throw new BadRequestError('AI token record is missing.');
   }
 
-  if (e.auth.getBool('isMcpServiceAccount')) {
-    return;
+  if (hasSuperuserAccess || e.auth.getBool('isMcpServiceAccount')) {
+    return e.next();
   }
 
   record.set('user', e.auth.id);
   record.set('profileCreatesCount', 0);
   record.set('lastUsedAt', null);
+  return e.next();
 }, 'ai_tokens');
 
 onRecordUpdateRequest((e) => {
@@ -64,6 +70,7 @@ onRecordUpdateRequest((e) => {
     throw new UnauthorizedError('Authentication required.');
   }
 
+  const hasSuperuserAccess = e.hasSuperuserAuth();
   const record = e.record;
   if (!record) {
     throw new BadRequestError('AI token record is missing.');
@@ -72,13 +79,14 @@ onRecordUpdateRequest((e) => {
   const currentOwnerId = record.getString('user');
   const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
 
-  if (!isMcpServiceAccount && currentOwnerId && currentOwnerId !== e.auth.id) {
+  if (!hasSuperuserAccess && !isMcpServiceAccount && currentOwnerId && currentOwnerId !== e.auth.id) {
     throw new ForbiddenError('You cannot edit another user\'s AI token.');
   }
 
-  if (!isMcpServiceAccount) {
+  if (!hasSuperuserAccess && !isMcpServiceAccount) {
     record.set('user', e.auth.id);
   }
+  return e.next();
 }, 'ai_tokens');
 
 routerAdd('PATCH', '/api/custom/ai-tokens/{id}/revoke', (e) => {
