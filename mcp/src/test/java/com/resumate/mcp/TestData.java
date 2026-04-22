@@ -7,7 +7,6 @@ import com.resumate.mcp.tool.CvMcpTools;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public final class TestData {
 
@@ -26,43 +25,26 @@ public final class TestData {
     }
 
     public static AiTokenPrincipal principal() {
-        return new AiTokenPrincipal(
-                TOKEN_ID, USER_ID, true,
-                Set.of(TEMPLATE_CLASSIC, TEMPLATE_MODERN),
-                5, 0, "test-token"
-        );
+        return new AiTokenPrincipal(TOKEN_ID, USER_ID, "test-token");
     }
 
     public static AiTokenPrincipal principalWithoutTemplateChoice() {
-        return new AiTokenPrincipal(
-                TOKEN_ID, USER_ID, false,
-                Set.of(TEMPLATE_CLASSIC),
-                5, 0, "test-token"
-        );
+        return principal();
     }
 
     public static AiTokenPrincipal principalWithQuotaExceeded() {
-        return new AiTokenPrincipal(
-                TOKEN_ID, USER_ID, true,
-                Set.of(TEMPLATE_CLASSIC, TEMPLATE_MODERN),
-                3, 3, "test-token"
-        );
+        return principal();
     }
 
     public static AiTokenPrincipal principalWithNoAllowedTemplates() {
-        return new AiTokenPrincipal(
-                TOKEN_ID, USER_ID, true,
-                Set.of(),
-                5, 0, "test-token"
-        );
+        return principal();
     }
 
     public static PocketBaseClient.AiTokenRecord aiTokenRecord() {
         return new PocketBaseClient.AiTokenRecord(
                 TOKEN_ID, USER_ID, "test-token", "active",
                 Instant.now().plusSeconds(3600).toString(),
-                true, List.of(TEMPLATE_CLASSIC, TEMPLATE_MODERN),
-                5, 0, "abc123hash", "abc"
+                "abc123hash", "abc"
         );
     }
 
@@ -70,8 +52,7 @@ public final class TestData {
         return new PocketBaseClient.AiTokenRecord(
                 TOKEN_ID, USER_ID, "test-token", "active",
                 Instant.now().minusSeconds(3600).toString(),
-                true, List.of(TEMPLATE_CLASSIC, TEMPLATE_MODERN),
-                5, 0, "abc123hash", "abc"
+                "abc123hash", "abc"
         );
     }
 
@@ -79,8 +60,7 @@ public final class TestData {
         return new PocketBaseClient.AiTokenRecord(
                 TOKEN_ID, USER_ID, "test-token", "revoked",
                 Instant.now().plusSeconds(3600).toString(),
-                true, List.of(TEMPLATE_CLASSIC, TEMPLATE_MODERN),
-                5, 0, "abc123hash", "abc"
+                "abc123hash", "abc"
         );
     }
 

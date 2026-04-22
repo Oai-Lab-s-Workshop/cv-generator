@@ -232,14 +232,9 @@ export class PocketBaseService {
     const rawToken = generateAiTokenSecret();
     const tokenHash = await hashAiTokenSecret(rawToken);
     const label = input.label.trim();
-    const allowedTemplates = [...new Set(input.allowedTemplates)];
 
     if (!label) {
-      throw new Error('Le label du token est obligatoire.');
-    }
-
-    if (allowedTemplates.length === 0) {
-      throw new Error('Selectionnez au moins un template autorise.');
+      throw new Error('Le label de la cle API est obligatoire.');
     }
 
     const created = await this.pb.collection<AiToken>('ai_tokens').create({
@@ -249,16 +244,15 @@ export class PocketBaseService {
       label,
       status: 'active',
       expiresAt: input.expiresAt || null,
-      canChooseTemplate: input.canChooseTemplate,
-      allowedTemplates,
-      maxProfileCreates: input.maxProfileCreates ?? null,
-      profileCreatesCount: 0,
       lastUsedAt: null,
     });
 
     return {
       record: this.normalizeAiToken(created),
       rawToken,
+      debug: {
+        currentUserId,
+      },
     };
   }
 
@@ -368,16 +362,10 @@ export class PocketBaseService {
 
   private normalizeAiToken(token: AiToken | null): AiToken {
     if (!token) {
-      throw new Error('AI token not found.');
+      throw new Error('API key not found.');
     }
 
-    return {
-      ...token,
-      canChooseTemplate: token.canChooseTemplate ?? false,
-      allowedTemplates: [...(token.allowedTemplates ?? [])],
-      maxProfileCreates: token.maxProfileCreates ?? null,
-      profileCreatesCount: token.profileCreatesCount ?? 0,
-    };
+    return { ...token };
   }
 
   private getFileFieldUrl(record: RecordModel, filename: string | undefined): string | undefined {

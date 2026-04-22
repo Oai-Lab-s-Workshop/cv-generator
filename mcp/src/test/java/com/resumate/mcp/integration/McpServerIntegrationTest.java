@@ -81,7 +81,7 @@ class McpServerIntegrationTest {
                 new PocketBaseClient.AiTokenRecord(
                         "tokenId", "userId", "label", "active",
                         Instant.now().plusSeconds(3600).toString(),
-                        true, List.of("classic"), 5, 0, "hash", "prefix"
+                        "hash", "prefix"
                 )
         ));
 
@@ -91,15 +91,15 @@ class McpServerIntegrationTest {
     }
 
     @Test
-    void resolveAllowedTemplates_worksWithMock() {
-        when(pocketBaseClient.resolveAllowedTemplates(List.of("classic", "modern")))
+    void resolveAvailableTemplates_worksWithMock() {
+        when(pocketBaseClient.resolveAvailableTemplates())
                 .thenReturn(List.of(
                         new PocketBaseClient.TemplateDescriptor("classic", "Classic", "Traditional CV layout"),
                         new PocketBaseClient.TemplateDescriptor("modern", "Modern", "Contemporary single-column layout")
                 ));
 
         List<PocketBaseClient.TemplateDescriptor> templates =
-                pocketBaseClient.resolveAllowedTemplates(List.of("classic", "modern"));
+                pocketBaseClient.resolveAvailableTemplates();
 
         assertThat(templates).hasSize(2);
     }

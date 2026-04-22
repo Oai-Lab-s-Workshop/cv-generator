@@ -1,25 +1,20 @@
 package com.resumate.mcp.security;
 
 import java.security.Principal;
-import java.util.List;
-import java.util.Set;
 
 public record AiTokenPrincipal(
         String tokenId,
         String userId,
-        boolean canChooseTemplate,
-        Set<String> allowedTemplates,
-        Integer maxProfileCreates,
-        int profileCreatesCount,
-        String label
+        String label,
+        String tokenPrefix
 ) implements Principal {
+
+    public AiTokenPrincipal(String tokenId, String userId, String label) {
+        this(tokenId, userId, label, null);
+    }
 
     @Override
     public String getName() {
         return label == null || label.isBlank() ? tokenId : label;
-    }
-
-    public List<String> allowedTemplatesList() {
-        return allowedTemplates.stream().sorted().toList();
     }
 }

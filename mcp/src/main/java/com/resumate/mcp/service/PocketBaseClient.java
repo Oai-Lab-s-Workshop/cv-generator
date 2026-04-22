@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,17 +72,8 @@ public class PocketBaseClient {
         );
     }
 
-    public List<TemplateDescriptor> resolveAllowedTemplates(AiTokenRecord token) {
-        List<String> allowedIds = token.allowedTemplates() == null ? List.of() : token.allowedTemplates();
-        return TEMPLATE_DESCRIPTORS.stream()
-                .filter((template) -> allowedIds.isEmpty() || allowedIds.contains(template.id()))
-                .toList();
-    }
-
-    public List<TemplateDescriptor> resolveAllowedTemplates(List<String> allowedTemplateIds) {
-        return TEMPLATE_DESCRIPTORS.stream()
-                .filter((template) -> allowedTemplateIds.isEmpty() || allowedTemplateIds.contains(template.id()))
-                .toList();
+    public List<TemplateDescriptor> resolveAvailableTemplates() {
+        return TEMPLATE_DESCRIPTORS;
     }
 
     public void validateOwnedRecordIds(String collectionName, String userId, List<String> ids) {
@@ -91,17 +81,24 @@ public class PocketBaseClient {
             return;
         }
 
-        String filter = ownedIdsFilter(userId, ids);
-        RecordListResponse<Map<String, Object>> response = getCollectionRecords(
-                collectionName,
-                filter,
-                ids.size(),
-                new ParameterizedTypeReference<>() {
-                }
-        );
+        List<String> uniqueIds = ids.stream()
+                .filter(StringUtils::hasText)
+                .distinct()
+                .toList();
+        if (uniqueIds.size() != ids.size()) {
+            throw new IllegalArgumentException("One or more selected records do not belong to the API key owner.");
+        }
 
-        if (response.items().size() != ids.size()) {
-            throw new IllegalArgumentException("One or more selected records do not belong to the token owner.");
+        for (String id : uniqueIds) {
+            OwnedRecord record;
+            try {
+                record = getRecordById(collectionName, id);
+            } catch (RuntimeException ex) {
+                throw new IllegalArgumentException("One or more selected records do not belong to the API key owner.", ex);
+            }
+            if (record == null || !userId.equals(record.user())) {
+                throw new IllegalArgumentException("One or more selected records do not belong to the API key owner.");
+            }
         }
     }
 
@@ -130,60 +127,6 @@ public class PocketBaseClient {
                 .body(CreatedProfileRecord.class);
 
         return Objects.requireNonNull(created, "PocketBase created profile payload is required.");
-    }
-
-    public CreatedProjectRecord createProject(String userId, CreateProjectPayload payload) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("user", userId);
-        body.put("name", payload.name());
-        putIfHasText(body, "description", payload.description());
-        putIfHasText(body, "url", payload.url());
-        putIfHasText(body, "date", payload.date());
-        body.put("achievements", defaultList(payload.achievementIds()));
-        putIfNotNull(body, "sortOrder", payload.sortOrder());
-
-        CreatedProjectRecord created = restClient.post()
-                .uri("/api/collections/projects/records")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
-                .body(body)
-                .retrieve()
-                .body(CreatedProjectRecord.class);
-
-        return Objects.requireNonNull(created, "PocketBase created project payload is required.");
-    }
-
-    public CreatedAchievementRecord createAchievement(String userId, CreateAchievementPayload payload) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("user", userId);
-        body.put("title", payload.title());
-        putIfHasText(body, "description", payload.description());
-        putIfNotNull(body, "sortOrder", payload.sortOrder());
-
-        CreatedAchievementRecord created = restClient.post()
-                .uri("/api/collections/achievements/records")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
-                .body(body)
-                .retrieve()
-                .body(CreatedAchievementRecord.class);
-
-        return Objects.requireNonNull(created, "PocketBase created achievement payload is required.");
-    }
-
-    public void markTokenUsed(String tokenId, int profileCreatesCount) {
-        Map<String, Object> body = Map.of(
-                "profileCreatesCount", profileCreatesCount,
-                "lastUsedAt", Instant.now().toString()
-        );
-
-        restClient.patch()
-                .uri("/api/collections/ai_tokens/records/{tokenId}", tokenId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
-                .body(body)
-                .retrieve()
-                .toBodilessEntity();
     }
 
     private List<Map<String, Object>> getOwnedRecords(String collectionName, String userId, String sort) {
@@ -231,6 +174,14 @@ public class PocketBaseClient {
         return Objects.requireNonNull(response, "PocketBase list response is required.");
     }
 
+    private OwnedRecord getRecordById(String collectionName, String recordId) {
+        return restClient.get()
+                .uri("/api/collections/{collectionName}/records/{recordId}", collectionName, recordId)
+                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
+                .retrieve()
+                .body(OwnedRecord.class);
+    }
+
     private String serviceUserToken() {
         if (!StringUtils.hasText(properties.serviceUserEmail()) || !StringUtils.hasText(properties.serviceUserPassword())) {
             throw new IllegalStateException("PocketBase MCP service-user credentials are not configured.");
@@ -257,27 +208,8 @@ public class PocketBaseClient {
         return "Bearer " + token;
     }
 
-    private static String ownedIdsFilter(String userId, List<String> ids) {
-        List<String> predicates = new ArrayList<>();
-        predicates.add(String.format("user=\"%s\"", userId));
-        predicates.add("(" + ids.stream().map((id) -> String.format("id=\"%s\"", id)).reduce((left, right) -> left + " || " + right).orElse("") + ")");
-        return String.join(" && ", predicates);
-    }
-
     private static List<String> defaultList(List<String> values) {
         return values == null ? List.of() : values;
-    }
-
-    private static void putIfHasText(Map<String, Object> body, String key, String value) {
-        if (StringUtils.hasText(value)) {
-            body.put(key, value);
-        }
-    }
-
-    private static void putIfNotNull(Map<String, Object> body, String key, Object value) {
-        if (value != null) {
-            body.put(key, value);
-        }
     }
 
     private static String slugify(String value) {
@@ -352,23 +284,6 @@ public class PocketBaseClient {
     ) {
     }
 
-    public record CreateProjectPayload(
-            String name,
-            String description,
-            String url,
-            String date,
-            List<String> achievementIds,
-            Integer sortOrder
-    ) {
-    }
-
-    public record CreateAchievementPayload(
-            String title,
-            String description,
-            Integer sortOrder
-    ) {
-    }
-
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record AuthResponse(String token) {
     }
@@ -384,16 +299,9 @@ public class PocketBaseClient {
             String label,
             String status,
             String expiresAt,
-            Boolean canChooseTemplate,
-            List<String> allowedTemplates,
-            Integer maxProfileCreates,
-            Integer profileCreatesCount,
             @JsonProperty("token_hash") String tokenHash,
             @JsonProperty("token_prefix") String tokenPrefix
     ) {
-        public List<String> allowedTemplates() {
-            return allowedTemplates == null ? List.of() : allowedTemplates;
-        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -401,19 +309,9 @@ public class PocketBaseClient {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record CreatedProjectRecord(
+    public record OwnedRecord(
             String id,
-            String user,
-            String name,
-            List<String> achievements
-    ) {
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record CreatedAchievementRecord(
-            String id,
-            String user,
-            String title
+            String user
     ) {
     }
 

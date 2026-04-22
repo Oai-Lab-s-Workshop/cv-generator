@@ -5,7 +5,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -32,7 +30,7 @@ class AiTokenAuthenticationFilterTest {
     }
 
     @Test
-    void sendsUnauthorized_whenNoAuthorizationHeader() throws ServletException, IOException {
+    void sendsUnauthorized_whenNoApiKeyHeader() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -43,9 +41,9 @@ class AiTokenAuthenticationFilterTest {
     }
 
     @Test
-    void sendsUnauthorized_whenAuthorizationHeaderWithoutBearer() throws ServletException, IOException {
+    void sendsUnauthorized_whenApiKeyHeaderIsEmpty() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Basic abc123");
+        request.addHeader("API_KEY", "   ");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filter.doFilterInternal(request, response, filterChain);
@@ -55,25 +53,37 @@ class AiTokenAuthenticationFilterTest {
     }
 
     @Test
-    void sendsUnauthorized_whenBearerTokenIsEmpty() throws ServletException, IOException {
+    void sendsUnauthorized_withCorrectMessage_forMissingApiKey() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer  ");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filter.doFilterInternal(request, response, filterChain);
 
         assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+        assertThat(response.getErrorMessage()).isEqualTo("Missing API key.");
+    }
+
+    @Test
+    void sendsUnauthorized_whenOnlyAuthorizationHeaderIsProvided() throws ServletException, IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer valid-token");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+        assertThat(response.getErrorMessage()).isEqualTo("Missing API key.");
         verify(filterChain, never()).doFilter(any(), any());
     }
 
     @Test
-    void setsAuthenticationAndContinuesFilterChain_onValidToken() throws ServletException, IOException {
+    void setsAuthenticationAndContinuesFilterChain_onValidApiKey() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer valid-token");
+        request.addHeader("API_KEY", "valid-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true, java.util.Set.of("classic"), 5, 0, "label"
+                "tokenId", "userId", "label"
         );
         when(authenticationService.authenticate("valid-token")).thenReturn(principal);
 
@@ -84,13 +94,13 @@ class AiTokenAuthenticationFilterTest {
     }
 
     @Test
-    void setsSecurityContext_onValidToken() throws ServletException, IOException {
+    void clearsSecurityContext_afterFilterChain() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer valid-token");
+        request.addHeader("API_KEY", "valid-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true, java.util.Set.of("classic"), 5, 0, "label"
+                "tokenId", "userId", "label"
         );
         when(authenticationService.authenticate("valid-token")).thenReturn(principal);
 
@@ -102,43 +112,15 @@ class AiTokenAuthenticationFilterTest {
     @Test
     void sendsUnauthorized_whenAuthenticationServiceThrows() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer bad-token");
+        request.addHeader("API_KEY", "bad-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         when(authenticationService.authenticate("bad-token"))
-                .thenThrow(new IllegalArgumentException("Invalid AI token."));
+                .thenThrow(new IllegalArgumentException("Invalid API key."));
 
         filter.doFilterInternal(request, response, filterChain);
 
         assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
         verify(filterChain, never()).doFilter(any(), any());
-    }
-
-    @Test
-    void clearsSecurityContext_afterFilterChain() throws ServletException, IOException {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer valid-token");
-        MockHttpServletResponse response = new MockHttpServletResponse();
-
-        AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true, java.util.Set.of("classic"), 5, 0, "label"
-        );
-        when(authenticationService.authenticate("valid-token")).thenReturn(principal);
-
-        filter.doFilterInternal(request, response, filterChain);
-
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-    }
-
-    @Test
-    void sendsUnauthorized_withCorrectMessage_forEmptyBearerToken() throws ServletException, IOException {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer ");
-        MockHttpServletResponse response = new MockHttpServletResponse();
-
-        filter.doFilterInternal(request, response, filterChain);
-
-        assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-        assertThat(response.getErrorMessage()).isEqualTo("Missing bearer token.");
     }
 }

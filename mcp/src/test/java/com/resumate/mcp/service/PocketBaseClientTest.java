@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,53 +58,12 @@ class PocketBaseClientTest {
     }
 
     @Test
-    void resolveAllowedTemplates_returnsAllTemplates_whenAllowedListIsEmpty() {
-        List<TemplateDescriptor> result = client.resolveAllowedTemplates(List.of());
+    void resolveAvailableTemplates_returnsAllTemplates() {
+        List<TemplateDescriptor> result = client.resolveAvailableTemplates();
 
         assertThat(result).hasSize(3);
         assertThat(result.stream().map(TemplateDescriptor::id).toList())
                 .containsExactly("classic", "modern", "minimal");
-    }
-
-    @Test
-    void resolveAllowedTemplates_filtersByAllowedIds() {
-        List<TemplateDescriptor> result = client.resolveAllowedTemplates(List.of("classic", "modern"));
-
-        assertThat(result).hasSize(2);
-        assertThat(result.stream().map(TemplateDescriptor::id).toList())
-                .containsExactly("classic", "modern");
-    }
-
-    @Test
-    void resolveAllowedTemplates_returnsEmpty_whenNoMatchingIds() {
-        List<TemplateDescriptor> result = client.resolveAllowedTemplates(List.of("nonexistent"));
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void resolveAllowedTemplates_withAiTokenRecord_returnsAllWhenNull() {
-        AiTokenRecord record = new AiTokenRecord(
-                "id", "user", "label", "active", null,
-                true, null, 5, 0, "hash", "prefix"
-        );
-
-        List<TemplateDescriptor> result = client.resolveAllowedTemplates(record);
-
-        assertThat(result).hasSize(3);
-    }
-
-    @Test
-    void resolveAllowedTemplates_withAiTokenRecord_filtersByTemplateIds() {
-        AiTokenRecord record = new AiTokenRecord(
-                "id", "user", "label", "active", null,
-                true, List.of("classic"), 5, 0, "hash", "prefix"
-        );
-
-        List<TemplateDescriptor> result = client.resolveAllowedTemplates(record);
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).id()).isEqualTo("classic");
     }
 
     @Test
@@ -115,17 +73,13 @@ class PocketBaseClientTest {
         String tokenJson = """
                 {
                     "items": [{
-                        "id": "tokenId",
-                        "user": "userId",
-                        "label": "test",
-                        "status": "active",
-                        "canChooseTemplate": true,
-                        "allowedTemplates": ["classic"],
-                        "maxProfileCreates": 5,
-                        "profileCreatesCount": 0,
-                        "token_hash": "abc123",
-                        "token_prefix": "abc"
-                    }]
+                    "id": "tokenId",
+                    "user": "userId",
+                    "label": "test",
+                    "status": "active",
+                    "token_hash": "abc123",
+                    "token_prefix": "abc"
+                }]
                 }
                 """;
         enqueueJsonResponse(tokenJson);
@@ -181,7 +135,9 @@ class PocketBaseClientTest {
     @Test
     void validateOwnedRecordIds_passes_whenAllIdsBelongToUser() {
         enqueueAuthResponse();
-        enqueueJsonResponse("{\"items\": [{\"id\": \"skill1\"}, {\"id\": \"skill2\"}]}");
+        enqueueJsonResponse("{\"id\":\"skill1\",\"user\":\"userId\"}");
+        enqueueAuthResponse();
+        enqueueJsonResponse("{\"id\":\"skill2\",\"user\":\"userId\"}");
 
         client.validateOwnedRecordIds("skills", "userId", List.of("skill1", "skill2"));
     }
@@ -189,11 +145,13 @@ class PocketBaseClientTest {
     @Test
     void validateOwnedRecordIds_throws_whenIdsDontMatch() {
         enqueueAuthResponse();
-        enqueueJsonResponse("{\"items\": [{\"id\": \"skill1\"}]}");
+        enqueueJsonResponse("{\"id\":\"skill1\",\"user\":\"userId\"}");
+        enqueueAuthResponse();
+        enqueueJsonResponse("{\"id\":\"skill2\",\"user\":\"other-user\"}");
 
         assertThatThrownBy(() -> client.validateOwnedRecordIds("skills", "userId", List.of("skill1", "skill2")))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("One or more selected records do not belong to the token owner.");
+                .hasMessage("One or more selected records do not belong to the API key owner.");
     }
 
     @Test
@@ -225,22 +183,6 @@ class PocketBaseClientTest {
 
         assertThat(result.id()).isEqualTo("profile123");
         assertThat(result.slug()).isEqualTo("classic--my-profile-1700000000000");
-    }
-
-    @Test
-    void markTokenUsed_sendsPatchRequest() throws InterruptedException {
-        enqueueAuthResponse();
-        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
-
-        client.markTokenUsed("tokenId", 2);
-
-        RecordedRequest authRequest = mockWebServer.takeRequest();
-        assertThat(authRequest.getMethod()).isEqualTo("POST");
-        assertThat(authRequest.getPath()).isEqualTo("/api/collections/users/auth-with-password");
-
-        RecordedRequest patchRequest = mockWebServer.takeRequest();
-        assertThat(patchRequest.getMethod()).isEqualTo("PATCH");
-        assertThat(patchRequest.getPath()).contains("/api/collections/ai_tokens/records/tokenId");
     }
 
     @Test
