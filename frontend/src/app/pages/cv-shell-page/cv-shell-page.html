@@ -8,7 +8,7 @@
           }
           @if (profile(); as profile) {
             <span>/{{ profile.slug }}</span>
-            <span>{{ profile.public === false ? 'Private route' : 'Public route' }}</span>
+            <span>{{ profile.public === false ? 'Route privee' : 'Route publique' }}</span>
           }
         </p>
       </div>
@@ -17,12 +17,12 @@
         <button class="secondary-button" type="button" (click)="togglePreviewMode()">
           {{ isPreviewMode() ? 'Exit Preview' : 'Preview' }}
         </button>
-        <button class="secondary-button" type="button" (click)="printCv()">Print</button>
+        <button class="secondary-button" type="button" (click)="printCv()">Imprimer</button>
         <button class="secondary-button" type="button" [disabled]="isExportingPdf()" (click)="downloadPdf()">
           {{ isExportingPdf() ? 'Exporting...' : 'Download PDF' }}
         </button>
-        <a [routerLink]="['/home']" class="secondary-button secondary-button--link">Manage</a>
-        <button class="secondary-button secondary-button--ghost" type="button" (click)="dismissAdminBar()">Close</button>
+        <a [routerLink]="['/home']" class="secondary-button secondary-button--link">Gerer</a>
+        <button class="secondary-button secondary-button--ghost" type="button" (click)="dismissAdminBar()">Fermer</button>
       </div>
     </div>
 
@@ -41,17 +41,17 @@
   } @else {
     <main class="cv-shell-page">
       <section class="state-card">
-        <p class="state-card__eyebrow">Unknown Template</p>
-        <h1>This CV profile has no known frontend template.</h1>
-        <p>Assign a supported template on the authenticated home page or in PocketBase.</p>
+        <p class="state-card__eyebrow">Template inconnu</p>
+        <h1>Ce profil CV n'a aucun template frontal reconnu.</h1>
+        <p>Attribuez un template pris en charge depuis la page d'accueil authentifiee ou dans PocketBase.</p>
       </section>
     </main>
   }
 } @else {
   <main class="cv-shell-page">
     <section class="state-card">
-      <p class="state-card__eyebrow">Unknown CV</p>
-      <h1>This CV route could not be resolved.</h1>
+      <p class="state-card__eyebrow">CV inconnu</p>
+      <h1>Cette route de CV n'a pas pu etre resolue.</h1>
     </section>
   </main>
 }
