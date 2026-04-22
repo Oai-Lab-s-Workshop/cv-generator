@@ -10,7 +10,7 @@
         }
 
         @if (project().description) {
-            <p class="project-chip__description">{{ project().description }}</p>
+            <p class="project-chip__description" [innerHTML]="project().description"></p>
         }
 
         @if (project().url){

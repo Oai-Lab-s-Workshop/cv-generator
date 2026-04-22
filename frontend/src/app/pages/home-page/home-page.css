@@ -38,6 +38,7 @@
 }
 
 .quick-actions__field input {
+  box-sizing: border-box;
   width: 100%;
   border: 1px solid #cbd5e1;
   border-radius: 0.75rem;
@@ -120,6 +121,11 @@ h1 {
 .state-card--error {
   border-color: #f0b7b7;
   background: #fff7f7;
+}
+
+.state-card--success {
+  border-color: #b9dfc4;
+  background: #f5fff7;
 }
 
 .profile-card__template,
