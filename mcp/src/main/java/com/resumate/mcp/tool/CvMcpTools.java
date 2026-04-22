@@ -3,12 +3,8 @@ package com.resumate.mcp.tool;
 import com.resumate.mcp.config.FrontendProperties;
 import com.resumate.mcp.security.AiTokenPrincipal;
 import com.resumate.mcp.service.PocketBaseClient;
-import com.resumate.mcp.service.PocketBaseClient.CreateAchievementPayload;
 import com.resumate.mcp.service.PocketBaseClient.CreateProfilePayload;
-import com.resumate.mcp.service.PocketBaseClient.CreateProjectPayload;
-import com.resumate.mcp.service.PocketBaseClient.CreatedAchievementRecord;
 import com.resumate.mcp.service.PocketBaseClient.CreatedProfileRecord;
-import com.resumate.mcp.service.PocketBaseClient.CreatedProjectRecord;
 import com.resumate.mcp.service.PocketBaseClient.ProfileMaterialBundle;
 import com.resumate.mcp.service.PocketBaseClient.TemplateDescriptor;
 import org.springframework.ai.tool.annotation.Tool;
@@ -33,8 +29,19 @@ public class CvMcpTools {
 
     @Tool(description = "List the CV/resume templates available to the authenticated user. Call this before creating a tailored profile to find out which templates the user is allowed to choose from.")
     public ListTemplatesResponse listTemplates() {
+        currentPrincipal();
+        return new ListTemplatesResponse(pocketBaseClient.resolveAvailableTemplates());
+    }
+
+    @Tool(description = "Return the MCP API key identity currently authenticated for this session, including the resolved PocketBase user id. Call this to verify which user the current API key maps to before listing profile material.")
+    public AuthenticatedPrincipalResponse whoAmI() {
         AiTokenPrincipal principal = currentPrincipal();
-        return new ListTemplatesResponse(pocketBaseClient.resolveAllowedTemplates(principal.allowedTemplatesList()));
+        return new AuthenticatedPrincipalResponse(
+                principal.tokenId(),
+                principal.userId(),
+                principal.label(),
+                principal.tokenPrefix()
+        );
     }
 
     @Tool(description = "Load the authenticated user's reusable CV/resume material including identity, skills, jobs, projects, achievements, degrees, and hobbies. Call this before creating a tailored profile to gather the user's existing records.")
@@ -45,9 +52,7 @@ public class CvMcpTools {
     @Tool(description = "Create a tailored public CV/resume profile for a specific job listing when the user asks to craft, tailor, adapt, or customize their resume for that role. Selects from the user's existing records and an allowed template to produce a shareable profile URL.")
     public CreateTailoredCvProfileResponse createTailoredCvProfile(CreateTailoredCvProfileRequest request) {
         AiTokenPrincipal principal = currentPrincipal();
-        requireProfileCreationQuota(principal);
-
-        String templateId = resolveTemplateId(principal, request.templateId());
+        String templateId = resolveTemplateId(request.templateId());
         validateOwnedSelections(principal.userId(), request);
 
         CreatedProfileRecord created = pocketBaseClient.createTailoredProfile(
@@ -65,52 +70,11 @@ public class CvMcpTools {
                 )
         );
 
-        pocketBaseClient.markTokenUsed(principal.tokenId(), principal.profileCreatesCount() + 1);
-
         return new CreateTailoredCvProfileResponse(
                 created.id(),
                 created.slug(),
                 frontendBaseUrl() + "/" + created.slug()
         );
-    }
-
-    @Tool(description = "Create a new achievement record for the authenticated user's CV/resume when the user wants to add an accomplishment before tailoring their profile.")
-    public CreateAchievementResponse createAchievement(CreateAchievementRequest request) {
-        AiTokenPrincipal principal = currentPrincipal();
-        String title = requireText(request.title(), "title");
-
-        CreatedAchievementRecord created = pocketBaseClient.createAchievement(
-                principal.userId(),
-                new CreateAchievementPayload(
-                        title,
-                        normalizeOptionalText(request.description()),
-                        request.sortOrder()
-                )
-        );
-
-        return new CreateAchievementResponse(created.id(), created.user(), created.title());
-    }
-
-    @Tool(description = "Create a new project record for the authenticated user's CV/resume when the user wants to add a project before tailoring their profile.")
-    public CreateProjectResponse createProject(CreateProjectRequest request) {
-        AiTokenPrincipal principal = currentPrincipal();
-        String name = requireText(request.name(), "name");
-
-        pocketBaseClient.validateOwnedRecordIds("achievements", principal.userId(), request.achievementIds());
-
-        CreatedProjectRecord created = pocketBaseClient.createProject(
-                principal.userId(),
-                new CreateProjectPayload(
-                        name,
-                        normalizeOptionalText(request.description()),
-                        normalizeOptionalText(request.url()),
-                        normalizeOptionalText(request.date()),
-                        request.achievementIds(),
-                        request.sortOrder()
-                )
-        );
-
-        return new CreateProjectResponse(created.id(), created.user(), created.name(), created.achievements());
     }
 
     private void validateOwnedSelections(String userId, CreateTailoredCvProfileRequest request) {
@@ -122,28 +86,16 @@ public class CvMcpTools {
         pocketBaseClient.validateOwnedRecordIds("hobbies", userId, request.hobbyIds());
     }
 
-    private void requireProfileCreationQuota(AiTokenPrincipal principal) {
-        if (principal.maxProfileCreates() != null && principal.profileCreatesCount() >= principal.maxProfileCreates()) {
-            throw new IllegalArgumentException("AI token profile creation quota exceeded.");
-        }
-    }
-
-    private String resolveTemplateId(AiTokenPrincipal principal, String requestedTemplateId) {
-        List<String> allowedTemplates = principal.allowedTemplatesList();
-        if (allowedTemplates.isEmpty()) {
-            throw new IllegalArgumentException("AI token has no allowed templates.");
-        }
-
-        if (!principal.canChooseTemplate()) {
-            return allowedTemplates.get(0);
-        }
-
+    private String resolveTemplateId(String requestedTemplateId) {
         if (!StringUtils.hasText(requestedTemplateId)) {
-            throw new IllegalArgumentException("templateId is required when the token allows template choice.");
+            throw new IllegalArgumentException("templateId is required.");
         }
 
-        if (!allowedTemplates.contains(requestedTemplateId)) {
-            throw new IllegalArgumentException("Requested template is not allowed for this token.");
+        List<String> supportedTemplateIds = pocketBaseClient.resolveAvailableTemplates().stream()
+                .map(TemplateDescriptor::id)
+                .toList();
+        if (!supportedTemplateIds.contains(requestedTemplateId)) {
+            throw new IllegalArgumentException("Requested template is not supported.");
         }
 
         return requestedTemplateId;
@@ -152,27 +104,10 @@ public class CvMcpTools {
     private AiTokenPrincipal currentPrincipal() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof AiTokenPrincipal principal)) {
-            throw new IllegalStateException("Authenticated AI token principal is required.");
+            throw new IllegalStateException("Authenticated API key principal is required.");
         }
 
         return principal;
-    }
-
-    private String requireText(String value, String fieldName) {
-        String normalizedValue = normalizeOptionalText(value);
-        if (!StringUtils.hasText(normalizedValue)) {
-            throw new IllegalArgumentException(fieldName + " is required.");
-        }
-
-        return normalizedValue;
-    }
-
-    private String normalizeOptionalText(String value) {
-        if (!StringUtils.hasText(value)) {
-            return null;
-        }
-
-        return value.trim();
     }
 
     private String frontendBaseUrl() {
@@ -184,6 +119,14 @@ public class CvMcpTools {
     }
 
     public record ListTemplatesResponse(List<TemplateDescriptor> templates) {
+    }
+
+    public record AuthenticatedPrincipalResponse(
+            String tokenId,
+            String userId,
+            String label,
+            String tokenPrefix
+    ) {
     }
 
     public record CreateTailoredCvProfileRequest(
@@ -201,37 +144,5 @@ public class CvMcpTools {
     }
 
     public record CreateTailoredCvProfileResponse(String profileId, String slug, String frontendUrl) {
-    }
-
-    public record CreateAchievementRequest(
-            String title,
-            String description,
-            Integer sortOrder
-    ) {
-    }
-
-    public record CreateAchievementResponse(
-            String id,
-            String userId,
-            String title
-    ) {
-    }
-
-    public record CreateProjectRequest(
-            String name,
-            String description,
-            String url,
-            String date,
-            List<String> achievementIds,
-            Integer sortOrder
-    ) {
-    }
-
-    public record CreateProjectResponse(
-            String id,
-            String userId,
-            String name,
-            List<String> achievementIds
-    ) {
     }
 }

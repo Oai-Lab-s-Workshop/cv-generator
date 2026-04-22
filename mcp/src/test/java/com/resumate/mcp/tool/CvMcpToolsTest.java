@@ -14,14 +14,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,30 +48,29 @@ class CvMcpToolsTest {
     }
 
     @Test
-    void listTemplates_returnsFilteredTemplates() {
+    void listTemplates_returnsSupportedTemplates() {
         AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true,
-                Set.of("classic", "modern"), 5, 0, "label"
+                "tokenId", "userId", "label"
         );
         setAuthentication(principal);
 
         List<TemplateDescriptor> expected = List.of(
                 new TemplateDescriptor("classic", "Classic", "Traditional CV layout"),
-                new TemplateDescriptor("modern", "Modern", "Contemporary single-column layout")
+                new TemplateDescriptor("modern", "Modern", "Contemporary single-column layout"),
+                new TemplateDescriptor("minimal", "Minimal", "Compact and concise CV layout")
         );
-        when(pocketBaseClient.resolveAllowedTemplates(List.of("classic", "modern")))
-                .thenReturn(expected);
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(expected);
 
         CvMcpTools.ListTemplatesResponse response = cvMcpTools.listTemplates();
 
-        assertThat(response.templates()).hasSize(2);
+        assertThat(response.templates()).hasSize(3);
         assertThat(response.templates().get(0).id()).isEqualTo("classic");
     }
 
     @Test
     void listProfileMaterial_delegatesToPocketBaseClient() {
         AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true, Set.of("classic"), 5, 0, "label"
+                "tokenId", "userId", "label"
         );
         setAuthentication(principal);
 
@@ -87,12 +84,31 @@ class CvMcpToolsTest {
     }
 
     @Test
-    void createTailoredCvProfile_happyPath_withTemplateChoice() {
+    void whoAmI_returnsAuthenticatedPrincipalDetails() {
         AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true,
-                Set.of("classic", "modern"), 5, 0, "label"
+                "tokenId", "userId", "label", "resm_demoPrefix"
         );
         setAuthentication(principal);
+
+        CvMcpTools.AuthenticatedPrincipalResponse response = cvMcpTools.whoAmI();
+
+        assertThat(response.tokenId()).isEqualTo("tokenId");
+        assertThat(response.userId()).isEqualTo("userId");
+        assertThat(response.label()).isEqualTo("label");
+        assertThat(response.tokenPrefix()).isEqualTo("resm_demoPrefix");
+    }
+
+    @Test
+    void createTailoredCvProfile_happyPath() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "Traditional CV layout"),
+                new TemplateDescriptor("modern", "Modern", "Contemporary single-column layout")
+        ));
 
         CreatedProfileRecord createdRecord = new CreatedProfileRecord("profileId", "classic--senior-dev-123");
         when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
@@ -110,95 +126,35 @@ class CvMcpToolsTest {
         assertThat(response.profileId()).isEqualTo("profileId");
         assertThat(response.slug()).isEqualTo("classic--senior-dev-123");
         assertThat(response.frontendUrl()).isEqualTo("https://resumate.app/classic--senior-dev-123");
-        verify(pocketBaseClient).markTokenUsed("tokenId", 1);
     }
 
     @Test
-    void createTailoredCvProfile_usesFirstTemplate_whenCanChooseTemplateIsFalse() {
+    void createTailoredCvProfile_throws_whenTemplateIdMissing() {
         AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", false,
-                Set.of("modern"), 5, 0, "label"
+                "tokenId", "userId", "label"
         );
         setAuthentication(principal);
-
-        CreatedProfileRecord createdRecord = new CreatedProfileRecord("profileId", "modern--dev-123");
-        when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
-                .thenReturn(createdRecord);
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "Dev CV", "Job listing", null,
                 "Summary", List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
         );
 
-        CvMcpTools.CreateTailoredCvProfileResponse response = cvMcpTools.createTailoredCvProfile(request);
+        assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("templateId is required.");
+    }
 
-        assertThat(response.profileId()).isEqualTo("profileId");
-        verify(pocketBaseClient).createTailoredProfile(eq("userId"), argThat(payload ->
-                "modern".equals(payload.templateId())
+    @Test
+    void createTailoredCvProfile_throws_whenTemplateNotSupported() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "Traditional CV layout")
         ));
-    }
-
-    @Test
-    void createTailoredCvProfile_throws_whenQuotaExceeded() {
-        AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true,
-                Set.of("classic"), 3, 3, "label"
-        );
-        setAuthentication(principal);
-
-        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "CV", "Job", "classic", "Summary",
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
-        );
-
-        assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("AI token profile creation quota exceeded.");
-    }
-
-    @Test
-    void createTailoredCvProfile_throws_whenNoAllowedTemplates() {
-        AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true,
-                Set.of(), 5, 0, "label"
-        );
-        setAuthentication(principal);
-
-        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "CV", "Job", "classic", "Summary",
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
-        );
-
-        assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("AI token has no allowed templates.");
-    }
-
-    @Test
-    void createTailoredCvProfile_throws_whenTemplateChoiceRequiredButNotProvided() {
-        AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true,
-                Set.of("classic"), 5, 0, "label"
-        );
-        setAuthentication(principal);
-
-        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "CV", "Job", null, "Summary",
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
-        );
-
-        assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("templateId is required when the token allows template choice.");
-    }
-
-    @Test
-    void createTailoredCvProfile_throws_whenTemplateNotAllowed() {
-        AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true,
-                Set.of("classic"), 5, 0, "label"
-        );
-        setAuthentication(principal);
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "CV", "Job", "modern", "Summary",
@@ -207,7 +163,7 @@ class CvMcpToolsTest {
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Requested template is not allowed for this token.");
+                .hasMessage("Requested template is not supported.");
     }
 
     @Test
@@ -221,16 +177,19 @@ class CvMcpToolsTest {
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Authenticated AI token principal is required.");
+                .hasMessage("Authenticated API key principal is required.");
     }
 
     @Test
     void createTailoredCvProfile_validatesOwnedRecordIds() {
         AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true,
-                Set.of("classic"), 5, 0, "label"
+                "tokenId", "userId", "label"
         );
         setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "Traditional CV layout")
+        ));
 
         CreatedProfileRecord createdRecord = new CreatedProfileRecord("id", "slug");
         when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
@@ -254,10 +213,13 @@ class CvMcpToolsTest {
         CvMcpTools toolsWithSlash = new CvMcpTools(pocketBaseClient, trailingSlashProps);
 
         AiTokenPrincipal principal = new AiTokenPrincipal(
-                "tokenId", "userId", true,
-                Set.of("classic"), 5, 0, "label"
+                "tokenId", "userId", "label"
         );
         setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "Traditional CV layout")
+        ));
 
         CreatedProfileRecord createdRecord = new CreatedProfileRecord("id", "my-slug");
         when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
@@ -273,7 +235,4 @@ class CvMcpToolsTest {
         assertThat(response.frontendUrl()).isEqualTo("https://resumate.app/my-slug");
     }
 
-    private static <T> T argThat(org.mockito.ArgumentMatcher<T> matcher) {
-        return org.mockito.ArgumentMatchers.argThat(matcher);
-    }
 }

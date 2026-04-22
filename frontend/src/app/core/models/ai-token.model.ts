@@ -8,10 +8,6 @@ export interface AiToken {
   label: string;
   status: AiTokenStatus;
   expiresAt?: string;
-  canChooseTemplate?: boolean;
-  allowedTemplates?: string[];
-  maxProfileCreates?: number | null;
-  profileCreatesCount?: number;
   lastUsedAt?: string;
   created?: string;
   updated?: string;
@@ -20,12 +16,14 @@ export interface AiToken {
 export interface CreateAiTokenInput {
   label: string;
   expiresAt?: string | null;
-  canChooseTemplate: boolean;
-  allowedTemplates: string[];
-  maxProfileCreates?: number | null;
+}
+
+export interface CreateAiTokenDebugInfo {
+  currentUserId: string;
 }
 
 export interface CreatedAiTokenResult {
   record: AiToken;
   rawToken: string;
+  debug: CreateAiTokenDebugInfo;
 }

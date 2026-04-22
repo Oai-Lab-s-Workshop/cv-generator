@@ -5,7 +5,6 @@ import com.resumate.mcp.service.PocketBaseClient.AiTokenRecord;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,7 +22,7 @@ class AiTokenAuthenticationServiceTest {
         AiTokenRecord record = new AiTokenRecord(
                 "tokenId", "userId", "my-label", "active",
                 Instant.now().plusSeconds(3600).toString(),
-                true, List.of("classic", "modern"), 5, 0, "hash", "prefix"
+                "hash", "prefix"
         );
         when(pocketBaseClient.findAiTokenByRawToken("valid-token")).thenReturn(Optional.of(record));
 
@@ -31,10 +30,8 @@ class AiTokenAuthenticationServiceTest {
 
         assertThat(result.tokenId()).isEqualTo("tokenId");
         assertThat(result.userId()).isEqualTo("userId");
-        assertThat(result.canChooseTemplate()).isTrue();
-        assertThat(result.maxProfileCreates()).isEqualTo(5);
-        assertThat(result.profileCreatesCount()).isZero();
         assertThat(result.label()).isEqualTo("my-label");
+        assertThat(result.tokenPrefix()).isEqualTo("prefix");
     }
 
     @Test
@@ -43,7 +40,7 @@ class AiTokenAuthenticationServiceTest {
 
         assertThatThrownBy(() -> service.authenticate("unknown"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid AI token.");
+                .hasMessage("Invalid API key.");
     }
 
     @Test
@@ -51,13 +48,13 @@ class AiTokenAuthenticationServiceTest {
         AiTokenRecord record = new AiTokenRecord(
                 "tokenId", "userId", "label", "revoked",
                 Instant.now().plusSeconds(3600).toString(),
-                true, List.of("classic"), 5, 0, "hash", "prefix"
+                "hash", "prefix"
         );
         when(pocketBaseClient.findAiTokenByRawToken("revoked-token")).thenReturn(Optional.of(record));
 
         assertThatThrownBy(() -> service.authenticate("revoked-token"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("AI token is not active.");
+                .hasMessage("API key is not active.");
     }
 
     @Test
@@ -65,13 +62,13 @@ class AiTokenAuthenticationServiceTest {
         AiTokenRecord record = new AiTokenRecord(
                 "tokenId", "userId", "label", "active",
                 Instant.now().minusSeconds(3600).toString(),
-                true, List.of("classic"), 5, 0, "hash", "prefix"
+                "hash", "prefix"
         );
         when(pocketBaseClient.findAiTokenByRawToken("expired-token")).thenReturn(Optional.of(record));
 
         assertThatThrownBy(() -> service.authenticate("expired-token"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("AI token is expired.");
+                .hasMessage("API key is expired.");
     }
 
     @Test
@@ -79,7 +76,7 @@ class AiTokenAuthenticationServiceTest {
         AiTokenRecord record = new AiTokenRecord(
                 "tokenId", "userId", "label", "active",
                 null,
-                true, List.of("classic"), 5, 0, "hash", "prefix"
+                "hash", "prefix"
         );
         when(pocketBaseClient.findAiTokenByRawToken("no-expiry")).thenReturn(Optional.of(record));
 
@@ -92,8 +89,8 @@ class AiTokenAuthenticationServiceTest {
     void authenticate_succeeds_whenExpiresAtIsInFuture() {
         AiTokenRecord record = new AiTokenRecord(
                 "tokenId", "userId", "label", "active",
-                Instant.now().plusSeconds(86400).toString(),
-                true, List.of("classic"), 5, 0, "hash", "prefix"
+                "2026-04-23 12:00:00.000",
+                "hash", "prefix"
         );
         when(pocketBaseClient.findAiTokenByRawToken("future-token")).thenReturn(Optional.of(record));
 
@@ -103,33 +100,16 @@ class AiTokenAuthenticationServiceTest {
     }
 
     @Test
-    void authenticate_mapsAllowedTemplatesCorrectly() {
+    void authenticate_throws_whenExpiresAtFormatIsInvalid() {
         AiTokenRecord record = new AiTokenRecord(
                 "tokenId", "userId", "label", "active",
-                Instant.now().plusSeconds(3600).toString(),
-                false, List.of("classic", "modern"), 10, 3, "hash", "prefix"
+                "not-a-date",
+                "hash", "prefix"
         );
         when(pocketBaseClient.findAiTokenByRawToken("token")).thenReturn(Optional.of(record));
 
-        AiTokenPrincipal result = service.authenticate("token");
-
-        assertThat(result.canChooseTemplate()).isFalse();
-        assertThat(result.allowedTemplatesList()).containsExactly("classic", "modern");
-        assertThat(result.maxProfileCreates()).isEqualTo(10);
-        assertThat(result.profileCreatesCount()).isEqualTo(3);
-    }
-
-    @Test
-    void authenticate_defaultsProfileCreatesCountToZero_whenNull() {
-        AiTokenRecord record = new AiTokenRecord(
-                "tokenId", "userId", "label", "active",
-                Instant.now().plusSeconds(3600).toString(),
-                true, List.of("classic"), 5, null, "hash", "prefix"
-        );
-        when(pocketBaseClient.findAiTokenByRawToken("token")).thenReturn(Optional.of(record));
-
-        AiTokenPrincipal result = service.authenticate("token");
-
-        assertThat(result.profileCreatesCount()).isZero();
+        assertThatThrownBy(() -> service.authenticate("token"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("API key expiry is invalid.");
     }
 }

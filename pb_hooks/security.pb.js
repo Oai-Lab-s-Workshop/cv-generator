@@ -49,18 +49,16 @@ onRecordCreateRequest((e) => {
     throw new UnauthorizedError('Authentication required.');
   }
 
-  const hasSuperuserAccess = e.hasSuperuserAuth();
   const record = e.record;
   if (!record) {
-    throw new BadRequestError('AI token record is missing.');
+    throw new BadRequestError('API key record is missing.');
   }
 
-  if (hasSuperuserAccess || e.auth.getBool('isMcpServiceAccount')) {
+  if (e.hasSuperuserAuth()) {
     return e.next();
   }
 
   record.set('user', e.auth.id);
-  record.set('profileCreatesCount', 0);
   record.set('lastUsedAt', null);
   return e.next();
 }, 'ai_tokens');
@@ -70,20 +68,18 @@ onRecordUpdateRequest((e) => {
     throw new UnauthorizedError('Authentication required.');
   }
 
-  const hasSuperuserAccess = e.hasSuperuserAuth();
   const record = e.record;
   if (!record) {
-    throw new BadRequestError('AI token record is missing.');
+    throw new BadRequestError('API key record is missing.');
   }
 
   const currentOwnerId = record.getString('user');
-  const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
 
-  if (!hasSuperuserAccess && !isMcpServiceAccount && currentOwnerId && currentOwnerId !== e.auth.id) {
-    throw new ForbiddenError('You cannot edit another user\'s AI token.');
+  if (!e.hasSuperuserAuth() && currentOwnerId && currentOwnerId !== e.auth.id) {
+    throw new ForbiddenError('You cannot edit another user\'s API key.');
   }
 
-  if (!hasSuperuserAccess && !isMcpServiceAccount) {
+  if (!e.hasSuperuserAuth()) {
     record.set('user', e.auth.id);
   }
   return e.next();
@@ -94,24 +90,12 @@ onRecordCreateRequest((e) => {
     throw new UnauthorizedError('Authentication required.');
   }
 
-  const hasSuperuserAccess = e.hasSuperuserAuth();
   const record = e.record;
   if (!record) {
     throw new BadRequestError('Project record is missing.');
   }
 
-  const requestedOwnerId = record.getString('user');
-  const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
-
-  if (hasSuperuserAccess) {
-    return e.next();
-  }
-
-  if (isMcpServiceAccount) {
-    if (!requestedOwnerId) {
-      throw new BadRequestError('Project owner is required for MCP-created records.');
-    }
-
+  if (e.hasSuperuserAuth()) {
     return e.next();
   }
 
@@ -128,10 +112,6 @@ onRecordUpdateRequest((e) => {
     return e.next();
   }
 
-  if (e.auth.getBool('isMcpServiceAccount')) {
-    throw new ForbiddenError('MCP service accounts cannot edit projects.');
-  }
-
   return e.next();
 }, 'projects');
 
@@ -140,24 +120,12 @@ onRecordCreateRequest((e) => {
     throw new UnauthorizedError('Authentication required.');
   }
 
-  const hasSuperuserAccess = e.hasSuperuserAuth();
   const record = e.record;
   if (!record) {
     throw new BadRequestError('Achievement record is missing.');
   }
 
-  const requestedOwnerId = record.getString('user');
-  const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
-
-  if (hasSuperuserAccess) {
-    return e.next();
-  }
-
-  if (isMcpServiceAccount) {
-    if (!requestedOwnerId) {
-      throw new BadRequestError('Achievement owner is required for MCP-created records.');
-    }
-
+  if (e.hasSuperuserAuth()) {
     return e.next();
   }
 
@@ -172,10 +140,6 @@ onRecordUpdateRequest((e) => {
 
   if (e.hasSuperuserAuth()) {
     return e.next();
-  }
-
-  if (e.auth.getBool('isMcpServiceAccount')) {
-    throw new ForbiddenError('MCP service accounts cannot edit achievements.');
   }
 
   return e.next();
@@ -192,12 +156,12 @@ routerAdd('PATCH', '/api/custom/ai-tokens/{id}/revoke', (e) => {
   try {
     record = $app.findRecordById('ai_tokens', id);
   } catch (_) {
-    throw new NotFoundError('Token not found.');
+    throw new NotFoundError('API key not found.');
   }
 
   const ownerId = record.getString('user');
-  if (ownerId !== auth.id && !auth.getBool('isMcpServiceAccount')) {
-    throw new ForbiddenError('Not your token.');
+  if (ownerId !== auth.id && !e.hasSuperuserAuth()) {
+    throw new ForbiddenError('Not your API key.');
   }
 
   if (record.getString('status') === 'revoked') {
@@ -210,7 +174,7 @@ routerAdd('PATCH', '/api/custom/ai-tokens/{id}/revoke', (e) => {
     $app.save(record);
   } catch (saveError) {
     console.error('[ai-tokens] Revoke save failed:', saveError?.message || saveError);
-    throw new BadRequestError('Failed to revoke token: ' + (saveError?.message || 'unknown error'));
+    throw new BadRequestError('Failed to revoke API key: ' + (saveError?.message || 'unknown error'));
   }
 
   const saved = $app.findRecordById('ai_tokens', id);
@@ -220,6 +184,6 @@ routerAdd('PATCH', '/api/custom/ai-tokens/{id}/revoke', (e) => {
     throw new BadRequestError('Revoke did not persist. Current status: ' + savedStatus);
   }
 
-  console.log('[ai-tokens] Token revoked successfully:', id);
+  console.log('[ai-tokens] API key revoked successfully:', id);
   return e.json(200, { id: record.id, status: 'revoked' });
 });
