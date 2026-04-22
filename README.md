@@ -33,6 +33,68 @@ docker compose up -d
 
 The Angular dev server proxies `/api` requests to PocketBase, so the frontend can use the same API base path locally and in GitHub Codespaces.
 
+## Local MCP
+
+The repository includes a project-level `opencode.json` that points OpenCode at the local MCP endpoint on `http://localhost:8081/mcp`.
+
+### First local setup
+
+```bash
+make up
+make ensure-mcp-service-user
+make mcp-up
+```
+
+This flow will:
+
+- ensure a local `.env` exists by copying `.env.example` if needed
+- start the Docker stack
+- create or reconcile the local PocketBase MCP service user
+- start the `mcp` service
+
+After that:
+
+- sign in to the app as the user who owns the CV data
+- create an MCP API key from the token management page
+- copy that key into `opencode.json`
+
+The committed `opencode.json` should keep an empty `API_KEY` placeholder only.
+
+### Optional preview seed data
+
+```bash
+make bootstrap-with-seed
+```
+
+Or later:
+
+```bash
+make seed
+```
+
+The seed import is intentionally fail-fast and will stop if the target collections are not empty.
+
+To remove only the preview seed data without resetting the whole PocketBase instance:
+
+```bash
+make clean-seed
+```
+
+### Useful commands
+
+```bash
+make up
+make down
+make logs
+make ps
+make mcp-up
+make mcp-down
+make mcp-logs
+make ensure-mcp-service-user
+```
+
+`make up` only starts the stack. It does not run bootstrap side effects.
+
 ## Dev Container
 
 The repository includes a Docker-first Codespaces/devcontainer setup that:

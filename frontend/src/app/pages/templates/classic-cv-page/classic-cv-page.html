@@ -1,6 +1,6 @@
 @if (errorMessage()) {
 	<main class="classic-cv-page classic-cv-page--state">
-		<h1>Unable to load CV</h1>
+		<h1>Impossible de charger le CV</h1>
 		<p>{{ errorMessage() }}</p>
 	</main>
 } @else {
@@ -10,21 +10,14 @@
 				@if (data.profile.coverPicture) {
 					<img [src]="data.profile.coverPicture" alt="" id="cover_picture">
 				} @else {
-					<img src="https://placehold.co/1200" alt="" id="cover_picture">
+					<span id="cover_picture">CV</span>
 				}
 				@if (data.profile.profilePicture) {
-								<img [src]="data.profile.profilePicture" alt="" class="hero__eyebrow">
-							} @else {
-								<img src="https://placehold.co/100" alt="" class="hero__eyebrow">
-							}
+					<img [src]="data.profile.profilePicture" alt="" class="hero__eyebrow">
+				}
 				
 				<div class="classic-cv-page">
 					<header class="hero">
-						
-						<div class="hero__eyebrow">
-							
-						</div>
-						
 						<h1>{{ data.user ? data.user.firstName + ' ' + data.user.lastName : data.profile.profileName }}</h1>
 						<app-profile-summary-chip [profile]="data.profile"></app-profile-summary-chip>
 					</header>
@@ -42,7 +35,7 @@
 													<h4>{{ job.position }}</h4>
 													<p class="item__meta">
 														@if (job.startDate) {
-															{{ getDate(job.startDate) }} - {{ getDate(job.endDate) || 'Present' }}
+															{{ getDate(job.startDate) }} - {{ getDate(job.endDate) || 'Aujourd\'hui' }}
 															@if (getDuration(job.startDate, job.endDate); as duration) {
 																{{ ' · ' + duration }}
 															}
@@ -60,7 +53,7 @@
 							</section>
 							@if (data.projects.length > 0) {
 								<section class="avoid-break">
-									<h2>Projects</h2>
+									<h2>Projets</h2>
 									<div class="grid">
 										@for (project of data.projects; track project.id) {
 											<app-project-chip [project]="project"></app-project-chip>
@@ -70,7 +63,7 @@
 							}
 							@if (data.achievements.length > 0) {
 								<section class="avoid-break">
-									<h2>Achievements</h2>
+									<h2>Realisations</h2>
 									<div class=" stack">
 										@for (achievement of data.achievements; track achievement.id) {
 											<app-achievement-chip class="item" [achievement]="achievement"></app-achievement-chip>
@@ -85,7 +78,7 @@
 								<div class="contact-card">
 									@if (data.user?.email) {
 										<div>
-											<p><span class="label">✉️ Email</span> : {{ data.user?.email }}</p>
+											<p><span class="label">✉️ E-mail</span> : {{ data.user?.email }}</p>
 										</div>
 									}
 									@if (data.user?.phone) {
@@ -105,7 +98,7 @@
 									}
 									@if (data.user?.website) {
 										<div>
-											<p><span class="label">🌐 Website</span> : {{ data.user?.website }}</p>
+											<p><span class="label">🌐 Site web</span> : {{ data.user?.website }}</p>
 										</div>
 									}
 								</div>
@@ -113,7 +106,7 @@
 							
 							@if (data.degrees.length > 0) {
 								<section class="section--panel avoid-break">
-									<h2>Education</h2>
+									<h2>Formation</h2>
 									<div class="stack stack--compact">
 										@for (diploma of data.degrees; track diploma.id) {
 											<app-education-chip class="item" [diploma]="diploma"></app-education-chip>
@@ -122,24 +115,24 @@
 								</section>
 							}
 							<section class="section section--panel">
-								<h2>Skills</h2>
+								<h2>Competences</h2>
 								<div>
 									<!-- TODO: implement masonry layout for skills -->
-									<h5>Technical</h5>
+									<h5>Techniques</h5>
 									@for (skill of data.skills; track skill.id) {
 										@if(skill.type === 'Technical'){<article class="skill"> @if(skill.icon){ <img [src]="skill.icon"/> } {{ skill.name }}</article>}
 									}
 								</div>
 								<div>
 									<!-- TODO: implement masonry layout for skills -->
-									<h5>Professional</h5>
+									<h5>Professionnelles</h5>
 									@for (skill of data.skills; track skill.id) {
 										@if(skill.type === 'Professional'){<article class="skill">{{ skill.name }}</article>}
 									}
 								</div>
 								<div>
 									<!-- TODO: implement masonry layout for skills -->
-									<h5>Language</h5>
+									<h5>Langues</h5>
 									@for (skill of data.skills; track skill.id) {
 										@if(skill.type === 'Language'){<article class="skill">{{ skill.name }}</article>}
 									}
@@ -152,16 +145,16 @@
 		}
 	} @placeholder {
 		<main class="classic-cv-page classic-cv-page--state">
-			<p>Loading CV...</p>
+			<p>Chargement du CV...</p>
 		</main>
 	} @loading {
 		<main class="classic-cv-page classic-cv-page--state">
-			<p>Loading CV...</p>
+			<p>Chargement du CV...</p>
 		</main>
 	} @error {
 		<main class="classic-cv-page classic-cv-page--state">
-			<h1>Unable to load CV</h1>
-			<p>Failed to render the CV template.</p>
+			<h1>Impossible de charger le CV</h1>
+			<p>Le rendu du template CV a echoue.</p>
 		</main>
 	}
 }

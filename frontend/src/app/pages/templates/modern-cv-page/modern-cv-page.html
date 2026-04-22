@@ -1,10 +1,10 @@
 @if (isLoading()) {
   <main class="modern-cv-page modern-cv-page--state">
-    <p>Loading CV...</p>
+    <p>Chargement du CV...</p>
   </main>
 } @else if (errorMessage()) {
   <main class="modern-cv-page modern-cv-page--state">
-    <h1>Unable to load CV</h1>
+    <h1>Impossible de charger le CV</h1>
     <p>{{ errorMessage() }}</p>
   </main>
 } @else if (cvData(); as data) {
@@ -35,14 +35,11 @@
 
       @if (data.skills.length > 0) {
         <section class="sidebar__section">
-          <h2>Skills</h2>
+          <h2>Competences</h2>
           <div class="skill-list">
             @for (skill of data.skills; track skill.id) {
               <div class="skill-list__item">
                 <span>{{ skill.name }}</span>
-                @if (skill.level) {
-                  <strong>{{ skill.level }}%</strong>
-                }
               </div>
             }
           </div>
@@ -53,7 +50,7 @@
     <section class="content">
       @if (data.profile.professionalSummary) {
         <section class="content__section">
-          <h2>About</h2>
+          <h2>A propos</h2>
           <p>{{ data.profile.professionalSummary }}</p>
         </section>
       }
@@ -62,7 +59,7 @@
         <h2>Experience</h2>
         @for (job of data.jobs; track job.id) {
           <article class="timeline-item">
-            <p class="timeline-item__date">{{ job.startDate || 'Start' }} - {{ job.endDate || 'Present' }}</p>
+            <p class="timeline-item__date">{{ getDate(job.startDate) || 'Debut' }} - {{ getDate(job.endDate) || 'Aujourd\'hui' }}</p>
             <h3>{{ job.position }}</h3>
             <p class="timeline-item__meta">{{ job.company }}@if (job.location) { · {{ job.location }} }</p>
             @if (job.responsibilities) {
@@ -74,7 +71,7 @@
 
       @if (data.projects.length > 0) {
         <section class="content__section">
-          <h2>Selected Projects</h2>
+          <h2>Projets selectionnes</h2>
           <div class="project-grid">
             @for (project of data.projects; track project.id) {
               <article class="project-card">
@@ -83,7 +80,7 @@
                   <p>{{ project.description }}</p>
                 }
                 @if (project.url) {
-                  <a [href]="project.url" target="_blank" rel="noreferrer">Visit project</a>
+                  <a [href]="project.url" target="_blank" rel="noreferrer">Voir le projet</a>
                 }
               </article>
             }
@@ -93,7 +90,7 @@
 
       @if (data.degrees.length > 0) {
         <section class="content__section">
-          <h2>Education</h2>
+          <h2>Formation</h2>
           @for (diploma of data.degrees; track diploma.id) {
             <article class="timeline-item timeline-item--education">
               <h3>{{ diploma.title }}</h3>

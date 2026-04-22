@@ -22,6 +22,11 @@ export const routes: Routes = [
       import('./pages/profile-editor-page/profile-editor-page').then((module) => module.ProfileEditorPage),
   },
   {
+    path: 'home/tokens',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/token-management-page/token-management-page').then((module) => module.TokenManagementPage),
+  },
+  {
     path: 'home/templates',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/template-gallery-page/template-gallery-page').then((module) => module.TemplateGalleryPage),
