@@ -2,9 +2,8 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { AiToken } from '../../core/models/ai-token.model';
+import { AiToken, CreatedAiTokenResult } from '../../core/models/ai-token.model';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
-import { CV_TEMPLATE_OPTIONS } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
 
 @Component({
@@ -22,13 +21,10 @@ export class TokenManagementPage implements OnInit {
   readonly isCreatingAiToken = signal(false);
   readonly newAiTokenLabel = signal('Assistant principal');
   readonly newAiTokenExpiresAt = signal('');
-  readonly newAiTokenCanChooseTemplate = signal(true);
-  readonly newAiTokenAllowedTemplates = signal(CV_TEMPLATE_OPTIONS.map((template) => template.id));
-  readonly newAiTokenMaxProfileCreates = signal('');
   readonly latestCreatedAiToken = signal<string | null>(null);
+  readonly latestCreatedTokenDebug = signal<CreatedAiTokenResult | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly activeAiTokenMutationId = signal<string | null>(null);
-  readonly templateOptions = CV_TEMPLATE_OPTIONS;
 
   ngOnInit(): void {
     void this.loadAiTokens();
@@ -48,31 +44,25 @@ export class TokenManagementPage implements OnInit {
 
   async createAiToken(): Promise<void> {
     const label = this.newAiTokenLabel().trim();
-    const allowedTemplates = this.newAiTokenAllowedTemplates();
 
     if (!label) {
-      this.errorMessage.set('Le label du token est obligatoire.');
-      return;
-    }
-
-    if (allowedTemplates.length === 0) {
-      this.errorMessage.set('Selectionnez au moins un template autorise.');
+      this.errorMessage.set('Le label de la cle API est obligatoire.');
       return;
     }
 
     this.isCreatingAiToken.set(true);
     this.errorMessage.set(null);
+    this.latestCreatedAiToken.set(null);
+    this.latestCreatedTokenDebug.set(null);
 
     try {
-      const { rawToken } = await this.pocketBaseService.createCurrentUserAiToken({
+      const createdToken = await this.pocketBaseService.createCurrentUserAiToken({
         label,
         expiresAt: this.newAiTokenExpiresAt() ? new Date(this.newAiTokenExpiresAt()).toISOString() : null,
-        canChooseTemplate: this.newAiTokenCanChooseTemplate(),
-        allowedTemplates,
-        maxProfileCreates: this.newAiTokenMaxProfileCreates() ? Number(this.newAiTokenMaxProfileCreates()) : null,
       });
 
-      this.latestCreatedAiToken.set(rawToken);
+      this.latestCreatedAiToken.set(createdToken.rawToken);
+      this.latestCreatedTokenDebug.set(createdToken);
       this.resetAiTokenForm();
       await this.loadAiTokens();
     } catch (error: unknown) {
@@ -96,26 +86,6 @@ export class TokenManagementPage implements OnInit {
     }
   }
 
-  setAiTokenTemplateChoice(canChooseTemplate: boolean): void {
-    this.newAiTokenCanChooseTemplate.set(canChooseTemplate);
-
-    if (!canChooseTemplate) {
-      this.newAiTokenAllowedTemplates.update((current) => current.slice(0, 1));
-    } else if (this.newAiTokenAllowedTemplates().length === 0) {
-      this.newAiTokenAllowedTemplates.set(CV_TEMPLATE_OPTIONS.map((template) => template.id));
-    }
-  }
-
-  formatAiTokenTemplateScope(token: AiToken): string {
-    if (!token.allowedTemplates?.length) {
-      return 'Aucun template autorise';
-    }
-
-    return token.canChooseTemplate
-      ? `Choix IA parmi ${token.allowedTemplates.join(', ')}`
-      : `Template fixe: ${token.allowedTemplates[0]}`;
-  }
-
   async copyLatestAiToken(): Promise<void> {
     const rawToken = this.latestCreatedAiToken();
 
@@ -129,8 +99,5 @@ export class TokenManagementPage implements OnInit {
   private resetAiTokenForm(): void {
     this.newAiTokenLabel.set('Assistant principal');
     this.newAiTokenExpiresAt.set('');
-    this.newAiTokenCanChooseTemplate.set(true);
-    this.newAiTokenAllowedTemplates.set(CV_TEMPLATE_OPTIONS.map((template) => template.id));
-    this.newAiTokenMaxProfileCreates.set('');
   }
 }

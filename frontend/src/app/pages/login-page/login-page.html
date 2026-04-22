@@ -1,17 +1,17 @@
 <main class="login-page">
   <section class="login-card">
-    <p class="eyebrow">PocketBase Auth</p>
-    <h1>Sign in</h1>
-    <p class="lede">Use your PocketBase identity and password to access your generated CVs.</p>
+    <p class="eyebrow">Authentification PocketBase</p>
+    <h1>Connexion</h1>
+    <p class="lede">Utilisez votre identifiant PocketBase et votre mot de passe pour acceder a vos CV generes.</p>
 
     <form class="login-form" (ngSubmit)="submit()">
       <label>
-        <span>Identity</span>
+        <span>Identifiant</span>
         <input [ngModel]="identity()" (ngModelChange)="identity.set($event)" name="identity" type="text" autocomplete="username" required />
       </label>
 
       <label>
-        <span>Password</span>
+        <span>Mot de passe</span>
         <input [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" type="password" autocomplete="current-password" required />
       </label>
 
@@ -20,10 +20,10 @@
       }
 
       <button type="submit" [disabled]="isSubmitting()">
-        {{ isSubmitting() ? 'Signing in...' : 'Sign in' }}
+        {{ isSubmitting() ? 'Connexion en cours...' : 'Se connecter' }}
       </button>
     </form>
 
-    <p class="hint">Generated CVs stay on <a routerLink="/home">home</a> once signed in.</p>
+    <p class="hint">Vos CV generes sont disponibles sur l'<a routerLink="/home">accueil</a> une fois connecte.</p>
   </section>
 </main>
