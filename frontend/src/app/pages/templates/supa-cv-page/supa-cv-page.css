@@ -1,0 +1,22 @@
+.resume-root{
+    display:flex;
+    background:#fff;
+
+    height: 297mm;
+    width: 210mm;
+    margin: auto;
+
+
+
+    border: 1px solid red;
+}
+.resume-aside{
+    width:60mm;
+    border-right:1px solid #e2e6ee
+}
+.resume-main{
+    flex:1;
+    width: 150mm;
+    padding:24px
+}
+.container{max-width:760px;margin:0 auto}

@@ -1,0 +1,15 @@
+@if(cvData() && cvData(); as data) {
+  <div class="resume-root">
+    <aside class="resume-aside">
+      @if(data.profile.profilePicture){
+        <img [src]="data.profile.profilePicture" alt="Profile Picture" id="PP" />
+      } 
+    </aside>
+    
+    <main class="resume-main">
+      <div class="container">
+        <!-- placeholder: other sections (education, skills, tools) can be added here -->
+      </div>
+    </main>
+  </div>
+}
