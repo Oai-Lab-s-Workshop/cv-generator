@@ -62,7 +62,7 @@ h2{
     gap: 2mm;
 }
 
-.resume-main .section--panel h3{
+.resume-main > .section--panel > h3{
     --shapeSize: 6mm;
     font-size: 14pt;
     margin-bottom: 4mm;
@@ -89,6 +89,119 @@ h2{
     gap: 6mm;
     flex-wrap: wrap;
 }
+
+.skill-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.skill{
+    background: light-dark(white, black);
+}
+
+.skill-stack-1 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(0, 1fr);
+    gap: 8px;
+    width: 100mm;
+        
+    .skill:nth-child(1) {
+        grid-row: span 3 / span 3;
+    }
+
+    .skill:nth-child(2) {
+        grid-row: span 3 / span 3;
+    }
+
+    .skill:nth-child(3) {
+        grid-row: span 3 / span 3;
+    }
+
+
+    .skill:nth-child(5) {
+        grid-column-start: 4;
+        grid-row-start: 2;
+    }
+
+    .skill:nth-child(6) {
+        grid-column-start: 4;
+        grid-row-start: 3;
+    }
+
+    .skill:nth-child(7) {
+        grid-row: span 3 / span 3;
+        grid-column-start: 5;
+        grid-row-start: 1;
+    }
+}
+
+
+.skill-stack-2 {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 8px;
+
+    .skill:nth-child(1) {
+        grid-row: span 6 / span 6;
+    }
+
+    .skill:nth-child(2) {
+        grid-row: span 2 / span 2;
+    }
+
+    .skill:nth-child(3) {
+        grid-row: span 2 / span 2;
+        grid-column-start: 2;
+        grid-row-start: 3;
+    }
+
+    .skill:nth-child(4) {
+        grid-row: span 2 / span 2;
+        grid-column-start: 2;
+        grid-row-start: 5;
+    }
+
+    .skill:nth-child(5) {
+        grid-row: span 6 / span 6;
+        grid-column-start: 3;
+        grid-row-start: 1;
+    }
+
+    .skill:nth-child(6) {
+        grid-row: span 6 / span 6;
+        grid-column-start: 4;
+        grid-row-start: 1;
+    }
+
+    .skill:nth-child(7) {
+        grid-row: span 6 / span 6;
+        grid-column-start: 5;
+        grid-row-start: 1;
+    }
+
+    .skill:nth-child(8) {
+        grid-row: span 2 / span 2;
+        grid-column-start: 6;
+        grid-row-start: 1;
+    }
+
+    .skill:nth-child(9) {
+        grid-row: span 2 / span 2;
+        grid-column-start: 6;
+        grid-row-start: 3;
+    }
+
+    .skill:nth-child(10) {
+        grid-row: span 2 / span 2;
+        grid-column-start: 6;
+        grid-row-start: 5;
+    }
+}
+    
+        
+        
 
 .job{
     height: 13mm;

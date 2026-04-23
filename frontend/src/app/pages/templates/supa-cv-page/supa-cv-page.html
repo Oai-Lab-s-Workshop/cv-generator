@@ -122,7 +122,32 @@
             </section>
             <section class="section--panel debug">
                 <h3>Skills</h3>
-                
+                <div class="skill-row">
+                    <h4>Technical</h4>
+                    <div class="skill-stack-1">
+                        @for (skill of data.skills; track skill.id) {
+                            @if(skill.type === 'Technical'){
+                                <article class="skill"> 
+                                    @if(skill.icon){ <img [src]="skill.icon"/> } 
+                                    {{ skill.name }}
+                                </article>
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="skill-row">
+                    <h4>Professional</h4>
+                    <div class="skill-stack-1">
+                        @for (skill of data.skills; track skill.id) {
+                            @if(skill.type === 'Professional'){
+                                <article class="skill"> 
+                                    @if(skill.icon){ <img [src]="skill.icon"/> } 
+                                    {{ skill.name }}
+                                </article>
+                            }
+                        }
+                    </div>
+                </div>
             </section>
             <section class="section--panel debug">
                 <h3>Diplômes</h3>

@@ -417,6 +417,18 @@ migrate(
           name: "date",
           type: "text",
         },
+        {
+          name: "picture",
+          type: "file",
+          maxSelect: 1,
+          mimeTypes: ["image/jpeg", "image/png", "image/svg+xml", "image/gif", "image/webp"],
+        },
+        {
+          name: "type",
+          type: "select",
+          values: ["freelance", "sideproject", "work project"],
+          maxSelect: 1,
+        },
         createSingleRelationField("file", FILES_COLLECTION_ID),
         createMultiRelationField("achievements", ACHIEVEMENTS_COLLECTION_ID),
         {

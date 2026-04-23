@@ -61,7 +61,9 @@ export class PocketBaseService {
   }
 
   async getProjects(projectIds: string[]): Promise<Project[]> {
-    return this.getOrderedRecords<Project>('projects', projectIds, '+sortOrder,-date', 'file');
+    const projects = await this.getOrderedRecords<Project>('projects', projectIds, '+sortOrder,-date', 'file');
+
+    return projects.map((project) => this.normalizeProject(project));
   }
 
   async getSkills(skillIds: string[]): Promise<Skill[]> {
@@ -209,7 +211,7 @@ export class PocketBaseService {
     return {
       profile,
       availableJobs,
-      availableProjects,
+      availableProjects: availableProjects.map((project) => this.normalizeProject(project)),
       availableSkills,
       availableDegrees,
       availableAchievements,
@@ -348,6 +350,17 @@ export class PocketBaseService {
       ...user,
       profilePicture: this.getFileFieldUrl(user as unknown as RecordModel, user.profilePicture),
       coverPicture: this.getFileFieldUrl(user as unknown as RecordModel, user.coverPicture),
+    };
+  }
+
+  private normalizeProject(project: Project | null): Project {
+    if (!project) {
+      throw new Error('Project not found.');
+    }
+
+    return {
+      ...project,
+      picture: this.getFileFieldUrl(project as unknown as RecordModel, project.picture),
     };
   }
 
