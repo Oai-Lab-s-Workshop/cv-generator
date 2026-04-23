@@ -88,4 +88,21 @@ export class SupaCVPage implements OnInit {
       }
     }
   }
+  protected getSkillSpan(skill: { name?: string | null }): number {
+    const name = (skill.name ?? '').trim();
+    if (!name) return 1;
+    const words = name.split(/\s+/).filter(Boolean);
+    const charCount = name.length;
+    const longestWord = words.reduce((max, w) => Math.max(max, w.length), 0);
+    // Short single-label skills
+    if (charCount <= 10 && words.length <= 2 && longestWord <= 10) {
+      return 1;
+    }
+    // Medium labels
+    if (charCount <= 22 && words.length <= 3 && longestWord <= 14) {
+      return 2;
+    }
+    // Longer labels
+    return 3;
+  }
 }

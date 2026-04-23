@@ -11,6 +11,8 @@
     --gradient1: linear-gradient( #A478E8, #516CF7 );
     --gradient2: linear-gradient( #516CF7, #B1BDFB );
 
+    --skillBorderRadius: 2mm;
+
     display:flex;
     background:#fff;
 
@@ -34,7 +36,11 @@ h2{
     font-optical-sizing: auto;
 }
 .accent-text{
-    color: var(--gradient1)
+    background: var(--gradient1);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
 }
 .resume-aside{
     width:60mm;
@@ -90,49 +96,138 @@ h2{
     flex-wrap: wrap;
 }
 
-.skill-row {
-    display: flex;
-    justify-content: space-between;
+.section--skills {
+    padding-bottom: 4mm;
 }
 
-.skill{
-    background: light-dark(white, black);
+.section--skills .skill-row {
+    display: grid;
+    grid-template-columns: 36mm 1fr;
+    align-items: center;
+    margin-bottom: 5mm;
+}
+
+.section--skills .skill-row:last-child {
+    margin-bottom: 0;
+}
+
+.section--skills .skill-kind {
+    position: relative;
+    margin: 0;
+    padding-left: 10mm;
+    color: #22203a;
+    font-size: 11pt;
+    font-weight: 500;
+    line-height: 1.3;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 7mm;
+        height: 7mm;
+        border-radius: 999px;
+        transform: translateY(-50%);
+        background: radial-gradient(circle at 50% 50%, #ffffff 0 18%, transparent 19%), linear-gradient(135deg, #d9c6ff, #a478e8);
+        box-shadow: 0 0 0 1px #ebe5fb inset;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: 2.1mm;
+        top: 50%;
+        width: 2.8mm;
+        height: 2.8mm;
+        transform: translateY(-50%);
+        border-radius: 999px;
+        background: #7c4dff;
+    }
+}
+
+.section--skills .skill-row--professional .skill-kind::before {
+    background: radial-gradient(circle at 50% 50%, #ffffff 0 18%, transparent 19%), linear-gradient(135deg, #d8e4ff, #9fb8ff);
+}
+
+.section--skills .skill-row--professional .skill-kind::after {
+    background: #7d9cff;
+}
+
+.skill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2mm;
+    border: 1px solid #f0ebfb;
+    padding: .5mm;
+    background: #ffffff;
+    color: #7c4dff;
+    text-align: center;
+    font-size: 7pt;
+    font-weight: 500;
+    line-height: 1.35;
+    box-shadow: 0 1.5mm 4mm rgba(98, 76, 173, 0.06);
+}
+
+.skill img {
+    width: 4mm;
+    height: 4mm;
+    object-fit: contain;
 }
 
 .skill-stack-1 {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(0, 1fr);
-    gap: 8px;
-    width: 100mm;
+    grid-auto-rows: 5mm;
+    width: 90mm;
+    grid-auto-flow: dense;
         
-    .skill:nth-child(1) {
+    & >.skill:nth-child(1) {
         grid-row: span 3 / span 3;
+        border-right: none;
+        border-radius: var(--skillBorderRadius) 0 0 var(--skillBorderRadius);
     }
 
-    .skill:nth-child(2) {
+    & >.skill:nth-child(2) {
         grid-row: span 3 / span 3;
+        border-left: none;
+        border-radius: 0 var(--skillBorderRadius) var(--skillBorderRadius) 0;
+        margin-right: 2mm;
     }
 
-    .skill:nth-child(3) {
+    & >.skill:nth-child(3) {
         grid-row: span 3 / span 3;
+        border-radius: var(--skillBorderRadius);
+        margin-right: 2mm;
     }
 
 
-    .skill:nth-child(5) {
+    & >.skill:nth-child(4) {
+        border-bottom: none;
+        border-radius: var(--skillBorderRadius) var(--skillBorderRadius) 0 0;
+    }
+
+    & >.skill:nth-child(5) {
         grid-column-start: 4;
         grid-row-start: 2;
+        border-top: none;
+        border-bottom: none;
     }
 
-    .skill:nth-child(6) {
+    & >.skill:nth-child(6) {
         grid-column-start: 4;
         grid-row-start: 3;
+        border-top: none;
+        border-radius: 0 0 var(--skillBorderRadius) var(--skillBorderRadius);
     }
 
-    .skill:nth-child(7) {
+    & >.skill:nth-child(7) {
         grid-row: span 3 / span 3;
         grid-column-start: 5;
         grid-row-start: 1;
+        margin-left: 2mm;
+        border-radius: var(--skillBorderRadius);
     }
 }
 
@@ -141,62 +236,80 @@ h2{
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(6, 1fr);
-    gap: 8px;
+    grid-auto-flow: dense;
+    grid-auto-rows: 5mm;
 
-    .skill:nth-child(1) {
+    & >.skill:nth-child(1) {
         grid-row: span 6 / span 6;
+        border-radius: var(--skillBorderRadius);
+        margin-right: 2mm;
     }
 
-    .skill:nth-child(2) {
+    & >.skill:nth-child(2) {
         grid-row: span 2 / span 2;
+        border-bottom: none;
+        border-radius: var(--skillBorderRadius) var(--skillBorderRadius) 0 0 ;
     }
 
-    .skill:nth-child(3) {
+    & >.skill:nth-child(3) {
         grid-row: span 2 / span 2;
         grid-column-start: 2;
         grid-row-start: 3;
+        border-top: none;
+        border-bottom: none;
     }
 
-    .skill:nth-child(4) {
+    & >.skill:nth-child(4) {
         grid-row: span 2 / span 2;
         grid-column-start: 2;
         grid-row-start: 5;
+        border-top: none;
+        border-radius: 0 0  var(--skillBorderRadius) var(--skillBorderRadius);
     }
 
-    .skill:nth-child(5) {
+    & >.skill:nth-child(5) {
         grid-row: span 6 / span 6;
         grid-column-start: 3;
         grid-row-start: 1;
+        margin-left: 2mm;
+        border-right: none;
+        border-radius: var(--skillBorderRadius) 0 0 var(--skillBorderRadius);
     }
 
-    .skill:nth-child(6) {
+    & >.skill:nth-child(6) {
         grid-row: span 6 / span 6;
         grid-column-start: 4;
         grid-row-start: 1;
+        border-left: none;
+        border-radius: 0 var(--skillBorderRadius) var(--skillBorderRadius) 0;
+        margin-right: 2mm;
     }
 
-    .skill:nth-child(7) {
+    & >.skill:nth-child(7) {
         grid-row: span 6 / span 6;
         grid-column-start: 5;
         grid-row-start: 1;
+        border-radius: var(--skillBorderRadius);
+        border-right: none;
+        border-radius: var(--skillBorderRadius) 0 0 var(--skillBorderRadius);
     }
 
-    .skill:nth-child(8) {
-        grid-row: span 2 / span 2;
+    & >.skill:nth-child(8) {
+        grid-row: span 3 / span 3;
         grid-column-start: 6;
         grid-row-start: 1;
+        border-left: none;
+        border-bottom: none;
+        border-radius: 0 var(--skillBorderRadius) 0 0;
     }
 
-    .skill:nth-child(9) {
-        grid-row: span 2 / span 2;
+    & >.skill:nth-child(9) {
+        grid-row: span 3 / span 3;
         grid-column-start: 6;
-        grid-row-start: 3;
-    }
-
-    .skill:nth-child(10) {
-        grid-row: span 2 / span 2;
-        grid-column-start: 6;
-        grid-row-start: 5;
+        grid-row-start: 4;
+        border-left: none;
+        border-top: none;
+        border-radius: 0 0 var(--skillBorderRadius) 0;
     }
 }
     

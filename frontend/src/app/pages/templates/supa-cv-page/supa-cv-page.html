@@ -120,12 +120,13 @@
                     }
                 </div>
             </section>
-            <section class="section--panel debug">
+            <section class="section--panel section--skills debug">
                 <h3>Skills</h3>
-                <div class="skill-row">
-                    <h4>Technical</h4>
+                <div class="skill-row skill-row--technical">
+                    <h4 class="skill-kind">Technique</h4>
                     <div class="skill-stack-1">
                         @for (skill of data.skills; track skill.id) {
+                            <!-- <article class="skill">render</article> -->
                             @if(skill.type === 'Technical'){
                                 <article class="skill"> 
                                     @if(skill.icon){ <img [src]="skill.icon"/> } 
@@ -135,13 +136,15 @@
                         }
                     </div>
                 </div>
-                <div class="skill-row">
-                    <h4>Professional</h4>
+                <div class="skill-row skill-row--professional">
+                    <h4 class="skill-kind">Professionnel</h4>
                     <div class="skill-stack-1">
                         @for (skill of data.skills; track skill.id) {
                             @if(skill.type === 'Professional'){
-                                <article class="skill"> 
-                                    @if(skill.icon){ <img [src]="skill.icon"/> } 
+                               <article
+                                class="skill"
+                                [style.grid-row]="'span ' + getSkillSpan(skill)">
+                                    @if(skill.icon){ <img [src]="skill.icon"/> }
                                     {{ skill.name }}
                                 </article>
                             }
