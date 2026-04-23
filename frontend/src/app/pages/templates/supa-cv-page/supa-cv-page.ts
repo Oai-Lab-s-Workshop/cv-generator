@@ -1,13 +1,18 @@
-import { ChangeDetectionStrategy, Component, inject, Injector, input, effect, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Injector, input, effect, OnInit, signal, ViewEncapsulation } from '@angular/core';
 import { CvData } from '../../../core/models/cv-data.model';
 import { PocketBaseService } from '../../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../../core/utils/error-message';
+import { IconLabelData } from '../../../shared/components/icon-label-data/icon-label-data';
+import { EducationChip } from '../../../shared/components/education-chip/education-chip';
+import { CardProject } from '../../../shared/components/card-project/card-project';
 
 @Component({
   selector: 'app-supa-cv-page',
   templateUrl: './supa-cv-page.html',
   styleUrl: './supa-cv-page.css',
+  imports: [IconLabelData, EducationChip, CardProject],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
 })
 export class SupaCVPage implements OnInit {
   

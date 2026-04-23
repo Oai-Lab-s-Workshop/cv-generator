@@ -1,0 +1,10 @@
+<div class="icon-label-data">
+    <div class="icon">
+        <ng-content select="[icon]"></ng-content>
+    </div>
+    <div class="content" [class.reverse]="reverse">
+        <div class="label">{{ label }}</div>
+        <div class="data">{{ data }}</div>
+    </div>
+</div>
+

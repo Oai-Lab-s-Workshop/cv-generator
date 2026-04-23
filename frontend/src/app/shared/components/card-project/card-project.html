@@ -1,0 +1,23 @@
+<div class="card project">
+    <!-- TODO: implement images on project  -->
+    @if(false){ 
+        <img src="https://placehold.co/200x100" alt="">
+    }@else{
+        <img src="https://placehold.co/200x100" alt="placeholder image">
+    }
+    <div class="content">
+        @if (project().name){
+            <h4>{{ project().name }}</h4>
+        }
+
+        @if (project().description) {
+            <p class="project-card__description" [innerHTML]="project().description"></p>
+        }
+
+        @if (project().url) {
+            <a class="project-card__link" [href]="project().url" target="_blank" rel="noreferrer">
+                {{ project().url }}
+            </a>
+        }
+    </div>
+</div>
