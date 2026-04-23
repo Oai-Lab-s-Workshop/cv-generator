@@ -22,18 +22,24 @@
 
     font-family: "DM Sans", sans-serif;
     font-optical-sizing: auto;
+
+    overflow: hidden;
+
+    background-color: var(--color2);
     
 }
 
 h1{
-    font-size: 16pt;
+    font-size: 20pt;
     font-family: "Outfit", sans-serif;
     font-optical-sizing: auto;
+    margin-bottom: 2mm;
 }
 h2{
-    font-size: 12pt;
+    font-size: 14pt;
     font-family: "Outfit", sans-serif;
     font-optical-sizing: auto;
+    margin-bottom: 2mm;
 }
 .accent-text{
     background: var(--gradient1);
@@ -44,7 +50,13 @@ h2{
 }
 .resume-aside{
     width:60mm;
-    border-right:1px solid #e2e6ee
+    padding: 8mm;
+    padding-right: 2mm;
+    border-right:1px solid #e2e6ee;
+    background: light-dark(white, white);
+}
+#summary { 
+    font-size: 8pt;
 }
 .stack{
     margin-top: 4mm;
@@ -54,12 +66,17 @@ h2{
 .resume-main{
     flex:1;
     width: 150mm;
-    padding:6mm;
+    padding: 0mm 6mm ;
     background-color: var(--color2);
+    /* margin: 0 auto; */
 }
 .resume-main .section--panel{
     border-left: 1mm solid #e2e6ee;
     padding-left: 6mm;
+}
+
+.resume-main .section--panel:last-child {
+    height: 100%;
 }
 
 .job-stack{
@@ -116,7 +133,7 @@ h2{
     margin: 0;
     padding-left: 10mm;
     color: #22203a;
-    font-size: 11pt;
+    font-size: 9pt;
     font-weight: 500;
     line-height: 1.3;
 
@@ -180,7 +197,6 @@ h2{
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-auto-rows: 5mm;
-    width: 90mm;
     grid-auto-flow: dense;
         
     & >.skill:nth-child(1) {
@@ -206,6 +222,8 @@ h2{
     & >.skill:nth-child(4) {
         border-bottom: none;
         border-radius: var(--skillBorderRadius) var(--skillBorderRadius) 0 0;
+        justify-content: flex-start;
+        gap: .5em;
     }
 
     & >.skill:nth-child(5) {
@@ -213,6 +231,8 @@ h2{
         grid-row-start: 2;
         border-top: none;
         border-bottom: none;
+        justify-content: flex-start;
+        gap: .5em;
     }
 
     & >.skill:nth-child(6) {
@@ -220,6 +240,15 @@ h2{
         grid-row-start: 3;
         border-top: none;
         border-radius: 0 0 var(--skillBorderRadius) var(--skillBorderRadius);
+        justify-content: flex-start;
+        gap: .5em;
+    }
+
+    .skill:nth-child(4)::before, 
+    .skill:nth-child(5)::before, 
+    .skill:nth-child(6)::before {
+        content: '-';
+        padding-left: .5mm;
     }
 
     & >.skill:nth-child(7) {
@@ -363,4 +392,36 @@ h2{
 
 .tile{
     background-color: light-dark(white, #F7F9FC);
+}
+
+.hstack {
+    gap: 2mm;
+}
+
+app-education-chip {
+    background-color: white;
+    border-radius: var(--skillBorderRadius);
+    padding: 4mm;
+}
+
+
+app-education-chip h3 {
+    font-size: 9pt;
+    font-family: "DM Sans", sans-serif;
+    font-weight: 500;
+}
+app-education-chip .copy {
+    font-size: 7pt;
+    font-family: "DM Sans", sans-serif;
+    font-weight: 500;
+    color: #79819A;
+}
+
+
+hr {
+  border: none;         
+  height: 2px;          
+  background: #F7F9FC;  
+  margin: 1rem auto;       
+  width: 80%;
 }

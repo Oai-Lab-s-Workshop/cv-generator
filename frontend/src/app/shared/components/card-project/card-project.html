@@ -1,8 +1,6 @@
 <div class="card project">
     @if (project().picture) {
         <img [src]="project().picture" [alt]="project().name || 'Project picture'">
-    } @else {
-        <img src="https://placehold.co/200x100" alt="placeholder image">
     }
     <div class="content">
         @if (project().name){

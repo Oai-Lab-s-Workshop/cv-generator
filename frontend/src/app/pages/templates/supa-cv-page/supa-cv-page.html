@@ -1,5 +1,5 @@
 @if(cvData() && cvData(); as data) {
-    <div class="resume-root debug">
+    <div class="resume-root">
         <aside class="resume-aside">
             @if(data.profile.profilePicture){
                 <img [src]="data.profile.profilePicture" alt="Profile Picture" id="PP" />
@@ -7,11 +7,15 @@
             
             <h1>{{ data.user ? data.user.firstName + ' ' + data.user.lastName : data.profile.profileName }}</h1>
             <h2 class="accent-text">{{ data.profile.profileName }}</h2>
-            <div id="quote">
+            <!-- <div id="quote">
                 <p data="quote">Some Quote</p>
                 <p data="author">- Author</p>
-            </div>
+            </div> -->
             
+            @if(data.profile.professionalSummary){
+                <div id="summary" [innerHTML]="data.profile.professionalSummary"></div>
+            }
+
             <hr>
 
             @if(data.user){
@@ -81,7 +85,7 @@
                         <app-icon-label-data
                             label="{{ skill.name }}"
                             [data]="skill.level >= 100 ? 'Native' : skill.level >= 80 ? 'C1' : skill.level >= 60 ? 'B1' : 'Notions'"
-                            [reverse]="false">
+                            [reverse]="true">
                             <i icon class="bi bi-translate"></i>
                         </app-icon-label-data>
                     }   
@@ -90,7 +94,7 @@
         </aside>
         
         <main class="resume-main">
-            <section class="section--panel debug">
+            <section class="section--panel">
                 @if (data.projects.length > 0) {
                     <h3>Mes derniers projets</h3>
                     <section class="avoid-break project-stack">
@@ -100,12 +104,12 @@
                     </section>
                 }
             </section>
-            <section class="section--panel debug">
+            <section class="section--panel">
                 <h3>Experience</h3> 
                 <div class="job-stack">
                     @for (job of data.jobs; track job.id) {
                         <div class="job" [class.present]="!job.endDate">
-                            <img src="https://placehold.co/12" alt="">
+                            <i class="bi bi-briefcase-fill"></i>
                             <div class="job-data">
                                 <h4>{{ job.position }}</h4>
                                 <p>{{ job.company }}</p>
@@ -120,7 +124,7 @@
                     }
                 </div>
             </section>
-            <section class="section--panel section--skills debug">
+            <section class="section--panel section--skills">
                 <h3>Skills</h3>
                 <div class="skill-row skill-row--technical">
                     <h4 class="skill-kind">Technique</h4>
@@ -141,9 +145,7 @@
                     <div class="skill-stack-1">
                         @for (skill of data.skills; track skill.id) {
                             @if(skill.type === 'Professional'){
-                               <article
-                                class="skill"
-                                [style.grid-row]="'span ' + getSkillSpan(skill)">
+                               <article class="skill">
                                     @if(skill.icon){ <img [src]="skill.icon"/> }
                                     {{ skill.name }}
                                 </article>
@@ -152,7 +154,7 @@
                     </div>
                 </div>
             </section>
-            <section class="section--panel debug">
+            <section class="section--panel">
                 <h3>Diplômes</h3>
                 <div class="hstack">
                     @for (diploma of data.degrees; track diploma.id) {
