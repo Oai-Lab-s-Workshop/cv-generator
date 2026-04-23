@@ -20,4 +20,10 @@ describe('IconLabelData', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should detect valid links', () => {
+    expect(component.isLink('https://example.com')).toBe(true);
+    expect(component.isLink('example.com')).toBe(true);
+    expect(component.isLink('not a link')).toBe(false);
+  });
 });

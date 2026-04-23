@@ -1,11 +1,11 @@
 .card.project {
     background-color: white;
     border-radius: 8px;
-    width: 60mm;
+    width: 62mm;
     overflow: hidden;
     height: stretch;
     overflow: hidden;
-    max-width: 60mm;
+    max-width: 62mm;
 }
 
 /* TODO: add a fade out */

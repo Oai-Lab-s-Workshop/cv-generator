@@ -2,9 +2,14 @@
     <div class="icon">
         <ng-content select="[icon]"></ng-content>
     </div>
-    <div class="content" [class.reverse]="reverse">
-        <div class="label">{{ label }}</div>
-        <div class="data">{{ data }}</div>
+    <div class="content">
+        <div class="label" [class.reverse]="reverse">{{ label }}</div>
+        <div class="data" [class.reverse]="reverse">
+            @if (isLink(data)) {
+                <a [href]="getLinkHref(data)" target="_blank" rel="noreferrer noopener">{{ data }}</a>
+            } @else {
+                {{ data }}
+            }
+        </div>
     </div>
 </div>
-
