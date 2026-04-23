@@ -43,4 +43,9 @@ img{
 
 .project-card__link {
     padding-top: 0;
+    background: var(--gradient2);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
 }
