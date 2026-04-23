@@ -1,0 +1,46 @@
+.card.project {
+    background-color: white;
+    border-radius: 8px;
+    width: 60mm;
+    overflow: hidden;
+    height: stretch;
+    overflow: hidden;
+    max-width: 60mm;
+}
+
+/* TODO: add a fade out */
+
+.content{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 37mm;
+    justify-content: space-between;
+    padding: 2mm;
+}
+
+h4{
+    font-size: 10pt;
+    font-weight: 600;
+    color: black;
+}
+
+img{
+    width: 100%;
+    height: 20mm;
+    object-fit: cover;
+
+    /* display: none; */
+}
+
+.project-card__description{
+    font-size: 8pt;
+    padding: 2mm 0;
+    flex-grow: 2;
+    max-height: 24mm;
+    overflow: hidden;
+}
+
+.project-card__link {
+    padding-top: 0;
+}

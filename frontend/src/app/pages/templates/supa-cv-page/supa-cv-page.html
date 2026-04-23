@@ -1,15 +1,137 @@
 @if(cvData() && cvData(); as data) {
-  <div class="resume-root">
-    <aside class="resume-aside">
-      @if(data.profile.profilePicture){
-        <img [src]="data.profile.profilePicture" alt="Profile Picture" id="PP" />
-      } 
-    </aside>
+    <div class="resume-root debug">
+        <aside class="resume-aside">
+            @if(data.profile.profilePicture){
+                <img [src]="data.profile.profilePicture" alt="Profile Picture" id="PP" />
+            } 
+            
+            <h1>{{ data.user ? data.user.firstName + ' ' + data.user.lastName : data.profile.profileName }}</h1>
+            <h2 class="accent-text">{{ data.profile.profileName }}</h2>
+            <div id="quote">
+                <p data="quote">Some Quote</p>
+                <p data="author">- Author</p>
+            </div>
+            
+            <hr>
+
+            @if(data.user){
+                <div class="stack">
+                    @if (data.user.email) {
+                        <app-icon-label-data
+                            label="Email"
+                            [data]="data.user.email"
+                            [reverse]="false">
+                            <i icon class="bi bi-mortarboard-fill"></i>
+                        </app-icon-label-data>
+                    }
+                    @if (data.user.website) {
+                        <app-icon-label-data
+                            label="Site Web"
+                            [data]="data.user.website"
+                            [reverse]="false">
+                            <i icon class="bi bi-globe"></i>
+                        </app-icon-label-data>
+                    }
+                    @if (data.user.phone) {
+                        <app-icon-label-data
+                            label="Tel"
+                            [data]="data.user.phone"
+                            [reverse]="false">
+                            <i icon class="bi bi-telephone-fill"></i>
+                        </app-icon-label-data>
+                    }
+                    <!-- @if (data.user.location) {
+                        <app-icon-label-data
+                            label="Location"
+                            [data]="data.user.location"
+                            [reverse]="false">
+                            <i icon class="bi bi-geo-alt-fill"></i>
+                        </app-icon-label-data>
+                    } -->
+                </div>
+                <hr>
+
+                <h3>Réseaux :</h3>
     
-    <main class="resume-main">
-      <div class="container">
-        <!-- placeholder: other sections (education, skills, tools) can be added here -->
-      </div>
-    </main>
-  </div>
+                <div class="stack">
+                    @if (data.user?.linkedin) {
+                        <app-icon-label-data
+                            label="LinkedIn"
+                            [data]="data.user?.linkedin"
+                            [reverse]="false">
+                            <i icon class="bi bi-linkedin"></i>
+                        </app-icon-label-data>
+                    }
+                    @if (data.user?.github) {
+                        <app-icon-label-data
+                            label="GitHub"
+                            [data]="data.user?.github"
+                            [reverse]="false">
+                            <i icon class="bi bi-github"></i>
+                        </app-icon-label-data>
+                    }
+                </div>
+                <hr>
+            }
+            
+            <h3> Langues </h3>
+            <div class="stack">
+                @for (skill of data.skills; track skill.id) {
+                    @if(skill.type === 'Language' && skill.name != '' && skill.level != null){
+                        <app-icon-label-data
+                            label="{{ skill.name }}"
+                            [data]="skill.level >= 100 ? 'Native' : skill.level >= 80 ? 'C1' : skill.level >= 60 ? 'B1' : 'Notions'"
+                            [reverse]="false">
+                            <i icon class="bi bi-translate"></i>
+                        </app-icon-label-data>
+                    }   
+                }
+            </div>
+        </aside>
+        
+        <main class="resume-main">
+            <section class="section--panel debug">
+                @if (data.projects.length > 0) {
+                    <h3>Mes derniers projets</h3>
+                    <section class="avoid-break project-stack">
+                        @for (project of data.projects; track project.id) {
+                            <app-card-project [project]="project"></app-card-project>
+                        }
+                    </section>
+                }
+            </section>
+            <section class="section--panel debug">
+                <h3>Experience</h3> 
+                <div class="job-stack">
+                    @for (job of data.jobs; track job.id) {
+                        <div class="job" [class.present]="!job.endDate">
+                            <img src="https://placehold.co/12" alt="">
+                            <div class="job-data">
+                                <h4>{{ job.position }}</h4>
+                                <p>{{ job.company }}</p>
+                            </div>
+                            <div>
+                                <p>{{ getDate(job.startDate) }} - {{ job.endDate ? getDate(job.endDate) : 'Present' }}</p>
+                                @if(job.location) {
+                                    <p> <i icon class="bi bi-geo-alt-fill"></i> {{ job.location }}</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+            <section class="section--panel debug">
+                <h3>Skills</h3>
+                
+            </section>
+            <section class="section--panel debug">
+                <h3>Diplômes</h3>
+                <div class="hstack">
+                    @for (diploma of data.degrees; track diploma.id) {
+                        <app-education-chip class="tile" [diploma]="diploma"></app-education-chip>
+                    }
+                </div>
+            </section>
+        </main>
+    </div>
 }
