@@ -1,8 +1,7 @@
 <div class="card project">
-    <!-- TODO: implement images on project  -->
-    @if(false){ 
-        <img src="https://placehold.co/200x100" alt="">
-    }@else{
+    @if (project().picture) {
+        <img [src]="project().picture" [alt]="project().name || 'Project picture'">
+    } @else {
         <img src="https://placehold.co/200x100" alt="placeholder image">
     }
     <div class="content">
