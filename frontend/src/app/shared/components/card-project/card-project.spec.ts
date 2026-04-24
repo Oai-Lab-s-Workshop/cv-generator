@@ -20,4 +20,12 @@ describe('CardProject', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should infer github icon from url', () => {
+    expect(component.getProjectUrlIcon('https://github.com/example/repo')).toBe('github');
+  });
+
+  it('should fallback to default icon for unknown domains', () => {
+    expect(component.getProjectUrlIcon('https://example.com/project')).toBe('default');
+  });
 });
