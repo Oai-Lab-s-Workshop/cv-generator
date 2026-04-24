@@ -54,6 +54,7 @@ hr {
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
+    width: min-content;
     -webkit-text-fill-color: transparent;
 }
 .resume-aside{
@@ -466,3 +467,10 @@ app-education-chip .copy {
     background-color: green;
 }
 
+
+
+@media print {
+    *, *::before, *::after {
+        box-shadow: none !important;
+    }
+}
