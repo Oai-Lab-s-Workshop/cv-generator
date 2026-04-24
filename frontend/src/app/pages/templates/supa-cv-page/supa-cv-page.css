@@ -14,7 +14,7 @@
     --skillBorderRadius: 2mm;
 
     display:flex;
-    background:#fff;
+    background: transparent;
 
     height: 297mm;
     width: 210mm;
@@ -24,8 +24,6 @@
     font-optical-sizing: auto;
 
     overflow: hidden;
-
-    background-color: var(--color2);
 
     color: light-dark(black, white);
     
