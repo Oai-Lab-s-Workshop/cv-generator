@@ -74,12 +74,13 @@ onRecordUpdateRequest((e) => {
   }
 
   const currentOwnerId = record.getString('user');
+  const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
 
-  if (!e.hasSuperuserAuth() && currentOwnerId && currentOwnerId !== e.auth.id) {
+  if (!e.hasSuperuserAuth() && !isMcpServiceAccount && currentOwnerId && currentOwnerId !== e.auth.id) {
     throw new ForbiddenError('You cannot edit another user\'s API key.');
   }
 
-  if (!e.hasSuperuserAuth()) {
+  if (!e.hasSuperuserAuth() && !isMcpServiceAccount) {
     record.set('user', e.auth.id);
   }
   return e.next();

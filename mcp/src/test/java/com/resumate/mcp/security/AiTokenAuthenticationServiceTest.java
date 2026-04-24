@@ -10,6 +10,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AiTokenAuthenticationServiceTest {
@@ -32,6 +33,7 @@ class AiTokenAuthenticationServiceTest {
         assertThat(result.userId()).isEqualTo("userId");
         assertThat(result.label()).isEqualTo("my-label");
         assertThat(result.tokenPrefix()).isEqualTo("prefix");
+        verify(pocketBaseClient).markAiTokenUsed("tokenId");
     }
 
     @Test
@@ -83,13 +85,14 @@ class AiTokenAuthenticationServiceTest {
         AiTokenPrincipal result = service.authenticate("no-expiry");
 
         assertThat(result.tokenId()).isEqualTo("tokenId");
+        verify(pocketBaseClient).markAiTokenUsed("tokenId");
     }
 
     @Test
     void authenticate_succeeds_whenExpiresAtIsInFuture() {
         AiTokenRecord record = new AiTokenRecord(
                 "tokenId", "userId", "label", "active",
-                "2026-04-23 12:00:00.000",
+                Instant.now().plusSeconds(3600).toString(),
                 "hash", "prefix"
         );
         when(pocketBaseClient.findAiTokenByRawToken("future-token")).thenReturn(Optional.of(record));
@@ -97,6 +100,7 @@ class AiTokenAuthenticationServiceTest {
         AiTokenPrincipal result = service.authenticate("future-token");
 
         assertThat(result.tokenId()).isEqualTo("tokenId");
+        verify(pocketBaseClient).markAiTokenUsed("tokenId");
     }
 
     @Test

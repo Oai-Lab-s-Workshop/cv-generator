@@ -36,6 +36,8 @@ public class AiTokenAuthenticationService {
             throw new IllegalArgumentException("API key is expired.");
         }
 
+        pocketBaseClient.markAiTokenUsed(token.id());
+
         logger.info(
                 "Authenticated MCP API key tokenId={} userId={} label={} tokenPrefix={}",
                 token.id(),
