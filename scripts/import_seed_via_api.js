@@ -158,6 +158,7 @@ async function importProjects(token) {
         name: project.name,
         description: project.description,
         url: project.url,
+        type: project.type,
         date: project.date,
         sortOrder: project.sortOrder,
         achievements: mapRelationIds('achievements', project.achievements),

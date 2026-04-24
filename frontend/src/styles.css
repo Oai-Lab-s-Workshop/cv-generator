@@ -1,2 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Outfit:wght@400;500;600&display=swap');
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+:root{
+	--bg: #FFFFFF;
+	--gray-lightest: #E2E6EE;
+	--gray-lightest-2: #F7F9FC;
+	--gray-default: #79819A;
+	--gray-dark: #47516B;
+	--gray-darker: #2E2E48;
+	--primary-default: #9251F7;
+	--primary-lighter: #EFE2F9;
+	--secondary-default: #516CF7;
+	--social-dribbble: #EA4C89;
+	--social-twitter: #00ACEE;
+	--social-linkedin: #0077B5;
+	
+  	color-scheme: light dark;
+}
+
+body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--gray-darker); }
+
+h1,h2,h3{font-family:'Outfit',sans-serif}
