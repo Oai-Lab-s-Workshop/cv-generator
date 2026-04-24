@@ -7,6 +7,8 @@ export interface Project {
   description?: string;
   url?: string;
   date?: string;
+  picture?: string;
+  type?: 'freelance' | 'sideproject' | 'work project';
   file?: string;
   sortOrder?: number;
   achievements?: string[];

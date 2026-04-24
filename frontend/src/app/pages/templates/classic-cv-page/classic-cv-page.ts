@@ -88,6 +88,7 @@ export class ClassicCvPage implements OnInit {
     return parts.join(' ');
   }
 
+  //TODO: factor out this logic into a reusable service
   protected getDate(dateStr: string | null | undefined): string {
     const date = this.pocketBaseService.toDate(dateStr);
 

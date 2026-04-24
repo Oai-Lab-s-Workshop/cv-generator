@@ -1,0 +1,41 @@
+.icon-label-data {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+}
+.icon{
+    background-color: light-dark(#E2E6EE, black);
+    width: 8mm;
+    height: 8mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100px;
+    color: light-dark(#79819A, white);
+    flex-shrink: 0;
+}
+.content{
+    display: flex;
+    flex-direction: column;
+    gap: 0
+}
+
+.label:not(.reverse), .reverse.data{
+    font-size: 6pt;
+    color: light-dark(#79819A, white);
+}
+.data:not(.reverse), .reverse.label{
+    font-size: 7pt;
+    font-weight: bold;
+    width: 38mm;
+}
+
+.data a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.data a:hover {
+    text-decoration: underline;
+}
