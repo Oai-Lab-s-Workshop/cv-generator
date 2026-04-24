@@ -3,17 +3,39 @@
         <img [src]="project().picture" [alt]="project().name || 'Project picture'">
     }
     <div class="content">
-        @if (project().name){
-            <h4>{{ project().name }}</h4>
-        }
+        <div class="first">
+            @if(!project().picture && project().url){
+                <div class="project-card__icon" aria-hidden="true">
+                    @switch (getProjectUrlIcon(project().url)) {
+                        @case ('github') { <i class="bi bi-github"></i> }
+                        @case ('gitlab') { <i class="bi bi-gitlab"></i> }
+                        @case ('linkedin') { <i class="bi bi-linkedin"></i> }
+                        @case ('youtube') { <i class="bi bi-youtube"></i> }
+                        @case ('medium') { <i class="bi bi-medium"></i> }
+                        @case ('npm') { <i class="bi bi-box-seam"></i> }
+                        @case ('figma') { <i class="bi bi-figma"></i> }
+                        @case ('behance') { <i class="bi bi-behance"></i> }
+                        @case ('sketchfab') { <i class="bi bi-badge-3d"></i> }
+                        @case ('discord') { <i class="bi bi-discord"></i> }
+                        @default { <i class="bi bi-globe"></i> }
+                    }
+                </div>
+            }
+            <div>
+                @if (project().name){
+                    <h4>{{ project().name }}</h4>
+                }
 
-        @if (project().description) {
-            <p class="project-card__description" [innerHTML]="project().description"></p>
-        }
+                @if (project().description) {
+                    <p class="project-card__description" [innerHTML]="project().description"></p>
+                }
+            </div>
+        </div>
 
         @if (project().url) {
             <a class="project-card__link" [href]="project().url" target="_blank" rel="noreferrer">
-                {{ project().url }}
+                <i class="bi bi-link-45deg"></i>
+                {{ project().url }} 
             </a>
         }
     </div>

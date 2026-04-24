@@ -115,10 +115,15 @@
                                 <p>{{ job.company }}</p>
                             </div>
                             <div>
-                                <p>{{ getDate(job.startDate) }} - {{ job.endDate ? getDate(job.endDate) : 'Present' }}</p>
-                                @if(job.location) {
-                                    <p> <i icon class="bi bi-geo-alt-fill"></i> {{ job.location }}</p>
-                                }
+                                <div class="full">
+                                    <p> {{ job.responsibilities }} </p>
+                                </div>
+                                <div class="compact">
+                                    <p>{{ getDate(job.startDate) }} - {{ job.endDate ? getDate(job.endDate) : 'Present' }}</p>
+                                    @if(job.location) {
+                                        <p> <i icon class="bi bi-geo-alt-fill"></i> {{ job.location }}</p>
+                                    }
+                                </div>
                             </div>
                         </div>
                     }
