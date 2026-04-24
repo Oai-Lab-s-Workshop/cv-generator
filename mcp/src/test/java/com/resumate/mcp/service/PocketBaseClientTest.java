@@ -11,7 +11,9 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.io.IOException;
 import java.util.List;
@@ -183,6 +185,41 @@ class PocketBaseClientTest {
 
         assertThat(result.id()).isEqualTo("profile123");
         assertThat(result.slug()).isEqualTo("classic--my-profile-1700000000000");
+    }
+
+    @Test
+    void createTailoredProfile_throwsWithPocketBaseDetails_whenCreateFails() {
+        enqueueAuthResponse();
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(400)
+                .setBody("{\"message\":\"Failed to create record.\",\"data\":{\"details\":\"create rule failure\"}}")
+                .setHeader(HttpHeaders.CONTENT_TYPE, "application/json"));
+
+        PocketBaseClient.CreateProfilePayload payload = new PocketBaseClient.CreateProfilePayload(
+                "My Profile", "classic", "Summary",
+                List.of("skill1"), List.of(), List.of(), List.of(), List.of(), List.of()
+        );
+
+        assertThatThrownBy(() -> client.createTailoredProfile("userId", payload))
+                .isInstanceOf(RestClientResponseException.class)
+                .hasMessageContaining("400 Bad Request")
+                .hasMessageContaining("Failed to create record");
+    }
+
+    @Test
+    void markAiTokenUsed_sendsPatchRequest() throws InterruptedException {
+        enqueueAuthResponse();
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+
+        client.markAiTokenUsed("token123");
+
+        RecordedRequest authRequest = mockWebServer.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/api/collections/users/auth-with-password");
+
+        RecordedRequest patchRequest = mockWebServer.takeRequest();
+        assertThat(patchRequest.getMethod()).isEqualTo("PATCH");
+        assertThat(patchRequest.getPath()).isEqualTo("/api/collections/ai_tokens/records/token123");
+        assertThat(patchRequest.getBody().readUtf8()).contains("lastUsedAt");
     }
 
     @Test

@@ -3,12 +3,15 @@ package com.resumate.mcp.service;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.resumate.mcp.config.PocketBaseProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -22,6 +25,8 @@ import java.util.Optional;
 
 @Service
 public class PocketBaseClient {
+
+    private static final Logger logger = LoggerFactory.getLogger(PocketBaseClient.class);
 
     private static final List<TemplateDescriptor> TEMPLATE_DESCRIPTORS = List.of(
             new TemplateDescriptor("classic", "Classic", "Traditional CV layout"),
@@ -118,15 +123,49 @@ public class PocketBaseClient {
         body.put("degrees", defaultList(payload.degreeIds()));
         body.put("hobbies", defaultList(payload.hobbyIds()));
 
-        CreatedProfileRecord created = restClient.post()
-                .uri("/api/collections/cv_profiles/records")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
-                .body(body)
-                .retrieve()
-                .body(CreatedProfileRecord.class);
+        CreatedProfileRecord created;
+        try {
+            created = restClient.post()
+                    .uri("/api/collections/cv_profiles/records")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
+                    .body(body)
+                    .retrieve()
+                    .body(CreatedProfileRecord.class);
+        } catch (RestClientResponseException ex) {
+            logger.error(
+                    "PocketBase cv_profiles create failed status={} userId={} templateId={} profileName={} responseBody={}",
+                    ex.getStatusCode().value(),
+                    userId,
+                    payload.templateId(),
+                    payload.profileName(),
+                    ex.getResponseBodyAsString()
+            );
+            throw ex;
+        }
 
         return Objects.requireNonNull(created, "PocketBase created profile payload is required.");
+    }
+
+    public void markAiTokenUsed(String tokenId) {
+        try {
+            restClient.patch()
+                    .uri("/api/collections/ai_tokens/records/{tokenId}", tokenId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
+                    .body(Map.of("lastUsedAt", Instant.now().toString()))
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientResponseException ex) {
+            logger.warn(
+                    "PocketBase ai_tokens lastUsedAt update failed status={} tokenId={} responseBody={}",
+                    ex.getStatusCode().value(),
+                    tokenId,
+                    ex.getResponseBodyAsString()
+            );
+        } catch (RuntimeException ex) {
+            logger.warn("PocketBase ai_tokens lastUsedAt update failed tokenId={} message={}", tokenId, ex.getMessage());
+        }
     }
 
     private List<Map<String, Object>> getOwnedRecords(String collectionName, String userId, String sort) {
