@@ -63,9 +63,16 @@ class PocketBaseClientTest {
     void resolveAvailableTemplates_returnsAllTemplates() {
         List<TemplateDescriptor> result = client.resolveAvailableTemplates();
 
-        assertThat(result).hasSize(3);
+        assertThat(result).hasSize(4);
         assertThat(result.stream().map(TemplateDescriptor::id).toList())
-                .containsExactly("classic", "modern", "minimal");
+                .containsExactly("classic", "modern", "minimal", "supa");
+        assertThat(result.stream().map(TemplateDescriptor::description).toList())
+                .containsExactly(
+                        "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.",
+                        "Split-sidebar resume with timeline-style . Most commmon CV layout.",
+                        "Single-column minimalist resume with inline contact details and compact sections.",
+                        "Clean, compact, print-first CV designed to fit into a sigle A4 page. Dynamic sizing, great for shocasing lots of Projects"
+                );
     }
 
     @Test
