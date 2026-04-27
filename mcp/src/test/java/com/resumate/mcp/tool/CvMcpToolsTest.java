@@ -55,15 +55,16 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         List<TemplateDescriptor> expected = List.of(
-                new TemplateDescriptor("classic", "Classic", "Traditional CV layout"),
-                new TemplateDescriptor("modern", "Modern", "Contemporary single-column layout"),
-                new TemplateDescriptor("minimal", "Minimal", "Compact and concise CV layout")
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills."),
+                new TemplateDescriptor("modern", "Modern", "Split-sidebar resume with timeline-style experience and card-based project highlights."),
+                new TemplateDescriptor("minimal", "Minimal", "Single-column minimalist resume with inline contact details and compact sections."),
+                new TemplateDescriptor("supa", "Supa", "Figma-inspired A4 resume with dynamic section compaction to keep dense content on one page.")
         );
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(expected);
 
         CvMcpTools.ListTemplatesResponse response = cvMcpTools.listTemplates();
 
-        assertThat(response.templates()).hasSize(3);
+        assertThat(response.templates()).hasSize(4);
         assertThat(response.templates().get(0).id()).isEqualTo("classic");
     }
 
@@ -106,8 +107,8 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
-                new TemplateDescriptor("classic", "Classic", "Traditional CV layout"),
-                new TemplateDescriptor("modern", "Modern", "Contemporary single-column layout")
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills."),
+                new TemplateDescriptor("modern", "Modern", "Split-sidebar resume with timeline-style experience and card-based project highlights.")
         ));
 
         CreatedProfileRecord createdRecord = new CreatedProfileRecord("profileId", "classic--senior-dev-123");
@@ -153,7 +154,7 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
-                new TemplateDescriptor("classic", "Classic", "Traditional CV layout")
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.")
         ));
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
@@ -188,7 +189,7 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
-                new TemplateDescriptor("classic", "Classic", "Traditional CV layout")
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.")
         ));
 
         CreatedProfileRecord createdRecord = new CreatedProfileRecord("id", "slug");
@@ -218,7 +219,7 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
-                new TemplateDescriptor("classic", "Classic", "Traditional CV layout")
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.")
         ));
 
         CreatedProfileRecord createdRecord = new CreatedProfileRecord("id", "my-slug");
