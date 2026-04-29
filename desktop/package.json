@@ -1,0 +1,25 @@
+{
+  "name": "resumate-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "electrobun dev",
+    "build": "electrobun build",
+    "typecheck": "tsc --noEmit",
+    "prepare:frontend": "bun run --cwd ../frontend build -- --base-href ./ --output-path ../desktop/.cache/angular",
+    "prepare:mcp": "../mcp/mvnw -f ../mcp/pom.xml package -DskipTests",
+    "prepare:java-runtime": "bun scripts/build-java-runtime.ts",
+    "prepare:pocketbase": "bun scripts/download-pocketbase.ts",
+    "prepare:resources": "bun scripts/prepare-resources.ts",
+    "prepare:desktop": "bun run prepare:frontend && bun run prepare:mcp && bun run prepare:java-runtime && bun run prepare:pocketbase && bun run prepare:resources"
+  },
+  "dependencies": {
+    "electrobun": "^1.16.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.8",
+    "@types/three": "^0.184.0",
+    "typescript": "~5.9.0"
+  }
+}
