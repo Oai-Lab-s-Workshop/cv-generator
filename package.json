@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "desktop:prepare": "bun --cwd desktop run prepare:desktop",
+    "desktop:build": "bun --cwd desktop run build",
+    "desktop:dev": "bun --cwd desktop run dev"
+  },
   "devDependencies": {
     "@types/jest": "^30.0.0"
   }
