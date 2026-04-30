@@ -71,7 +71,7 @@ class PocketBaseClientTest {
                         "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.",
                         "Split-sidebar resume with timeline-style . Most commmon CV layout.",
                         "Single-column minimalist resume with inline contact details and compact sections.",
-                        "Clean, compact, print-first CV designed to fit into a sigle A4 page. Dynamic sizing, great for shocasing lots of Projects"
+                        "Clean, compact, print-first CV designed to fit into a single A4 page. Dynamic sizing, great for showcasing lots of Projects"
                 );
     }
 

@@ -7,7 +7,7 @@
     "dev": "electrobun dev",
     "build": "electrobun build",
     "typecheck": "tsc --noEmit",
-    "prepare:frontend": "bun run --cwd ../frontend build -- --base-href ./ --output-path ../desktop/.cache/angular",
+    "prepare:frontend": "cd ../frontend && NODE_OPTIONS= node node_modules/.bin/ng build --base-href ./ --output-path ../desktop/.cache/angular",
     "prepare:mcp": "../mcp/mvnw -f ../mcp/pom.xml package -DskipTests",
     "prepare:java-runtime": "bun scripts/build-java-runtime.ts",
     "prepare:pocketbase": "bun scripts/download-pocketbase.ts",

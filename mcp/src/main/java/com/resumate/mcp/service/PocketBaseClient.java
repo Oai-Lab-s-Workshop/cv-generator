@@ -32,7 +32,7 @@ public class PocketBaseClient {
             new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills."),
             new TemplateDescriptor("modern", "Modern", "Split-sidebar resume with timeline-style . Most commmon CV layout."),
             new TemplateDescriptor("minimal", "Minimal", "Single-column minimalist resume with inline contact details and compact sections."),
-            new TemplateDescriptor("supa", "Supa", "Clean, compact, print-first CV designed to fit into a sigle A4 page. Dynamic sizing, great for shocasing lots of Projects"), 
+            new TemplateDescriptor("supa", "Supa", "Clean, compact, print-first CV designed to fit into a single A4 page. Dynamic sizing, great for showcasing lots of Projects")
     );
 
     private final PocketBaseProperties properties;

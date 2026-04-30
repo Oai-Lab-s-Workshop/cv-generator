@@ -37,7 +37,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/cv-shell-page/cv-shell-page').then((module) => module.CvShellPage),
   },
   {
-    path: '*',
+    path: '**',
     pathMatch: 'full',
     loadComponent: () => import('./pages/root-redirect-page/root-redirect-page').then((module) => module.RootRedirectPage),
   },
