@@ -15,8 +15,13 @@ export interface DesktopPaths {
 }
 
 export function resolveDesktopPaths(): DesktopPaths {
-  const appRoot = resolve(import.meta.dir, '../..');
-  const resourcesRoot = resolve(appRoot, 'dist/resources');
+  const isBundled = !import.meta.dir.includes('/desktop/src/bun');
+  const appRoot = isBundled
+    ? resolve(import.meta.dir, '..')
+    : resolve(import.meta.dir, '../..');
+  const resourcesRoot = isBundled
+    ? resolve(appRoot, 'resources')
+    : resolve(appRoot, 'dist/resources');
   const userDataRoot = resolveUserDataRoot();
   const platformArch = `${process.platform}-${process.arch}`;
   const pocketbaseName = process.platform === 'win32' ? 'pocketbase.exe' : 'pocketbase';
@@ -25,7 +30,9 @@ export function resolveDesktopPaths(): DesktopPaths {
   const paths: DesktopPaths = {
     appRoot,
     resourcesRoot,
-    angularIndex: resolve(appRoot, 'dist/angular/browser/index.html'),
+    angularIndex: isBundled
+      ? resolve(appRoot, 'views/angular/browser/index.html')
+      : resolve(appRoot, 'dist/angular/browser/index.html'),
     userDataRoot,
     pbDataDir: resolve(userDataRoot, 'pb_data'),
     logsDir: resolve(userDataRoot, 'logs'),
