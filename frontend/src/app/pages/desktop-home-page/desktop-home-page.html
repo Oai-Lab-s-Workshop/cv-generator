@@ -1,0 +1,94 @@
+<main class="desktop-home-page">
+  <section class="hero">
+    <p class="eyebrow">Resumate Desktop</p>
+    <h1>Local control center</h1>
+    <p class="lede">Choose where to go next and inspect the local services running on this device.</p>
+    <button type="button" class="secondary-action" (click)="refreshStatus()">Refresh Status</button>
+    @if (copyMessage()) {
+      <p class="copy-message">{{ copyMessage() }}</p>
+    }
+  </section>
+
+  <section class="service-grid">
+    <article class="service-card app-card">
+      <div>
+        <p class="card-kicker">Frontend</p>
+        <h2>Resumate App</h2>
+        <p>Manage your CV data, templates, public profiles, and MCP API tokens.</p>
+      </div>
+      <a routerLink="/login" class="primary-action">Open Resumate Login</a>
+    </article>
+
+    <article class="service-card">
+      <div class="card-heading">
+        <div>
+          <p class="card-kicker">Database</p>
+          <h2>PocketBase Admin</h2>
+        </div>
+        <span class="status" [class.running]="pocketBaseStatus() === 'running'">{{ statusLabel(pocketBaseStatus()) }}</span>
+      </div>
+
+      <p>Manage the local PocketBase database records and schema.</p>
+
+      <dl class="service-details">
+        <div>
+          <dt>Admin URL</dt>
+          <dd><a [href]="pocketBaseAdminUrl()" target="_blank" rel="noreferrer">{{ pocketBaseAdminUrl() }}</a></dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd>{{ config?.pocketbaseSuperuserEmail }}</dd>
+        </div>
+        <div>
+          <dt>Password</dt>
+          <dd>{{ isPasswordVisible() ? config?.pocketbaseSuperuserPassword : '••••••••••••••••' }}</dd>
+        </div>
+      </dl>
+
+      <div class="actions-row">
+        <a [href]="pocketBaseAdminUrl()" target="_blank" rel="noreferrer" class="primary-action">Open Admin</a>
+        <button type="button" class="secondary-action" (click)="copy(config?.pocketbaseSuperuserPassword, 'Mot de passe admin')">Copy Password</button>
+        <button type="button" class="ghost-action" (click)="isPasswordVisible.set(!isPasswordVisible())">
+          {{ isPasswordVisible() ? 'Hide' : 'Reveal' }}
+        </button>
+      </div>
+
+      <p class="warning">These credentials are generated locally for this device. Do not share them.</p>
+    </article>
+
+    <article class="service-card">
+      <div class="card-heading">
+        <div>
+          <p class="card-kicker">AI Integration</p>
+          <h2>MCP Server</h2>
+        </div>
+        <span class="status" [class.running]="mcpStatus() === 'running'">{{ statusLabel(mcpStatus()) }}</span>
+      </div>
+
+      <p>Connect local AI clients to Resumate using the streamable HTTP MCP endpoint.</p>
+
+      <dl class="service-details">
+        <div>
+          <dt>Transport</dt>
+          <dd>Streamable HTTP</dd>
+        </div>
+        <div>
+          <dt>Endpoint</dt>
+          <dd>{{ config?.mcpUrl }}</dd>
+        </div>
+        <div>
+          <dt>Health</dt>
+          <dd>{{ config?.mcpHealthUrl }}</dd>
+        </div>
+        <div>
+          <dt>Authentication</dt>
+          <dd>Use an MCP API key from the Resumate app token page.</dd>
+        </div>
+      </dl>
+
+      <div class="actions-row">
+        <button type="button" class="primary-action" (click)="copy(config?.mcpUrl, 'Endpoint MCP')">Copy MCP Endpoint</button>
+      </div>
+    </article>
+  </section>
+</main>
