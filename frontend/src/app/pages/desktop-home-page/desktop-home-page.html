@@ -1,12 +1,16 @@
 <main class="desktop-home-page">
   <section class="hero">
-    <p class="eyebrow">Resumate Desktop</p>
-    <h1>Local control center</h1>
-    <p class="lede">Choose where to go next and inspect the local services running on this device.</p>
-    <button type="button" class="secondary-action" (click)="refreshStatus()">Refresh Status</button>
-    @if (copyMessage()) {
-      <p class="copy-message">{{ copyMessage() }}</p>
-    }
+    <div class="hero-content">
+      <p class="eyebrow">Resumate Desktop</p>
+      <h1>Local control center</h1>
+      <p class="lede">Choose where to go next and inspect the local services running on this device.</p>
+    </div>
+    <div class="hero-actions">
+      <button type="button" class="secondary-action" (click)="refreshStatus()">Refresh Status</button>
+      @if (copyMessage()) {
+        <p class="copy-message">{{ copyMessage() }}</p>
+      }
+    </div>
   </section>
 
   <section class="service-grid">
