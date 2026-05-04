@@ -1,0 +1,243 @@
+name: Manual Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_checks:
+        description: Run frontend, MCP, and desktop checks
+        type: boolean
+        default: true
+      build_desktop:
+        description: Build desktop installers
+        type: boolean
+        default: true
+      upload_artifact:
+        description: Upload installer artifacts to workflow run
+        type: boolean
+        default: true
+      create_release:
+        description: Attach installer artifacts to a GitHub Release
+        type: boolean
+        default: false
+      release_tag:
+        description: Release tag to create/update when create_release is true
+        type: string
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  checks:
+    if: ${{ inputs.run_checks }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+
+      - name: Install desktop dependencies
+        run: bun install --frozen-lockfile
+        working-directory: desktop
+
+      - name: Build frontend
+        run: NODE_OPTIONS= node node_modules/.bin/ng build
+        working-directory: frontend
+
+      - name: Test frontend
+        run: npm test -- --runInBand
+        working-directory: frontend
+
+      - name: Test MCP
+        run: ./mvnw test
+        working-directory: mcp
+
+      - name: Typecheck desktop
+        run: bun run typecheck
+        working-directory: desktop
+
+  desktop-build-macos:
+    if: ${{ inputs.build_desktop }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+
+      - name: Install desktop dependencies
+        run: bun install --frozen-lockfile
+        working-directory: desktop
+
+      - name: Prepare desktop resources
+        run: bun run desktop:prepare
+
+      - name: Build desktop app
+        run: bun run desktop:build
+
+      - name: Locate macOS DMG
+        id: artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact="$(find desktop/build -type f -name '*.dmg' | sort | head -n 1)"
+          if [ -z "$artifact" ]; then
+            find desktop/build -maxdepth 4 -print
+            echo "No macOS DMG artifact found." >&2
+            exit 1
+          fi
+          echo "path=$artifact" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.upload_artifact }}
+        with:
+          name: resumate-macos-dmg
+          path: ${{ steps.artifact.outputs.path }}
+
+      - uses: softprops/action-gh-release@v2
+        if: ${{ inputs.create_release }}
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          fail_on_unmatched_files: true
+          files: ${{ steps.artifact.outputs.path }}
+
+  desktop-build-windows:
+    if: ${{ inputs.build_desktop }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+
+      - name: Install desktop dependencies
+        run: bun install --frozen-lockfile
+        working-directory: desktop
+
+      - name: Prepare desktop resources
+        run: bun run desktop:prepare
+
+      - name: Build desktop app
+        run: bun run desktop:build
+
+      - name: Locate Windows installer
+        id: artifact
+        shell: pwsh
+        run: |
+          $artifact = Get-ChildItem -Path desktop/build -Recurse -File -Filter 'Resumate-Setup*.exe' | Select-Object -First 1
+          if (-not $artifact) {
+            Get-ChildItem -Path desktop/build -Recurse | Select-Object -ExpandProperty FullName
+            throw 'No Windows .exe installer artifact found.'
+          }
+          "path=$($artifact.FullName)" >> $env:GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.upload_artifact }}
+        with:
+          name: resumate-windows-exe
+          path: ${{ steps.artifact.outputs.path }}
+
+      - uses: softprops/action-gh-release@v2
+        if: ${{ inputs.create_release }}
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          fail_on_unmatched_files: true
+          files: ${{ steps.artifact.outputs.path }}
+
+  desktop-build-linux:
+    if: ${{ inputs.build_desktop }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+
+      - name: Install desktop dependencies
+        run: bun install --frozen-lockfile
+        working-directory: desktop
+
+      - name: Prepare desktop resources
+        run: bun run desktop:prepare
+
+      - name: Build desktop app
+        run: bun run desktop:build
+
+      - name: Locate Linux AppImage
+        id: artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact="$(find desktop/build -type f -name 'Resumate-Setup*.AppImage' | sort | head -n 1)"
+          if [ -z "$artifact" ]; then
+            find desktop/build -maxdepth 4 -print
+            echo "No Linux AppImage artifact found." >&2
+            exit 1
+          fi
+          echo "path=$artifact" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.upload_artifact }}
+        with:
+          name: resumate-linux-appimage
+          path: ${{ steps.artifact.outputs.path }}
+
+      - uses: softprops/action-gh-release@v2
+        if: ${{ inputs.create_release }}
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          fail_on_unmatched_files: true
+          files: ${{ steps.artifact.outputs.path }}

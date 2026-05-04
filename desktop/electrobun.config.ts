@@ -21,7 +21,7 @@ const config: ElectrobunConfig = {
     mac: {
       bundleCEF: true,
       defaultRenderer: 'cef',
-      createDmg: false,
+      createDmg: true,
     },
     win: {
       bundleCEF: true,
