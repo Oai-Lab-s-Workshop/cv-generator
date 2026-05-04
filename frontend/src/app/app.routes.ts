@@ -6,6 +6,10 @@ export const routes: Routes = [
   //TODO: fix redirect to home after login
   //TODO: not redirect to home after trying to access a private CV without being authenticated
   {
+    path: 'desktop',
+    loadComponent: () => import('./pages/desktop-home-page/desktop-home-page').then((module) => module.DesktopHomePage),
+  },
+  {
     path: 'login',
     canActivate: [guestOnlyGuard],
     loadComponent: () => import('./pages/login-page/login-page').then((module) => module.LoginPage),

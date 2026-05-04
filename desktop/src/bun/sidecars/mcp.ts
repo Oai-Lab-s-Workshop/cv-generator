@@ -9,6 +9,7 @@ import type { PocketBaseServiceUserCredentials } from './pocketbase-bootstrap';
 
 export interface McpSidecar {
   url: string;
+  healthUrl: string;
   process: ManagedProcess;
 }
 
@@ -44,5 +45,5 @@ export async function startMcp(
 
   await waitForTcp(port, 30_000);
 
-  return { url: `${url}/mcp`, process: managedProcess };
+  return { url: `${url}/mcp`, healthUrl: `${url}/health`, process: managedProcess };
 }

@@ -24,7 +24,11 @@ async function main(): Promise<void> {
   const frontend = startAngularServer(paths.angularIndex, frontendPort, {
     appMode: 'desktop',
     pocketbaseUrl: pocketbase.url,
+    pocketbaseAdminUrl: `${pocketbase.url}/_/`,
+    pocketbaseSuperuserEmail: pocketbase.superuserEmail,
+    pocketbaseSuperuserPassword: pocketbase.superuserPassword,
     mcpUrl: mcp.url,
+    mcpHealthUrl: mcp.healthUrl,
   });
   servers.push(frontend.server);
 

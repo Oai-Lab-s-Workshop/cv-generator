@@ -10,6 +10,8 @@ export interface PocketBaseSidecar {
   url: string;
   process: ManagedProcess;
   serviceUser: PocketBaseServiceUserCredentials;
+  superuserEmail: string;
+  superuserPassword: string;
 }
 
 export async function startPocketBase(paths: DesktopPaths, port: number): Promise<PocketBaseSidecar> {
@@ -29,5 +31,11 @@ export async function startPocketBase(paths: DesktopPaths, port: number): Promis
   await waitForHttp(`${url}/api/health`);
   const serviceUser = await ensureMcpServiceUser(url, secrets);
 
-  return { url, process: managedProcess, serviceUser };
+  return {
+    url,
+    process: managedProcess,
+    serviceUser,
+    superuserEmail: secrets.superuserEmail,
+    superuserPassword: secrets.superuserPassword,
+  };
 }
