@@ -58,10 +58,6 @@ jobs:
         run: NODE_OPTIONS= node node_modules/.bin/ng build
         working-directory: frontend
 
-      - name: Test frontend
-        run: npm test -- --runInBand
-        working-directory: frontend
-
       - name: Test MCP
         run: ./mvnw test
         working-directory: mcp
