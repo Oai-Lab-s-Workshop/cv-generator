@@ -12,3 +12,12 @@ pb_data/types.d.ts
 dist/*
 docs/
 opencode.json
+.tmp-electrobun/
+desktop/build/
+desktop/artifacts/
+desktop/dist/
+desktop/.cache/
+desktop/node_modules/
+desktop/resources/pocketbase/*/
+desktop/resources/java-runtime/*/
+desktop/resources/mcp/*.jar

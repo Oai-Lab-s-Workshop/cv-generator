@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import PocketBase from 'pocketbase';
-import { environment } from '../../../environments/environment';
+import { resolvePocketBaseUrl } from '../utils/desktop-runtime-config';
 
 @Injectable({ providedIn: 'root' })
 export class PocketBaseClientService {
-  readonly pb = new PocketBase(environment.pocketbaseUrl);
+  readonly pb = new PocketBase(resolvePocketBaseUrl());
 }
