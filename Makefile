@@ -4,7 +4,7 @@ SHELL := /bin/bash
 HELPERS := scripts/make_helpers.sh
 SEED_USER_EMAIL := alexandre.cv@gmail.com
 
-.PHONY: env-init up down logs ps mcp-up mcp-down mcp-logs wait-pocketbase bootstrap bootstrap-with-seed seed clean-seed ensure-mcp-service-user
+.PHONY: env-init up down logs ps mcp-up mcp-down mcp-logs wait-pocketbase bootstrap bootstrap-with-seed seed clean-seed ensure-mcp-service-user frontend-install frontend-build frontend-test mcp-test mcp-package desktop-install desktop-typecheck desktop-prepare desktop-build desktop-package desktop-release-local desktop-check check ci
 
 env-init:
 	source "$(HELPERS)"; \
@@ -99,3 +99,55 @@ clean-seed: env-init wait-pocketbase
 	done; \
 	pb_delete_record "$$token" users "$$seeded_user_id"; \
 	echo 'Removed seeded preview data.'
+
+frontend-install:
+	npm ci --prefix frontend
+
+frontend-build:
+	cd frontend && NODE_OPTIONS= node node_modules/.bin/ng build
+
+frontend-test:
+	cd frontend && npm test -- --runInBand
+
+mcp-test:
+	cd mcp && ./mvnw test
+
+mcp-package:
+	cd mcp && ./mvnw package -DskipTests
+
+desktop-install:
+	cd desktop && bun install --frozen-lockfile
+
+desktop-typecheck:
+	bun run --cwd desktop typecheck
+
+desktop-prepare:
+	bun run desktop:prepare
+
+desktop-build:
+	bun run desktop:build:stable
+
+desktop-package:
+	mkdir -p release; \
+	case "$$(uname -s)" in \
+	  Darwin*) pattern='stable-macos-*-Resumate.dmg' ;; \
+	  Linux*) pattern='Resumate-Setup*.AppImage' ;; \
+	  MINGW*|MSYS*|CYGWIN*) pattern='Resumate-Setup*.exe' ;; \
+	  *) echo 'Unsupported local release platform.' >&2; exit 1 ;; \
+	esac; \
+	artifact="$$(find desktop/artifacts -type f -name "$$pattern" | sort | head -n 1)"; \
+	if [ -z "$$artifact" ]; then \
+	  find desktop/artifacts -maxdepth 2 -print 2>/dev/null || true; \
+	  echo "No desktop release artifact found for pattern $$pattern. Run make desktop-build first." >&2; \
+	  exit 1; \
+	fi; \
+	cp "$$artifact" release/; \
+	echo "Copied $$artifact to release/."
+
+desktop-release-local: desktop-prepare desktop-build desktop-package
+
+desktop-check: desktop-typecheck desktop-prepare desktop-build
+
+check: frontend-build mcp-test desktop-typecheck
+
+ci: check

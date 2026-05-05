@@ -6,6 +6,10 @@ export const routes: Routes = [
   //TODO: fix redirect to home after login
   //TODO: not redirect to home after trying to access a private CV without being authenticated
   {
+    path: 'desktop',
+    loadComponent: () => import('./pages/desktop-home-page/desktop-home-page').then((module) => module.DesktopHomePage),
+  },
+  {
     path: 'login',
     canActivate: [guestOnlyGuard],
     loadComponent: () => import('./pages/login-page/login-page').then((module) => module.LoginPage),
@@ -37,7 +41,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/cv-shell-page/cv-shell-page').then((module) => module.CvShellPage),
   },
   {
-    path: '*',
+    path: '**',
     pathMatch: 'full',
     loadComponent: () => import('./pages/root-redirect-page/root-redirect-page').then((module) => module.RootRedirectPage),
   },
