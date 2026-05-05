@@ -15,8 +15,27 @@ import { environment } from '../../../environments/environment';
 export class TemplateGalleryPage implements OnInit {
   private readonly previewSeedUrl = environment.previewSeedUrl;
   readonly previewCards = signal<Array<(typeof CV_TEMPLATE_OPTIONS)[number] & { previewData: ReturnType<typeof getTemplatePreviewData> }>>([]);
+  readonly a4PreviewTemplateIds = signal<ReadonlySet<string>>(new Set<string>());
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
+
+  toggleA4Preview(templateId: string): void {
+    this.a4PreviewTemplateIds.update((templateIds) => {
+      const nextTemplateIds = new Set(templateIds);
+
+      if (nextTemplateIds.has(templateId)) {
+        nextTemplateIds.delete(templateId);
+      } else {
+        nextTemplateIds.add(templateId);
+      }
+
+      return nextTemplateIds;
+    });
+  }
+
+  isA4PreviewEnabled(templateId: string): boolean {
+    return this.a4PreviewTemplateIds().has(templateId);
+  }
 
   async ngOnInit(): Promise<void> {
     this.isLoading.set(true);
