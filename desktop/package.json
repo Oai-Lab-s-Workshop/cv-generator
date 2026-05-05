@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "electrobun dev",
     "build": "electrobun build",
+    "build:stable": "electrobun build --env=stable",
     "typecheck": "tsc --noEmit",
     "prepare:frontend": "cd ../frontend && NODE_OPTIONS= node node_modules/.bin/ng build --base-href ./ --output-path ../desktop/.cache/angular",
     "prepare:mcp": "../mcp/mvnw -f ../mcp/pom.xml package -DskipTests",

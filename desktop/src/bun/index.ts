@@ -1,12 +1,13 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, extname, resolve } from 'node:path';
-import Electrobun from 'electrobun';
+import Electrobun, { BrowserWindow } from 'electrobun';
 import { renderConfigScript } from './config';
 import { resolveDesktopPaths } from './sidecars/paths';
 import { getFreeLocalPort } from './sidecars/ports';
 import { startPocketBase } from './sidecars/pocketbase';
 import { startMcp } from './sidecars/mcp';
 import type { ManagedProcess } from './sidecars/process';
+
 
 const sidecars: ManagedProcess[] = [];
 const servers: ReturnType<typeof Bun.serve>[] = [];
@@ -21,6 +22,8 @@ async function main(): Promise<void> {
   const mcp = await startMcp(paths, mcpPort, pocketbase.url, pocketbase.serviceUser);
   sidecars.push(mcp.process);
 
+  let win: BrowserWindow | undefined;
+
   const frontend = startAngularServer(paths.angularIndex, frontendPort, {
     appMode: 'desktop',
     pocketbaseUrl: pocketbase.url,
@@ -29,10 +32,10 @@ async function main(): Promise<void> {
     pocketbaseSuperuserPassword: pocketbase.superuserPassword,
     mcpUrl: mcp.url,
     mcpHealthUrl: mcp.healthUrl,
-  });
+  }, () => win);
   servers.push(frontend.server);
 
-  new Electrobun.BrowserWindow({
+  win = new Electrobun.BrowserWindow({
     title: 'Resumate',
     frame: { x: 0, y: 0, width: 1280, height: 900 },
     url: frontend.url,
@@ -61,6 +64,7 @@ function startAngularServer(
   indexPath: string,
   port: number,
   config: Parameters<typeof renderConfigScript>[0],
+  getWindow?: () => BrowserWindow | undefined,
 ): { url: string; server: ReturnType<typeof Bun.serve> } {
   const indexHtml = renderAngularHtml(indexPath, config);
   const angularRoot = dirname(indexPath);
@@ -71,6 +75,35 @@ function startAngularServer(
     async fetch(request) {
       const url = new URL(request.url);
       const pathname = decodeURIComponent(url.pathname);
+
+      // Window control API endpoints
+      if (getWindow) {
+        switch (pathname) {
+          case '/api/window/minimize':
+            getWindow()?.minimize();
+            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+          case '/api/window/maximize':
+            getWindow()?.maximize();
+            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+          case '/api/window/unmaximize':
+            getWindow()?.unmaximize();
+            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+          case '/api/window/close':
+            getWindow()?.close();
+            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+          case '/api/window/state': {
+            const win = getWindow();
+            return new Response(
+              JSON.stringify({
+                minimized: win?.isMinimized() ?? false,
+                maximized: win?.isMaximized() ?? false,
+                fullscreen: win?.isFullScreen() ?? false,
+              }),
+              { headers: { 'content-type': 'application/json' } },
+            );
+          }
+        }
+      }
 
       if (pathname === '/' || !extname(pathname)) {
         return new Response(indexHtml, { headers: { 'content-type': 'text/html; charset=utf-8' } });

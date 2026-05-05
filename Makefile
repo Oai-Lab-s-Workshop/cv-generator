@@ -125,19 +125,19 @@ desktop-prepare:
 	bun run desktop:prepare
 
 desktop-build:
-	bun run desktop:build
+	bun run desktop:build:stable
 
 desktop-package:
 	mkdir -p release; \
 	case "$$(uname -s)" in \
-	  Darwin*) pattern='*.dmg' ;; \
+	  Darwin*) pattern='stable-macos-*-Resumate.dmg' ;; \
 	  Linux*) pattern='Resumate-Setup*.AppImage' ;; \
 	  MINGW*|MSYS*|CYGWIN*) pattern='Resumate-Setup*.exe' ;; \
 	  *) echo 'Unsupported local release platform.' >&2; exit 1 ;; \
 	esac; \
-	artifact="$$(find desktop/build -type f -name "$$pattern" | sort | head -n 1)"; \
+	artifact="$$(find desktop/artifacts -type f -name "$$pattern" | sort | head -n 1)"; \
 	if [ -z "$$artifact" ]; then \
-	  find desktop/build -maxdepth 4 -print 2>/dev/null || true; \
+	  find desktop/artifacts -maxdepth 2 -print 2>/dev/null || true; \
 	  echo "No desktop release artifact found for pattern $$pattern. Run make desktop-build first." >&2; \
 	  exit 1; \
 	fi; \

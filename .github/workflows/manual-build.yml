@@ -95,17 +95,17 @@ jobs:
       - name: Prepare desktop resources
         run: bun run desktop:prepare
 
-      - name: Build desktop app
-        run: bun run desktop:build
+      - name: Build desktop app (stable)
+        run: bun run desktop:build:stable
 
       - name: Locate macOS DMG
         id: artifact
         shell: bash
         run: |
           set -euo pipefail
-          artifact="$(find desktop/build -type f -name '*.dmg' | sort | head -n 1)"
+          artifact="$(find desktop/artifacts -type f -name 'stable-macos-*-Resumate.dmg' | sort | head -n 1)"
           if [ -z "$artifact" ]; then
-            find desktop/build -maxdepth 4 -print
+            find desktop/artifacts -maxdepth 2 -print
             echo "No macOS DMG artifact found." >&2
             exit 1
           fi
@@ -153,16 +153,16 @@ jobs:
       - name: Prepare desktop resources
         run: bun run desktop:prepare
 
-      - name: Build desktop app
-        run: bun run desktop:build
+      - name: Build desktop app (stable)
+        run: bun run desktop:build:stable
 
       - name: Locate Windows installer
         id: artifact
         shell: pwsh
         run: |
-          $artifact = Get-ChildItem -Path desktop/build -Recurse -File -Filter 'Resumate-Setup*.exe' | Select-Object -First 1
+          $artifact = Get-ChildItem -Path desktop/artifacts -Recurse -File -Filter 'Resumate-Setup*.exe' | Select-Object -First 1
           if (-not $artifact) {
-            Get-ChildItem -Path desktop/build -Recurse | Select-Object -ExpandProperty FullName
+            Get-ChildItem -Path desktop/artifacts -Recurse | Select-Object -ExpandProperty FullName
             throw 'No Windows .exe installer artifact found.'
           }
           "path=$($artifact.FullName)" >> $env:GITHUB_OUTPUT
@@ -209,17 +209,17 @@ jobs:
       - name: Prepare desktop resources
         run: bun run desktop:prepare
 
-      - name: Build desktop app
-        run: bun run desktop:build
+      - name: Build desktop app (stable)
+        run: bun run desktop:build:stable
 
       - name: Locate Linux AppImage
         id: artifact
         shell: bash
         run: |
           set -euo pipefail
-          artifact="$(find desktop/build -type f -name 'Resumate-Setup*.AppImage' | sort | head -n 1)"
+          artifact="$(find desktop/artifacts -type f -name 'Resumate-Setup*.AppImage' | sort | head -n 1)"
           if [ -z "$artifact" ]; then
-            find desktop/build -maxdepth 4 -print
+            find desktop/artifacts -maxdepth 2 -print
             echo "No Linux AppImage artifact found." >&2
             exit 1
           fi
