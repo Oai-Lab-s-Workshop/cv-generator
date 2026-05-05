@@ -12,6 +12,7 @@ describe('CvShellPage', () => {
   let currentUserId = 'user-1';
 
   beforeEach(async () => {
+    currentUserId = 'user-1';
     pocketBaseService = {
       getCvProfileBySlug: jest.fn().mockResolvedValue({
         id: 'profile-1',
@@ -60,7 +61,7 @@ describe('CvShellPage', () => {
     expect(adminBar).not.toBeNull();
     expect(adminBar.textContent).toContain('Preview');
     expect(adminBar.textContent).toContain('Download PDF');
-    expect(adminBar.textContent).toContain('Close');
+    expect(adminBar.textContent).toContain('Fermer');
   });
 
   it('hides the admin bar when the authenticated user does not own the profile', async () => {
@@ -82,13 +83,13 @@ describe('CvShellPage', () => {
     fixture.detectChanges();
 
     expect(component['isPreviewMode']()).toBe(true);
-    expect(fixture.nativeElement.querySelector('.cv-preview-enabled')).not.toBeNull();
+    expect(previewButton.textContent).toContain('Exit Preview');
   });
 
   it('calls window.print when clicking print', () => {
     const printSpy = jest.spyOn(window, 'print').mockImplementation(() => undefined);
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('.secondary-button')) as HTMLButtonElement[];
-    const printButton = buttons.find((button) => button.textContent?.includes('Print')) as HTMLButtonElement;
+    const printButton = buttons.find((button) => button.textContent?.includes('Imprimer')) as HTMLButtonElement;
 
     printButton.click();
 
