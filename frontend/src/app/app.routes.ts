@@ -35,7 +35,6 @@ export const routes: Routes = [
   },
   {
     path: 'home/templates',
-    canActivate: [authGuard],
     loadComponent: () => import('./pages/template-gallery-page/template-gallery-page').then((module) => module.TemplateGalleryPage),
   },
   {

@@ -43,113 +43,14 @@
   font-weight: 700;
 }
 
-.template-gallery-page__grid {
+.template-gallery-page app-template-preview-list {
   max-width: 1200px;
   margin: 0 auto;
-  display: grid;
-  gap: 1.5rem;
-}
-
-.template-gallery-page__state {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.25rem;
-  border: 1px solid #d7deea;
-  border-radius: 1rem;
-  background: #fff;
-}
-
-.template-gallery-page__state--error {
-  border-color: #fecaca;
-  background: #fff1f2;
-}
-
-.template-card {
-  border: 1px solid #d7deea;
-  border-radius: 1.25rem;
-  background: #fff;
-  overflow: hidden;
-  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.08);
-}
-
-.template-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.template-card__header p,
-.template-card__header span {
-  margin: 0;
-}
-
-.template-card__header p {
-  font-weight: 700;
-}
-
-.template-card__header span {
-  display: inline-block;
-  margin-top: 0.2rem;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.75rem;
-}
-
-.template-card__a4-button {
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border: 1px solid #c7d2fe;
-  border-radius: 999px;
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
-  background: #eef2ff;
-  color: #3730a3;
-  cursor: pointer;
-  font: inherit;
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-.template-card__a4-button:hover {
-  background: #e0e7ff;
-}
-
-.template-card__preview {
-  overflow: auto;
-  max-height: 90vh;
-}
-
-.template-card__preview--a4 {
-  aspect-ratio: 210 / 297;
-  width: min(100%, 210mm);
-  max-height: none;
-  margin: 1.25rem auto;
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
-}
-
-.template-card__preview--a4.cv-preview-enabled {
-  padding: 0;
+  display: block;
 }
 
 @media (max-width: 720px) {
   .template-gallery-page__hero {
     flex-direction: column;
-  }
-
-  .template-card__header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .template-card__a4-button {
-    width: 100%;
   }
 }
