@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { getErrorMessage } from '../../core/utils/error-message';
 import { TemplatePreviewList } from '../../shared/components/template-preview-list/template-preview-list';
@@ -15,6 +15,7 @@ import { TemplatePreviewList } from '../../shared/components/template-preview-li
 export class LoginPage {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly identity = signal('');
   readonly password = signal('');
@@ -27,7 +28,8 @@ export class LoginPage {
 
     try {
       await this.authService.login(this.identity().trim(), this.password());
-      await this.router.navigateByUrl('/home', { replaceUrl: true });
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
+      await this.router.navigateByUrl(returnUrl, { replaceUrl: true });
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
