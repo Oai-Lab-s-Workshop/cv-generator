@@ -98,6 +98,10 @@
   padding: 0 8mm;
 }
 
+.bento-card--hero-wide {
+  grid-column: 1 / 4;
+}
+
 .bento-card--hero h1 {
   font: 800 23pt/0.95 'Outfit', sans-serif;
   letter-spacing: -0.04em;
