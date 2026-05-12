@@ -46,6 +46,10 @@ export class DesktopHomePage {
     window.setTimeout(() => this.copyMessage.set(null), 2_500);
   }
 
+  openPocketBaseAdmin(): void {
+    window.location.assign(this.pocketBaseAdminUrl());
+  }
+
   statusLabel(status: ServiceStatus): string {
     switch (status) {
       case 'checking':
