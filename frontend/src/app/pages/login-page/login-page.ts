@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { isDesktopMode } from '../../core/utils/desktop-runtime-config';
 import { getErrorMessage } from '../../core/utils/error-message';
 
 @Component({
@@ -20,6 +21,7 @@ export class LoginPage {
   readonly password = signal('');
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly isDesktop = isDesktopMode();
 
   async submit(): Promise<void> {
     this.isSubmitting.set(true);
