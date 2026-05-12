@@ -20,6 +20,7 @@ import { Project } from '../../../core/models/project.model';
 import { Skill } from '../../../core/models/skill.model';
 import { PocketBaseService } from '../../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../../core/utils/error-message';
+import QRCode from 'qrcode';
 
 type BentoMode = 'full' | 'compact' | 'tight';
 
@@ -58,6 +59,8 @@ export class BentoCvPage implements OnInit, AfterViewInit, OnDestroy {
   readonly errorMessage = signal<string | null>(null);
   readonly mode = signal<BentoMode>('full');
   readonly visibleJobCount = signal<number | null>(null);
+  readonly qrCodeUrl = signal<string | null>(null);
+  readonly qrTargetUrl = 'https://overview.oai-lab.com';
 
   ngOnInit(): void {
     effect(
@@ -91,6 +94,24 @@ export class BentoCvPage implements OnInit, AfterViewInit, OnDestroy {
         }
 
         this.scheduleFitToA4();
+      },
+      { injector: this.injector },
+    );
+
+    effect(
+      () => {
+        if (!this.cvData()) {
+          this.qrCodeUrl.set(null);
+          return;
+        }
+
+        QRCode.toDataURL(this.qrTargetUrl, {
+          width: 216,
+          margin: 0,
+          color: { dark: '#111111', light: '#ffffff' },
+        })
+          .then((dataUrl) => this.qrCodeUrl.set(dataUrl))
+          .catch(() => this.qrCodeUrl.set(null));
       },
       { injector: this.injector },
     );
