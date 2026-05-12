@@ -300,22 +300,14 @@
 .qr-mark {
   width: 27mm;
   height: 27mm;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.2mm;
   padding: 2mm;
   background: #ffffff;
 }
 
-.qr-mark span {
-  background: #111111;
-}
-
-.qr-mark span:nth-child(2n),
-.qr-mark span:nth-child(5),
-.qr-mark span:nth-child(11),
-.qr-mark span:nth-child(14) {
-  background: transparent;
+.qr-image {
+  width: 27mm;
+  height: 27mm;
+  object-fit: contain;
 }
 
 .bento-card--qr p {
