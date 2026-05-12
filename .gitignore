@@ -21,3 +21,4 @@ desktop/node_modules/
 desktop/resources/pocketbase/*/
 desktop/resources/java-runtime/*/
 desktop/resources/mcp/*.jar
+release/
