@@ -11,10 +11,9 @@ import type { ManagedProcess } from './sidecars/process';
 
 const sidecars: ManagedProcess[] = [];
 const servers: ReturnType<typeof Bun.serve>[] = [];
+const RETURN_HOME_ACTION = 'return-home';
 
 async function main(): Promise<void> {
-  configureApplicationMenu();
-
   const paths = resolveDesktopPaths();
   const [pocketbasePort, mcpPort, frontendPort] = await Promise.all([getFreeLocalPort(), getFreeLocalPort(), getFreeLocalPort()]);
 
@@ -36,6 +35,7 @@ async function main(): Promise<void> {
     mcpHealthUrl: mcp.healthUrl,
   }, () => win);
   servers.push(frontend.server);
+  configureApplicationMenu(() => win, `${frontend.url}desktop`);
 
   win = new Electrobun.BrowserWindow({
     title: 'Resumate',
@@ -49,7 +49,7 @@ async function main(): Promise<void> {
   });
 }
 
-function configureApplicationMenu(): void {
+function configureApplicationMenu(getWindow: () => BrowserWindow | undefined, desktopHomeUrl: string): void {
   const menu: ApplicationMenuItemConfig[] = [
     {
       label: 'Resumate',
@@ -59,6 +59,8 @@ function configureApplicationMenu(): void {
         { role: 'hide' },
         { role: 'hideOthers' },
         { role: 'showAll' },
+        { type: 'separator' },
+        { label: 'Return to Desktop Home', action: RETURN_HOME_ACTION, accelerator: 'CmdOrCtrl+Shift+H' },
         { type: 'separator' },
         { role: 'quit' },
       ],
@@ -89,6 +91,16 @@ function configureApplicationMenu(): void {
   ];
 
   ApplicationMenu.setApplicationMenu(menu);
+  ApplicationMenu.on('application-menu-clicked', (event: unknown) => {
+    const action = (event as { data?: { action?: string } }).data?.action;
+    if (action !== RETURN_HOME_ACTION) {
+      return;
+    }
+
+    const win = getWindow();
+    win?.webview.loadURL(desktopHomeUrl);
+    win?.focus();
+  });
 }
 
 function renderAngularHtml(indexPath: string, config: Parameters<typeof renderConfigScript>[0]): string {
