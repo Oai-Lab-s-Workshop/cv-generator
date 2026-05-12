@@ -57,21 +57,31 @@
       <section class="bento-card bento-card--experience">
         <h2>Experiences recentes</h2>
         <div class="experience-grid">
-          @for (job of getVisibleJobs(data.jobs); track job.id) {
+          @for (item of getVisibleExperienceItems(data); track item.id) {
             <article class="experience-card">
-              @if (job.type === 'freelance') {
+              @if (item.isProject) {
+                <span class="job-pill">Projet</span>
+              } @else if (item.type === 'freelance') {
                 <span class="job-pill">Freelance</span>
               }
-              <p class="job-date">{{ getDateRange(job) }} | {{ job.company }}</p>
-              <h3>{{ job.position || job.label }}</h3>
-              @if (job.responsibilities) {
-                <p class="job-summary" [innerHTML]="job.responsibilities"></p>
+              <p class="job-date">{{ item.dateRange }}{{ item.company ? ' | ' + item.company : '' }}</p>
+              @if (item.url) {
+                <a class="experience-title-link" [href]="item.url" target="_blank" rel="noopener noreferrer">
+                  <h3>{{ item.title }}</h3>
+                </a>
+              } @else {
+                <h3>{{ item.title }}</h3>
               }
-              <div class="job-tags">
-                @for (skill of getJobSkills(job, data.skills); track skill.id) {
-                  <span>{{ skill.name }}</span>
-                }
-              </div>
+              @if (item.description) {
+                <p class="job-summary" [innerHTML]="item.description"></p>
+              }
+              @if (item.skills.length) {
+                <div class="job-tags">
+                  @for (skill of item.skills; track skill.id) {
+                    <span>{{ skill.name }}</span>
+                  }
+                </div>
+              }
             </article>
           }
         </div>
