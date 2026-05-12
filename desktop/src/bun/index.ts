@@ -40,7 +40,7 @@ async function main(): Promise<void> {
     frame: { x: 0, y: 0, width: 1280, height: 900 },
     url: frontend.url,
     renderer: 'cef',
-    titleBarStyle: 'hidden',
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     transparent: false,
     passthrough: false,
     navigationRules: JSON.stringify(['views://*', 'file://*', 'http://127.0.0.1:*', 'resumate://*']),

@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { resolveDesktopRuntimeConfig } from '../../core/utils/desktop-runtime-config';
-import { TitleBarComponent } from '../../shared/components/title-bar/title-bar';
 
 type ServiceStatus = 'checking' | 'running' | 'unavailable';
 
 @Component({
   selector: 'app-desktop-home-page',
-  imports: [RouterLink, TitleBarComponent],
+  imports: [RouterLink],
   templateUrl: './desktop-home-page.html',
   styleUrl: './desktop-home-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
