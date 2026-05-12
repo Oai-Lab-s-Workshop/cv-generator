@@ -217,6 +217,12 @@ a {
   color: #172033;
 }
 
+.app-card-secondary {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
 .secondary-action {
   border: 1px solid #cbd5e1;
   background: #fff;
