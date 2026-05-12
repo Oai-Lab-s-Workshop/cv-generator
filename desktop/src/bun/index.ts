@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, extname, resolve } from 'node:path';
-import Electrobun, { BrowserWindow } from 'electrobun';
+import Electrobun, { ApplicationMenu, BrowserWindow, type ApplicationMenuItemConfig } from 'electrobun';
 import { renderConfigScript } from './config';
 import { resolveDesktopPaths } from './sidecars/paths';
 import { getFreeLocalPort } from './sidecars/ports';
@@ -13,6 +13,8 @@ const sidecars: ManagedProcess[] = [];
 const servers: ReturnType<typeof Bun.serve>[] = [];
 
 async function main(): Promise<void> {
+  configureApplicationMenu();
+
   const paths = resolveDesktopPaths();
   const [pocketbasePort, mcpPort, frontendPort] = await Promise.all([getFreeLocalPort(), getFreeLocalPort(), getFreeLocalPort()]);
 
@@ -45,6 +47,48 @@ async function main(): Promise<void> {
     passthrough: false,
     navigationRules: JSON.stringify(['views://*', 'file://*', 'http://127.0.0.1:*', 'resumate://*']),
   });
+}
+
+function configureApplicationMenu(): void {
+  const menu: ApplicationMenuItemConfig[] = [
+    {
+      label: 'Resumate',
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'showAll' },
+        { type: 'separator' },
+        { role: 'quit' },
+      ],
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' },
+      ],
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        { role: 'toggleFullScreen' },
+        { type: 'separator' },
+        { role: 'bringAllToFront' },
+        { role: 'close' },
+      ],
+    },
+  ];
+
+  ApplicationMenu.setApplicationMenu(menu);
 }
 
 function renderAngularHtml(indexPath: string, config: Parameters<typeof renderConfigScript>[0]): string {
