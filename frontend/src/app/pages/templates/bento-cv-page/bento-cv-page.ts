@@ -16,11 +16,24 @@ import {
 import { CvData } from '../../../core/models/cv-data.model';
 import { Degree } from '../../../core/models/degree.model';
 import { Job } from '../../../core/models/job.model';
+import { Project } from '../../../core/models/project.model';
 import { Skill } from '../../../core/models/skill.model';
 import { PocketBaseService } from '../../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../../core/utils/error-message';
 
 type BentoMode = 'full' | 'compact' | 'tight';
+
+interface ExperienceItem {
+  id: string;
+  type: 'freelance' | 'sideproject' | 'work project';
+  dateRange: string;
+  company: string;
+  title: string;
+  description: string | null;
+  skills: Skill[];
+  url?: string;
+  isProject: boolean;
+}
 
 @Component({
   selector: 'app-bento-cv-page',
@@ -151,8 +164,37 @@ export class BentoCvPage implements OnInit, AfterViewInit, OnDestroy {
     return (strengths.length ? strengths : skills).slice(0, this.mode() === 'tight' ? 5 : 7);
   }
 
-  protected getVisibleJobs(jobs: Job[]): Job[] {
-    return jobs.slice(0, this.visibleJobCount() ?? jobs.length);
+  protected getExperienceItems(data: CvData): ExperienceItem[] {
+    const jobItems: ExperienceItem[] = data.jobs.map((job) => ({
+      id: `job-${job.id}`,
+      type: job.type,
+      dateRange: this.getDateRange(job),
+      company: job.company,
+      title: job.position || job.label,
+      description: job.responsibilities ?? null,
+      skills: this.getJobSkills(job, data.skills),
+      isProject: false,
+    }));
+
+    const projectItems: ExperienceItem[] = data.projects.map((project) => ({
+      id: `project-${project.id}`,
+      type: project.type ?? 'sideproject',
+      dateRange: this.getDate(project.date),
+      company: '',
+      title: project.name,
+      description: project.description ?? null,
+      skills: [],
+      url: project.url || undefined,
+      isProject: true,
+    }));
+
+    return [...jobItems, ...projectItems];
+  }
+
+  protected getVisibleExperienceItems(data: CvData): ExperienceItem[] {
+    const items = this.getExperienceItems(data);
+    const count = this.visibleJobCount() ?? items.length;
+    return items.slice(0, count);
   }
 
   protected getJobSkills(job: Job, skills: Skill[]): Skill[] {
@@ -237,10 +279,13 @@ export class BentoCvPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private fitToA4(): void {
-    const jobCount = this.cvData()?.jobs.length ?? 0;
+    const data = this.cvData();
+    const jobCount = data?.jobs.length ?? 0;
+    const projectCount = data?.projects.length ?? 0;
+    const experienceCount = jobCount + projectCount;
 
     this.mode.set('full');
-    this.visibleJobCount.set(jobCount);
+    this.visibleJobCount.set(experienceCount);
     this.changeDetectorRef.detectChanges();
 
     if (this.sheetFits()) {
@@ -257,12 +302,12 @@ export class BentoCvPage implements OnInit, AfterViewInit, OnDestroy {
     this.mode.set('tight');
     this.changeDetectorRef.detectChanges();
 
-    let visibleJobs = this.visibleJobCount() ?? jobCount;
-    const minimumVisibleJobs = Math.min(4, jobCount);
+    let visibleItems = this.visibleJobCount() ?? experienceCount;
+    const minimumVisibleItems = Math.min(4, experienceCount);
 
-    while (!this.sheetFits() && visibleJobs > minimumVisibleJobs) {
-      visibleJobs -= 1;
-      this.visibleJobCount.set(visibleJobs);
+    while (!this.sheetFits() && visibleItems > minimumVisibleItems) {
+      visibleItems -= 1;
+      this.visibleJobCount.set(visibleItems);
       this.changeDetectorRef.detectChanges();
     }
   }
