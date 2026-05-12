@@ -7,6 +7,8 @@ export interface DesktopPaths {
   angularIndex: string;
   userDataRoot: string;
   pbDataDir: string;
+  pbHooksDir: string;
+  pbMigrationsDir: string;
   logsDir: string;
   runtimeConfigFile: string;
   pocketbaseBinary: string;
@@ -35,6 +37,8 @@ export function resolveDesktopPaths(): DesktopPaths {
       : resolve(appRoot, 'dist/angular/browser/index.html'),
     userDataRoot,
     pbDataDir: resolve(userDataRoot, 'pb_data'),
+    pbHooksDir: resolve(resourcesRoot, 'pb_hooks'),
+    pbMigrationsDir: resolve(resourcesRoot, 'pb_migrations'),
     logsDir: resolve(userDataRoot, 'logs'),
     runtimeConfigFile: resolve(userDataRoot, 'runtime.json'),
     pocketbaseBinary: resolve(resourcesRoot, 'pocketbase', platformArch, pocketbaseName),

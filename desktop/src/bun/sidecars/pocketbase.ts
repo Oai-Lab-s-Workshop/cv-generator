@@ -4,7 +4,7 @@ import { requireExecutable } from './paths';
 import type { ManagedProcess } from './process';
 import { startManagedProcess } from './process';
 import { waitForHttp } from './ports';
-import { ensureMcpServiceUser, loadOrCreatePocketBaseSecrets, upsertLocalSuperuser, type PocketBaseServiceUserCredentials } from './pocketbase-bootstrap';
+import { ensureMcpServiceUser, loadOrCreatePocketBaseSecrets, migratePocketBaseSchema, upsertLocalSuperuser, type PocketBaseServiceUserCredentials } from './pocketbase-bootstrap';
 
 export interface PocketBaseSidecar {
   url: string;
@@ -17,13 +17,24 @@ export interface PocketBaseSidecar {
 export async function startPocketBase(paths: DesktopPaths, port: number): Promise<PocketBaseSidecar> {
   requireExecutable(paths.pocketbaseBinary, 'PocketBase sidecar');
   const secrets = loadOrCreatePocketBaseSecrets(paths);
+  migratePocketBaseSchema(paths);
   upsertLocalSuperuser(paths, secrets);
 
   const url = `http://127.0.0.1:${port}`;
   const managedProcess = startManagedProcess({
     name: 'pocketbase',
     command: paths.pocketbaseBinary,
-    args: ['serve', '--dir', paths.pbDataDir, '--http', `127.0.0.1:${port}`],
+    args: [
+      'serve',
+      '--dir',
+      paths.pbDataDir,
+      '--hooksDir',
+      paths.pbHooksDir,
+      '--migrationsDir',
+      paths.pbMigrationsDir,
+      '--http',
+      `127.0.0.1:${port}`,
+    ],
     cwd: paths.resourcesRoot,
     logFile: join(paths.logsDir, 'pocketbase.log'),
   });

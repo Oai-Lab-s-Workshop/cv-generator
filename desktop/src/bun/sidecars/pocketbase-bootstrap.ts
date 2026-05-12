@@ -43,6 +43,18 @@ export function upsertLocalSuperuser(paths: DesktopPaths, secrets: PocketBaseRun
   }
 }
 
+export function migratePocketBaseSchema(paths: DesktopPaths): void {
+  const result = spawnSync(
+    paths.pocketbaseBinary,
+    ['migrate', 'up', '--dir', paths.pbDataDir, '--migrationsDir', paths.pbMigrationsDir],
+    { encoding: 'utf8' },
+  );
+
+  if (result.status !== 0) {
+    throw new Error(`PocketBase schema bootstrap failed: ${result.stderr || result.stdout}`);
+  }
+}
+
 export async function ensureMcpServiceUser(baseUrl: string, secrets: PocketBaseRuntimeSecrets): Promise<PocketBaseServiceUserCredentials> {
   const token = await authenticateSuperuser(baseUrl, secrets);
   const existingId = await findServiceUserId(baseUrl, token, secrets.serviceUserEmail);
