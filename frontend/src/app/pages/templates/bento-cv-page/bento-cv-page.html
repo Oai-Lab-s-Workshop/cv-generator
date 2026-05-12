@@ -10,15 +10,13 @@
 } @else if (cvData(); as data) {
   <main class="bento-shell">
     <article class="bento-sheet" #bentoSheet [attr.data-mode]="mode()">
-      <section class="bento-card bento-card--portrait" aria-label="Portrait">
-        @if (data.profile.profilePicture) {
+      @if (data.profile.profilePicture) {
+        <section class="bento-card bento-card--portrait" aria-label="Portrait">
           <img [src]="data.profile.profilePicture" [alt]="getDisplayName(data)" />
-        } @else {
-          <div class="portrait-fallback">{{ getInitials(data) }}</div>
-        }
-      </section>
+        </section>
+      }
 
-      <section class="bento-card bento-card--hero">
+      <section class="bento-card bento-card--hero" [class.bento-card--hero-wide]="!data.profile.profilePicture">
         <h1>{{ getDisplayName(data) }}</h1>
         @for (line of getRoleLines(data); track line) {
           <p>{{ line }}</p>
