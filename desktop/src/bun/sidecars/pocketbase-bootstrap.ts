@@ -51,7 +51,9 @@ export function migratePocketBaseSchema(paths: DesktopPaths): void {
   );
 
   if (result.status !== 0) {
-    throw new Error(`PocketBase schema bootstrap failed: ${result.stderr || result.stdout}`);
+    throw new Error(
+      `PocketBase schema bootstrap failed for data dir ${paths.pbDataDir} using migrations ${paths.pbMigrationsDir}: ${result.stderr || result.stdout}`,
+    );
   }
 }
 
