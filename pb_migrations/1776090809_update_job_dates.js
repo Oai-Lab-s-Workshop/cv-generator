@@ -75,10 +75,32 @@ function restoreJobRecordDates(app, jobDates) {
   }
 }
 
-migrate((app) => {
-  const normalizedJobDates = snapshotJobRecordDates(app, normalizeJobDate)
+function getFieldType(field) {
+  return field && (typeof field.type === "function" ? field.type() : field.type)
+}
 
+function hasDateJobFields(collection) {
+  return getFieldType(collection.fields.getByName("startDate")) === "date" &&
+    getFieldType(collection.fields.getByName("endDate")) === "date"
+}
+
+function hasTextJobFields(collection) {
+  return getFieldType(collection.fields.getByName("startDate")) === "text" &&
+    getFieldType(collection.fields.getByName("endDate")) === "text"
+}
+
+migrate((app) => {
   const collection = app.findCollectionByNameOrId(JOBS_COLLECTION_ID)
+
+  if (hasDateJobFields(collection)) {
+    return
+  }
+
+  if (!hasTextJobFields(collection)) {
+    throw new Error("Unexpected jobs date field schema; expected text or date startDate/endDate fields.")
+  }
+
+  const normalizedJobDates = snapshotJobRecordDates(app, normalizeJobDate)
 
   collection.fields.removeById(OLD_START_DATE_FIELD_ID)
   collection.fields.removeById(OLD_END_DATE_FIELD_ID)
@@ -106,8 +128,17 @@ migrate((app) => {
   app.save(collection)
   restoreJobRecordDates(app, normalizedJobDates)
 }, (app) => {
-  const denormalizedJobDates = snapshotJobRecordDates(app, denormalizeJobDate)
   const collection = app.findCollectionByNameOrId(JOBS_COLLECTION_ID)
+
+  if (hasTextJobFields(collection)) {
+    return
+  }
+
+  if (!hasDateJobFields(collection)) {
+    throw new Error("Unexpected jobs date field schema; expected date or text startDate/endDate fields.")
+  }
+
+  const denormalizedJobDates = snapshotJobRecordDates(app, denormalizeJobDate)
 
   collection.fields.removeById(NEW_START_DATE_FIELD_ID)
   collection.fields.removeById(NEW_END_DATE_FIELD_ID)

@@ -2,6 +2,10 @@
 migrate((app) => {
   const collection = app.findCollectionByNameOrId("skills00000001ab")
 
+  if (collection.fields.getByName("icon")) {
+    return
+  }
+
   // add field
   collection.fields.addAt(6, new Field({
     "hidden": false,
@@ -21,9 +25,12 @@ migrate((app) => {
   return app.save(collection)
 }, (app) => {
   const collection = app.findCollectionByNameOrId("skills00000001ab")
+  const icon = collection.fields.getByName("icon")
 
   // remove field
-  collection.fields.removeById("file1704208859")
+  if (icon && (typeof icon.getId === "function" ? icon.getId() : icon.id) === "file1704208859") {
+    collection.fields.removeById("file1704208859")
+  }
 
   return app.save(collection)
 })
