@@ -3,8 +3,11 @@ import { authGuard, guestOnlyGuard } from './core/guards/auth.guard';
 import { cvAccessGuard } from './core/guards/cv-access.guard';
 
 export const routes: Routes = [
-  //TODO: fix redirect to home after login
-  //TODO: not redirect to home after trying to access a private CV without being authenticated
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./pages/root-redirect-page/root-redirect-page').then((module) => module.RootRedirectPage),
+  },
   {
     path: 'desktop',
     loadComponent: () => import('./pages/desktop-home-page/desktop-home-page').then((module) => module.DesktopHomePage),
@@ -36,7 +39,6 @@ export const routes: Routes = [
   },
   {
     path: 'home/templates',
-    canActivate: [authGuard],
     loadComponent: () => import('./pages/template-gallery-page/template-gallery-page').then((module) => module.TemplateGalleryPage),
   },
   {
