@@ -30,7 +30,14 @@ public class PocketBaseClient {
 
     private static final List<TemplateDescriptor> TEMPLATE_DESCRIPTORS = List.of(
             new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of()),
-            new TemplateDescriptor("bento", "Bento", "Visual grid-based resume with strong project and profile presentation.", List.of()),
+            new TemplateDescriptor(
+                    "bento",
+                    "Bento",
+                    "Visual grid-based resume with strong project and profile presentation.",
+                    List.of(
+                            new ExtraFieldDescriptor("qrCodeUrl", "QR code URL", "text", false, "URL encoded into the QR code on the bento card. Leave empty to auto-generate from the profile public route.", null, List.of())
+                    )
+            ),
             new TemplateDescriptor(
                     "modern",
                     "Modern",

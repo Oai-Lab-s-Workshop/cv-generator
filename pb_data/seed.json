@@ -158,6 +158,28 @@
       "extra": {},
       "created": "2026-04-07T00:00:00Z",
       "updated": "2026-04-07T00:00:00Z"
+    },
+    {
+      "id": "cv2",
+      "slug": "bento--cv2",
+      "profileName": "Developpeur full-stack (Bento)",
+      "template": "bento",
+      "public": true,
+      "user": "user1",
+      "professionalSummary": "Developpeur full-stack oriente produit, j'aime concevoir des interfaces claires, des APIs robustes et des experiences de candidature soignee.",
+      "achievements": ["ach1", "ach2"],
+      "projects": ["proj1", "proj2", "proj3", "proj4"],
+      "hobbies": ["hobby1", "hobby2"],
+      "jobs": ["job1", "job2"],
+      "degrees": ["deg1", "deg2"],
+      "skills": ["skill1", "skill2", "skill3", "skill4", "skill5", "skill6", "skill7", "skill8", "skill9", "skill10", "skill11", "skill12", "skill13", "skill14"],
+      "extra": {
+        "bento": {
+          "qrCodeUrl": "https://alexandre-exemple.dev"
+        }
+      },
+      "created": "2026-05-14T00:00:00Z",
+      "updated": "2026-05-14T00:00:00Z"
     }
   ]
 }

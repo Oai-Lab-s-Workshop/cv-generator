@@ -49,6 +49,7 @@ The MCP server validates field ids and value types, validates source-backed IDs 
 
 Current supported examples:
 
+- `bento.qrCodeUrl`: URL encoded into the QR code on the bento card. Leave empty to auto-generate from the profile public route.
 - `modern.headline`: string shown near the candidate name
 - `modern.accentColor`: CSS color string used as the visual accent
 - `supa.featuredProjectIds`: array of owned project IDs to prioritize in the project section

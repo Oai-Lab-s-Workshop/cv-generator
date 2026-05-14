@@ -14,10 +14,12 @@ import {
   signal,
 } from '@angular/core';
 import { CvData } from '../../../core/models/cv-data.model';
+import { CvProfileExtraValue } from '../../../core/models/cv-profile.model';
 import { Degree } from '../../../core/models/degree.model';
 import { Job } from '../../../core/models/job.model';
 import { Project } from '../../../core/models/project.model';
 import { Skill } from '../../../core/models/skill.model';
+import { CvProfileExtraService } from '../../../core/services/cv-profile-extra.service';
 import { PocketBaseService } from '../../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../../core/utils/error-message';
 import QRCode from 'qrcode';
@@ -44,6 +46,7 @@ interface ExperienceItem {
 })
 export class BentoCvPage implements OnInit, AfterViewInit, OnDestroy {
   private readonly pocketBaseService = inject(PocketBaseService);
+  private readonly cvProfileExtra = inject(CvProfileExtraService);
   private readonly injector = inject(Injector);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly pageHeightMm = 297;
@@ -60,7 +63,6 @@ export class BentoCvPage implements OnInit, AfterViewInit, OnDestroy {
   readonly mode = signal<BentoMode>('full');
   readonly visibleJobCount = signal<number | null>(null);
   readonly qrCodeUrl = signal<string | null>(null);
-  readonly qrTargetUrl = 'https://overview.oai-lab.com';
 
   ngOnInit(): void {
     effect(
@@ -100,12 +102,16 @@ export class BentoCvPage implements OnInit, AfterViewInit, OnDestroy {
 
     effect(
       () => {
-        if (!this.cvData()) {
+        const data = this.cvData();
+
+        if (!data) {
           this.qrCodeUrl.set(null);
           return;
         }
 
-        QRCode.toDataURL(this.qrTargetUrl, {
+        const targetUrl = this.extraText('qrCodeUrl') ?? this.getProfileUrl(data);
+
+        QRCode.toDataURL(targetUrl, {
           width: 216,
           margin: 0,
           color: { dark: '#111111', light: '#ffffff' },
@@ -175,11 +181,6 @@ export class BentoCvPage implements OnInit, AfterViewInit, OnDestroy {
     return Math.max(1, years);
   }
 
-  protected getToolSkills(skills: Skill[]): Skill[] {
-    const preferred = skills.filter((skill) => skill.icon || skill.type?.toLowerCase() === 'technical');
-    return (preferred.length ? preferred : skills).slice(0, 3);
-  }
-
   protected getStrengthSkills(skills: Skill[]): Skill[] {
     const strengths = skills.filter((skill) => skill.type?.toLowerCase() !== 'language');
     return (strengths.length ? strengths : skills).slice(0, this.mode() === 'tight' ? 5 : 7);
@@ -247,6 +248,14 @@ export class BentoCvPage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     return date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' });
+  }
+
+  protected extra(key: string): CvProfileExtraValue | undefined {
+    return this.cvProfileExtra.get(this.cvData()?.profile, key);
+  }
+
+  protected extraText(key: string): string | null {
+    return this.cvProfileExtra.text(this.cvData()?.profile, key);
   }
 
   protected getProfileUrl(data: CvData): string {

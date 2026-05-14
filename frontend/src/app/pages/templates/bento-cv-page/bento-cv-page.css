@@ -132,7 +132,7 @@
   font: 900 10pt/1.05 'Outfit', sans-serif;
 }
 
-.bento-card--tools {
+.bento-card--summary {
   grid-column: 1 / 3;
   grid-row: 2;
   padding: 6mm;
@@ -178,30 +178,14 @@
   letter-spacing: -0.03em;
 }
 
-.tool-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 5mm;
-}
-
-.tool-tile {
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  border-radius: var(--small-radius);
-  background: #ffffff;
-  box-shadow: 0 2mm 5mm rgba(15, 23, 42, 0.06);
-}
-
-.tool-tile img {
-  width: 62%;
-  height: 62%;
-  object-fit: contain;
-}
-
-.tool-tile span {
-  font: 900 18pt/1 'Outfit', sans-serif;
-  color: #2d2d8f;
+.profile-summary {
+  display: -webkit-box;
+  color: #202020;
+  font-size: 8pt;
+  line-height: 1.22;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 7;
+  overflow: hidden;
 }
 
 .chip-grid {
@@ -415,7 +399,7 @@
   .bento-card--portrait,
   .bento-card--hero,
   .bento-card--years,
-  .bento-card--tools,
+  .bento-card--summary,
   .bento-card--strengths,
   .bento-card--experience,
   .bento-card--qr,
@@ -437,7 +421,6 @@
   }
 
   .experience-grid,
-  .tool-grid,
   .chip-grid {
     grid-template-columns: 1fr;
   }

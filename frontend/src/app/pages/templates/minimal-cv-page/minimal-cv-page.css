@@ -111,10 +111,11 @@
 }
 
 .entry__header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 34mm;
+  display: flex;
   gap: 5mm;
   align-items: start;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .entry h3 {

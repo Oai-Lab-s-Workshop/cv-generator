@@ -32,7 +32,19 @@ export interface CvTemplateExtraField {
 
 export const CV_TEMPLATE_OPTIONS: CvTemplateOption[] = [
   { id: 'classic', label: 'Classic', component: ClassicCvPage },
-  { id: 'bento', label: 'Bento', component: BentoCvPage },
+  {
+    id: 'bento',
+    label: 'Bento',
+    component: BentoCvPage,
+    extraSchema: [
+      {
+        id: 'qrCodeUrl',
+        label: 'QR code URL',
+        type: 'text',
+        description: 'URL encoded into the QR code. Leave empty to auto-generate from the profile public route.',
+      },
+    ],
+  },
   {
     id: 'modern',
     label: 'Modern',
