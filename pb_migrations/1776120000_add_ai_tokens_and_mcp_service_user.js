@@ -80,7 +80,7 @@ function createAiTokensCollection() {
         name: 'allowedTemplates',
         type: 'select',
         required: false,
-        maxSelect: 999,
+        maxSelect: ALLOWED_TEMPLATE_IDS.length,
         values: ALLOWED_TEMPLATE_IDS,
       },
       {

@@ -13,6 +13,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/desktop-home-page/desktop-home-page').then((module) => module.DesktopHomePage),
   },
   {
+    path: 'desktop/users/setup',
+    loadComponent: () => import('./pages/desktop-user-setup-page/desktop-user-setup-page').then((module) => module.DesktopUserSetupPage),
+  },
+  {
     path: 'login',
     canActivate: [guestOnlyGuard],
     loadComponent: () => import('./pages/login-page/login-page').then((module) => module.LoginPage),

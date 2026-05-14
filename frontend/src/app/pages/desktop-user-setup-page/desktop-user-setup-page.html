@@ -1,0 +1,74 @@
+<main class="desktop-user-setup-page">
+  <section class="setup-card">
+    <a routerLink="/desktop" class="back-link">Back to desktop home</a>
+    <p class="eyebrow">Resumate Desktop</p>
+    <h1>Setup a local user</h1>
+    <p class="lede">Create a PocketBase user for the local desktop database, then sign in through Resumate.</p>
+
+    <form class="setup-form" (ngSubmit)="createUser()">
+      <div class="field-grid">
+        <label>
+          <span>First name</span>
+          <input [ngModel]="firstName()" (ngModelChange)="firstName.set($event)" name="firstName" type="text" required />
+        </label>
+        <label>
+          <span>Last name</span>
+          <input [ngModel]="lastName()" (ngModelChange)="lastName.set($event)" name="lastName" type="text" required />
+        </label>
+      </div>
+
+      <label>
+        <span>Email</span>
+        <input [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" type="email" autocomplete="username" required />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" type="password" autocomplete="new-password" minlength="8" required />
+      </label>
+
+      <section class="password-panel" aria-live="polite">
+        <p class="password-helper" [class.password-helper--valid]="isPasswordValid()">{{ passwordHelper() }}</p>
+        <ul class="password-rules">
+          @for (rule of passwordRules(); track rule.label) {
+            <li [class.is-met]="rule.isMet">{{ rule.label }}</li>
+          }
+        </ul>
+      </section>
+
+      <div class="field-grid">
+        <label>
+          <span>Phone <small>optional</small></span>
+          <input [ngModel]="phone()" (ngModelChange)="phone.set($event)" name="phone" type="tel" />
+        </label>
+        <label>
+          <span>Website <small>optional</small></span>
+          <input [ngModel]="website()" (ngModelChange)="website.set($event)" name="website" type="url" />
+        </label>
+      </div>
+
+      <div class="field-grid">
+        <label>
+          <span>LinkedIn <small>optional</small></span>
+          <input [ngModel]="linkedin()" (ngModelChange)="linkedin.set($event)" name="linkedin" type="url" />
+        </label>
+        <label>
+          <span>GitHub <small>optional</small></span>
+          <input [ngModel]="github()" (ngModelChange)="github.set($event)" name="github" type="url" />
+        </label>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="state state--error">{{ errorMessage() }}</p>
+      }
+      @if (successMessage()) {
+        <p class="state state--success">{{ successMessage() }}</p>
+      }
+
+      <div class="actions-row">
+        <button type="submit" [disabled]="!canSubmit()">{{ isSaving() ? 'Creating...' : 'Create user' }}</button>
+        <a routerLink="/login" class="secondary-action">Go to login</a>
+      </div>
+    </form>
+  </section>
+</main>

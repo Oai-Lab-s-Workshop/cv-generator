@@ -2,6 +2,10 @@
 migrate((app) => {
   const collection = app.findCollectionByNameOrId("skills00000001ab")
 
+  if (collection.fields.getByName("type")) {
+    collection.fields.removeByName("type")
+  }
+
   // update field
   collection.fields.addAt(3, new Field({
     "hidden": false,
@@ -23,6 +27,10 @@ migrate((app) => {
   return app.save(collection)
 }, (app) => {
   const collection = app.findCollectionByNameOrId("skills00000001ab")
+
+  if (collection.fields.getByName("type")) {
+    collection.fields.removeByName("type")
+  }
 
   // update field
   collection.fields.addAt(3, new Field({
