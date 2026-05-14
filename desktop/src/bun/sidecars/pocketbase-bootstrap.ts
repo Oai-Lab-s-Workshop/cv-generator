@@ -21,7 +21,7 @@ export function loadOrCreatePocketBaseSecrets(paths: DesktopPaths): PocketBaseRu
   }
 
   const secrets: PocketBaseRuntimeSecrets = {
-    superuserEmail: 'local-superuser@resumate.local',
+    superuserEmail: 'admin@base.com',
     superuserPassword: randomSecret(),
     serviceUserEmail: 'local-mcp-service@resumate.local',
     serviceUserPassword: randomSecret(),

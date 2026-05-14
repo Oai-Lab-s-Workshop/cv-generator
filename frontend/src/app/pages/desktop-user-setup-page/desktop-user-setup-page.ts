@@ -4,6 +4,25 @@ import { RouterLink } from '@angular/router';
 import { resolveDesktopRuntimeConfig } from '../../core/utils/desktop-runtime-config';
 import { getErrorMessage } from '../../core/utils/error-message';
 
+interface PasswordRule {
+  label: string;
+  isMet: boolean;
+}
+
+type UserCreateBody = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  passwordConfirm: string;
+  verified: boolean;
+  emailVisibility: boolean;
+  phone?: string;
+  linkedin?: string;
+  github?: string;
+  website?: string;
+};
+
 @Component({
   selector: 'app-desktop-user-setup-page',
   imports: [FormsModule, RouterLink],
@@ -25,11 +44,27 @@ export class DesktopUserSetupPage {
   readonly isSaving = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+  readonly passwordRules = computed<PasswordRule[]>(() => {
+    const password = this.password();
+    return [
+      { label: 'At least 8 characters', isMet: password.length >= 8 },
+      { label: 'One lowercase letter', isMet: /[a-z]/.test(password) },
+      { label: 'One uppercase letter', isMet: /[A-Z]/.test(password) },
+      { label: 'One number', isMet: /\d/.test(password) },
+      { label: 'One symbol', isMet: /[^A-Za-z0-9\s]/.test(password) },
+    ];
+  });
+  readonly missingPasswordRules = computed(() => this.passwordRules().filter((rule) => !rule.isMet).map((rule) => rule.label.toLowerCase()));
+  readonly isPasswordValid = computed(() => this.missingPasswordRules().length === 0);
+  readonly passwordHelper = computed(() => {
+    const missingRules = this.missingPasswordRules();
+    return missingRules.length > 0 ? `Missing: ${missingRules.join(', ')}.` : 'Password meets all requirements.';
+  });
   readonly canSubmit = computed(() =>
     !!this.firstName().trim() &&
     !!this.lastName().trim() &&
     !!this.email().trim() &&
-    this.password().length >= 8 &&
+    this.isPasswordValid() &&
     !this.isSaving(),
   );
 
@@ -84,7 +119,7 @@ export class DesktopUserSetupPage {
   }
 
   private async createPocketBaseUser(token: string): Promise<void> {
-    const body = {
+    const body: UserCreateBody = {
       firstName: this.firstName().trim(),
       lastName: this.lastName().trim(),
       email: this.email().trim(),
@@ -92,11 +127,12 @@ export class DesktopUserSetupPage {
       passwordConfirm: this.password(),
       verified: true,
       emailVisibility: true,
-      phone: this.phone().trim(),
-      linkedin: this.linkedin().trim(),
-      github: this.github().trim(),
-      website: this.website().trim(),
     };
+
+    this.assignOptionalField(body, 'phone', this.phone());
+    this.assignOptionalField(body, 'linkedin', this.linkedin());
+    this.assignOptionalField(body, 'github', this.github());
+    this.assignOptionalField(body, 'website', this.website());
 
     const response = await fetch(`${this.config?.pocketbaseUrl}/api/collections/users/records`, {
       method: 'POST',
@@ -109,6 +145,13 @@ export class DesktopUserSetupPage {
 
     if (!response.ok) {
       throw new Error(`User creation failed: ${await response.text()}`);
+    }
+  }
+
+  private assignOptionalField(body: UserCreateBody, field: 'phone' | 'linkedin' | 'github' | 'website', value: string): void {
+    const trimmedValue = value.trim();
+    if (trimmedValue) {
+      body[field] = trimmedValue;
     }
   }
 }
