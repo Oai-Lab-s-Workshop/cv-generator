@@ -21,7 +21,7 @@ export function loadOrCreatePocketBaseSecrets(paths: DesktopPaths): PocketBaseRu
   }
 
   const secrets: PocketBaseRuntimeSecrets = {
-    superuserEmail: 'local-superuser@resumate.local',
+    superuserEmail: 'admin@base.com',
     superuserPassword: randomSecret(),
     serviceUserEmail: 'local-mcp-service@resumate.local',
     serviceUserPassword: randomSecret(),
@@ -40,6 +40,20 @@ export function upsertLocalSuperuser(paths: DesktopPaths, secrets: PocketBaseRun
 
   if (result.status !== 0) {
     throw new Error(`PocketBase superuser bootstrap failed: ${result.stderr || result.stdout}`);
+  }
+}
+
+export function migratePocketBaseSchema(paths: DesktopPaths): void {
+  const result = spawnSync(
+    paths.pocketbaseBinary,
+    ['migrate', 'up', '--dir', paths.pbDataDir, '--migrationsDir', paths.pbMigrationsDir],
+    { encoding: 'utf8' },
+  );
+
+  if (result.status !== 0) {
+    throw new Error(
+      `PocketBase schema bootstrap failed for data dir ${paths.pbDataDir} using migrations ${paths.pbMigrationsDir}: ${result.stderr || result.stdout}`,
+    );
   }
 }
 
