@@ -49,7 +49,7 @@ Use two services:
 services:
   pocketbase:
     image: ghcr.io/muchobien/pocketbase:latest
-    container_name: cv-generator-pb
+    container_name: resumate-pb
     restart: unless-stopped
     ports:
       - "8090:8090"
@@ -66,7 +66,7 @@ services:
 
   frontend:
     image: node:22-alpine
-    container_name: cv-generator-web
+    container_name: resumate-web
     working_dir: /app
     restart: unless-stopped
     ports:

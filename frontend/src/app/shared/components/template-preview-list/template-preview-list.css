@@ -1,0 +1,131 @@
+:host {
+  display: block;
+}
+
+.template-preview-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* .template-preview-list--auto-loop {
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+} */
+
+.template-preview-list--bare {
+  justify-items: center;
+}
+
+.template-preview-list__state {
+  padding: 1.25rem;
+  border: 1px solid #d7deea;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.template-preview-list__state--error {
+  border-color: #fecaca;
+  background: #fff1f2;
+}
+
+.template-preview-card {
+  border: 1px solid #d7deea;
+  border-radius: 1.25rem;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.08);
+}
+
+.template-preview-list--bare .template-preview-card {
+  width: min(100%, 210mm);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.template-preview-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.template-preview-card__header p,
+.template-preview-card__header span {
+  margin: 0;
+}
+
+.template-preview-card__header p {
+  font-weight: 700;
+}
+
+.template-preview-card__header span {
+  display: inline-block;
+  margin-top: 0.2rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+}
+
+.template-preview-card__a4-button {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background: #eef2ff;
+  color: #3730a3;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.template-preview-card__a4-button:hover {
+  background: #e0e7ff;
+}
+
+.template-preview-card__preview {
+  overflow: auto;
+  max-height: 90vh;
+}
+
+.template-preview-card__preview--a4 {
+  aspect-ratio: 210 / 297;
+  width: min(100%, 210mm);
+  height: auto;
+  max-height: none;
+  margin: 1.25rem auto;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+}
+
+.template-preview-card__preview--a4.cv-preview-enabled {
+  padding: 0;
+}
+
+.template-preview-list--bare .template-preview-card__preview--a4 {
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+@media (max-width: 720px) {
+  .template-preview-card__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .template-preview-card__a4-button {
+    width: 100%;
+  }
+}

@@ -185,6 +185,7 @@ async function importJobs(token) {
         startDate: job.startDate,
         endDate: job.endDate,
         responsibilities: job.responsibilities,
+        bulletPointSummary: job.bulletPointSummary,
         sortOrder: job.sortOrder,
         type: job.type,
         skills: mapRelationIds('skills', job.skills),
