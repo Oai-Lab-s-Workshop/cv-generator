@@ -30,6 +30,14 @@ export class MinimalCvPage implements OnInit {
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
   }
 
+  protected stripUrlProtocol(url: string | null | undefined): string {
+    if (!url) {
+      return '';
+    }
+
+    return url.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '');
+  }
+
   ngOnInit(): void {
     effect(
       () => {
