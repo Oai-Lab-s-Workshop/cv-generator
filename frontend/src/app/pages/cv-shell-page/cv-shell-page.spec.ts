@@ -59,6 +59,18 @@ describe('CvShellPage', () => {
     const adminBar = fixture.nativeElement.querySelector('.admin-bar');
 
     expect(adminBar).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.speed-dial-trigger')).not.toBeNull();
+  });
+
+  it('opens speed dial actions from the admin trigger', () => {
+    const trigger = fixture.nativeElement.querySelector('.speed-dial-trigger') as HTMLButtonElement;
+
+    trigger.click();
+    fixture.detectChanges();
+
+    const adminBar = fixture.nativeElement.querySelector('.admin-bar');
+
+    expect(adminBar.textContent).toContain('Accueil');
     expect(adminBar.textContent).toContain('Preview');
     expect(adminBar.textContent).toContain('Download PDF');
     expect(adminBar.textContent).toContain('Fermer');
@@ -77,7 +89,12 @@ describe('CvShellPage', () => {
   });
 
   it('toggles preview mode from the admin bar', async () => {
-    const previewButton = fixture.nativeElement.querySelector('.secondary-button') as HTMLButtonElement;
+    const trigger = fixture.nativeElement.querySelector('.speed-dial-trigger') as HTMLButtonElement;
+    trigger.click();
+    fixture.detectChanges();
+
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.speed-dial-action')) as HTMLElement[];
+    const previewButton = buttons.find((button) => button.textContent?.includes('Preview')) as HTMLButtonElement;
 
     previewButton.click();
     fixture.detectChanges();
@@ -95,5 +112,18 @@ describe('CvShellPage', () => {
 
     expect(printSpy).toHaveBeenCalled();
     printSpy.mockRestore();
+  });
+
+  it('routes manage action to the current profile editor', () => {
+    const trigger = fixture.nativeElement.querySelector('.speed-dial-trigger') as HTMLButtonElement;
+    trigger.click();
+    fixture.detectChanges();
+
+    const manageLinks = Array.from(
+      fixture.nativeElement.querySelectorAll('a.speed-dial-action'),
+    ) as HTMLAnchorElement[];
+    const manageLink = manageLinks.find((link) => link.textContent?.includes('Gerer')) as HTMLAnchorElement;
+
+    expect(manageLink.getAttribute('href')).toBe('/home/profiles/profile-1/edit');
   });
 });

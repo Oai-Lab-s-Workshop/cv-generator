@@ -1,37 +1,65 @@
-@if (showAdminBar()) {
-  <aside class="admin-bar">
-    <div class="admin-bar__inner">
-      <div>
-        <p class="admin-bar__meta">
-          @if (templateLabel()) {
-            <span>{{ templateLabel() }}</span>
-          }
-          @if (profile(); as profile) {
+@if (profile(); as profile) {
+  @if (showAdminBar()) {
+    <aside class="admin-bar" [class.admin-bar--open]="isAdminBarOpen()" aria-label="Actions administrateur">
+      @if (isAdminBarOpen()) {
+        <div class="admin-bar__panel">
+          <p class="admin-bar__meta">
+            @if (templateLabel()) {
+              <span>{{ templateLabel() }}</span>
+            }
             <span>/{{ profile.slug }}</span>
             <span>{{ profile.public === false ? 'Route privee' : 'Route publique' }}</span>
-          }
-        </p>
-      </div>
+          </p>
 
-      <div class="admin-bar__actions">
-        <button class="secondary-button" type="button" (click)="togglePreviewMode()">
-          {{ isPreviewMode() ? 'Exit Preview' : 'Preview' }}
-        </button>
-        <button class="secondary-button" type="button" (click)="printCv()">Imprimer</button>
-        <button class="secondary-button" type="button" [disabled]="isExportingPdf()" (click)="downloadPdf()">
-          {{ isExportingPdf() ? 'Exporting...' : 'Download PDF' }}
-        </button>
-        <a [routerLink]="['/home']" class="secondary-button secondary-button--link">Gerer</a>
-        <button class="secondary-button secondary-button--ghost" type="button" (click)="dismissAdminBar()">Fermer</button>
-      </div>
-    </div>
+          <div class="admin-bar__actions">
+            <a [routerLink]="['/home']" class="speed-dial-action speed-dial-action--link" (click)="closeAdminBar()">
+              <i class="bi bi-house" aria-hidden="true"></i>
+              <span>Accueil</span>
+            </a>
+            <button class="speed-dial-action" type="button" (click)="togglePreviewMode(); closeAdminBar()">
+              <i class="bi bi-eye" aria-hidden="true"></i>
+              <span>{{ isPreviewMode() ? 'Quitter apercu' : 'Preview' }}</span>
+            </button>
+            <button class="speed-dial-action" type="button" (click)="printCv(); closeAdminBar()">
+              <i class="bi bi-printer" aria-hidden="true"></i>
+              <span>Imprimer</span>
+            </button>
+            <button class="speed-dial-action" type="button" [disabled]="isExportingPdf()" (click)="downloadPdf(); closeAdminBar()">
+              <i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i>
+              <span>{{ isExportingPdf() ? 'Exporting...' : 'Download PDF' }}</span>
+            </button>
+            <a
+              [routerLink]="['/home/profiles', profile.id, 'edit']"
+              class="speed-dial-action speed-dial-action--link"
+              (click)="closeAdminBar()"
+            >
+              <i class="bi bi-pencil-square" aria-hidden="true"></i>
+              <span>Gerer</span>
+            </a>
+            <button class="speed-dial-action speed-dial-action--ghost" type="button" (click)="dismissAdminBar()">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+              <span>Fermer</span>
+            </button>
+          </div>
+        </div>
+      }
 
-    @if (statusMessage()) {
-      <p class="admin-bar__status" [class.admin-bar__status--error]="statusTone() === 'error'">{{ statusMessage() }}</p>
-    }
-  </aside>
-}
-@if (profile(); as profile) {
+      @if (statusMessage()) {
+        <p class="admin-bar__status" [class.admin-bar__status--error]="statusTone() === 'error'">{{ statusMessage() }}</p>
+      }
+
+      <button
+        class="speed-dial-trigger"
+        type="button"
+        aria-label="Afficher les actions administrateur"
+        [attr.aria-expanded]="isAdminBarOpen()"
+        (click)="toggleAdminBar()"
+      >
+        <i class="bi" [class.bi-three-dots]="!isAdminBarOpen()" [class.bi-x-lg]="isAdminBarOpen()" aria-hidden="true"></i>
+      </button>
+    </aside>
+  }
+
   @if (templateComponent(); as templateComponent) {
     <section class="cv-shell-page" [class.cv-preview-enabled]="isPreviewMode()">
       <div id="cv-document" class="cv-shell-page__document" [class.cv-shell-page__document--preview]="isPreviewMode()">

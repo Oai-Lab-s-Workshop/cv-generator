@@ -26,6 +26,7 @@ export class CvShellPage implements OnInit {
   readonly profile = signal<CvProfile | null>(null);
   readonly isAuthenticated = this.authService.isAuthenticated;
   readonly isPreviewMode = signal(false);
+  readonly isAdminBarOpen = signal(false);
   readonly isAdminBarDismissed = signal(false);
   readonly isExportingPdf = signal(false);
   readonly statusMessage = signal<string | null>(null);
@@ -70,6 +71,14 @@ export class CvShellPage implements OnInit {
 
   readonly showAdminBar = computed(() => this.isOwner() && !this.isAdminBarDismissed());
 
+  protected toggleAdminBar(): void {
+    this.isAdminBarOpen.update((value) => !value);
+  }
+
+  protected closeAdminBar(): void {
+    this.isAdminBarOpen.set(false);
+  }
+
   protected togglePreviewMode(): void {
     this.isPreviewMode.update((value) => !value);
     this.statusTone.set('info');
@@ -104,6 +113,7 @@ export class CvShellPage implements OnInit {
   }
 
   protected dismissAdminBar(): void {
+    this.closeAdminBar();
     this.isAdminBarDismissed.set(true);
     this.statusMessage.set(null);
   }

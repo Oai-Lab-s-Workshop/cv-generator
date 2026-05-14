@@ -58,18 +58,18 @@
                 <h3>Réseaux :</h3>
     
                 <div class="stack">
-                    @if (data.user?.linkedin) {
+                    @if (data.user.linkedin) {
                         <app-icon-label-data
                             label="LinkedIn"
-                            [data]="data.user?.linkedin"
+                            [data]="data.user.linkedin"
                             [reverse]="false">
                             <i icon class="bi bi-linkedin"></i>
                         </app-icon-label-data>
                     }
-                    @if (data.user?.github) {
+                    @if (data.user.github) {
                         <app-icon-label-data
                             label="GitHub"
-                            [data]="data.user?.github"
+                            [data]="data.user.github"
                             [reverse]="false">
                             <i icon class="bi bi-github"></i>
                         </app-icon-label-data>
