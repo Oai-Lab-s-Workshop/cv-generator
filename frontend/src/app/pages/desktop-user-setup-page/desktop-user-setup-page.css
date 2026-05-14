@@ -67,6 +67,12 @@ label {
   font-weight: 800;
 }
 
+small {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 input {
   width: 100%;
   border: 1px solid #cbd5e1;
@@ -74,6 +80,57 @@ input {
   padding: 0.75rem 0.85rem;
   font: inherit;
   font-weight: 500;
+}
+
+.password-panel {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+  border: 1px solid #dbeafe;
+  border-radius: 0.85rem;
+  background: #eff6ff;
+}
+
+.password-helper {
+  color: #991b1b;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.password-helper--valid {
+  color: #166534;
+}
+
+.password-rules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.password-rules li::before {
+  content: 'Missing';
+  display: inline-block;
+  margin-right: 0.35rem;
+  color: #991b1b;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.password-rules li.is-met {
+  color: #166534;
+}
+
+.password-rules li.is-met::before {
+  content: 'OK';
+  color: #166534;
 }
 
 .actions-row {
@@ -126,7 +183,8 @@ button:disabled {
 }
 
 @media (max-width: 640px) {
-  .field-grid {
+  .field-grid,
+  .password-rules {
     grid-template-columns: 1fr;
   }
 }
