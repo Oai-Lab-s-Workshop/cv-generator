@@ -15,6 +15,8 @@ import {
   signal,
 } from '@angular/core';
 import { CvData } from '../../../core/models/cv-data.model';
+import { CvProfileExtraValue } from '../../../core/models/cv-profile.model';
+import { CvProfileExtraService } from '../../../core/services/cv-profile-extra.service';
 import { PocketBaseService } from '../../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../../core/utils/error-message';
 import { IconLabelData } from '../../../shared/components/icon-label-data/icon-label-data';
@@ -35,6 +37,7 @@ type SectionMode = 'full' | 'compact';
 })
 export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
   private readonly pocketBaseService = inject(PocketBaseService);
+  private readonly cvProfileExtra = inject(CvProfileExtraService);
   private readonly injector = inject(Injector);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly pageHeightMm = 297;
@@ -66,6 +69,18 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+  }
+
+  protected extra(key: string): CvProfileExtraValue | undefined {
+    return this.cvProfileExtra.get(this.cvData()?.profile, key);
+  }
+
+  protected extraBoolean(key: string): boolean {
+    return this.cvProfileExtra.boolean(this.cvData()?.profile, key);
+  }
+
+  protected extraStringArray(key: string): string[] {
+    return this.cvProfileExtra.stringArray(this.cvData()?.profile, key);
   }
 
   ngOnInit(): void {
@@ -170,11 +185,12 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.visibleProjectCount.set(projectCount);
+    const defaultMode: SectionMode = this.extraBoolean('compactMode') ? 'compact' : 'full';
     this.sectionModes.set({
-      projects: 'full',
-      experience: 'full',
-      skills: 'full',
-      diplomas: 'full',
+      projects: defaultMode,
+      experience: defaultMode,
+      skills: defaultMode,
+      diplomas: defaultMode,
     });
     this.changeDetectorRef.detectChanges();
 
@@ -236,7 +252,16 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
   }
   protected getVisibleProjects(projects: Project[]): Project[] {
     const visibleProjectCount = this.visibleProjectCount();
+    const featuredProjectIds = this.extraStringArray('featuredProjectIds');
+    const orderedProjects = featuredProjectIds.length
+      ? [...projects].sort((left, right) => this.projectPriority(left.id, featuredProjectIds) - this.projectPriority(right.id, featuredProjectIds))
+      : projects;
 
-    return projects.slice(0, visibleProjectCount ?? projects.length);
+    return orderedProjects.slice(0, visibleProjectCount ?? orderedProjects.length);
+  }
+
+  private projectPriority(projectId: string, featuredProjectIds: string[]): number {
+    const index = featuredProjectIds.indexOf(projectId);
+    return index === -1 ? featuredProjectIds.length : index;
   }
 }

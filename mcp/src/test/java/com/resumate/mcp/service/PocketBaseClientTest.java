@@ -17,6 +17,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,16 +64,19 @@ class PocketBaseClientTest {
     void resolveAvailableTemplates_returnsAllTemplates() {
         List<TemplateDescriptor> result = client.resolveAvailableTemplates();
 
-        assertThat(result).hasSize(4);
+        assertThat(result).hasSize(5);
         assertThat(result.stream().map(TemplateDescriptor::id).toList())
-                .containsExactly("classic", "modern", "minimal", "supa");
+                .containsExactly("classic", "bento", "modern", "supa", "minimal");
         assertThat(result.stream().map(TemplateDescriptor::description).toList())
                 .containsExactly(
                         "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.",
-                        "Split-sidebar resume with timeline-style . Most commmon CV layout.",
-                        "Single-column minimalist resume with inline contact details and compact sections.",
-                        "Clean, compact, print-first CV designed to fit into a single A4 page. Dynamic sizing, great for showcasing lots of Projects"
+                        "Visual grid-based resume with strong project and profile presentation.",
+                        "Split-sidebar resume with timeline-style experience and card-based project highlights.",
+                        "Clean, compact, print-first CV designed to fit into a single A4 page. Dynamic sizing, great for showcasing lots of projects.",
+                        "Single-column minimalist resume with inline contact details and compact sections."
                 );
+        assertThat(result.get(2).extraSchema()).extracting(PocketBaseClient.ExtraFieldDescriptor::id)
+                .containsExactly("headline", "accentColor");
     }
 
     @Test
@@ -174,7 +178,7 @@ class PocketBaseClientTest {
     }
 
     @Test
-    void createTailoredProfile_returnsCreatedRecord() {
+    void createTailoredProfile_returnsCreatedRecord() throws InterruptedException {
         enqueueAuthResponse();
         enqueueJsonResponse("""
                 {
@@ -185,13 +189,40 @@ class PocketBaseClientTest {
 
         PocketBaseClient.CreateProfilePayload payload = new PocketBaseClient.CreateProfilePayload(
                 "My Profile", "classic", "Summary",
-                List.of("skill1"), List.of(), List.of(), List.of(), List.of(), List.of()
+                List.of("skill1"), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
         CreatedProfileRecord result = client.createTailoredProfile("userId", payload);
 
         assertThat(result.id()).isEqualTo("profile123");
         assertThat(result.slug()).isEqualTo("classic--my-profile-1700000000000");
+
+        mockWebServer.takeRequest();
+        RecordedRequest createRequest = mockWebServer.takeRequest();
+        assertThat(createRequest.getBody().readUtf8()).contains("\"extra\":{}");
+    }
+
+    @Test
+    void createTailoredProfile_sendsExtraPayload() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("""
+                {
+                    "id": "profile123",
+                    "slug": "modern--my-profile-1700000000000"
+                }
+                """);
+
+        PocketBaseClient.CreateProfilePayload payload = new PocketBaseClient.CreateProfilePayload(
+                "My Profile", "modern", "Summary",
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
+                Map.of("modern", Map.of("headline", "Senior developer"))
+        );
+
+        client.createTailoredProfile("userId", payload);
+
+        mockWebServer.takeRequest();
+        RecordedRequest createRequest = mockWebServer.takeRequest();
+        assertThat(createRequest.getBody().readUtf8()).contains("\"extra\":{\"modern\":{\"headline\":\"Senior developer\"}}");
     }
 
     @Test
@@ -204,7 +235,7 @@ class PocketBaseClientTest {
 
         PocketBaseClient.CreateProfilePayload payload = new PocketBaseClient.CreateProfilePayload(
                 "My Profile", "classic", "Summary",
-                List.of("skill1"), List.of(), List.of(), List.of(), List.of(), List.of()
+                List.of("skill1"), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
         assertThatThrownBy(() -> client.createTailoredProfile("userId", payload))

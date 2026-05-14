@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -55,17 +56,18 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         List<TemplateDescriptor> expected = List.of(
-                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills."),
-                new TemplateDescriptor("modern", "Modern", "Split-sidebar resume with timeline-style experience and card-based project highlights."),
-                new TemplateDescriptor("minimal", "Minimal", "Single-column minimalist resume with inline contact details and compact sections."),
-                new TemplateDescriptor("supa", "Supa", "Figma-inspired A4 resume with dynamic section compaction to keep dense content on one page.")
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of()),
+                new TemplateDescriptor("modern", "Modern", "Split-sidebar resume with timeline-style experience and card-based project highlights.", List.of(
+                        new PocketBaseClient.ExtraFieldDescriptor("headline", "Headline", "text", false, "Short role-focused line displayed near the candidate name.", null, List.of())
+                ))
         );
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(expected);
 
         CvMcpTools.ListTemplatesResponse response = cvMcpTools.listTemplates();
 
-        assertThat(response.templates()).hasSize(4);
+        assertThat(response.templates()).hasSize(2);
         assertThat(response.templates().get(0).id()).isEqualTo("classic");
+        assertThat(response.templates().get(1).extraSchema()).hasSize(1);
     }
 
     @Test
@@ -107,8 +109,8 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
-                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills."),
-                new TemplateDescriptor("modern", "Modern", "Split-sidebar resume with timeline-style experience and card-based project highlights.")
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of()),
+                new TemplateDescriptor("modern", "Modern", "Split-sidebar resume with timeline-style experience and card-based project highlights.", List.of())
         ));
 
         CreatedProfileRecord createdRecord = new CreatedProfileRecord("profileId", "classic--senior-dev-123");
@@ -119,7 +121,7 @@ class CvMcpToolsTest {
                 "Senior Dev CV", "Job listing text", "classic",
                 "Professional summary",
                 List.of("skill1"), List.of("job1"), List.of("proj1"),
-                List.of("ach1"), List.of("deg1"), List.of("hob1")
+                List.of("ach1"), List.of("deg1"), List.of("hob1"), Map.of()
         );
 
         CvMcpTools.CreateTailoredCvProfileResponse response = cvMcpTools.createTailoredCvProfile(request);
@@ -138,7 +140,7 @@ class CvMcpToolsTest {
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "Dev CV", "Job listing", null,
-                "Summary", List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
+                "Summary", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
@@ -154,12 +156,12 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
-                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.")
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of())
         ));
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "CV", "Job", "modern", "Summary",
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
@@ -173,7 +175,7 @@ class CvMcpToolsTest {
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "CV", "Job", "classic", "Summary",
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
@@ -189,7 +191,7 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
-                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.")
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of())
         ));
 
         CreatedProfileRecord createdRecord = new CreatedProfileRecord("id", "slug");
@@ -199,7 +201,7 @@ class CvMcpToolsTest {
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "CV", "Job", "classic", "Summary",
                 List.of("skill1"), List.of("job1"), List.of(),
-                List.of(), List.of(), List.of()
+                List.of(), List.of(), List.of(), Map.of()
         );
 
         cvMcpTools.createTailoredCvProfile(request);
@@ -219,7 +221,7 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
-                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.")
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of())
         ));
 
         CreatedProfileRecord createdRecord = new CreatedProfileRecord("id", "my-slug");
@@ -228,12 +230,89 @@ class CvMcpToolsTest {
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "CV", "Job", "classic", "Summary",
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
         CvMcpTools.CreateTailoredCvProfileResponse response = toolsWithSlash.createTailoredCvProfile(request);
 
         assertThat(response.frontendUrl()).isEqualTo("https://resumate.app/my-slug");
+    }
+
+    @Test
+    void createTailoredCvProfile_storesTemplateExtraUnderTemplateId() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("modern", "Modern", "Modern layout", List.of(
+                        new PocketBaseClient.ExtraFieldDescriptor("headline", "Headline", "text", false, "Short headline.", null, List.of()),
+                        new PocketBaseClient.ExtraFieldDescriptor("accentColor", "Accent color", "color", false, "Accent color.", null, List.of())
+                ))
+        ));
+        when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
+                .thenReturn(new CreatedProfileRecord("id", "slug"));
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                "CV", "Job", "modern", "Summary",
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
+                Map.of("headline", "Senior developer", "accentColor", "#2563eb")
+        );
+
+        cvMcpTools.createTailoredCvProfile(request);
+
+        verify(pocketBaseClient).createTailoredProfile(eq("userId"), org.mockito.ArgumentMatchers.argThat(payload ->
+                payload.extra().equals(Map.of("modern", Map.of("headline", "Senior developer", "accentColor", "#2563eb")))
+        ));
+    }
+
+    @Test
+    void createTailoredCvProfile_rejectsUnsupportedTemplateExtraField() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("modern", "Modern", "Modern layout", List.of())
+        ));
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                "CV", "Job", "modern", "Summary",
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
+                Map.of("unknown", "value")
+        );
+
+        assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Unsupported templateExtra field: unknown");
+    }
+
+    @Test
+    void createTailoredCvProfile_validatesExtraSourceIds() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("supa", "Supa", "Supa layout", List.of(
+                        new PocketBaseClient.ExtraFieldDescriptor("featuredProjectIds", "Featured projects", "multi_select", false, "Featured projects.", "projects", List.of())
+                ))
+        ));
+        when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
+                .thenReturn(new CreatedProfileRecord("id", "slug"));
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                "CV", "Job", "supa", "Summary",
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
+                Map.of("featuredProjectIds", List.of("proj1"))
+        );
+
+        cvMcpTools.createTailoredCvProfile(request);
+
+        verify(pocketBaseClient).validateOwnedRecordIds("projects", "userId", List.of("proj1"));
     }
 
 }

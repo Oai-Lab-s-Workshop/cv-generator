@@ -8,10 +8,13 @@
     <p>{{ errorMessage() }}</p>
   </main>
 } @else if (cvData(); as data) {
-  <main class="modern-cv-page">
+  <main class="modern-cv-page" [style.--modern-accent-color]="extraText('accentColor') || '#0f4aa5'">
     <aside class="sidebar">
       <p class="sidebar__template">{{ data.profile.template }}</p>
       <h1>{{ data.user ? data.user.firstName + ' ' + data.user.lastName : data.profile.profileName }}</h1>
+      @if (extraText('headline'); as headline) {
+        <p class="sidebar__headline">{{ headline }}</p>
+      }
       <p class="sidebar__title">{{ data.profile.profileName }}</p>
 
       <section class="sidebar__section">
