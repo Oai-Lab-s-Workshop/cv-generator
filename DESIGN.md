@@ -294,7 +294,7 @@ components:
 
 ## Overview
 
-CV Generator has a pragmatic, document-first visual identity. The product shell is calm and administrative: centered pages, white cards, blue actions, slate copy, and generous spacing. The CV outputs are more expressive but still restrained, ranging from minimal editorial pages to a dark-sidebar modern template and a polished violet/indigo Supa template.
+Resumate has a pragmatic, document-first visual identity. The product shell is calm and administrative: centered pages, white cards, blue actions, slate copy, and generous spacing. The CV outputs are more expressive but still restrained, ranging from minimal editorial pages to a dark-sidebar modern template and a polished violet/indigo Supa template.
 
 The overall impression should be trustworthy, precise, and export-ready. Screens should feel like a professional back office for managing resumes, while rendered CVs should feel like printable artifacts with strong hierarchy, durable contrast, and A4 geometry.
 
