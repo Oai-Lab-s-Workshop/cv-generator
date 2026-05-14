@@ -84,16 +84,14 @@
         @for (project of data.projects; track project.id) {
           <article class="entry">
             <div class="entry__header">
-              <div>
-                <h3>{{ project.name }}</h3>
-                @if (project.description) {
-                  <p class="entry__copy">{{ project.description }}</p>
-                }
-              </div>
+              <h3>{{ project.name }}</h3>
               @if (project.url) {
                 <a class="entry__meta" [href]="project.url" target="_blank" rel="noreferrer">{{ project.url }}</a>
               }
             </div>
+            @if (project.description) {
+              <p class="entry__copy" [innerHTML]="project.description"></p>
+            }
           </article>
         }
       </section>

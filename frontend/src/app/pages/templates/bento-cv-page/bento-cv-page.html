@@ -28,19 +28,11 @@
         <span>ans<br />d'experience</span>
       </section>
 
-      <section class="bento-card bento-card--tools">
-        <h2>Outils favoris</h2>
-        <div class="tool-grid">
-          @for (skill of getToolSkills(data.skills); track skill.id) {
-            <article class="tool-tile" [attr.aria-label]="skill.name">
-              @if (skill.icon) {
-                <img [src]="skill.icon" [alt]="skill.name" />
-              } @else {
-                <span>{{ skill.name.slice(0, 2) }}</span>
-              }
-            </article>
-          }
-        </div>
+      <section class="bento-card bento-card--summary">
+        <h2>Profil</h2>
+        @if (data.profile.professionalSummary) {
+          <div class="profile-summary" [innerHTML]="data.profile.professionalSummary"></div>
+        }
       </section>
 
       <section class="bento-card bento-card--strengths">
@@ -91,7 +83,7 @@
         } @else {
           <div class="qr-mark" aria-hidden="true"></div>
         }
-        <p>{{ this.qrTargetUrl }}</p>
+        <p>{{ extraText('qrCodeUrl') ?? getProfileUrl(data) }}</p>
       </section>
 
       <section class="bento-card bento-card--degrees">
