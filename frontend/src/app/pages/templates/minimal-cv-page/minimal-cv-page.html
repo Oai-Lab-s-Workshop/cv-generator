@@ -21,13 +21,13 @@
           <span>{{ data.user?.phone }}</span>
         }
         @if (data.user?.linkedin) {
-          <span>{{ data.user?.linkedin }}</span>
+          <span>{{ stripUrlProtocol(data.user?.linkedin) }}</span>
         }
         @if (data.user?.github) {
-          <span>{{ data.user?.github }}</span>
+          <span>{{ stripUrlProtocol(data.user?.github) }}</span>
         }
         @if (data.user?.website) {
-          <span>{{ data.user?.website }}</span>
+          <span>{{ stripUrlProtocol(data.user?.website) }}</span>
         }
       </address>
     </header>
