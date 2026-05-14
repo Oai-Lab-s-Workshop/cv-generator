@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @Component
@@ -52,8 +54,10 @@ public class CvMcpTools {
     @Tool(description = "Create a tailored public CV/resume profile for a specific job listing when the user asks to craft, tailor, adapt, or customize their resume for that role. Selects from the user's existing records and an allowed template to produce a shareable profile URL.")
     public CreateTailoredCvProfileResponse createTailoredCvProfile(CreateTailoredCvProfileRequest request) {
         AiTokenPrincipal principal = currentPrincipal();
-        String templateId = resolveTemplateId(request.templateId());
+        TemplateDescriptor template = resolveTemplate(request.templateId());
+        String templateId = template.id();
         validateOwnedSelections(principal.userId(), request);
+        Map<String, Object> templateExtra = validateTemplateExtra(principal.userId(), template, request.templateExtra());
 
         CreatedProfileRecord created = pocketBaseClient.createTailoredProfile(
                 principal.userId(),
@@ -66,7 +70,8 @@ public class CvMcpTools {
                         request.projectIds(),
                         request.achievementIds(),
                         request.degreeIds(),
-                        request.hobbyIds()
+                        request.hobbyIds(),
+                        templateExtra.isEmpty() ? Map.of() : Map.of(templateId, templateExtra)
                 )
         );
 
@@ -86,19 +91,94 @@ public class CvMcpTools {
         pocketBaseClient.validateOwnedRecordIds("hobbies", userId, request.hobbyIds());
     }
 
-    private String resolveTemplateId(String requestedTemplateId) {
+    private TemplateDescriptor resolveTemplate(String requestedTemplateId) {
         if (!StringUtils.hasText(requestedTemplateId)) {
             throw new IllegalArgumentException("templateId is required.");
         }
 
-        List<String> supportedTemplateIds = pocketBaseClient.resolveAvailableTemplates().stream()
-                .map(TemplateDescriptor::id)
-                .toList();
-        if (!supportedTemplateIds.contains(requestedTemplateId)) {
-            throw new IllegalArgumentException("Requested template is not supported.");
+        return pocketBaseClient.resolveAvailableTemplates().stream()
+                .filter(template -> template.id().equals(requestedTemplateId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Requested template is not supported."));
+    }
+
+    private Map<String, Object> validateTemplateExtra(String userId, TemplateDescriptor template, Map<String, Object> templateExtra) {
+        if (templateExtra == null || templateExtra.isEmpty()) {
+            return Map.of();
         }
 
-        return requestedTemplateId;
+        Map<String, PocketBaseClient.ExtraFieldDescriptor> fieldsById = new LinkedHashMap<>();
+        for (PocketBaseClient.ExtraFieldDescriptor field : template.extraSchema()) {
+            fieldsById.put(field.id(), field);
+        }
+
+        Map<String, Object> validated = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : templateExtra.entrySet()) {
+            PocketBaseClient.ExtraFieldDescriptor field = fieldsById.get(entry.getKey());
+            if (field == null) {
+                throw new IllegalArgumentException("Unsupported templateExtra field: " + entry.getKey());
+            }
+
+            validated.put(field.id(), validateTemplateExtraValue(userId, field, entry.getValue()));
+        }
+
+        return validated;
+    }
+
+    private Object validateTemplateExtraValue(String userId, PocketBaseClient.ExtraFieldDescriptor field, Object value) {
+        return switch (field.type()) {
+            case "text", "textarea", "color" -> validateStringValue(field, value);
+            case "boolean" -> validateBooleanValue(field, value);
+            case "select" -> validateSelectValue(field, value);
+            case "multi_select" -> validateMultiSelectValue(userId, field, value);
+            default -> throw new IllegalArgumentException("Unsupported templateExtra field type: " + field.type());
+        };
+    }
+
+    private String validateStringValue(PocketBaseClient.ExtraFieldDescriptor field, Object value) {
+        if (value instanceof String stringValue) {
+            return stringValue;
+        }
+
+        throw new IllegalArgumentException("templateExtra." + field.id() + " must be a string.");
+    }
+
+    private Boolean validateBooleanValue(PocketBaseClient.ExtraFieldDescriptor field, Object value) {
+        if (value instanceof Boolean booleanValue) {
+            return booleanValue;
+        }
+
+        throw new IllegalArgumentException("templateExtra." + field.id() + " must be a boolean.");
+    }
+
+    private String validateSelectValue(PocketBaseClient.ExtraFieldDescriptor field, Object value) {
+        String stringValue = validateStringValue(field, value);
+        if (field.options() == null || field.options().isEmpty() || field.options().contains(stringValue)) {
+            return stringValue;
+        }
+
+        throw new IllegalArgumentException("templateExtra." + field.id() + " must be one of the supported options.");
+    }
+
+    private List<String> validateMultiSelectValue(String userId, PocketBaseClient.ExtraFieldDescriptor field, Object value) {
+        if (!(value instanceof List<?> rawValues)) {
+            throw new IllegalArgumentException("templateExtra." + field.id() + " must be a string array.");
+        }
+
+        List<String> ids = rawValues.stream()
+                .map(item -> {
+                    if (item instanceof String stringValue) {
+                        return stringValue;
+                    }
+                    throw new IllegalArgumentException("templateExtra." + field.id() + " must be a string array.");
+                })
+                .toList();
+
+        if (StringUtils.hasText(field.source())) {
+            pocketBaseClient.validateOwnedRecordIds(field.source(), userId, ids);
+        }
+
+        return ids;
     }
 
     private AiTokenPrincipal currentPrincipal() {
@@ -139,7 +219,8 @@ public class CvMcpTools {
             List<String> projectIds,
             List<String> achievementIds,
             List<String> degreeIds,
-            List<String> hobbyIds
+            List<String> hobbyIds,
+            Map<String, Object> templateExtra
     ) {
     }
 

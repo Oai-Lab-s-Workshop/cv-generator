@@ -81,6 +81,111 @@
       </div>
     </section>
 
+    @if (getSelectedTemplateExtraSchema(state).length > 0) {
+      <section class="editor-card">
+        <div class="editor-card__header">
+          <div>
+            <p class="editor-card__eyebrow">Template</p>
+            <h2>Donnees specifiques</h2>
+          </div>
+        </div>
+
+        <div class="editor-grid">
+          @for (field of getSelectedTemplateExtraSchema(state); track field.id) {
+            @switch (field.type) {
+              @case ('text') {
+                <label class="editor-field">
+                  <span>{{ field.label }}</span>
+                  <input [ngModel]="getExtraTextValue(state, field)" (ngModelChange)="setExtraValue(field, $event)" [name]="'extra-' + field.id" type="text" />
+                  <small>{{ field.description }}</small>
+                </label>
+              }
+
+              @case ('textarea') {
+                <label class="editor-field editor-field--full">
+                  <span>{{ field.label }}</span>
+                  <textarea [ngModel]="getExtraTextValue(state, field)" (ngModelChange)="setExtraValue(field, $event)" [name]="'extra-' + field.id" rows="4"></textarea>
+                  <small>{{ field.description }}</small>
+                </label>
+              }
+
+              @case ('color') {
+                <label class="editor-field">
+                  <span>{{ field.label }}</span>
+                  <input [ngModel]="getExtraTextValue(state, field) || '#0f3d8c'" (ngModelChange)="setExtraValue(field, $event)" [name]="'extra-' + field.id" type="color" />
+                  <small>{{ field.description }}</small>
+                </label>
+              }
+
+              @case ('boolean') {
+                <label class="editor-field editor-field--checkbox">
+                  <span>{{ field.label }}</span>
+                  <input [ngModel]="getExtraBooleanValue(state, field)" (ngModelChange)="setExtraValue(field, $event)" [name]="'extra-' + field.id" type="checkbox" />
+                  <small>{{ field.description }}</small>
+                </label>
+              }
+
+              @case ('select') {
+                <label class="editor-field">
+                  <span>{{ field.label }}</span>
+                  <select [ngModel]="getExtraTextValue(state, field)" (ngModelChange)="setExtraValue(field, $event)" [name]="'extra-' + field.id">
+                    <option value="">Non renseigne</option>
+                    @for (option of field.options ?? []; track option.value) {
+                      <option [value]="option.value">{{ option.label }}</option>
+                    }
+                  </select>
+                  <small>{{ field.description }}</small>
+                </label>
+              }
+
+              @case ('multi_select') {
+                <div class="editor-field editor-field--full">
+                  <span>{{ field.label }}</span>
+                  <small>{{ field.description }}</small>
+
+                  <div class="relation-grid relation-grid--compact">
+                    <section class="relation-column">
+                      <h3>Lies au template</h3>
+                      @if (getLinkedExtraSourceRecords(state, field).length === 0) {
+                        <p class="relation-empty">Aucun element lie.</p>
+                      } @else {
+                        @for (record of getLinkedExtraSourceRecords(state, field); track record.id) {
+                          <article class="relation-card">
+                            <div>
+                              <h4>{{ getExtraSourceRecordTitle(record) }}</h4>
+                              <p>{{ getExtraSourceRecordDescription(record) }}</p>
+                            </div>
+                            <button type="button" class="relation-action relation-action--remove" (click)="removeExtraSourceValue(field, record.id)">Retirer</button>
+                          </article>
+                        }
+                      }
+                    </section>
+
+                    <section class="relation-column">
+                      <h3>Disponibles</h3>
+                      @if (getAvailableExtraSourceRecords(state, field).length === 0) {
+                        <p class="relation-empty">Aucun element disponible.</p>
+                      } @else {
+                        @for (record of getAvailableExtraSourceRecords(state, field); track record.id) {
+                          <article class="relation-card">
+                            <div>
+                              <h4>{{ getExtraSourceRecordTitle(record) }}</h4>
+                              <p>{{ getExtraSourceRecordDescription(record) }}</p>
+                            </div>
+                            <button type="button" class="relation-action" (click)="addExtraSourceValue(field, record.id)">Ajouter</button>
+                          </article>
+                        }
+                      }
+                    </section>
+                  </div>
+                </div>
+              }
+            }
+          }
+        </div>
+      </section>
+    }
+
     <section class="editor-card">
       <div class="editor-card__header">
         <div>

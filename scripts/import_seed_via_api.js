@@ -218,6 +218,7 @@ async function importCvProfiles(token) {
         jobs: mapRelationIds('jobs', profile.jobs),
         degrees: mapRelationIds('degrees', profile.degrees),
         skills: mapRelationIds('skills', profile.skills),
+        extra: profile.extra || {},
       });
     } catch (error) {
       throw new Error(`Failed importing cv_profiles:${profile.id} - ${error.message}`);

@@ -2,17 +2,18 @@ import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, On
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Achievement } from '../../core/models/achievement.model';
-import { CvProfile } from '../../core/models/cv-profile.model';
+import { CvProfile, CvProfileExtraValue } from '../../core/models/cv-profile.model';
 import { Degree } from '../../core/models/degree.model';
 import { Hobby } from '../../core/models/hobby.model';
 import { Job } from '../../core/models/job.model';
 import { Project } from '../../core/models/project.model';
 import { Skill } from '../../core/models/skill.model';
 import { CurrentUserCvProfileEditorData, PocketBaseService } from '../../core/services/pocketbase.service';
-import { CV_TEMPLATE_OPTIONS } from '../../core/templates/cv-template-registry';
+import { CV_TEMPLATE_OPTIONS, CV_TEMPLATE_OPTIONS_BY_ID, CvTemplateExtraField, CvTemplateExtraFieldSource } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
 
 type RelationType = 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies';
+type ExtraSourceRecord = Job | Project | Skill | Degree | Achievement | Hobby;
 
 type EditorState = {
   profile: CvProfile;
@@ -93,6 +94,7 @@ export class ProfileEditorPage implements OnInit {
         degrees: state.profile.degrees ?? [],
         achievements: state.profile.achievements ?? [],
         hobbies: state.profile.hobbies ?? [],
+        extra: state.profile.extra ?? {},
       });
 
       if (this.selectedProfilePicture() || this.selectedCoverPicture()) {
@@ -148,6 +150,128 @@ export class ProfileEditorPage implements OnInit {
         },
       };
     });
+  }
+
+  getSelectedTemplateExtraSchema(state: EditorState): CvTemplateExtraField[] {
+    const templateId = state.profile.template;
+    return (templateId ? CV_TEMPLATE_OPTIONS_BY_ID.get(templateId)?.extraSchema : undefined) ?? [];
+  }
+
+  getExtraValue(state: EditorState, field: CvTemplateExtraField): CvProfileExtraValue | undefined {
+    const templateId = state.profile.template;
+    return templateId ? state.profile.extra?.[templateId]?.[field.id] : undefined;
+  }
+
+  getExtraTextValue(state: EditorState, field: CvTemplateExtraField): string {
+    const value = this.getExtraValue(state, field);
+    return typeof value === 'string' ? value : '';
+  }
+
+  getExtraBooleanValue(state: EditorState, field: CvTemplateExtraField): boolean {
+    return this.getExtraValue(state, field) === true;
+  }
+
+  getExtraStringArrayValue(state: EditorState, field: CvTemplateExtraField): string[] {
+    const value = this.getExtraValue(state, field);
+    return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : [];
+  }
+
+  setExtraValue(field: CvTemplateExtraField, value: CvProfileExtraValue): void {
+    this.editorState.update((state) => {
+      const templateId = state?.profile.template;
+
+      if (!state || !templateId) {
+        return state;
+      }
+
+      return {
+        ...state,
+        profile: {
+          ...state.profile,
+          extra: {
+            ...(state.profile.extra ?? {}),
+            [templateId]: {
+              ...(state.profile.extra?.[templateId] ?? {}),
+              [field.id]: value,
+            },
+          },
+        },
+      };
+    });
+  }
+
+  addExtraSourceValue(field: CvTemplateExtraField, recordId: string): void {
+    const state = this.editorState();
+
+    if (!state) {
+      return;
+    }
+
+    const currentIds = this.getExtraStringArrayValue(state, field);
+    if (!currentIds.includes(recordId)) {
+      this.setExtraValue(field, [...currentIds, recordId]);
+    }
+  }
+
+  removeExtraSourceValue(field: CvTemplateExtraField, recordId: string): void {
+    const state = this.editorState();
+
+    if (!state) {
+      return;
+    }
+
+    this.setExtraValue(
+      field,
+      this.getExtraStringArrayValue(state, field).filter((id) => id !== recordId),
+    );
+  }
+
+  getLinkedExtraSourceRecords(state: EditorState, field: CvTemplateExtraField): ExtraSourceRecord[] {
+    return this.getLinkedRecords(this.getExtraSourceRecords(state, field.source), this.getExtraStringArrayValue(state, field));
+  }
+
+  getAvailableExtraSourceRecords(state: EditorState, field: CvTemplateExtraField): ExtraSourceRecord[] {
+    return this.getUnlinkedRecords(this.getExtraSourceRecords(state, field.source), this.getExtraStringArrayValue(state, field));
+  }
+
+  getExtraSourceRecordTitle(record: ExtraSourceRecord): string {
+    if ('company' in record) {
+      return record.company;
+    }
+
+    if ('title' in record) {
+      return record.title;
+    }
+
+    return record.name;
+  }
+
+  getExtraSourceRecordDescription(record: ExtraSourceRecord): string {
+    if ('company' in record) {
+      return record.position;
+    }
+
+    if ('date' in record) {
+      return record.date || 'Sans date';
+    }
+
+    if ('category' in record) {
+      return record.type || record.category || 'Sans type';
+    }
+
+    if ('type' in record) {
+      return record.type || 'Sans type';
+    }
+
+    if ('school' in record) {
+      return record.school || 'Sans ecole';
+    }
+
+    if ('description' in record) {
+      return record.description || 'Sans description';
+    }
+
+    return 'Sans description';
   }
 
   getLinkedJobs(state: EditorState): Job[] {
@@ -236,6 +360,7 @@ export class ProfileEditorPage implements OnInit {
         degrees: [...(data.profile.degrees ?? [])],
         achievements: [...(data.profile.achievements ?? [])],
         hobbies: [...(data.profile.hobbies ?? [])],
+        extra: data.profile.extra ?? {},
       },
       availableJobs: data.availableJobs,
       availableProjects: data.availableProjects,
@@ -254,5 +379,24 @@ export class ProfileEditorPage implements OnInit {
   private getUnlinkedRecords<T extends { id: string }>(records: T[], selectedIds: string[] | undefined): T[] {
     const selectedIdSet = new Set(selectedIds ?? []);
     return records.filter((record) => !selectedIdSet.has(record.id));
+  }
+
+  private getExtraSourceRecords(state: EditorState, source: CvTemplateExtraFieldSource | undefined): ExtraSourceRecord[] {
+    switch (source) {
+      case 'jobs':
+        return state.availableJobs;
+      case 'projects':
+        return state.availableProjects;
+      case 'skills':
+        return state.availableSkills;
+      case 'degrees':
+        return state.availableDegrees;
+      case 'achievements':
+        return state.availableAchievements;
+      case 'hobbies':
+        return state.availableHobbies;
+      default:
+        return [];
+    }
   }
 }

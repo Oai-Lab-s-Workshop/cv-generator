@@ -164,7 +164,7 @@ export class PocketBaseService {
 
   async updateCurrentUserCvProfile(
     profileId: string,
-    payload: Partial<Pick<CvProfile, 'profileName' | 'public' | 'template' | 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies'>>,
+    payload: Partial<Pick<CvProfile, 'profileName' | 'public' | 'template' | 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies' | 'extra'>>,
   ): Promise<CvProfile> {
     const profile = await this.getCurrentUserCvProfileById(profileId);
     const template = payload.template ?? profile.template ?? '';
@@ -330,6 +330,7 @@ export class PocketBaseService {
 
     return {
       ...profile,
+      extra: profile.extra ?? {},
       profilePicture: this.getFileFieldUrl(profile as unknown as RecordModel, profile.profilePicture),
       coverPicture: this.getFileFieldUrl(profile as unknown as RecordModel, profile.coverPicture),
       expand: profile.expand

@@ -155,6 +155,7 @@
       "jobs": ["job1", "job2"],
       "degrees": ["deg1", "deg2"],
       "skills": ["skill1", "skill2", "skill3", "skill4", "skill5", "skill6", "skill7", "skill8", "skill9", "skill10", "skill11", "skill12", "skill13", "skill14"],
+      "extra": {},
       "created": "2026-04-07T00:00:00Z",
       "updated": "2026-04-07T00:00:00Z"
     }
