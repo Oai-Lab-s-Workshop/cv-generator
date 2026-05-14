@@ -1,0 +1,127 @@
+@if (isLoading()) {
+  <main class="bento-state">
+    <p>Chargement du CV...</p>
+  </main>
+} @else if (errorMessage()) {
+  <main class="bento-state bento-state--error">
+    <h1>Impossible de charger le CV</h1>
+    <p>{{ errorMessage() }}</p>
+  </main>
+} @else if (cvData(); as data) {
+  <main class="bento-shell">
+    <article class="bento-sheet" #bentoSheet [attr.data-mode]="mode()">
+      @if (data.profile.profilePicture) {
+        <section class="bento-card bento-card--portrait" aria-label="Portrait">
+          <img [src]="data.profile.profilePicture" [alt]="getDisplayName(data)" />
+        </section>
+      }
+
+      <section class="bento-card bento-card--hero" [class.bento-card--hero-wide]="!data.profile.profilePicture">
+        <h1>{{ getDisplayName(data) }}</h1>
+        @for (line of getRoleLines(data); track line) {
+          <p>{{ line }}</p>
+        }
+      </section>
+
+      <section class="bento-card bento-card--years">
+        <strong>{{ getExperienceYears(data.jobs) }}</strong>
+        <span>ans<br />d'experience</span>
+      </section>
+
+      <section class="bento-card bento-card--tools">
+        <h2>Outils favoris</h2>
+        <div class="tool-grid">
+          @for (skill of getToolSkills(data.skills); track skill.id) {
+            <article class="tool-tile" [attr.aria-label]="skill.name">
+              @if (skill.icon) {
+                <img [src]="skill.icon" [alt]="skill.name" />
+              } @else {
+                <span>{{ skill.name.slice(0, 2) }}</span>
+              }
+            </article>
+          }
+        </div>
+      </section>
+
+      <section class="bento-card bento-card--strengths">
+        <h2>Points forts</h2>
+        <div class="chip-grid">
+          @for (skill of getStrengthSkills(data.skills); track skill.id) {
+            <span class="chip">{{ skill.name }}</span>
+          }
+        </div>
+      </section>
+
+      <section class="bento-card bento-card--experience">
+        <h2>Experiences recentes</h2>
+        <div class="experience-grid">
+          @for (item of getVisibleExperienceItems(data); track item.id) {
+            <article class="experience-card">
+              @if (item.isProject) {
+                <span class="job-pill">Projet</span>
+              } @else if (item.type === 'freelance') {
+                <span class="job-pill">Freelance</span>
+              }
+              <p class="job-date">{{ item.dateRange }}{{ item.company ? ' | ' + item.company : '' }}</p>
+              @if (item.url) {
+                <a class="experience-title-link" [href]="item.url" target="_blank" rel="noopener noreferrer">
+                  <h3>{{ item.title }}</h3>
+                </a>
+              } @else {
+                <h3>{{ item.title }}</h3>
+              }
+              @if (item.description) {
+                <p class="job-summary" [innerHTML]="item.description"></p>
+              }
+              @if (item.skills.length) {
+                <div class="job-tags">
+                  @for (skill of item.skills; track skill.id) {
+                    <span>{{ skill.name }}</span>
+                  }
+                </div>
+              }
+            </article>
+          }
+        </div>
+      </section>
+
+      <section class="bento-card bento-card--qr">
+        @if (qrCodeUrl(); as qrUrl) {
+          <img [src]="qrUrl" alt="QR Code" class="qr-image" />
+        } @else {
+          <div class="qr-mark" aria-hidden="true"></div>
+        }
+        <p>{{ this.qrTargetUrl }}</p>
+      </section>
+
+      <section class="bento-card bento-card--degrees">
+        <h2>Diplomes</h2>
+        <div class="degree-stack">
+          @for (degree of getVisibleDegrees(data.degrees); track degree.id) {
+            <span class="degree-chip">
+              {{ degree.title }}
+              @if (degree.level) {
+                <small>{{ degree.level }}</small>
+              }
+            </span>
+          }
+        </div>
+      </section>
+
+      <section class="bento-card bento-card--contact">
+        <h2>Restons en<br />contact !</h2>
+        <p>
+          @if (data.user?.email) {
+            <span>{{ data.user?.email }}</span>
+          }
+          @if (data.user?.phone) {
+            <span>{{ data.user?.phone }}</span>
+          }
+          @if (!data.user?.email && !data.user?.phone && data.user?.website) {
+            <span>{{ data.user?.website }}</span>
+          }
+        </p>
+      </section>
+    </article>
+  </main>
+}

@@ -1,4 +1,4 @@
-// CV Generator Database Schema
+// Resumate Database Schema
 // Migration: 001_cv_schema.js
 
 const USERS_COLLECTION_ID = "_pb_users_auth_";

@@ -3,10 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { TemplatePreviewList } from '../../shared/components/template-preview-list/template-preview-list';
 
 @Component({
   selector: 'app-login-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TemplatePreviewList],
   templateUrl: './login-page.html',
   styleUrl: './login-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,8 +28,8 @@ export class LoginPage {
 
     try {
       await this.authService.login(this.identity().trim(), this.password());
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
-      await this.router.navigateByUrl(returnUrl);
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
+      await this.router.navigateByUrl(returnUrl, { replaceUrl: true });
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
