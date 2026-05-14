@@ -8,28 +8,27 @@
     <h1>Connexion</h1>
     <p class="lede">Utilisez votre identifiant PocketBase et votre mot de passe pour acceder a vos CV generes.</p>
 
-      <form class="login-form" (ngSubmit)="submit()">
-        <label>
-          <span>Identifiant</span>
-          <input [ngModel]="identity()" (ngModelChange)="identity.set($event)" name="identity" type="text" autocomplete="username" required />
-        </label>
+    <form class="login-form" (ngSubmit)="submit()">
+      <label>
+        <span>Identifiant</span>
+        <input [ngModel]="identity()" (ngModelChange)="identity.set($event)" name="identity" type="text" autocomplete="username" required />
+      </label>
 
-        <label>
-          <span>Mot de passe</span>
-          <input [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" type="password" autocomplete="current-password" required />
-        </label>
+      <label>
+        <span>Mot de passe</span>
+        <input [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" type="password" autocomplete="current-password" required />
+      </label>
 
-        @if (errorMessage()) {
-          <p class="error-message">{{ errorMessage() }}</p>
-        }
+      @if (errorMessage()) {
+        <p class="error-message">{{ errorMessage() }}</p>
+      }
 
-        <button type="submit" [disabled]="isSubmitting()">
-          {{ isSubmitting() ? 'Connexion en cours...' : 'Se connecter' }}
-        </button>
-      </form>
+      <button type="submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Connexion en cours...' : 'Se connecter' }}
+      </button>
+    </form>
 
-      <p class="hint">Vous pouvez <a routerLink="/home/templates">voir toute la galerie</a> de templates disponibles sans être connecté.</p>
-    </section>
+    <p class="hint">Vous pouvez <a routerLink="/home/templates">voir toute la galerie</a> de templates disponibles sans être connecté.</p>
   </section>
 
   <aside class="login-preview-pane">
