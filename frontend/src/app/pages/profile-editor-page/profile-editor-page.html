@@ -3,7 +3,7 @@
     <div>
       <p class="profile-editor-page__eyebrow">Edition</p>
       <h1>Gerer votre profil CV</h1>
-      <p>Cette page gere uniquement le profil CV, son template, sa visibilite et ses relations. Les contenus des jobs, projets, competences et autres donnees se modifient dans PocketBase.</p>
+      <p>Cette page compose un CV a partir de vos donnees reutilisables. Les experiences et competences se gerent dans l'espace informations, puis se selectionnent ici.</p>
     </div>
 
     <div class="profile-editor-page__hero-actions">
@@ -192,6 +192,7 @@
         <div>
           <p class="editor-card__eyebrow">Relations</p>
           <h2>Jobs</h2>
+          <p class="relation-helper">Selectionnez les experiences existantes a inclure dans ce CV.</p>
         </div>
       </div>
 
@@ -199,7 +200,7 @@
         <section class="relation-column">
           <h3>Lies au profil</h3>
           @if (getLinkedJobs(state).length === 0) {
-            <p class="relation-empty">Aucun job lie.</p>
+            <p class="relation-empty">Aucun job lie. Ajoutez vos experiences dans <a routerLink="/home/profile-material">mes informations</a>, puis revenez les selectionner ici.</p>
           } @else {
             @for (job of getLinkedJobs(state); track job.id) {
               <article class="relation-card">
@@ -216,7 +217,7 @@
         <section class="relation-column">
           <h3>Disponibles</h3>
           @if (getAvailableJobs(state).length === 0) {
-            <p class="relation-empty">Aucun job disponible.</p>
+            <p class="relation-empty">Aucun job disponible. <a routerLink="/home/profile-material">Gerer mes experiences</a>.</p>
           } @else {
             @for (job of getAvailableJobs(state); track job.id) {
               <article class="relation-card">
@@ -282,6 +283,7 @@
         <div>
           <p class="editor-card__eyebrow">Relations</p>
           <h2>Competences</h2>
+          <p class="relation-helper">Selectionnez les competences existantes a afficher dans ce CV.</p>
         </div>
       </div>
 
@@ -289,7 +291,7 @@
         <section class="relation-column">
           <h3>Lies au profil</h3>
           @if (getLinkedSkills(state).length === 0) {
-            <p class="relation-empty">Aucune competence liee.</p>
+            <p class="relation-empty">Aucune competence liee. Ajoutez vos competences dans <a routerLink="/home/profile-material">mes informations</a>, puis revenez les selectionner ici.</p>
           } @else {
             @for (skill of getLinkedSkills(state); track skill.id) {
               <article class="relation-card">
@@ -306,7 +308,7 @@
         <section class="relation-column">
           <h3>Disponibles</h3>
           @if (getAvailableSkills(state).length === 0) {
-            <p class="relation-empty">Aucune competence disponible.</p>
+            <p class="relation-empty">Aucune competence disponible. <a routerLink="/home/profile-material">Gerer mes competences</a>.</p>
           } @else {
             @for (skill of getAvailableSkills(state); track skill.id) {
               <article class="relation-card">
