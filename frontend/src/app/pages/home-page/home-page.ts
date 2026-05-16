@@ -19,11 +19,11 @@ export class HomePage implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  readonly generatedProfiles = signal<CvProfile[]>([]);
-  readonly draftProfiles = signal<CvProfile[]>([]);
+  readonly profiles = signal<CvProfile[]>([]);
   readonly isLoading = signal(true);
   readonly isCreating = signal(false);
   readonly newProfileName = signal('');
+  readonly newProfileTemplate = signal(CV_TEMPLATE_OPTIONS[0]?.id || 'classic');
   readonly errorMessage = signal<string | null>(null);
   readonly isSaving = signal<string | null>(null);
   readonly templateSelections = signal<Record<string, string>>({});
@@ -45,18 +45,14 @@ export class HomePage implements OnInit {
 
     try {
       const profiles = await this.pocketBaseService.getCurrentUserCvProfiles();
-      const generatedProfiles = profiles.filter((profile) => !!profile.template);
-      const draftProfiles = profiles.filter((profile) => !profile.template);
-      const allProfiles = [...generatedProfiles, ...draftProfiles];
 
       this.templateSelections.set(
-        Object.fromEntries(allProfiles.map((profile) => [profile.id, profile.template || this.templateOptions[0]?.id || 'classic'])),
+        Object.fromEntries(profiles.map((profile) => [profile.id, profile.template || this.templateOptions[0]?.id || 'classic'])),
       );
       this.publicSelections.set(
-        Object.fromEntries(allProfiles.map((profile) => [profile.id, profile.public !== false])),
+        Object.fromEntries(profiles.map((profile) => [profile.id, profile.public !== false])),
       );
-      this.generatedProfiles.set(generatedProfiles);
-      this.draftProfiles.set(draftProfiles);
+      this.profiles.set(profiles);
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
@@ -97,11 +93,17 @@ export class HomePage implements OnInit {
       return;
     }
 
+    const template = this.newProfileTemplate();
+    if (!template) {
+      this.errorMessage.set('Le template est obligatoire.');
+      return;
+    }
+
     this.isCreating.set(true);
     this.errorMessage.set(null);
 
     try {
-      const profile = await this.pocketBaseService.createCurrentUserCvProfile(profileName);
+      const profile = await this.pocketBaseService.createCurrentUserCvProfile(profileName, template);
       this.newProfileName.set('');
       await this.router.navigate(['/home/profiles', profile.id, 'edit']);
     } catch (error: unknown) {

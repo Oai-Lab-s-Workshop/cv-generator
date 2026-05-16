@@ -37,9 +37,11 @@
   font-weight: 600;
 }
 
-.quick-actions__field input {
+.quick-actions__field input,
+.quick-actions__field select {
   box-sizing: border-box;
   width: 100%;
+  max-width: none;
   border: 1px solid #cbd5e1;
   border-radius: 0.75rem;
   padding: 0.8rem 0.9rem;

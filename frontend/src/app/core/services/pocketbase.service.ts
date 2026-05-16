@@ -114,19 +114,24 @@ export class PocketBaseService {
     return this.normalizeCvProfile(profile);
   }
 
-  async createCurrentUserCvProfile(profileName: string): Promise<CvProfile> {
+  async createCurrentUserCvProfile(profileName: string, template: string): Promise<CvProfile> {
     const currentUserId = this.requireCurrentUserId();
     const trimmedProfileName = profileName.trim();
+    const trimmedTemplate = template.trim();
 
     if (!trimmedProfileName) {
       throw new Error('Le nom du profil est obligatoire.');
     }
 
+    if (!trimmedTemplate) {
+      throw new Error('Le template est obligatoire.');
+    }
+
     const now = new Date();
     const created = await this.pb.collection<CvProfile>('cv_profiles').create({
-      slug: `brouillon--${currentUserId}--${now.getTime()}`,
+      slug: `profil--${currentUserId}--${now.getTime()}`,
       profileName: trimmedProfileName,
-      template: '',
+      template: trimmedTemplate,
       public: false,
       user: currentUserId,
       achievements: [],
@@ -137,7 +142,11 @@ export class PocketBaseService {
       skills: [],
     });
 
-    return this.normalizeCvProfile(created);
+    const updated = await this.pb.collection<CvProfile>('cv_profiles').update(created.id, {
+      slug: `${trimmedTemplate}--${created.id}`,
+    });
+
+    return this.normalizeCvProfile(updated);
   }
 
   async setTemplateForCurrentUserCvProfile(profileId: string, template: string, isPublic: boolean): Promise<CvProfile> {
