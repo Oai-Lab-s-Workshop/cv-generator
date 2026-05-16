@@ -75,6 +75,10 @@ export class ProfileMaterialPage implements OnInit {
     this.jobForm.set({ ...EMPTY_JOB_FORM });
   }
 
+  setJobFormValue(field: keyof Omit<JobForm, 'id' | 'sortOrder'>, value: string): void {
+    this.jobForm.update((form) => ({ ...form, [field]: value }));
+  }
+
   setJobSortOrder(value: string | number | null): void {
     const sortOrder = value === null || value === '' ? null : Number(value);
     this.jobForm.update((form) => ({ ...form, sortOrder: Number.isFinite(sortOrder) ? sortOrder : null }));
@@ -129,6 +133,10 @@ export class ProfileMaterialPage implements OnInit {
 
   resetSkillForm(): void {
     this.skillForm.set({ ...EMPTY_SKILL_FORM });
+  }
+
+  setSkillFormValue(field: keyof Omit<SkillForm, 'id' | 'level' | 'sortOrder'>, value: string): void {
+    this.skillForm.update((form) => ({ ...form, [field]: value }));
   }
 
   setSkillLevel(value: string | number | null): void {
