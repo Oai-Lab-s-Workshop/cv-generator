@@ -23,6 +23,7 @@ export const routes: Routes = [
   },
   {
     path: 'home',
+    pathMatch: 'full',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/home-page/home-page').then((module) => module.HomePage),
   },
@@ -31,6 +32,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./pages/profile-editor-page/profile-editor-page').then((module) => module.ProfileEditorPage),
+  },
+  {
+    path: 'home/profile-material',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/profile-material-page/profile-material-page').then((module) => module.ProfileMaterialPage),
   },
   {
     path: 'home/tokens',

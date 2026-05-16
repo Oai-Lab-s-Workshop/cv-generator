@@ -49,10 +49,18 @@ services:
       - "4200:4200"
     environment:
       CHOKIDAR_USEPOLLING: "true"
+      BUG_REPORT_URL: ${BUG_REPORT_URL:-}
     volumes:
       - ./:/workspace
       - frontend_node_modules:/workspace/frontend/node_modules
-    command: sh -c "npm install && npm start"
+    command:
+      - sh
+      - -c
+      - >
+        node -e "require('fs').writeFileSync('src/assets/runtime-config.json',
+        JSON.stringify({ bugReportUrl: process.env.BUG_REPORT_URL || '' }))"
+        && npm install
+        && npm start
     depends_on:
       pocketbase:
         condition: service_healthy
