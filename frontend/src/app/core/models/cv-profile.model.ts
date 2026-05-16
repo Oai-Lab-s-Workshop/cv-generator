@@ -6,6 +6,7 @@ export type CvProfileExtraByTemplate = Record<string, Record<string, CvProfileEx
 export interface CvProfile {
   id: string;
   slug: string;
+  label?: string;
   profileName: string;
   template?: string;
   public?: boolean;

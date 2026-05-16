@@ -36,10 +36,6 @@
           <span class="home-navbar__action-label">Bug</span>
         </a>
       }
-      <button class="home-navbar__action" type="button" (click)="toggleTheme()" aria-label="Basculer le theme">
-        <i class="bi" [class.bi-sun]="themeService.currentTheme() === 'dark'" [class.bi-moon-fill]="themeService.currentTheme() === 'light'" [class.bi-circle-half]="themeService.currentTheme() === 'system'" aria-hidden="true"></i>
-        <span class="home-navbar__action-label">{{ themeService.currentTheme() === 'dark' ? 'Clair' : themeService.currentTheme() === 'light' ? 'Sombre' : 'Auto' }}</span>
-      </button>
       <button class="home-navbar__action home-navbar__action--logout" type="button" aria-label="Se deconnecter" (click)="logout()">
         <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
         <span class="home-navbar__action-label">Sortir</span>
@@ -88,7 +84,12 @@
     <div class="cta-panel__form">
 
       <label class="field field--name">
-        <span>Nom du profil</span>
+        <span>Label (admin)</span>
+        <input [ngModel]="newProfileLabel()" (ngModelChange)="newProfileLabel.set($event)" type="text" placeholder="Ex. Profil senior 2026" />
+      </label>
+
+      <label class="field field--name">
+        <span>Nom du profil (CV)</span>
         <input [ngModel]="newProfileName()" (ngModelChange)="newProfileName.set($event)" type="text" placeholder="Ex. Developpeur frontend senior" />
       </label>
 
@@ -145,8 +146,8 @@
             @for (profile of profiles(); track profile.id) {
               <article class="profile-row" role="row">
                 <div class="profile-cell profile-cell--main" role="cell" data-label="Profil">
-                  <h3>{{ profile.profileName }}</h3>
-                  <p>{{ getTemplateLabel(profile.template) }}</p>
+                  <h3>{{ profile.label || profile.profileName }}</h3>
+                  <p>{{ profile.profileName }}</p>
                 </div>
 
                 <div class="profile-cell profile-cell--route" role="cell" data-label="Route">

@@ -34,7 +34,7 @@
 
     @if (data.profile.professionalSummary) {
       <section class="cv-section">
-        <h2>Profil</h2>
+        <h2>Profile</h2>
         <p [innerHTML]="data.profile.professionalSummary"></p>
       </section>
     }
@@ -80,7 +80,7 @@
 
     @if (data.projects.length > 0) {
       <section class="cv-section">
-        <h2>Derniers Projets</h2>
+        <h2>Selected Projects</h2>
         @for (project of data.projects; track project.id) {
           <article class="entry">
             <div class="entry__header">
@@ -99,7 +99,7 @@
 
     @if (data.skills.length > 0) {
       <section class="cv-section">
-        <h2>Compétences</h2>
+        <h2>Skills</h2>
         <p class="skill-list">
           @for (skill of data.skills; track skill.id; let last = $last) {
             {{ skill.name }}@if (!last) {, }

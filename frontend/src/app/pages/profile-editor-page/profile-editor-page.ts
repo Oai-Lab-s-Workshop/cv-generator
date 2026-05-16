@@ -84,7 +84,9 @@ export class ProfileEditorPage implements OnInit {
     this.successMessage.set(null);
 
     try {
+      const label = state.profile.label?.trim() || '';
       await this.pocketBaseService.updateCurrentUserCvProfile(state.profile.id, {
+        label,
         profileName,
         public: state.profile.public !== false,
         template: state.profile.template,

@@ -105,7 +105,7 @@ export class PocketBaseService {
 
   async getAllCvProfiles(): Promise<CvProfile[]> {
     const profiles = await this.pb.collection<CvProfile>('cv_profiles').getFullList({
-      sort: '+profileName',
+      sort: '+label',
       expand: 'user',
     });
 
@@ -117,7 +117,7 @@ export class PocketBaseService {
 
     const profiles = await this.pb.collection<CvProfile>('cv_profiles').getFullList({
       filter: `user="${currentUserId}"`,
-      sort: '+profileName',
+      sort: '+label',
       expand: 'user',
     });
 
@@ -135,10 +135,15 @@ export class PocketBaseService {
     return this.normalizeCvProfile(profile);
   }
 
-  async createCurrentUserCvProfile(profileName: string, template: string): Promise<CvProfile> {
+  async createCurrentUserCvProfile(label: string, profileName: string, template: string): Promise<CvProfile> {
     const currentUserId = this.requireCurrentUserId();
+    const trimmedLabel = label.trim();
     const trimmedProfileName = profileName.trim();
     const trimmedTemplate = template.trim();
+
+    if (!trimmedLabel) {
+      throw new Error('Le label est obligatoire.');
+    }
 
     if (!trimmedProfileName) {
       throw new Error('Le nom du profil est obligatoire.');
@@ -151,6 +156,7 @@ export class PocketBaseService {
     const now = new Date();
     const created = await this.pb.collection<CvProfile>('cv_profiles').create({
       slug: `profil--${currentUserId}--${now.getTime()}`,
+      label: trimmedLabel,
       profileName: trimmedProfileName,
       template: trimmedTemplate,
       public: false,
@@ -194,7 +200,7 @@ export class PocketBaseService {
 
   async updateCurrentUserCvProfile(
     profileId: string,
-    payload: Partial<Pick<CvProfile, 'profileName' | 'public' | 'template' | 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies' | 'extra'>>,
+    payload: Partial<Pick<CvProfile, 'label' | 'profileName' | 'public' | 'template' | 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies' | 'extra'>>,
   ): Promise<CvProfile> {
     const profile = await this.getCurrentUserCvProfileById(profileId);
     const template = payload.template ?? profile.template ?? '';
