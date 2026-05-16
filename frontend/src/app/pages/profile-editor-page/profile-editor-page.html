@@ -1,51 +1,95 @@
-<main class="profile-editor-page">
-  <section class="profile-editor-page__hero">
-    <div>
-      <p class="profile-editor-page__eyebrow">Edition</p>
-      <h1>Gerer votre profil CV</h1>
-      <p>Cette page gere uniquement le profil CV, son template, sa visibilite et ses relations. Les contenus des jobs, projets, competences et autres donnees se modifient dans PocketBase.</p>
+<main class="material-page">
+  <nav class="home-navbar" aria-label="Navigation principale">
+    <a class="home-navbar__brand" routerLink="/home" aria-label="Accueil Resumate">
+      <span class="home-navbar__brand-mark" aria-hidden="true">
+        <i class="bi bi-file-earmark-person"></i>
+      </span>
+      <span class="home-navbar__brand-copy">
+        <strong>Resumate</strong>
+        <span>Console</span>
+      </span>
+    </a>
+
+    <div class="home-navbar__nav">
+      <a class="home-navbar__link" routerLink="/home" aria-label="Accueil">
+        <i class="bi bi-house" aria-hidden="true"></i>
+        <span>Accueil</span>
+      </a>
+      <a class="home-navbar__link" routerLink="/home/profile-material" aria-label="Informations">
+        <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+        <span>Informations</span>
+      </a>
+      <a class="home-navbar__link" routerLink="/home/templates" aria-label="Templates">
+        <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+        <span>Templates</span>
+      </a>
+      <a class="home-navbar__link" routerLink="/home/tokens" aria-label="Tokens MCP">
+        <i class="bi bi-key" aria-hidden="true"></i>
+        <span>Tokens MCP</span>
+      </a>
     </div>
 
-    <div class="profile-editor-page__hero-actions">
-      <a routerLink="/home" class="profile-editor-page__link">Retour a l'accueil</a>
-      @if (editorState()?.profile?.template && editorState()?.profile?.slug) {
-        <a [routerLink]="['/', editorState()!.profile.slug]" class="profile-editor-page__link profile-editor-page__link--primary">Voir le CV</a>
+    <div class="home-navbar__utilities">
+      @if (bugReportUrl()) {
+        <a class="home-navbar__action" [href]="bugReportUrl()" target="_blank" rel="noopener noreferrer" aria-label="Signaler un bug">
+          <i class="bi bi-bug" aria-hidden="true"></i>
+          <span class="home-navbar__action-label">Bug</span>
+        </a>
       }
+      <button class="home-navbar__action home-navbar__action--logout" type="button" aria-label="Se deconnecter" (click)="logout()">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span class="home-navbar__action-label">Sortir</span>
+      </button>
+    </div>
+  </nav>
+
+  <section class="material-hero">
+    <div>
+      <p class="eyebrow">Edition</p>
+      @if (editorState(); as state) {
+        <h1>{{ state.profile.label || state.profile.profileName }}</h1>
+      } @else {
+        <h1>Gerer votre profil CV</h1>
+      }
+      <p class="lede">Cette page compose un CV a partir de vos donnees reutilisables. Les experiences et competences se gerent dans l'espace informations, puis se selectionnent ici.</p>
     </div>
   </section>
 
   @if (isLoading()) {
-    <section class="editor-card">
+    <section class="state-card">
       <p>Chargement du profil...</p>
     </section>
   } @else if (errorMessage()) {
-    <section class="editor-card editor-card--error">
+    <section class="state-card state-card--error">
       <h2>Impossible de charger ce profil</h2>
       <p>{{ errorMessage() }}</p>
     </section>
   } @else if (editorState(); as state) {
     @if (successMessage()) {
-      <section class="editor-card editor-card--success">
+      <section class="state-card state-card--success">
         <p>{{ successMessage() }}</p>
       </section>
     }
 
-    <section class="editor-card editor-card--form">
-      <div class="editor-card__header">
+    <section class="material-card">
+      <div class="material-card__header">
         <div>
-          <p class="editor-card__eyebrow">Profil</p>
-          <h2>{{ state.profile.profileName }}</h2>
+          <p class="eyebrow">Profil CV</p>
+          <h2>{{ state.profile.label || state.profile.profileName }}</h2>
         </div>
-
-        <button class="editor-save" type="button" [disabled]="isSaving()" (click)="save()">
-          {{ isSaving() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
-        </button>
       </div>
 
       <div class="editor-grid">
         <label class="editor-field">
-          <span>Nom du profil</span>
+          <span>Label (admin)</span>
+          <input [(ngModel)]="state.profile.label" name="label" type="text" />
+          <small>Identifiant interne pour l'administration.</small>
+        </label>
+
+        <label class="editor-field">
+          <span>Nom du profil (CV)</span>
           <input [(ngModel)]="state.profile.profileName" name="profileName" type="text" />
+          <small>Nom affiche sur le CV imprime.</small>
         </label>
 
         <label class="editor-field">
@@ -79,13 +123,23 @@
           <input type="file" accept="image/*" (change)="onCoverPictureSelected($event)" />
         </div>
       </div>
+
+      <div class="form-actions">
+        <button class="primary-button" type="button" [disabled]="isSaving()" (click)="save()">
+          {{ isSaving() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+        </button>
+        <a routerLink="/home" class="text-link">Retour a l'accueil</a>
+        @if (state.profile.template && state.profile.slug) {
+          <a [routerLink]="['/', state.profile.slug]" class="text-link">Voir le CV</a>
+        }
+      </div>
     </section>
 
     @if (getSelectedTemplateExtraSchema(state).length > 0) {
-      <section class="editor-card">
-        <div class="editor-card__header">
+      <section class="material-card">
+        <div class="material-card__header">
           <div>
-            <p class="editor-card__eyebrow">Template</p>
+            <p class="eyebrow">Template</p>
             <h2>Donnees specifiques</h2>
           </div>
         </div>
@@ -186,11 +240,12 @@
       </section>
     }
 
-    <section class="editor-card">
-      <div class="editor-card__header">
+    <section class="material-card">
+      <div class="material-card__header">
         <div>
-          <p class="editor-card__eyebrow">Relations</p>
+          <p class="eyebrow">Relations</p>
           <h2>Jobs</h2>
+          <p class="relation-helper">Selectionnez les experiences existantes a inclure dans ce CV.</p>
         </div>
       </div>
 
@@ -198,7 +253,7 @@
         <section class="relation-column">
           <h3>Lies au profil</h3>
           @if (getLinkedJobs(state).length === 0) {
-            <p class="relation-empty">Aucun job lie.</p>
+            <p class="relation-empty">Aucun job lie. Ajoutez vos experiences dans <a routerLink="/home/profile-material">mes informations</a>, puis revenez les selectionner ici.</p>
           } @else {
             @for (job of getLinkedJobs(state); track job.id) {
               <article class="relation-card">
@@ -215,7 +270,7 @@
         <section class="relation-column">
           <h3>Disponibles</h3>
           @if (getAvailableJobs(state).length === 0) {
-            <p class="relation-empty">Aucun job disponible.</p>
+            <p class="relation-empty">Aucun job disponible. <a routerLink="/home/profile-material">Gerer mes experiences</a>.</p>
           } @else {
             @for (job of getAvailableJobs(state); track job.id) {
               <article class="relation-card">
@@ -231,10 +286,10 @@
       </div>
     </section>
 
-    <section class="editor-card">
-      <div class="editor-card__header">
+    <section class="material-card">
+      <div class="material-card__header">
         <div>
-          <p class="editor-card__eyebrow">Relations</p>
+          <p class="eyebrow">Relations</p>
           <h2>Projets</h2>
         </div>
       </div>
@@ -276,11 +331,12 @@
       </div>
     </section>
 
-    <section class="editor-card">
-      <div class="editor-card__header">
+    <section class="material-card">
+      <div class="material-card__header">
         <div>
-          <p class="editor-card__eyebrow">Relations</p>
+          <p class="eyebrow">Relations</p>
           <h2>Competences</h2>
+          <p class="relation-helper">Selectionnez les competences existantes a afficher dans ce CV.</p>
         </div>
       </div>
 
@@ -288,7 +344,7 @@
         <section class="relation-column">
           <h3>Lies au profil</h3>
           @if (getLinkedSkills(state).length === 0) {
-            <p class="relation-empty">Aucune competence liee.</p>
+            <p class="relation-empty">Aucune competence liee. Ajoutez vos competences dans <a routerLink="/home/profile-material">mes informations</a>, puis revenez les selectionner ici.</p>
           } @else {
             @for (skill of getLinkedSkills(state); track skill.id) {
               <article class="relation-card">
@@ -305,7 +361,7 @@
         <section class="relation-column">
           <h3>Disponibles</h3>
           @if (getAvailableSkills(state).length === 0) {
-            <p class="relation-empty">Aucune competence disponible.</p>
+            <p class="relation-empty">Aucune competence disponible. <a routerLink="/home/profile-material">Gerer mes competences</a>.</p>
           } @else {
             @for (skill of getAvailableSkills(state); track skill.id) {
               <article class="relation-card">
@@ -321,10 +377,10 @@
       </div>
     </section>
 
-    <section class="editor-card">
-      <div class="editor-card__header">
+    <section class="material-card">
+      <div class="material-card__header">
         <div>
-          <p class="editor-card__eyebrow">Relations</p>
+          <p class="eyebrow">Relations</p>
           <h2>Diplomes</h2>
         </div>
       </div>
@@ -366,10 +422,10 @@
       </div>
     </section>
 
-    <section class="editor-card">
-      <div class="editor-card__header">
+    <section class="material-card">
+      <div class="material-card__header">
         <div>
-          <p class="editor-card__eyebrow">Relations</p>
+          <p class="eyebrow">Relations</p>
           <h2>Realisations</h2>
         </div>
       </div>
@@ -411,10 +467,10 @@
       </div>
     </section>
 
-    <section class="editor-card">
-      <div class="editor-card__header">
+    <section class="material-card">
+      <div class="material-card__header">
         <div>
-          <p class="editor-card__eyebrow">Relations</p>
+          <p class="eyebrow">Relations</p>
           <h2>Loisirs</h2>
         </div>
       </div>
