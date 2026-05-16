@@ -48,6 +48,14 @@ Date: 2026-05-16
 - `npm run build` in `frontend`: passes after the dark-mode visibility fix.
 - `npm test -- --runInBand` in `frontend`: still fails only on the same pre-existing `cv-shell-page.spec.ts` preview/print admin bar expectations recorded at baseline.
 
+## Rich Responsibilities Editing
+
+- Replaced the plain responsibilities textarea with a lightweight native rich-text editor that stores HTML in the existing `jobs.responsibilities` field.
+- Added toolbar actions for bold, italic, unordered list, ordered list, and clearing formatting.
+- Empty editor markup is normalized to an empty value before saving.
+- `npm run build` in `frontend`: passes after the rich editor change.
+- `npm test -- --runInBand` in `frontend`: still fails only on the same pre-existing `cv-shell-page.spec.ts` preview/print admin bar expectations recorded at baseline.
+
 ## Implementation Constraint
 
 - Remove the draft concept without deleting legacy no-template profile records automatically.
