@@ -68,7 +68,7 @@ export class ProfileMaterialPage implements OnInit {
       sortOrder: job.sortOrder ?? null,
       type: job.type,
     });
-    this.scrollToForm(this.jobFormSection(), 'input[name="job-label"]');
+    this.scrollToFormAfterRender(this.jobFormSection(), 'input[name="job-label"]');
   }
 
   resetJobForm(): void {
@@ -128,7 +128,7 @@ export class ProfileMaterialPage implements OnInit {
       level: skill.level ?? null,
       sortOrder: skill.sortOrder ?? null,
     });
-    this.scrollToForm(this.skillFormSection(), 'input[name="skill-name"]');
+    this.scrollToFormAfterRender(this.skillFormSection(), 'input[name="skill-name"]');
   }
 
   resetSkillForm(): void {
@@ -200,14 +200,16 @@ export class ProfileMaterialPage implements OnInit {
     }
   }
 
-  private scrollToForm(section: ElementRef<HTMLElement> | undefined, focusSelector: string): void {
+  private scrollToFormAfterRender(section: ElementRef<HTMLElement> | undefined, focusSelector: string): void {
     if (!section) {
       return;
     }
 
-    section.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    window.setTimeout(() => {
-      section.nativeElement.querySelector<HTMLElement>(focusSelector)?.focus({ preventScroll: true });
-    }, 250);
+    window.requestAnimationFrame(() => {
+      section.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.requestAnimationFrame(() => {
+        section.nativeElement.querySelector<HTMLElement>(focusSelector)?.focus({ preventScroll: true });
+      });
+    });
   }
 }
