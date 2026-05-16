@@ -1,27 +1,58 @@
 <main class="home-page">
-  <section class="hero hero--split">
-    <div>
+  <section class="home-header">
+    <div class="home-header__copy">
       <p class="eyebrow">Administration</p>
       <h1>{{ currentUserName() }}</h1>
-      <p class="lede">Renseignez vos informations une fois, puis composez autant de profils CV que necessaire avec ces contenus reutilisables.</p>
+      <p class="lede">Console de gestion des CV, routes publiques, templates et acces MCP.</p>
     </div>
 
-    <div class="hero__actions">
+    <div class="home-header__actions">
       @if (bugReportUrl()) {
-        <a class="secondary-button hero__link" [href]="bugReportUrl()" target="_blank" rel="noopener noreferrer">Signaler un bug</a>
+        <a class="secondary-button" [href]="bugReportUrl()" target="_blank" rel="noopener noreferrer">Signaler un bug</a>
       }
       <button class="secondary-button" type="button" (click)="logout()">Se deconnecter</button>
     </div>
   </section>
 
-  <section class="quick-actions">
-    <div class="quick-actions__create">
-      <label class="quick-actions__field">
+  <section class="insight-grid" aria-label="Synthese de l'administration">
+    <article class="insight-card">
+      <p class="insight-card__label">Profils CV</p>
+      <strong>{{ totalProfileCount() }}</strong>
+      <span>{{ privateProfileCount() }} prives</span>
+    </article>
+
+    <article class="insight-card insight-card--live">
+      <p class="insight-card__label">CV publics</p>
+      <strong>{{ publicProfileCount() }}</strong>
+      <span>routes en ligne</span>
+    </article>
+
+    <article class="insight-card">
+      <p class="insight-card__label">Acces MCP</p>
+      <strong>{{ isLoadingAiTokens() ? '...' : activeAiTokenCount() }}</strong>
+      <span>cles actives</span>
+    </article>
+
+    <article class="insight-card">
+      <p class="insight-card__label">Templates</p>
+      <strong>{{ templateCount() }}</strong>
+      <span>modeles disponibles</span>
+    </article>
+  </section>
+
+  <section class="command-panel" aria-label="Creation et raccourcis">
+    <div class="command-panel__form">
+      <div class="command-panel__heading">
+        <p class="eyebrow">Nouveau profil</p>
+        <h2>Creer un CV</h2>
+      </div>
+
+      <label class="field field--name">
         <span>Nom du profil</span>
         <input [ngModel]="newProfileName()" (ngModelChange)="newProfileName.set($event)" type="text" placeholder="Ex. Developpeur frontend senior" />
       </label>
 
-      <label class="quick-actions__field">
+      <label class="field">
         <span>Template</span>
         <select [ngModel]="newProfileTemplate()" (ngModelChange)="newProfileTemplate.set($event)">
           @for (template of templateOptions; track template.id) {
@@ -30,14 +61,16 @@
         </select>
       </label>
 
-      <button class="primary-button quick-actions__button" type="button" [disabled]="isCreating()" (click)="createProfile()">
-        {{ isCreating() ? 'Creation...' : 'Creer un nouveau profil CV' }}
+      <button class="primary-button command-panel__button" type="button" [disabled]="isCreating()" (click)="createProfile()">
+        {{ isCreating() ? 'Creation...' : 'Creer' }}
       </button>
     </div>
 
-    <a class="secondary-button quick-actions__link" routerLink="/home/templates">Previsualiser tous les templates</a>
-    <a class="secondary-button quick-actions__link" routerLink="/home/profile-material">Gerer mes informations</a>
-    <a class="secondary-button quick-actions__link" routerLink="/home/tokens">Gerer les tokens MCP</a>
+    <nav class="shortcut-list" aria-label="Raccourcis d'administration">
+      <a class="shortcut-link" routerLink="/home/profile-material">Informations</a>
+      <a class="shortcut-link" routerLink="/home/templates">Templates</a>
+      <a class="shortcut-link" routerLink="/home/tokens">Tokens MCP</a>
+    </nav>
   </section>
 
   @if (isLoading()) {
@@ -50,63 +83,90 @@
       <p>{{ errorMessage() }}</p>
     </section>
   } @else {
-    <section class="section-header">
-      <h2>CV generes</h2>
-      <p>Profils CV avec leur template, leur route et leurs contenus.</p>
-    </section>
+    <section class="profiles-panel">
+      <div class="profiles-panel__header">
+        <div>
+          <p class="eyebrow">Profils</p>
+          <h2>CV generes</h2>
+        </div>
+        <p>Templates, visibilite et routes publiques.</p>
+      </div>
 
-    @if (profiles().length === 0) {
-      <section class="state-card">
-        <h2>Aucun CV genere pour le moment</h2>
-        <p>Creez un premier profil avec un template pour generer une route CV.</p>
-      </section>
-    } @else {
-      <section class="profile-grid">
-        @for (profile of profiles(); track profile.id) {
-          <article class="profile-card">
-            <p class="profile-card__template">{{ profile.template || 'Template requis' }}</p>
-            <h2>{{ profile.profileName }}</h2>
-            @if (profile.template) {
-              <p class="profile-card__slug">/{{ profile.slug }}</p>
-            } @else {
-              <p class="profile-card__slug">Profil historique sans template</p>
+      @if (profiles().length === 0) {
+        <section class="state-card state-card--empty">
+          <h2>Aucun CV genere pour le moment</h2>
+          <p>Creez un premier profil avec un template pour generer une route CV.</p>
+        </section>
+      } @else {
+        <div class="profile-table" role="table" aria-label="Profils CV generes">
+          <div class="profile-table__head" role="row">
+            <span role="columnheader">Profil</span>
+            <span role="columnheader">Route</span>
+            <span role="columnheader">Template</span>
+            <span role="columnheader">Visibilite</span>
+            <span role="columnheader">Actions</span>
+          </div>
+
+          <div class="profile-table__body">
+            @for (profile of profiles(); track profile.id) {
+              <article class="profile-row" role="row">
+                <div class="profile-cell profile-cell--main" role="cell" data-label="Profil">
+                  <h3>{{ profile.profileName }}</h3>
+                  <p>{{ getTemplateLabel(profile.template) }}</p>
+                </div>
+
+                <div class="profile-cell profile-cell--route" role="cell" data-label="Route">
+                  @if (profile.template) {
+                    <code>/{{ profile.slug }}</code>
+                  } @else {
+                    <span class="muted-text">Route non generee</span>
+                  }
+                </div>
+
+                <label class="profile-cell profile-cell--template field field--compact" role="cell" data-label="Template">
+                  <span class="sr-only">Template</span>
+                  <select
+                    [ngModel]="templateSelections()[profile.id]"
+                    (ngModelChange)="updateTemplateSelection(profile.id, $event)"
+                  >
+                    @for (template of templateOptions; track template.id) {
+                      <option [value]="template.id">{{ template.label }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="profile-cell visibility-control" role="cell" data-label="Visibilite">
+                  <span
+                    class="visibility-control__state"
+                    [class.visibility-control__state--live]="getVisibilityTone(profile) === 'live'"
+                    [class.visibility-control__state--private]="getVisibilityTone(profile) === 'private'"
+                    [class.visibility-control__state--missing]="getVisibilityTone(profile) === 'missing'"
+                  >
+                    <span class="visibility-control__dot" aria-hidden="true"></span>
+                    <span>{{ isSaving() === profile.id ? 'Enregistrement...' : getVisibilityLabel(profile) }}</span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    [checked]="publicSelections()[profile.id]"
+                    [disabled]="!profile.template || isSaving() === profile.id"
+                    (change)="togglePublic(profile, $any($event.target).checked)"
+                  />
+                </label>
+
+                <div class="profile-cell profile-actions" role="cell" data-label="Actions">
+                  <button class="ghost-button" type="button" [disabled]="isSaving() === profile.id" (click)="assignTemplate(profile)">
+                    {{ isSaving() === profile.id ? '...' : (profile.template ? 'Sauver' : 'Generer') }}
+                  </button>
+                  <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="text-link">Editer</a>
+                  @if (profile.template) {
+                    <a [routerLink]="['/', profile.slug]" class="text-link">Ouvrir</a>
+                  }
+                </div>
+              </article>
             }
-
-            <label class="form-row">
-              <span>Template</span>
-              <select
-                [ngModel]="templateSelections()[profile.id]"
-                (ngModelChange)="updateTemplateSelection(profile.id, $event)"
-              >
-                @for (template of templateOptions; track template.id) {
-                  <option [value]="template.id">{{ template.label }}</option>
-                }
-              </select>
-            </label>
-
-            <label class="toggle-row">
-              <span>Route publique</span>
-              <input
-                type="checkbox"
-                [checked]="publicSelections()[profile.id]"
-                [disabled]="isSaving() === profile.id"
-                (change)="togglePublic(profile, $any($event.target).checked)"
-              />
-            </label>
-
-            <button class="primary-button" type="button" [disabled]="isSaving() === profile.id" (click)="assignTemplate(profile)">
-              {{ isSaving() === profile.id ? 'Enregistrement...' : (profile.template ? 'Mettre a jour le template' : 'Generer le CV') }}
-            </button>
-
-            <div class="profile-card__actions">
-              <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="profile-card__link">Editer</a>
-              @if (profile.template) {
-                <a [routerLink]="['/', profile.slug]" class="profile-card__link">Ouvrir le CV</a>
-              }
-            </div>
-          </article>
-        }
-      </section>
-    }
+          </div>
+        </div>
+      }
+    </section>
   }
 </main>
