@@ -195,6 +195,69 @@
         </div>
       </div>
 
+      <div class="inline-editor">
+        <h3>{{ jobForm().id ? 'Modifier une experience' : 'Ajouter une experience' }}</h3>
+        <div class="editor-grid">
+          <label class="editor-field">
+            <span>Label</span>
+            <input [ngModel]="jobForm().label" (ngModelChange)="jobForm.update(form => ({ ...form, label: $event }))" name="job-label" type="text" />
+          </label>
+
+          <label class="editor-field">
+            <span>Entreprise</span>
+            <input [ngModel]="jobForm().company" (ngModelChange)="jobForm.update(form => ({ ...form, company: $event }))" name="job-company" type="text" />
+          </label>
+
+          <label class="editor-field">
+            <span>Poste</span>
+            <input [ngModel]="jobForm().position" (ngModelChange)="jobForm.update(form => ({ ...form, position: $event }))" name="job-position" type="text" />
+          </label>
+
+          <label class="editor-field">
+            <span>Lieu</span>
+            <input [ngModel]="jobForm().location" (ngModelChange)="jobForm.update(form => ({ ...form, location: $event }))" name="job-location" type="text" />
+          </label>
+
+          <label class="editor-field">
+            <span>Date de debut</span>
+            <input [ngModel]="jobForm().startDate" (ngModelChange)="jobForm.update(form => ({ ...form, startDate: $event }))" name="job-start-date" type="date" />
+          </label>
+
+          <label class="editor-field">
+            <span>Date de fin</span>
+            <input [ngModel]="jobForm().endDate" (ngModelChange)="jobForm.update(form => ({ ...form, endDate: $event }))" name="job-end-date" type="date" />
+          </label>
+
+          <label class="editor-field">
+            <span>Type</span>
+            <select [ngModel]="jobForm().type" (ngModelChange)="jobForm.update(form => ({ ...form, type: $event }))" name="job-type">
+              <option value="work project">Work project</option>
+              <option value="freelance">Freelance</option>
+              <option value="sideproject">Side project</option>
+            </select>
+          </label>
+
+          <label class="editor-field">
+            <span>Ordre</span>
+            <input [ngModel]="jobForm().sortOrder" (ngModelChange)="setJobSortOrder($event)" name="job-sort-order" type="number" />
+          </label>
+
+          <label class="editor-field editor-field--full">
+            <span>Responsabilites</span>
+            <textarea [ngModel]="jobForm().responsibilities" (ngModelChange)="jobForm.update(form => ({ ...form, responsibilities: $event }))" name="job-responsibilities" rows="4"></textarea>
+          </label>
+        </div>
+
+        <div class="inline-editor__actions">
+          <button type="button" class="relation-action" [disabled]="isSavingJob()" (click)="saveJob()">
+            {{ isSavingJob() ? 'Enregistrement...' : (jobForm().id ? 'Mettre a jour' : 'Ajouter et lier') }}
+          </button>
+          @if (jobForm().id) {
+            <button type="button" class="relation-action relation-action--secondary" [disabled]="isSavingJob()" (click)="resetJobForm()">Annuler</button>
+          }
+        </div>
+      </div>
+
       <div class="relation-grid">
         <section class="relation-column">
           <h3>Lies au profil</h3>
@@ -207,7 +270,10 @@
                   <h4>{{ job.company }}</h4>
                   <p>{{ job.position }}</p>
                 </div>
-                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('jobs', job.id)">Retirer</button>
+                <div class="relation-card__actions">
+                  <button type="button" class="relation-action" (click)="editJob(job)">Modifier</button>
+                  <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('jobs', job.id)">Retirer</button>
+                </div>
               </article>
             }
           }
@@ -224,7 +290,10 @@
                   <h4>{{ job.company }}</h4>
                   <p>{{ job.position }}</p>
                 </div>
-                <button type="button" class="relation-action" (click)="addRelation('jobs', job.id)">Ajouter</button>
+                <div class="relation-card__actions">
+                  <button type="button" class="relation-action" (click)="editJob(job)">Modifier</button>
+                  <button type="button" class="relation-action" (click)="addRelation('jobs', job.id)">Ajouter</button>
+                </div>
               </article>
             }
           }
