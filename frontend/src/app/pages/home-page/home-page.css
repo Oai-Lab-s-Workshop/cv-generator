@@ -648,12 +648,19 @@ h3 {
 
   .home-navbar {
     top: 0.5rem;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     border-radius: 1rem;
   }
 
-  .home-navbar__brand-copy span {
+  .home-navbar__brand-copy,
+  .home-navbar__link span,
+  .home-navbar__action-label {
     display: none;
+  }
+
+  .home-navbar__nav {
+    grid-column: auto;
+    justify-content: center;
   }
 
   .cta-panel__button {
@@ -664,15 +671,12 @@ h3 {
     gap: 0.3rem;
   }
 
+  .home-navbar__link,
   .home-navbar__action {
     width: 2.35rem;
     min-width: 2.35rem;
     padding-inline: 0;
     justify-content: center;
-  }
-
-  .home-navbar__action-label {
-    display: none;
   }
 
   .insight-grid {

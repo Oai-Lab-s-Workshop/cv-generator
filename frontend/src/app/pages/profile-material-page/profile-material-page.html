@@ -1,12 +1,72 @@
 <main class="material-page">
+  <nav class="home-navbar" aria-label="Navigation principale">
+    <a class="home-navbar__brand" routerLink="/home" aria-label="Accueil Resumate">
+      <span class="home-navbar__brand-mark" aria-hidden="true">
+        <i class="bi bi-file-earmark-person"></i>
+      </span>
+      <span class="home-navbar__brand-copy">
+        <strong>Resumate</strong>
+        <span>Console</span>
+      </span>
+    </a>
+
+    <div class="home-navbar__nav">
+      <a class="home-navbar__link" routerLink="/home" aria-label="Accueil">
+        <i class="bi bi-house" aria-hidden="true"></i>
+        <span>Accueil</span>
+      </a>
+      <a class="home-navbar__link home-navbar__link--active" routerLink="/home/profile-material" aria-current="page" aria-label="Informations">
+        <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+        <span>Informations</span>
+      </a>
+      <a class="home-navbar__link" routerLink="/home/templates" aria-label="Templates">
+        <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+        <span>Templates</span>
+      </a>
+      <a class="home-navbar__link" routerLink="/home/tokens" aria-label="Tokens MCP">
+        <i class="bi bi-key" aria-hidden="true"></i>
+        <span>Tokens MCP</span>
+      </a>
+    </div>
+
+    <div class="home-navbar__utilities">
+      @if (bugReportUrl()) {
+        <a class="home-navbar__action" [href]="bugReportUrl()" target="_blank" rel="noopener noreferrer" aria-label="Signaler un bug">
+          <i class="bi bi-bug" aria-hidden="true"></i>
+          <span class="home-navbar__action-label">Bug</span>
+        </a>
+      }
+      <button class="home-navbar__action home-navbar__action--logout" type="button" aria-label="Se deconnecter" (click)="logout()">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span class="home-navbar__action-label">Sortir</span>
+      </button>
+    </div>
+  </nav>
+
   <section class="material-hero">
     <div>
       <p class="eyebrow">Donnees reutilisables</p>
-      <h1>Gerer mes informations</h1>
-      <p class="lede">Renseignez vos experiences et competences une seule fois. Chaque profil CV peut ensuite reutiliser une selection differente de ces informations.</p>
+      <h1>{{ currentUserName() }}</h1>
+      <p class="lede">Gerez toutes les informations que vos CV peuvent reutiliser: experiences, projets, competences, realisations, diplomes, loisirs et assets.</p>
     </div>
+  </section>
 
-    <a routerLink="/home" class="secondary-link">Retour a l'accueil</a>
+  <section class="insight-grid" aria-label="Synthese des informations">
+    <article class="insight-card insight-card--live">
+      <p class="insight-card__label">Elements</p>
+      <strong>{{ totalMaterialCount() }}</strong>
+      <span>donnees enregistrees</span>
+    </article>
+    <article class="insight-card">
+      <p class="insight-card__label">Projets</p>
+      <strong>{{ projects().length }}</strong>
+      <span>{{ achievements().length }} realisations</span>
+    </article>
+    <article class="insight-card">
+      <p class="insight-card__label">Assets</p>
+      <strong>{{ assets().length }}</strong>
+      <span>fichiers reutilisables</span>
+    </article>
   </section>
 
   @if (successMessage()) {
@@ -26,12 +86,13 @@
       <p>Chargement de vos informations...</p>
     </section>
   } @else {
-    <section class="material-card" #jobFormSection>
+    <section class="material-card" id="jobs-section">
       <div class="material-card__header">
         <div>
           <p class="eyebrow">Experiences</p>
           <h2>{{ jobForm().id ? 'Modifier une experience' : 'Ajouter une experience' }}</h2>
         </div>
+        <span class="count-pill">{{ jobs().length }} elements</span>
       </div>
 
       <div class="editor-grid">
@@ -39,32 +100,26 @@
           <span>Label</span>
           <input [value]="jobForm().label" (input)="setJobFormValue('label', $any($event.target).value)" name="job-label" type="text" />
         </label>
-
         <label class="editor-field">
           <span>Entreprise</span>
           <input [value]="jobForm().company" (input)="setJobFormValue('company', $any($event.target).value)" name="job-company" type="text" />
         </label>
-
         <label class="editor-field">
           <span>Poste</span>
           <input [value]="jobForm().position" (input)="setJobFormValue('position', $any($event.target).value)" name="job-position" type="text" />
         </label>
-
         <label class="editor-field">
           <span>Lieu</span>
           <input [value]="jobForm().location" (input)="setJobFormValue('location', $any($event.target).value)" name="job-location" type="text" />
         </label>
-
         <label class="editor-field">
           <span>Date de debut</span>
           <input [value]="jobForm().startDate" (input)="setJobFormValue('startDate', $any($event.target).value)" name="job-start-date" type="date" />
         </label>
-
         <label class="editor-field">
           <span>Date de fin</span>
           <input [value]="jobForm().endDate" (input)="setJobFormValue('endDate', $any($event.target).value)" name="job-end-date" type="date" />
         </label>
-
         <label class="editor-field">
           <span>Type</span>
           <select [value]="jobForm().type" (change)="setJobFormValue('type', $any($event.target).value)" name="job-type">
@@ -73,12 +128,10 @@
             <option value="sideproject">Side project</option>
           </select>
         </label>
-
         <label class="editor-field">
           <span>Ordre</span>
           <input [value]="jobForm().sortOrder ?? ''" (input)="setJobSortOrder($any($event.target).value)" name="job-sort-order" type="number" />
         </label>
-
         <div class="editor-field editor-field--full">
           <span>Responsabilites</span>
           <div class="rich-editor-toolbar" aria-label="Mise en forme des responsabilites">
@@ -88,42 +141,29 @@
             <button type="button" class="rich-editor-button" (click)="formatResponsibilities('insertOrderedList')">Liste numerotee</button>
             <button type="button" class="rich-editor-button" (click)="formatResponsibilities('removeFormat')">Nettoyer</button>
           </div>
-          <div
-            #responsibilitiesEditor
-            class="rich-editor-surface"
-            contenteditable="true"
-            role="textbox"
-            aria-multiline="true"
-            aria-label="Responsabilites"
-            (input)="syncResponsibilitiesFromEditor($event)"
-          ></div>
+          <div #responsibilitiesEditor class="rich-editor-surface" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Responsabilites" (input)="syncResponsibilitiesFromEditor($event)"></div>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="button" class="primary-button" [disabled]="isSavingJob()" (click)="saveJob()">
-          {{ isSavingJob() ? 'Enregistrement...' : (jobForm().id ? 'Mettre a jour' : 'Ajouter') }}
-        </button>
+        <button type="button" class="primary-button" [disabled]="isSaving('jobs')" (click)="saveJob()">{{ isSaving('jobs') ? 'Enregistrement...' : (jobForm().id ? 'Mettre a jour' : 'Ajouter') }}</button>
         @if (jobForm().id) {
-          <button type="button" class="secondary-button" [disabled]="isSavingJob()" (click)="resetJobForm()">Annuler</button>
+          <button type="button" class="secondary-button" [disabled]="isSaving('jobs')" (click)="resetJobForm()">Annuler</button>
         }
       </div>
 
       <div class="material-list">
-        <h3>Experiences disponibles</h3>
         @if (jobs().length === 0) {
           <p class="empty-copy">Aucune experience enregistree.</p>
         } @else {
           @for (job of jobs(); track job.id) {
-            <article class="material-row" [class.material-row--editing]="jobForm().id === job.id" [attr.aria-current]="jobForm().id === job.id ? 'true' : null">
+            <article class="material-row" [class.material-row--editing]="jobForm().id === job.id">
               <div>
-                <h4>{{ job.company }}</h4>
+                <h3>{{ job.company }}</h3>
                 <p>{{ job.position }} · {{ job.label }}</p>
               </div>
               <div class="material-row__actions">
-                @if (jobForm().id === job.id) {
-                  <span class="editing-pill">En edition</span>
-                }
+                @if (jobForm().id === job.id) { <span class="editing-pill">En edition</span> }
                 <button type="button" class="row-action" (click)="editJob(job)">Modifier</button>
               </div>
             </article>
@@ -132,12 +172,111 @@
       </div>
     </section>
 
-    <section class="material-card" #skillFormSection>
+    <section class="material-card" id="projects-section">
+      <div class="material-card__header">
+        <div>
+          <p class="eyebrow">Projets</p>
+          <h2>{{ projectForm().id ? 'Modifier un projet' : 'Ajouter un projet' }}</h2>
+        </div>
+        <span class="count-pill">{{ projects().length }} elements</span>
+      </div>
+
+      <div class="editor-grid">
+        <label class="editor-field">
+          <span>Nom</span>
+          <input [value]="projectForm().name" (input)="setProjectFormValue('name', $any($event.target).value)" name="project-name" type="text" />
+        </label>
+        <label class="editor-field">
+          <span>URL</span>
+          <input [value]="projectForm().url" (input)="setProjectFormValue('url', $any($event.target).value)" name="project-url" type="url" />
+        </label>
+        <label class="editor-field">
+          <span>Date</span>
+          <input [value]="projectForm().date" (input)="setProjectFormValue('date', $any($event.target).value)" name="project-date" type="text" />
+        </label>
+        <label class="editor-field">
+          <span>Type</span>
+          <select [value]="projectForm().type" (change)="setProjectFormValue('type', $any($event.target).value)" name="project-type">
+            <option value="work project">Work project</option>
+            <option value="freelance">Freelance</option>
+            <option value="sideproject">Side project</option>
+          </select>
+        </label>
+        <label class="editor-field">
+          <span>Asset lie</span>
+          <select [value]="projectForm().file" (change)="setProjectFormValue('file', $any($event.target).value)" name="project-file">
+            <option value="">Aucun</option>
+            @for (asset of assets(); track asset.id) {
+              <option [value]="asset.id">{{ asset.name || asset.file }}</option>
+            }
+          </select>
+        </label>
+        <label class="editor-field">
+          <span>Image projet</span>
+          <input type="file" accept="image/*" (change)="onProjectPictureSelected($event)" />
+        </label>
+        <label class="editor-field">
+          <span>Ordre</span>
+          <input [value]="projectForm().sortOrder ?? ''" (input)="setProjectSortOrder($any($event.target).value)" name="project-sort-order" type="number" />
+        </label>
+        <label class="editor-field editor-field--full">
+          <span>Description</span>
+          <textarea [value]="projectForm().description" (input)="setProjectFormValue('description', $any($event.target).value)" name="project-description" rows="4"></textarea>
+        </label>
+        <div class="editor-field editor-field--full">
+          <span>Realisations liees</span>
+          <div class="check-grid">
+            @if (achievements().length === 0) {
+              <p class="empty-copy">Aucune realisation disponible.</p>
+            } @else {
+              @for (achievement of achievements(); track achievement.id) {
+                <label class="check-card">
+                  <input type="checkbox" [checked]="isProjectAchievementSelected(achievement.id)" (change)="toggleProjectAchievement(achievement.id, $any($event.target).checked)" />
+                  <span>{{ achievement.title }}</span>
+                </label>
+              }
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="primary-button" [disabled]="isSaving('projects')" (click)="saveProject()">{{ isSaving('projects') ? 'Enregistrement...' : (projectForm().id ? 'Mettre a jour' : 'Ajouter') }}</button>
+        @if (projectForm().id) {
+          <button type="button" class="secondary-button" [disabled]="isSaving('projects')" (click)="resetProjectForm()">Annuler</button>
+        }
+      </div>
+
+      <div class="material-list material-list--cards">
+        @if (projects().length === 0) {
+          <p class="empty-copy">Aucun projet enregistre.</p>
+        } @else {
+          @for (project of projects(); track project.id) {
+            <article class="material-row" [class.material-row--editing]="projectForm().id === project.id">
+              @if (project.picture) {
+                <img class="material-thumb" [src]="project.picture" [alt]="project.name" />
+              }
+              <div>
+                <h3>{{ project.name }}</h3>
+                <p>{{ project.type || 'Sans type' }} · {{ project.date || 'Sans date' }}</p>
+              </div>
+              <div class="material-row__actions">
+                @if (projectForm().id === project.id) { <span class="editing-pill">En edition</span> }
+                <button type="button" class="row-action" (click)="editProject(project)">Modifier</button>
+              </div>
+            </article>
+          }
+        }
+      </div>
+    </section>
+
+    <section class="material-card" id="skills-section">
       <div class="material-card__header">
         <div>
           <p class="eyebrow">Competences</p>
           <h2>{{ skillForm().id ? 'Modifier une competence' : 'Ajouter une competence' }}</h2>
         </div>
+        <span class="count-pill">{{ skills().length }} elements</span>
       </div>
 
       <div class="editor-grid">
@@ -145,7 +284,6 @@
           <span>Nom</span>
           <input [value]="skillForm().name" (input)="setSkillFormValue('name', $any($event.target).value)" name="skill-name" type="text" />
         </label>
-
         <label class="editor-field">
           <span>Categorie</span>
           <select [value]="skillForm().category" (change)="setSkillFormValue('category', $any($event.target).value)" name="skill-category">
@@ -160,7 +298,6 @@
             <option value="Project Management">Project Management</option>
           </select>
         </label>
-
         <label class="editor-field">
           <span>Type</span>
           <select [value]="skillForm().type" (change)="setSkillFormValue('type', $any($event.target).value)" name="skill-type">
@@ -170,12 +307,10 @@
             <option value="Software">Software</option>
           </select>
         </label>
-
         <label class="editor-field">
           <span>Niveau</span>
           <input [value]="skillForm().level ?? ''" (input)="setSkillLevel($any($event.target).value)" name="skill-level" type="number" min="0" max="100" />
         </label>
-
         <label class="editor-field">
           <span>Ordre</span>
           <input [value]="skillForm().sortOrder ?? ''" (input)="setSkillSortOrder($any($event.target).value)" name="skill-sort-order" type="number" />
@@ -183,35 +318,172 @@
       </div>
 
       <div class="form-actions">
-        <button type="button" class="primary-button" [disabled]="isSavingSkill()" (click)="saveSkill()">
-          {{ isSavingSkill() ? 'Enregistrement...' : (skillForm().id ? 'Mettre a jour' : 'Ajouter') }}
-        </button>
+        <button type="button" class="primary-button" [disabled]="isSaving('skills')" (click)="saveSkill()">{{ isSaving('skills') ? 'Enregistrement...' : (skillForm().id ? 'Mettre a jour' : 'Ajouter') }}</button>
         @if (skillForm().id) {
-          <button type="button" class="secondary-button" [disabled]="isSavingSkill()" (click)="resetSkillForm()">Annuler</button>
+          <button type="button" class="secondary-button" [disabled]="isSaving('skills')" (click)="resetSkillForm()">Annuler</button>
         }
       </div>
 
       <div class="material-list">
-        <h3>Competences disponibles</h3>
         @if (skills().length === 0) {
           <p class="empty-copy">Aucune competence enregistree.</p>
         } @else {
           @for (skill of skills(); track skill.id) {
-            <article class="material-row" [class.material-row--editing]="skillForm().id === skill.id" [attr.aria-current]="skillForm().id === skill.id ? 'true' : null">
+            <article class="material-row" [class.material-row--editing]="skillForm().id === skill.id">
               <div>
-                <h4>{{ skill.name }}</h4>
+                <h3>{{ skill.name }}</h3>
                 <p>{{ skill.type || skill.category || 'Sans type' }}</p>
               </div>
               <div class="material-row__actions">
-                @if (skillForm().id === skill.id) {
-                  <span class="editing-pill">En edition</span>
-                }
+                @if (skillForm().id === skill.id) { <span class="editing-pill">En edition</span> }
                 <button type="button" class="row-action" (click)="editSkill(skill)">Modifier</button>
               </div>
             </article>
           }
         }
       </div>
+    </section>
+
+    <section class="material-split">
+      <section class="material-card" id="achievements-section">
+        <div class="material-card__header">
+          <div>
+            <p class="eyebrow">Realisations</p>
+            <h2>{{ achievementForm().id ? 'Modifier' : 'Ajouter' }}</h2>
+          </div>
+          <span class="count-pill">{{ achievements().length }}</span>
+        </div>
+        <div class="editor-grid editor-grid--single">
+          <label class="editor-field">
+            <span>Titre</span>
+            <input [value]="achievementForm().title" (input)="setAchievementFormValue('title', $any($event.target).value)" name="achievement-title" type="text" />
+          </label>
+          <label class="editor-field">
+            <span>Description</span>
+            <textarea [value]="achievementForm().description" (input)="setAchievementFormValue('description', $any($event.target).value)" rows="4"></textarea>
+          </label>
+          <label class="editor-field">
+            <span>Ordre</span>
+            <input [value]="achievementForm().sortOrder ?? ''" (input)="setAchievementSortOrder($any($event.target).value)" type="number" />
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="primary-button" [disabled]="isSaving('achievements')" (click)="saveAchievement()">{{ achievementForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
+          @if (achievementForm().id) { <button type="button" class="secondary-button" (click)="resetAchievementForm()">Annuler</button> }
+        </div>
+        <div class="material-list">
+          @for (achievement of achievements(); track achievement.id) {
+            <article class="material-row" [class.material-row--editing]="achievementForm().id === achievement.id">
+              <div><h3>{{ achievement.title }}</h3><p>{{ achievement.description || 'Sans description' }}</p></div>
+              <button type="button" class="row-action" (click)="editAchievement(achievement)">Modifier</button>
+            </article>
+          } @empty {
+            <p class="empty-copy">Aucune realisation enregistree.</p>
+          }
+        </div>
+      </section>
+
+      <section class="material-card" id="degrees-section">
+        <div class="material-card__header">
+          <div>
+            <p class="eyebrow">Diplomes</p>
+            <h2>{{ degreeForm().id ? 'Modifier' : 'Ajouter' }}</h2>
+          </div>
+          <span class="count-pill">{{ degrees().length }}</span>
+        </div>
+        <div class="editor-grid editor-grid--single">
+          <label class="editor-field"><span>Titre</span><input [value]="degreeForm().title" (input)="setDegreeFormValue('title', $any($event.target).value)" name="degree-title" type="text" /></label>
+          <label class="editor-field"><span>Ecole</span><input [value]="degreeForm().school" (input)="setDegreeFormValue('school', $any($event.target).value)" type="text" /></label>
+          <label class="editor-field"><span>Annee</span><input [value]="degreeForm().year" (input)="setDegreeFormValue('year', $any($event.target).value)" type="text" /></label>
+          <label class="editor-field"><span>Niveau</span><input [value]="degreeForm().level" (input)="setDegreeFormValue('level', $any($event.target).value)" type="text" /></label>
+          <label class="editor-field"><span>Ordre</span><input [value]="degreeForm().sortOrder ?? ''" (input)="setDegreeSortOrder($any($event.target).value)" type="number" /></label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="primary-button" [disabled]="isSaving('degrees')" (click)="saveDegree()">{{ degreeForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
+          @if (degreeForm().id) { <button type="button" class="secondary-button" (click)="resetDegreeForm()">Annuler</button> }
+        </div>
+        <div class="material-list">
+          @for (degree of degrees(); track degree.id) {
+            <article class="material-row" [class.material-row--editing]="degreeForm().id === degree.id">
+              <div><h3>{{ degree.title }}</h3><p>{{ degree.school || 'Sans ecole' }} · {{ degree.year || 'Sans annee' }}</p></div>
+              <button type="button" class="row-action" (click)="editDegree(degree)">Modifier</button>
+            </article>
+          } @empty {
+            <p class="empty-copy">Aucun diplome enregistre.</p>
+          }
+        </div>
+      </section>
+    </section>
+
+    <section class="material-split">
+      <section class="material-card" id="hobbies-section">
+        <div class="material-card__header">
+          <div>
+            <p class="eyebrow">Loisirs</p>
+            <h2>{{ hobbyForm().id ? 'Modifier' : 'Ajouter' }}</h2>
+          </div>
+          <span class="count-pill">{{ hobbies().length }}</span>
+        </div>
+        <div class="editor-grid editor-grid--single">
+          <label class="editor-field"><span>Nom</span><input [value]="hobbyForm().name" (input)="setHobbyFormValue('name', $any($event.target).value)" name="hobby-name" type="text" /></label>
+          <label class="editor-field"><span>Description</span><textarea [value]="hobbyForm().description" (input)="setHobbyFormValue('description', $any($event.target).value)" rows="4"></textarea></label>
+          <label class="editor-field"><span>Ordre</span><input [value]="hobbyForm().sortOrder ?? ''" (input)="setHobbySortOrder($any($event.target).value)" type="number" /></label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="primary-button" [disabled]="isSaving('hobbies')" (click)="saveHobby()">{{ hobbyForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
+          @if (hobbyForm().id) { <button type="button" class="secondary-button" (click)="resetHobbyForm()">Annuler</button> }
+        </div>
+        <div class="material-list">
+          @for (hobby of hobbies(); track hobby.id) {
+            <article class="material-row" [class.material-row--editing]="hobbyForm().id === hobby.id">
+              <div><h3>{{ hobby.name }}</h3><p>{{ hobby.description || 'Sans description' }}</p></div>
+              <button type="button" class="row-action" (click)="editHobby(hobby)">Modifier</button>
+            </article>
+          } @empty {
+            <p class="empty-copy">Aucun loisir enregistre.</p>
+          }
+        </div>
+      </section>
+
+      <section class="material-card" id="assets-section">
+        <div class="material-card__header">
+          <div>
+            <p class="eyebrow">Assets</p>
+            <h2>{{ assetForm().id ? 'Modifier' : 'Ajouter' }}</h2>
+          </div>
+          <span class="count-pill">{{ assets().length }}</span>
+        </div>
+        <div class="editor-grid editor-grid--single">
+          <label class="editor-field"><span>Nom</span><input [value]="assetForm().name" (input)="setAssetFormValue('name', $any($event.target).value)" name="asset-name" type="text" /></label>
+          <label class="editor-field"><span>Texte alternatif</span><input [value]="assetForm().alt" (input)="setAssetFormValue('alt', $any($event.target).value)" type="text" /></label>
+          <label class="editor-field">
+            <span>Type</span>
+            <select [value]="assetForm().kind" (change)="setAssetFormValue('kind', $any($event.target).value)">
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+              <option value="document">Document</option>
+              <option value="other">Autre</option>
+            </select>
+          </label>
+          <label class="editor-field"><span>Fichier</span><input type="file" (change)="onAssetFileSelected($event)" /></label>
+          <label class="editor-field"><span>Ordre</span><input [value]="assetForm().sortOrder ?? ''" (input)="setAssetSortOrder($any($event.target).value)" type="number" /></label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="primary-button" [disabled]="isSaving('assets')" (click)="saveAsset()">{{ assetForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
+          @if (assetForm().id) { <button type="button" class="secondary-button" (click)="resetAssetForm()">Annuler</button> }
+        </div>
+        <div class="material-list">
+          @for (asset of assets(); track asset.id) {
+            <article class="material-row" [class.material-row--editing]="assetForm().id === asset.id">
+              @if (asset.kind === 'image') { <img class="material-thumb" [src]="asset.file" [alt]="asset.alt || asset.name || 'Asset'" /> }
+              <div><h3>{{ asset.name || 'Asset sans nom' }}</h3><p>{{ asset.kind || 'other' }} · {{ asset.alt || 'Sans alt' }}</p></div>
+              <button type="button" class="row-action" (click)="editAsset(asset)">Modifier</button>
+            </article>
+          } @empty {
+            <p class="empty-copy">Aucun asset enregistre.</p>
+          }
+        </div>
+      </section>
     </section>
   }
 </main>
