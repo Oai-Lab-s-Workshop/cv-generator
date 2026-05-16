@@ -94,6 +94,15 @@
   padding: 0.7rem 0.85rem;
   font: inherit;
   background: #fff;
+  color: #18202b;
+  caret-color: #0f3d8c;
+  color-scheme: light;
+}
+
+.editor-field input::placeholder,
+.editor-field textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
 }
 
 .form-actions {
