@@ -192,28 +192,11 @@
   border-top: 1px solid #e2e8f0;
 }
 
-.relation-card__actions,
-.inline-editor__actions {
+.relation-card__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: flex-end;
-}
-
-.inline-editor {
-  margin-top: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
-  padding: 1rem;
-  background: #f8fbff;
-}
-
-.inline-editor h3 {
-  margin: 0;
-}
-
-.inline-editor__actions {
-  margin-top: 0.75rem;
 }
 
 .relation-card:first-of-type {
@@ -247,16 +230,6 @@
 .relation-action--remove {
   background: #fee2e2;
   color: #b91c1c;
-}
-
-.relation-action--secondary {
-  background: #e2e8f0;
-  color: #1e293b;
-}
-
-.relation-action[disabled] {
-  opacity: 0.7;
-  cursor: wait;
 }
 
 @media (max-width: 720px) {
