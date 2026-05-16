@@ -8,7 +8,7 @@ import { Hobby } from '../../core/models/hobby.model';
 import { Job } from '../../core/models/job.model';
 import { Project } from '../../core/models/project.model';
 import { Skill } from '../../core/models/skill.model';
-import { CurrentUserCvProfileEditorData, PocketBaseService, SaveCurrentUserJobInput, SaveCurrentUserSkillInput } from '../../core/services/pocketbase.service';
+import { CurrentUserCvProfileEditorData, PocketBaseService, SaveCurrentUserSkillInput } from '../../core/services/pocketbase.service';
 import { CV_TEMPLATE_OPTIONS, CV_TEMPLATE_OPTIONS_BY_ID, CvTemplateExtraField, CvTemplateExtraFieldSource } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
 
@@ -25,20 +25,7 @@ type EditorState = {
   availableHobbies: Hobby[];
 };
 
-type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type SkillForm = Omit<SaveCurrentUserSkillInput, 'level' | 'sortOrder'> & { id?: string; level: number | null; sortOrder: number | null };
-
-const EMPTY_JOB_FORM: JobForm = {
-  label: '',
-  company: '',
-  position: '',
-  location: '',
-  startDate: '',
-  endDate: '',
-  responsibilities: '',
-  sortOrder: null,
-  type: 'work project',
-};
 
 const EMPTY_SKILL_FORM: SkillForm = {
   name: '',
@@ -69,9 +56,7 @@ export class ProfileEditorPage implements OnInit {
   readonly successMessage = signal<string | null>(null);
   readonly selectedProfilePicture = signal<File | null>(null);
   readonly selectedCoverPicture = signal<File | null>(null);
-  readonly jobForm = signal<JobForm>({ ...EMPTY_JOB_FORM });
   readonly skillForm = signal<SkillForm>({ ...EMPTY_SKILL_FORM });
-  readonly isSavingJob = signal(false);
   readonly isSavingSkill = signal(false);
 
   ngOnInit(): void {
@@ -177,96 +162,6 @@ export class ProfileEditorPage implements OnInit {
         },
       };
     });
-  }
-
-  editJob(job: Job): void {
-    this.jobForm.set({
-      id: job.id,
-      label: job.label,
-      company: job.company,
-      position: job.position,
-      location: job.location ?? '',
-      startDate: job.startDate?.slice(0, 10) ?? '',
-      endDate: job.endDate?.slice(0, 10) ?? '',
-      responsibilities: job.responsibilities ?? '',
-      sortOrder: job.sortOrder ?? null,
-      type: job.type,
-    });
-  }
-
-  resetJobForm(): void {
-    this.jobForm.set({ ...EMPTY_JOB_FORM });
-  }
-
-  setJobSortOrder(value: string | number | null): void {
-    const sortOrder = value === null || value === '' ? null : Number(value);
-    this.jobForm.update((form) => ({
-      ...form,
-      sortOrder: Number.isFinite(sortOrder) ? sortOrder : null,
-    }));
-  }
-
-  async saveJob(): Promise<void> {
-    const state = this.editorState();
-    const form = this.jobForm();
-
-    if (!state) {
-      return;
-    }
-
-    const input: SaveCurrentUserJobInput = {
-      label: form.label.trim(),
-      company: form.company.trim(),
-      position: form.position.trim(),
-      startDate: form.startDate,
-      type: form.type,
-      location: form.location?.trim() || undefined,
-      endDate: form.endDate || undefined,
-      responsibilities: form.responsibilities?.trim() || undefined,
-      sortOrder: form.sortOrder ?? undefined,
-    };
-
-    if (!input.label || !input.company || !input.position || !input.startDate || !input.type) {
-      this.errorMessage.set('Label, entreprise, poste, date de debut et type sont obligatoires pour une experience.');
-      return;
-    }
-
-    this.isSavingJob.set(true);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
-
-    try {
-      const savedJob = form.id
-        ? await this.pocketBaseService.updateCurrentUserJob(form.id, input)
-        : await this.pocketBaseService.createCurrentUserJob(input);
-
-      this.editorState.update((current) => {
-        if (!current) {
-          return current;
-        }
-
-        const availableJobs = form.id
-          ? current.availableJobs.map((job) => (job.id === savedJob.id ? savedJob : job))
-          : [...current.availableJobs, savedJob];
-        const currentJobIds = current.profile.jobs ?? [];
-        const jobs = currentJobIds.includes(savedJob.id) ? currentJobIds : [...currentJobIds, savedJob.id];
-
-        return {
-          ...current,
-          availableJobs,
-          profile: {
-            ...current.profile,
-            jobs,
-          },
-        };
-      });
-      this.resetJobForm();
-      this.successMessage.set(form.id ? 'Experience mise a jour.' : 'Experience ajoutee au profil.');
-    } catch (error: unknown) {
-      this.errorMessage.set(getErrorMessage(error));
-    } finally {
-      this.isSavingJob.set(false);
-    }
   }
 
   editSkill(skill: Skill): void {
