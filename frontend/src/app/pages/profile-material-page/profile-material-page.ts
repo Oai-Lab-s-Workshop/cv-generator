@@ -108,7 +108,7 @@ export class ProfileMaterialPage implements OnInit {
       type: form.type,
       location: form.location?.trim() || undefined,
       endDate: form.endDate || undefined,
-      responsibilities: form.responsibilities?.trim() || undefined,
+      responsibilities: this.normalizeHtmlEditorValue(form.responsibilities),
       sortOrder: form.sortOrder ?? undefined,
     };
 
@@ -235,5 +235,20 @@ export class ProfileMaterialPage implements OnInit {
         editor.innerHTML = html;
       }
     });
+  }
+
+  private normalizeHtmlEditorValue(html: string | undefined): string | undefined {
+    const trimmedHtml = html?.trim() ?? '';
+
+    if (!trimmedHtml || trimmedHtml === '<br>') {
+      return undefined;
+    }
+
+    const container = document.createElement('div');
+    container.innerHTML = trimmedHtml;
+    const hasMediaOrStructure = !!container.querySelector('img,video,iframe,ul,ol,li,table,hr');
+    const text = container.textContent?.replace(/\u00a0/g, ' ').trim() ?? '';
+
+    return text || hasMediaOrStructure ? trimmedHtml : undefined;
   }
 }
