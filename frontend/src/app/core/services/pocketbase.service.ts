@@ -24,6 +24,11 @@ export interface CurrentUserCvProfileEditorData {
   availableHobbies: Hobby[];
 }
 
+export interface CurrentUserProfileMaterialData {
+  jobs: Job[];
+  skills: Skill[];
+}
+
 export type SaveCurrentUserJobInput = Pick<Job, 'label' | 'company' | 'position' | 'startDate' | 'type'> &
   Partial<Pick<Job, 'location' | 'endDate' | 'responsibilities' | 'sortOrder'>>;
 export type SaveCurrentUserSkillInput = Pick<Skill, 'name'> & Partial<Pick<Skill, 'category' | 'type' | 'level' | 'sortOrder'>>;
@@ -230,6 +235,15 @@ export class PocketBaseService {
       availableAchievements,
       availableHobbies,
     };
+  }
+
+  async getCurrentUserProfileMaterialData(): Promise<CurrentUserProfileMaterialData> {
+    const [jobs, skills] = await Promise.all([
+      this.getCurrentUserOwnedRecords<Job>('jobs', '+sortOrder,-startDate'),
+      this.getCurrentUserOwnedRecords<Skill>('skills', '+sortOrder,+name'),
+    ]);
+
+    return { jobs, skills };
   }
 
   async createCurrentUserJob(input: SaveCurrentUserJobInput): Promise<Job> {

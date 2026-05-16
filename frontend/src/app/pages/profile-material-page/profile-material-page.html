@@ -1,0 +1,192 @@
+<main class="material-page">
+  <section class="material-hero">
+    <div>
+      <p class="eyebrow">Donnees reutilisables</p>
+      <h1>Gerer mes informations</h1>
+      <p class="lede">Renseignez vos experiences et competences une seule fois, puis selectionnez-les dans chaque profil CV.</p>
+    </div>
+
+    <a routerLink="/home" class="secondary-link">Retour a l'accueil</a>
+  </section>
+
+  @if (successMessage()) {
+    <section class="state-card state-card--success">
+      <p>{{ successMessage() }}</p>
+    </section>
+  }
+
+  @if (errorMessage()) {
+    <section class="state-card state-card--error">
+      <p>{{ errorMessage() }}</p>
+    </section>
+  }
+
+  @if (isLoading()) {
+    <section class="state-card">
+      <p>Chargement de vos informations...</p>
+    </section>
+  } @else {
+    <section class="material-card">
+      <div class="material-card__header">
+        <div>
+          <p class="eyebrow">Experiences</p>
+          <h2>{{ jobForm().id ? 'Modifier une experience' : 'Ajouter une experience' }}</h2>
+        </div>
+      </div>
+
+      <div class="editor-grid">
+        <label class="editor-field">
+          <span>Label</span>
+          <input [ngModel]="jobForm().label" (ngModelChange)="jobForm.update(form => ({ ...form, label: $event }))" name="job-label" type="text" />
+        </label>
+
+        <label class="editor-field">
+          <span>Entreprise</span>
+          <input [ngModel]="jobForm().company" (ngModelChange)="jobForm.update(form => ({ ...form, company: $event }))" name="job-company" type="text" />
+        </label>
+
+        <label class="editor-field">
+          <span>Poste</span>
+          <input [ngModel]="jobForm().position" (ngModelChange)="jobForm.update(form => ({ ...form, position: $event }))" name="job-position" type="text" />
+        </label>
+
+        <label class="editor-field">
+          <span>Lieu</span>
+          <input [ngModel]="jobForm().location" (ngModelChange)="jobForm.update(form => ({ ...form, location: $event }))" name="job-location" type="text" />
+        </label>
+
+        <label class="editor-field">
+          <span>Date de debut</span>
+          <input [ngModel]="jobForm().startDate" (ngModelChange)="jobForm.update(form => ({ ...form, startDate: $event }))" name="job-start-date" type="date" />
+        </label>
+
+        <label class="editor-field">
+          <span>Date de fin</span>
+          <input [ngModel]="jobForm().endDate" (ngModelChange)="jobForm.update(form => ({ ...form, endDate: $event }))" name="job-end-date" type="date" />
+        </label>
+
+        <label class="editor-field">
+          <span>Type</span>
+          <select [ngModel]="jobForm().type" (ngModelChange)="jobForm.update(form => ({ ...form, type: $event }))" name="job-type">
+            <option value="work project">Work project</option>
+            <option value="freelance">Freelance</option>
+            <option value="sideproject">Side project</option>
+          </select>
+        </label>
+
+        <label class="editor-field">
+          <span>Ordre</span>
+          <input [ngModel]="jobForm().sortOrder" (ngModelChange)="setJobSortOrder($event)" name="job-sort-order" type="number" />
+        </label>
+
+        <label class="editor-field editor-field--full">
+          <span>Responsabilites</span>
+          <textarea [ngModel]="jobForm().responsibilities" (ngModelChange)="jobForm.update(form => ({ ...form, responsibilities: $event }))" name="job-responsibilities" rows="4"></textarea>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="primary-button" [disabled]="isSavingJob()" (click)="saveJob()">
+          {{ isSavingJob() ? 'Enregistrement...' : (jobForm().id ? 'Mettre a jour' : 'Ajouter') }}
+        </button>
+        @if (jobForm().id) {
+          <button type="button" class="secondary-button" [disabled]="isSavingJob()" (click)="resetJobForm()">Annuler</button>
+        }
+      </div>
+
+      <div class="material-list">
+        <h3>Experiences disponibles</h3>
+        @if (jobs().length === 0) {
+          <p class="empty-copy">Aucune experience enregistree.</p>
+        } @else {
+          @for (job of jobs(); track job.id) {
+            <article class="material-row">
+              <div>
+                <h4>{{ job.company }}</h4>
+                <p>{{ job.position }} · {{ job.label }}</p>
+              </div>
+              <button type="button" class="row-action" (click)="editJob(job)">Modifier</button>
+            </article>
+          }
+        }
+      </div>
+    </section>
+
+    <section class="material-card">
+      <div class="material-card__header">
+        <div>
+          <p class="eyebrow">Competences</p>
+          <h2>{{ skillForm().id ? 'Modifier une competence' : 'Ajouter une competence' }}</h2>
+        </div>
+      </div>
+
+      <div class="editor-grid">
+        <label class="editor-field">
+          <span>Nom</span>
+          <input [ngModel]="skillForm().name" (ngModelChange)="skillForm.update(form => ({ ...form, name: $event }))" name="skill-name" type="text" />
+        </label>
+
+        <label class="editor-field">
+          <span>Categorie</span>
+          <select [ngModel]="skillForm().category" (ngModelChange)="skillForm.update(form => ({ ...form, category: $event }))" name="skill-category">
+            <option value="">Non renseignee</option>
+            <option value="Frontend">Frontend</option>
+            <option value="Backend">Backend</option>
+            <option value="DevOps">DevOps</option>
+            <option value="E-commerce">E-commerce</option>
+            <option value="Design">Design</option>
+            <option value="Mobile">Mobile</option>
+            <option value="Motion">Motion</option>
+            <option value="Project Management">Project Management</option>
+          </select>
+        </label>
+
+        <label class="editor-field">
+          <span>Type</span>
+          <select [ngModel]="skillForm().type" (ngModelChange)="skillForm.update(form => ({ ...form, type: $event }))" name="skill-type">
+            <option value="Technical">Technical</option>
+            <option value="Professional">Professional</option>
+            <option value="Language">Language</option>
+            <option value="Software">Software</option>
+          </select>
+        </label>
+
+        <label class="editor-field">
+          <span>Niveau</span>
+          <input [ngModel]="skillForm().level" (ngModelChange)="setSkillLevel($event)" name="skill-level" type="number" min="0" max="100" />
+        </label>
+
+        <label class="editor-field">
+          <span>Ordre</span>
+          <input [ngModel]="skillForm().sortOrder" (ngModelChange)="setSkillSortOrder($event)" name="skill-sort-order" type="number" />
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="primary-button" [disabled]="isSavingSkill()" (click)="saveSkill()">
+          {{ isSavingSkill() ? 'Enregistrement...' : (skillForm().id ? 'Mettre a jour' : 'Ajouter') }}
+        </button>
+        @if (skillForm().id) {
+          <button type="button" class="secondary-button" [disabled]="isSavingSkill()" (click)="resetSkillForm()">Annuler</button>
+        }
+      </div>
+
+      <div class="material-list">
+        <h3>Competences disponibles</h3>
+        @if (skills().length === 0) {
+          <p class="empty-copy">Aucune competence enregistree.</p>
+        } @else {
+          @for (skill of skills(); track skill.id) {
+            <article class="material-row">
+              <div>
+                <h4>{{ skill.name }}</h4>
+                <p>{{ skill.type || skill.category || 'Sans type' }}</p>
+              </div>
+              <button type="button" class="row-action" (click)="editSkill(skill)">Modifier</button>
+            </article>
+          }
+        }
+      </div>
+    </section>
+  }
+</main>

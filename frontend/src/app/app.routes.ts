@@ -33,6 +33,11 @@ export const routes: Routes = [
       import('./pages/profile-editor-page/profile-editor-page').then((module) => module.ProfileEditorPage),
   },
   {
+    path: 'home/profile-material',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/profile-material-page/profile-material-page').then((module) => module.ProfileMaterialPage),
+  },
+  {
     path: 'home/tokens',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/token-management-page/token-management-page').then((module) => module.TokenManagementPage),
