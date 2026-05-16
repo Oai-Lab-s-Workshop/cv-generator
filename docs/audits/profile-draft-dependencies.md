@@ -41,6 +41,13 @@ Date: 2026-05-16
 - `npm run build` in `frontend`: passes after the prefill fix.
 - `npm test -- --runInBand` in `frontend`: still fails only on the same pre-existing `cv-shell-page.spec.ts` preview/print admin bar expectations recorded at baseline.
 
+## Material Dark-Mode Visibility Fix
+
+- Form controls now explicitly use dark text, a visible caret, readable placeholders, and `color-scheme: light` while keeping their white backgrounds.
+- Material cards, state cards, and highlighted edit rows now explicitly set readable text colors for dark-mode browsers.
+- `npm run build` in `frontend`: passes after the dark-mode visibility fix.
+- `npm test -- --runInBand` in `frontend`: still fails only on the same pre-existing `cv-shell-page.spec.ts` preview/print admin bar expectations recorded at baseline.
+
 ## Implementation Constraint
 
 - Remove the draft concept without deleting legacy no-template profile records automatically.
