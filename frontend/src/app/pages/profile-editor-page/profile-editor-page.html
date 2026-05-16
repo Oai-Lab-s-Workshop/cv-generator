@@ -44,9 +44,15 @@
 
       <div class="editor-grid">
         <label class="editor-field">
-          <span>Label / nom du profil</span>
+          <span>Label (admin)</span>
+          <input [(ngModel)]="state.profile.label" name="label" type="text" />
+          <small>Identifiant interne pour l'administration.</small>
+        </label>
+
+        <label class="editor-field">
+          <span>Nom du profil (CV)</span>
           <input [(ngModel)]="state.profile.profileName" name="profileName" type="text" />
-          <small>Ce label identifie le profil dans l'administration et les templates qui affichent le nom du profil CV.</small>
+          <small>Nom affiche sur le CV imprime.</small>
         </label>
 
         <label class="editor-field">

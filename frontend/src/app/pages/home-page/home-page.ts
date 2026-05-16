@@ -27,6 +27,7 @@ export class HomePage implements OnInit {
   readonly isLoading = signal(true);
   readonly isLoadingAiTokens = signal(true);
   readonly isCreating = signal(false);
+  readonly newProfileLabel = signal('');
   readonly newProfileName = signal('');
   readonly newProfileTemplate = signal(CV_TEMPLATE_OPTIONS[0]?.id || 'classic');
   readonly errorMessage = signal<string | null>(null);
@@ -156,7 +157,13 @@ export class HomePage implements OnInit {
   }
 
   async createProfile(): Promise<void> {
+    const label = this.newProfileLabel().trim();
     const profileName = this.newProfileName().trim();
+
+    if (!label) {
+      this.errorMessage.set('Le label est obligatoire.');
+      return;
+    }
 
     if (!profileName) {
       this.errorMessage.set('Le nom du profil est obligatoire.');
@@ -173,7 +180,8 @@ export class HomePage implements OnInit {
     this.errorMessage.set(null);
 
     try {
-      const profile = await this.pocketBaseService.createCurrentUserCvProfile(profileName, template);
+      const profile = await this.pocketBaseService.createCurrentUserCvProfile(label, profileName, template);
+      this.newProfileLabel.set('');
       this.newProfileName.set('');
       await this.router.navigate(['/home/profiles', profile.id, 'edit']);
     } catch (error: unknown) {

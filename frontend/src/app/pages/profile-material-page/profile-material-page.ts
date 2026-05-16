@@ -139,10 +139,6 @@ export class ProfileMaterialPage implements OnInit {
     void this.loadMaterial();
   }
 
-  toggleTheme(): void {
-    this.themeService.toggle();
-  }
-
   logout(): void {
     this.authService.logout();
     window.location.assign('/login');

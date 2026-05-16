@@ -3,7 +3,6 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { TemplatePreviewList } from '../../shared/components/template-preview-list/template-preview-list';
 import { environment } from '../../../environments/environment';
-import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-template-gallery-page',
@@ -21,15 +20,10 @@ export class TemplateGalleryPage {
     const user = this.currentUser();
     return user ? `${user.firstName} ${user.lastName}` : 'Utilisateur authentifie';
   });
-  readonly themeService = inject(ThemeService);
   readonly bugReportUrl = signal(environment.bugReportUrl);
 
   constructor() {
     void this.loadRuntimeConfig();
-  }
-
-  toggleTheme(): void {
-    this.themeService.toggle();
   }
 
   logout(): void {
