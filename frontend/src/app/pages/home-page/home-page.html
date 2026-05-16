@@ -16,6 +16,15 @@
         <input [ngModel]="newProfileName()" (ngModelChange)="newProfileName.set($event)" type="text" placeholder="Ex. Developpeur frontend senior" />
       </label>
 
+      <label class="quick-actions__field">
+        <span>Template</span>
+        <select [ngModel]="newProfileTemplate()" (ngModelChange)="newProfileTemplate.set($event)">
+          @for (template of templateOptions; track template.id) {
+            <option [value]="template.id">{{ template.label }}</option>
+          }
+        </select>
+      </label>
+
       <button class="primary-button quick-actions__button" type="button" [disabled]="isCreating()" (click)="createProfile()">
         {{ isCreating() ? 'Creation...' : 'Creer un nouveau profil CV' }}
       </button>
@@ -37,21 +46,25 @@
   } @else {
     <section class="section-header">
       <h2>CV generes</h2>
-      <p>Profils avec un template assigne.</p>
+      <p>Profils CV avec leur template, leur route et leurs contenus.</p>
     </section>
 
-    @if (generatedProfiles().length === 0) {
+    @if (profiles().length === 0) {
       <section class="state-card">
         <h2>Aucun CV genere pour le moment</h2>
-        <p>Choisissez un template sur un brouillon pour generer une route CV.</p>
+        <p>Creez un premier profil avec un template pour generer une route CV.</p>
       </section>
     } @else {
       <section class="profile-grid">
-        @for (profile of generatedProfiles(); track profile.id) {
+        @for (profile of profiles(); track profile.id) {
           <article class="profile-card">
-            <p class="profile-card__template">{{ profile.template }}</p>
+            <p class="profile-card__template">{{ profile.template || 'Template requis' }}</p>
             <h2>{{ profile.profileName }}</h2>
-            <p class="profile-card__slug">/{{ profile.slug }}</p>
+            @if (profile.template) {
+              <p class="profile-card__slug">/{{ profile.slug }}</p>
+            } @else {
+              <p class="profile-card__slug">Profil historique sans template</p>
+            }
 
             <label class="form-row">
               <span>Template</span>
@@ -76,62 +89,15 @@
             </label>
 
             <button class="primary-button" type="button" [disabled]="isSaving() === profile.id" (click)="assignTemplate(profile)">
-              {{ isSaving() === profile.id ? 'Enregistrement...' : 'Mettre a jour le template' }}
+              {{ isSaving() === profile.id ? 'Enregistrement...' : (profile.template ? 'Mettre a jour le template' : 'Generer le CV') }}
             </button>
 
             <div class="profile-card__actions">
               <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="profile-card__link">Editer</a>
-              <a [routerLink]="['/', profile.slug]" class="profile-card__link">Ouvrir le CV</a>
+              @if (profile.template) {
+                <a [routerLink]="['/', profile.slug]" class="profile-card__link">Ouvrir le CV</a>
+              }
             </div>
-          </article>
-        }
-      </section>
-    }
-
-    <section class="section-header">
-      <h2>Profils brouillon</h2>
-      <p>Choisissez un template puis gerez les relations du profil.</p>
-    </section>
-
-    @if (draftProfiles().length === 0) {
-      <section class="state-card">
-        <h2>Aucun brouillon</h2>
-        <p>Tous vos profils actuels ont deja un template assigne.</p>
-      </section>
-    } @else {
-      <section class="profile-grid">
-        @for (profile of draftProfiles(); track profile.id) {
-          <article class="profile-card">
-            <p class="profile-card__template">Brouillon</p>
-            <h2>{{ profile.profileName }}</h2>
-
-            <label class="form-row">
-              <span>Template</span>
-              <select
-                [ngModel]="templateSelections()[profile.id]"
-                (ngModelChange)="updateTemplateSelection(profile.id, $event)"
-              >
-                @for (template of templateOptions; track template.id) {
-                  <option [value]="template.id">{{ template.label }}</option>
-                }
-              </select>
-            </label>
-
-            <label class="toggle-row">
-              <span>Route publique</span>
-              <input
-                type="checkbox"
-                [checked]="publicSelections()[profile.id]"
-                [disabled]="isSaving() === profile.id"
-                (change)="togglePublic(profile, $any($event.target).checked)"
-              />
-            </label>
-
-            <button class="primary-button" type="button" [disabled]="isSaving() === profile.id" (click)="assignTemplate(profile)">
-              {{ isSaving() === profile.id ? 'Enregistrement...' : 'Generer le CV' }}
-            </button>
-
-            <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="profile-card__link">Editer le profil</a>
           </article>
         }
       </section>
