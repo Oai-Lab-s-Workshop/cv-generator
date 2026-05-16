@@ -33,7 +33,7 @@
     <section class="editor-card editor-card--form">
       <div class="editor-card__header">
         <div>
-          <p class="editor-card__eyebrow">Profil</p>
+          <p class="editor-card__eyebrow">Profil CV</p>
           <h2>{{ state.profile.profileName }}</h2>
         </div>
 
@@ -44,8 +44,9 @@
 
       <div class="editor-grid">
         <label class="editor-field">
-          <span>Nom du profil</span>
+          <span>Label / nom du profil</span>
           <input [(ngModel)]="state.profile.profileName" name="profileName" type="text" />
+          <small>Ce label identifie le profil dans l'administration et les templates qui affichent le nom du profil CV.</small>
         </label>
 
         <label class="editor-field">
