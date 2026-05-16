@@ -7,6 +7,7 @@ import { AiToken, CreatedAiTokenResult } from '../../core/models/ai-token.model'
 import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-token-management-page',
@@ -28,6 +29,7 @@ export class TokenManagementPage implements OnInit {
   readonly latestCreatedTokenDebug = signal<CreatedAiTokenResult | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly activeAiTokenMutationId = signal<string | null>(null);
+  readonly themeService = inject(ThemeService);
   readonly bugReportUrl = signal(environment.bugReportUrl);
   readonly currentUser = this.authService.currentUser;
   readonly currentUserName = computed(() => {
@@ -53,6 +55,10 @@ export class TokenManagementPage implements OnInit {
   ngOnInit(): void {
     void this.loadRuntimeConfig();
     void this.loadAiTokens();
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggle();
   }
 
   logout(): void {

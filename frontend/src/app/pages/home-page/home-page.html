@@ -36,6 +36,10 @@
           <span class="home-navbar__action-label">Bug</span>
         </a>
       }
+      <button class="home-navbar__action" type="button" (click)="toggleTheme()" aria-label="Basculer le theme">
+        <i class="bi" [class.bi-sun]="themeService.currentTheme() === 'dark'" [class.bi-moon-fill]="themeService.currentTheme() === 'light'" [class.bi-circle-half]="themeService.currentTheme() === 'system'" aria-hidden="true"></i>
+        <span class="home-navbar__action-label">{{ themeService.currentTheme() === 'dark' ? 'Clair' : themeService.currentTheme() === 'light' ? 'Sombre' : 'Auto' }}</span>
+      </button>
       <button class="home-navbar__action home-navbar__action--logout" type="button" aria-label="Se deconnecter" (click)="logout()">
         <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
         <span class="home-navbar__action-label">Sortir</span>

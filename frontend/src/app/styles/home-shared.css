@@ -2,20 +2,25 @@
 .material-page,
 .token-management-page,
 .gallery-page {
-  --home-primary: #0f3d8c;
-  --home-text: #172033;
-  --home-muted: #64748b;
-  --home-border: rgba(148, 163, 184, 0.42);
-  --home-surface: rgba(255, 255, 255, 0.9);
-  --home-surface-strong: #fff;
-  --home-row: rgba(248, 250, 252, 0.78);
-  --home-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  --home-primary: light-dark(#0f3d8c, #6a9ef5);
+  --home-text: light-dark(#172033, #e2e8f0);
+  --home-muted: light-dark(#64748b, #94a3b8);
+  --home-border: light-dark(rgba(148, 163, 184, 0.42), rgba(148, 163, 184, 0.20));
+  --home-surface: light-dark(rgba(255, 255, 255, 0.9), rgba(30, 41, 59, 0.92));
+  --home-surface-strong: light-dark(#fff, #1e293b);
+  --home-row: light-dark(rgba(248, 250, 252, 0.78), rgba(51, 65, 85, 0.5));
+  --home-shadow: light-dark(0 18px 50px rgba(15, 23, 42, 0.08), 0 18px 50px rgba(0, 0, 0, 0.35));
+
+  --bg-gradient-start: light-dark(#f8fafc, #0f172a);
+  --bg-gradient-mid: light-dark(#eef2ff, #1e293b);
+  --bg-gradient-end: light-dark(#ffffff, #0f172a);
+  --bg-radial-glow: light-dark(rgba(146, 81, 247, 0.14), rgba(146, 81, 247, 0.06));
 
   min-height: 100vh;
   padding: clamp(1.5rem, 3vw, 2.5rem) 1rem 4rem;
   background:
-    radial-gradient(circle at top left, rgba(146, 81, 247, 0.14), transparent 28rem),
-    linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #ffffff 100%);
+    radial-gradient(circle at top left, var(--bg-radial-glow), transparent 28rem),
+    linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 50%, var(--bg-gradient-end) 100%);
   color: var(--home-text);
 }
 
@@ -45,10 +50,10 @@
   align-items: center;
   margin-bottom: 1.25rem;
   padding: 0.55rem;
-  border: 1px solid rgba(148, 163, 184, 0.32);
+  border: 1px solid light-dark(rgba(148, 163, 184, 0.32), rgba(148, 163, 184, 0.15));
   border-radius: 1.25rem;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+  background: light-dark(rgba(255, 255, 255, 0.86), rgba(30, 41, 59, 0.86));
+  box-shadow: light-dark(0 14px 34px rgba(15, 23, 42, 0.08), 0 14px 34px rgba(0, 0, 0, 0.3));
   backdrop-filter: blur(18px);
 }
 
@@ -75,7 +80,7 @@
   border-radius: 0.85rem;
   background: linear-gradient(135deg, #172033, #26385f);
   color: #fff;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+  box-shadow: light-dark(0 12px 24px rgba(15, 23, 42, 0.16), 0 12px 24px rgba(0, 0, 0, 0.3));
 }
 
 .home-navbar__brand-copy {
@@ -119,7 +124,7 @@
   min-height: 2.35rem;
   border-radius: 0.8rem;
   padding: 0.62rem 0.78rem;
-  color: #475569;
+  color: light-dark(#475569, #cbd5e1);
   font: inherit;
   font-size: 0.88rem;
   font-weight: 800;
@@ -132,39 +137,39 @@
 .home-navbar__link:focus-visible,
 .home-navbar__action:hover,
 .home-navbar__action:focus-visible {
-  background: rgba(239, 246, 255, 0.92);
+  background: light-dark(rgba(239, 246, 255, 0.92), rgba(30, 58, 138, 0.35));
   color: var(--home-primary);
   outline: none;
 }
 
 .home-navbar__link--active {
-  background: #172033;
-  color: #fff;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+  background: light-dark(#172033, #3b82f6);
+  color: light-dark(#fff, #0f172a);
+  box-shadow: light-dark(0 12px 24px rgba(15, 23, 42, 0.14), 0 12px 24px rgba(59, 130, 246, 0.25));
 }
 
 .home-navbar__link--active:hover,
 .home-navbar__link--active:focus-visible {
-  background: #172033;
-  color: #fff;
+  background: light-dark(#172033, #2563eb);
+  color: light-dark(#fff, #0f172a);
 }
 
 .home-navbar__action {
-  border: 1px solid rgba(191, 219, 254, 0.9);
-  background: rgba(239, 246, 255, 0.72);
+  border: 1px solid light-dark(rgba(191, 219, 254, 0.9), rgba(59, 130, 246, 0.35));
+  background: light-dark(rgba(239, 246, 255, 0.72), rgba(30, 58, 138, 0.25));
   color: var(--home-primary);
 }
 
 .home-navbar__action--logout {
-  border-color: rgba(148, 163, 184, 0.32);
-  background: rgba(255, 255, 255, 0.72);
-  color: #475569;
+  border-color: light-dark(rgba(148, 163, 184, 0.32), rgba(148, 163, 184, 0.18));
+  background: light-dark(rgba(255, 255, 255, 0.72), rgba(30, 41, 59, 0.72));
+  color: light-dark(#475569, #cbd5e1);
 }
 
 .home-navbar__action--logout:hover,
 .home-navbar__action--logout:focus-visible {
-  background: #fff1f2;
-  color: #be123c;
+  background: light-dark(#fff1f2, rgba(225, 29, 72, 0.15));
+  color: light-dark(#be123c, #fb7185);
 }
 
 .home-navbar__action i,
@@ -268,7 +273,9 @@ h3 {
 }
 
 .insight-card--live {
-  background: linear-gradient(135deg, #172033, #26385f);
+  --live-start: light-dark(#172033, #1e3a5f);
+  --live-end: light-dark(#26385f, #2d4a7f);
+  background: linear-gradient(135deg, var(--live-start), var(--live-end));
   color: #fff;
 }
 
@@ -291,6 +298,8 @@ h3 {
 }
 
 .cta-panel {
+  --cta-overlay-light: light-dark(rgba(255, 255, 255, 0.95), rgba(30, 41, 59, 0.95));
+  --cta-overlay-tint: light-dark(rgba(239, 246, 255, 0.92), rgba(30, 58, 138, 0.15));
   display: grid;
   grid-template-columns: minmax(14rem, 0.8fr) minmax(0, 1.6fr);
   gap: 1.25rem;
@@ -298,7 +307,7 @@ h3 {
   margin-bottom: 0.75rem;
   padding: clamp(1.1rem, 2vw, 1.35rem);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(239, 246, 255, 0.92)),
+    linear-gradient(135deg, var(--cta-overlay-light), var(--cta-overlay-tint)),
     var(--home-surface);
 }
 
@@ -335,19 +344,18 @@ h3 {
   box-sizing: border-box;
   width: 100%;
   min-height: 2.75rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid light-dark(#cbd5e1, #475569);
   border-radius: 0.8rem;
   padding: 0.7rem 0.85rem;
-  background: #fff;
+  background: light-dark(#fff, #0f172a);
   color: var(--home-text);
   font: inherit;
-  color-scheme: light;
 }
 
 .field input:focus,
 .field select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+  border-color: light-dark(#2563eb, #60a5fa);
+  box-shadow: light-dark(0 0 0 3px rgba(37, 99, 235, 0.14), 0 0 0 3px rgba(96, 165, 250, 0.2));
   outline: none;
 }
 
@@ -384,13 +392,13 @@ h3 {
 .primary-button {
   border: 0;
   background: var(--home-primary);
-  color: #fff;
-  box-shadow: 0 14px 28px rgba(15, 61, 140, 0.2);
+  color: light-dark(#fff, #0f172a);
+  box-shadow: light-dark(0 14px 28px rgba(15, 61, 140, 0.2), 0 14px 28px rgba(106, 158, 245, 0.15));
 }
 
 .secondary-button {
-  border: 1px solid rgba(191, 219, 254, 0.9);
-  background: rgba(239, 246, 255, 0.92);
+  border: 1px solid light-dark(rgba(191, 219, 254, 0.9), rgba(59, 130, 246, 0.35));
+  background: light-dark(rgba(239, 246, 255, 0.92), rgba(30, 58, 138, 0.25));
   color: var(--home-primary);
 }
 
@@ -436,15 +444,15 @@ h3 {
 }
 
 .state-card--error {
-  border-color: #fecaca;
-  background: #fff1f2;
-  color: #7f1d1d;
+  border-color: light-dark(#fecaca, #450a0a);
+  background: light-dark(#fff1f2, #1a0a0a);
+  color: light-dark(#7f1d1d, #fca5a5);
 }
 
 .state-card--success {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
-  color: #14532d;
+  border-color: light-dark(#bbf7d0, #052e16);
+  background: light-dark(#f0fdf4, #0a1a0a);
+  color: light-dark(#14532d, #86efac);
 }
 
 .state-card--empty {
@@ -467,7 +475,7 @@ h3 {
 .profile-table,
 .token-table {
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.26);
+  border: 1px solid light-dark(rgba(148, 163, 184, 0.26), rgba(148, 163, 184, 0.15));
   border-radius: 1rem;
   background: var(--home-surface-strong);
 }
@@ -484,7 +492,7 @@ h3 {
 .profile-table__head,
 .token-table__head {
   padding: 0.75rem 0.9rem;
-  background: rgba(248, 250, 252, 0.92);
+  background: light-dark(rgba(248, 250, 252, 0.92), rgba(30, 41, 59, 0.8));
   color: var(--home-muted);
   font-size: 0.7rem;
   font-weight: 800;
@@ -495,8 +503,8 @@ h3 {
 .profile-row,
 .token-row {
   padding: 0.85rem 0.9rem;
-  border-top: 1px solid rgba(226, 232, 240, 0.9);
-  background: #fff;
+  border-top: 1px solid light-dark(rgba(226, 232, 240, 0.9), rgba(71, 85, 105, 0.5));
+  background: var(--home-surface-strong);
 }
 
 .profile-row:hover,
@@ -569,9 +577,9 @@ h3 {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.75rem;
-    border: 1px solid rgba(148, 163, 184, 0.28);
+    border: 1px solid light-dark(rgba(148, 163, 184, 0.28), rgba(148, 163, 184, 0.15));
     border-radius: 1rem;
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+    box-shadow: light-dark(0 12px 32px rgba(15, 23, 42, 0.06), 0 12px 32px rgba(0, 0, 0, 0.25));
   }
 
   .profile-cell,

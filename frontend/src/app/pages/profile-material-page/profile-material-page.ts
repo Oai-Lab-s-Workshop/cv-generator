@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, OnIni
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { ThemeService } from '../../core/services/theme.service';
 import { Achievement } from '../../core/models/achievement.model';
 import { Degree } from '../../core/models/degree.model';
 import { MediaFile } from '../../core/models/file.model';
@@ -122,6 +123,7 @@ export class ProfileMaterialPage implements OnInit {
   readonly savingSection = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+  readonly themeService = inject(ThemeService);
   readonly bugReportUrl = signal(environment.bugReportUrl);
   readonly currentUser = this.authService.currentUser;
   readonly currentUserName = computed(() => {
@@ -135,6 +137,10 @@ export class ProfileMaterialPage implements OnInit {
   ngOnInit(): void {
     void this.loadRuntimeConfig();
     void this.loadMaterial();
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggle();
   }
 
   logout(): void {
