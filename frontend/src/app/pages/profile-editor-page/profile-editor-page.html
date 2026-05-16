@@ -354,6 +354,60 @@
         </div>
       </div>
 
+      <div class="inline-editor">
+        <h3>{{ skillForm().id ? 'Modifier une competence' : 'Ajouter une competence' }}</h3>
+        <div class="editor-grid">
+          <label class="editor-field">
+            <span>Nom</span>
+            <input [ngModel]="skillForm().name" (ngModelChange)="skillForm.update(form => ({ ...form, name: $event }))" name="skill-name" type="text" />
+          </label>
+
+          <label class="editor-field">
+            <span>Categorie</span>
+            <select [ngModel]="skillForm().category" (ngModelChange)="skillForm.update(form => ({ ...form, category: $event }))" name="skill-category">
+              <option value="">Non renseignee</option>
+              <option value="Frontend">Frontend</option>
+              <option value="Backend">Backend</option>
+              <option value="DevOps">DevOps</option>
+              <option value="E-commerce">E-commerce</option>
+              <option value="Design">Design</option>
+              <option value="Mobile">Mobile</option>
+              <option value="Motion">Motion</option>
+              <option value="Project Management">Project Management</option>
+            </select>
+          </label>
+
+          <label class="editor-field">
+            <span>Type</span>
+            <select [ngModel]="skillForm().type" (ngModelChange)="skillForm.update(form => ({ ...form, type: $event }))" name="skill-type">
+              <option value="Technical">Technical</option>
+              <option value="Professional">Professional</option>
+              <option value="Language">Language</option>
+              <option value="Software">Software</option>
+            </select>
+          </label>
+
+          <label class="editor-field">
+            <span>Niveau</span>
+            <input [ngModel]="skillForm().level" (ngModelChange)="setSkillLevel($event)" name="skill-level" type="number" min="0" max="100" />
+          </label>
+
+          <label class="editor-field">
+            <span>Ordre</span>
+            <input [ngModel]="skillForm().sortOrder" (ngModelChange)="setSkillSortOrder($event)" name="skill-sort-order" type="number" />
+          </label>
+        </div>
+
+        <div class="inline-editor__actions">
+          <button type="button" class="relation-action" [disabled]="isSavingSkill()" (click)="saveSkill()">
+            {{ isSavingSkill() ? 'Enregistrement...' : (skillForm().id ? 'Mettre a jour' : 'Ajouter et lier') }}
+          </button>
+          @if (skillForm().id) {
+            <button type="button" class="relation-action relation-action--secondary" [disabled]="isSavingSkill()" (click)="resetSkillForm()">Annuler</button>
+          }
+        </div>
+      </div>
+
       <div class="relation-grid">
         <section class="relation-column">
           <h3>Lies au profil</h3>
@@ -366,7 +420,10 @@
                   <h4>{{ skill.name }}</h4>
                   <p>{{ skill.type || skill.category || 'Sans type' }}</p>
                 </div>
-                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('skills', skill.id)">Retirer</button>
+                <div class="relation-card__actions">
+                  <button type="button" class="relation-action" (click)="editSkill(skill)">Modifier</button>
+                  <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('skills', skill.id)">Retirer</button>
+                </div>
               </article>
             }
           }
@@ -383,7 +440,10 @@
                   <h4>{{ skill.name }}</h4>
                   <p>{{ skill.type || skill.category || 'Sans type' }}</p>
                 </div>
-                <button type="button" class="relation-action" (click)="addRelation('skills', skill.id)">Ajouter</button>
+                <div class="relation-card__actions">
+                  <button type="button" class="relation-action" (click)="editSkill(skill)">Modifier</button>
+                  <button type="button" class="relation-action" (click)="addRelation('skills', skill.id)">Ajouter</button>
+                </div>
               </article>
             }
           }

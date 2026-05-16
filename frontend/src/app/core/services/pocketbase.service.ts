@@ -26,6 +26,7 @@ export interface CurrentUserCvProfileEditorData {
 
 export type SaveCurrentUserJobInput = Pick<Job, 'label' | 'company' | 'position' | 'startDate' | 'type'> &
   Partial<Pick<Job, 'location' | 'endDate' | 'responsibilities' | 'sortOrder'>>;
+export type SaveCurrentUserSkillInput = Pick<Skill, 'name'> & Partial<Pick<Skill, 'category' | 'type' | 'level' | 'sortOrder'>>;
 
 @Injectable({ providedIn: 'root' })
 export class PocketBaseService {
@@ -244,6 +245,21 @@ export class PocketBaseService {
     const job = await this.pb.collection<Job>('jobs').getFirstListItem(`id="${jobId}" && user="${currentUserId}"`);
 
     return this.pb.collection<Job>('jobs').update(job.id, input);
+  }
+
+  async createCurrentUserSkill(input: SaveCurrentUserSkillInput): Promise<Skill> {
+    const currentUserId = this.requireCurrentUserId();
+    return this.pb.collection<Skill>('skills').create({
+      ...input,
+      user: currentUserId,
+    });
+  }
+
+  async updateCurrentUserSkill(skillId: string, input: SaveCurrentUserSkillInput): Promise<Skill> {
+    const currentUserId = this.requireCurrentUserId();
+    const skill = await this.pb.collection<Skill>('skills').getFirstListItem(`id="${skillId}" && user="${currentUserId}"`);
+
+    return this.pb.collection<Skill>('skills').update(skill.id, input);
   }
 
   async getCurrentUserAiTokens(): Promise<AiToken[]> {

@@ -8,7 +8,7 @@ import { Hobby } from '../../core/models/hobby.model';
 import { Job } from '../../core/models/job.model';
 import { Project } from '../../core/models/project.model';
 import { Skill } from '../../core/models/skill.model';
-import { CurrentUserCvProfileEditorData, PocketBaseService, SaveCurrentUserJobInput } from '../../core/services/pocketbase.service';
+import { CurrentUserCvProfileEditorData, PocketBaseService, SaveCurrentUserJobInput, SaveCurrentUserSkillInput } from '../../core/services/pocketbase.service';
 import { CV_TEMPLATE_OPTIONS, CV_TEMPLATE_OPTIONS_BY_ID, CvTemplateExtraField, CvTemplateExtraFieldSource } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
 
@@ -26,6 +26,7 @@ type EditorState = {
 };
 
 type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
+type SkillForm = Omit<SaveCurrentUserSkillInput, 'level' | 'sortOrder'> & { id?: string; level: number | null; sortOrder: number | null };
 
 const EMPTY_JOB_FORM: JobForm = {
   label: '',
@@ -37,6 +38,14 @@ const EMPTY_JOB_FORM: JobForm = {
   responsibilities: '',
   sortOrder: null,
   type: 'work project',
+};
+
+const EMPTY_SKILL_FORM: SkillForm = {
+  name: '',
+  category: '',
+  type: 'Technical',
+  level: null,
+  sortOrder: null,
 };
 
 @Component({
@@ -61,7 +70,9 @@ export class ProfileEditorPage implements OnInit {
   readonly selectedProfilePicture = signal<File | null>(null);
   readonly selectedCoverPicture = signal<File | null>(null);
   readonly jobForm = signal<JobForm>({ ...EMPTY_JOB_FORM });
+  readonly skillForm = signal<SkillForm>({ ...EMPTY_SKILL_FORM });
   readonly isSavingJob = signal(false);
+  readonly isSavingSkill = signal(false);
 
   ngOnInit(): void {
     effect(
@@ -255,6 +266,96 @@ export class ProfileEditorPage implements OnInit {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
       this.isSavingJob.set(false);
+    }
+  }
+
+  editSkill(skill: Skill): void {
+    this.skillForm.set({
+      id: skill.id,
+      name: skill.name,
+      category: skill.category ?? '',
+      type: skill.type ?? 'Technical',
+      level: skill.level ?? null,
+      sortOrder: skill.sortOrder ?? null,
+    });
+  }
+
+  resetSkillForm(): void {
+    this.skillForm.set({ ...EMPTY_SKILL_FORM });
+  }
+
+  setSkillLevel(value: string | number | null): void {
+    const level = value === null || value === '' ? null : Number(value);
+    this.skillForm.update((form) => ({
+      ...form,
+      level: Number.isFinite(level) ? level : null,
+    }));
+  }
+
+  setSkillSortOrder(value: string | number | null): void {
+    const sortOrder = value === null || value === '' ? null : Number(value);
+    this.skillForm.update((form) => ({
+      ...form,
+      sortOrder: Number.isFinite(sortOrder) ? sortOrder : null,
+    }));
+  }
+
+  async saveSkill(): Promise<void> {
+    const state = this.editorState();
+    const form = this.skillForm();
+
+    if (!state) {
+      return;
+    }
+
+    const input: SaveCurrentUserSkillInput = {
+      name: form.name.trim(),
+      category: form.category?.trim() || undefined,
+      type: form.type?.trim() || undefined,
+      level: form.level ?? undefined,
+      sortOrder: form.sortOrder ?? undefined,
+    };
+
+    if (!input.name) {
+      this.errorMessage.set('Le nom de la competence est obligatoire.');
+      return;
+    }
+
+    this.isSavingSkill.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    try {
+      const savedSkill = form.id
+        ? await this.pocketBaseService.updateCurrentUserSkill(form.id, input)
+        : await this.pocketBaseService.createCurrentUserSkill(input);
+
+      this.editorState.update((current) => {
+        if (!current) {
+          return current;
+        }
+
+        const availableSkills = form.id
+          ? current.availableSkills.map((skill) => (skill.id === savedSkill.id ? savedSkill : skill))
+          : [...current.availableSkills, savedSkill];
+        const currentSkillIds = current.profile.skills ?? [];
+        const skills = currentSkillIds.includes(savedSkill.id) ? currentSkillIds : [...currentSkillIds, savedSkill.id];
+
+        return {
+          ...current,
+          availableSkills,
+          profile: {
+            ...current.profile,
+            skills,
+          },
+        };
+      });
+      this.resetSkillForm();
+      this.successMessage.set(form.id ? 'Competence mise a jour.' : 'Competence ajoutee au profil.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.isSavingSkill.set(false);
     }
   }
 
