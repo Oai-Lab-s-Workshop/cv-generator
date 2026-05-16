@@ -183,6 +183,12 @@
   font-size: 1rem;
 }
 
+.relation-helper {
+  margin: 0.5rem 0 0;
+  color: #64748b;
+  line-height: 1.5;
+}
+
 .relation-card {
   display: flex;
   align-items: center;
@@ -213,6 +219,11 @@
 .relation-card p,
 .relation-empty {
   color: #64748b;
+}
+
+.relation-empty a {
+  color: #0f3d8c;
+  font-weight: 700;
 }
 
 .relation-action {
