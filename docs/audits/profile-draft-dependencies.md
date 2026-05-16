@@ -27,6 +27,13 @@ Date: 2026-05-16
 - `npm run build` in `frontend`: passes after the correction.
 - `npm test -- --runInBand` in `frontend`: still fails only on the same pre-existing `cv-shell-page.spec.ts` preview/print admin bar expectations recorded at baseline.
 
+## Material Edit Interaction
+
+- `Modifier` now leaves the edited job or skill visibly highlighted in its list.
+- `Modifier` scrolls to the relevant prefilled form and focuses the first field.
+- `npm run build` in `frontend`: passes after the interaction update.
+- `npm test -- --runInBand` in `frontend`: still fails only on the same pre-existing `cv-shell-page.spec.ts` preview/print admin bar expectations recorded at baseline.
+
 ## Implementation Constraint
 
 - Remove the draft concept without deleting legacy no-template profile records automatically.
