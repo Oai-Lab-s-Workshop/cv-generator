@@ -24,6 +24,9 @@ export interface CurrentUserCvProfileEditorData {
   availableHobbies: Hobby[];
 }
 
+export type SaveCurrentUserJobInput = Pick<Job, 'label' | 'company' | 'position' | 'startDate' | 'type'> &
+  Partial<Pick<Job, 'location' | 'endDate' | 'responsibilities' | 'sortOrder'>>;
+
 @Injectable({ providedIn: 'root' })
 export class PocketBaseService {
   private readonly pocketBaseClient = inject(PocketBaseClientService);
@@ -226,6 +229,21 @@ export class PocketBaseService {
       availableAchievements,
       availableHobbies,
     };
+  }
+
+  async createCurrentUserJob(input: SaveCurrentUserJobInput): Promise<Job> {
+    const currentUserId = this.requireCurrentUserId();
+    return this.pb.collection<Job>('jobs').create({
+      ...input,
+      user: currentUserId,
+    });
+  }
+
+  async updateCurrentUserJob(jobId: string, input: SaveCurrentUserJobInput): Promise<Job> {
+    const currentUserId = this.requireCurrentUserId();
+    const job = await this.pb.collection<Job>('jobs').getFirstListItem(`id="${jobId}" && user="${currentUserId}"`);
+
+    return this.pb.collection<Job>('jobs').update(job.id, input);
   }
 
   async getCurrentUserAiTokens(): Promise<AiToken[]> {
