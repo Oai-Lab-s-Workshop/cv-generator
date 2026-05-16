@@ -92,7 +92,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
   selector: 'app-profile-material-page',
   imports: [FormsModule, RouterLink],
   templateUrl: './profile-material-page.html',
-  styleUrl: './profile-material-page.css',
+  styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileMaterialPage implements OnInit {

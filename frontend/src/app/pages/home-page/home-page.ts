@@ -13,7 +13,7 @@ import { environment } from '../../../environments/environment';
   selector: 'app-home-page',
   imports: [FormsModule, RouterLink],
   templateUrl: './home-page.html',
-  styleUrl: './home-page.css',
+  styleUrls: ['../../styles/home-shared.css', './home-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage implements OnInit {

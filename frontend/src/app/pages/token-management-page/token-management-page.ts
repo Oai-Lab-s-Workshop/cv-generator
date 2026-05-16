@@ -12,7 +12,7 @@ import { getErrorMessage } from '../../core/utils/error-message';
   selector: 'app-token-management-page',
   imports: [DatePipe, FormsModule, RouterLink],
   templateUrl: './token-management-page.html',
-  styleUrl: './token-management-page.css',
+  styleUrls: ['../../styles/home-shared.css', './token-management-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TokenManagementPage implements OnInit {
