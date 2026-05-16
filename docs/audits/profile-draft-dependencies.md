@@ -34,6 +34,13 @@ Date: 2026-05-16
 - `npm run build` in `frontend`: passes after the interaction update.
 - `npm test -- --runInBand` in `frontend`: still fails only on the same pre-existing `cv-shell-page.spec.ts` preview/print admin bar expectations recorded at baseline.
 
+## Material Form Prefill Fix
+
+- Replaced `NgModel` bindings in the material forms with explicit signal-backed `[value]` bindings and typed input/change setters.
+- Delayed scroll/focus to the next animation frame so it runs after the prefilled values render.
+- `npm run build` in `frontend`: passes after the prefill fix.
+- `npm test -- --runInBand` in `frontend`: still fails only on the same pre-existing `cv-shell-page.spec.ts` preview/print admin bar expectations recorded at baseline.
+
 ## Implementation Constraint
 
 - Remove the draft concept without deleting legacy no-template profile records automatically.
