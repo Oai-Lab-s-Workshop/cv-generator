@@ -152,6 +152,32 @@
   border-top: 1px solid #e2e8f0;
 }
 
+.material-row--editing {
+  margin-inline: -0.75rem;
+  border: 1px solid #93c5fd;
+  border-radius: 1rem;
+  background: #eff6ff;
+  padding: 0.85rem 0.75rem;
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.12);
+}
+
+.material-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.editing-pill {
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #fff;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .material-row:first-of-type {
   border-top: 0;
 }
@@ -166,6 +192,7 @@
   .material-hero,
   .material-card__header,
   .material-row,
+  .material-row__actions,
   .form-actions {
     flex-direction: column;
     align-items: stretch;

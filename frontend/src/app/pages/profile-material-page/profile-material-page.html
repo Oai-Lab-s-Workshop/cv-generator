@@ -100,12 +100,17 @@
           <p class="empty-copy">Aucune experience enregistree.</p>
         } @else {
           @for (job of jobs(); track job.id) {
-            <article class="material-row">
+            <article class="material-row" [class.material-row--editing]="jobForm().id === job.id" [attr.aria-current]="jobForm().id === job.id ? 'true' : null">
               <div>
                 <h4>{{ job.company }}</h4>
                 <p>{{ job.position }} · {{ job.label }}</p>
               </div>
-              <button type="button" class="row-action" (click)="editJob(job)">Modifier</button>
+              <div class="material-row__actions">
+                @if (jobForm().id === job.id) {
+                  <span class="editing-pill">En edition</span>
+                }
+                <button type="button" class="row-action" (click)="editJob(job)">Modifier</button>
+              </div>
             </article>
           }
         }
@@ -177,12 +182,17 @@
           <p class="empty-copy">Aucune competence enregistree.</p>
         } @else {
           @for (skill of skills(); track skill.id) {
-            <article class="material-row">
+            <article class="material-row" [class.material-row--editing]="skillForm().id === skill.id" [attr.aria-current]="skillForm().id === skill.id ? 'true' : null">
               <div>
                 <h4>{{ skill.name }}</h4>
                 <p>{{ skill.type || skill.category || 'Sans type' }}</p>
               </div>
-              <button type="button" class="row-action" (click)="editSkill(skill)">Modifier</button>
+              <div class="material-row__actions">
+                @if (skillForm().id === skill.id) {
+                  <span class="editing-pill">En edition</span>
+                }
+                <button type="button" class="row-action" (click)="editSkill(skill)">Modifier</button>
+              </div>
             </article>
           }
         }
