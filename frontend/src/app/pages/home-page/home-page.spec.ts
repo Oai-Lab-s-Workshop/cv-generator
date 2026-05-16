@@ -9,8 +9,19 @@ import { HomePage } from './home-page';
 describe('HomePage', () => {
   let component: HomePage;
   let fixture: ComponentFixture<HomePage>;
+  let pocketBaseService: {
+    getCurrentUserCvProfiles: jest.Mock;
+    getCurrentUserAiTokens: jest.Mock;
+    setTemplateForCurrentUserCvProfile: jest.Mock;
+  };
 
   beforeEach(async () => {
+    pocketBaseService = {
+      getCurrentUserCvProfiles: jest.fn().mockResolvedValue([]),
+      getCurrentUserAiTokens: jest.fn().mockResolvedValue([]),
+      setTemplateForCurrentUserCvProfile: jest.fn().mockResolvedValue(undefined),
+    };
+
     await TestBed.configureTestingModule({
       imports: [HomePage],
       providers: [
@@ -24,10 +35,7 @@ describe('HomePage', () => {
         },
         {
           provide: PocketBaseService,
-          useValue: {
-            getCurrentUserCvProfiles: jest.fn().mockResolvedValue([]),
-            getCurrentUserAiTokens: jest.fn().mockResolvedValue([]),
-          },
+          useValue: pocketBaseService,
         },
       ],
     }).compileComponents();
@@ -39,5 +47,24 @@ describe('HomePage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should save template changes immediately', async () => {
+    const profile = {
+      id: 'profile-1',
+      slug: 'frontend',
+      profileName: 'Frontend',
+      template: 'classic',
+      public: true,
+      user: 'user-1',
+    };
+
+    component.publicSelections.set({ [profile.id]: true });
+    pocketBaseService.getCurrentUserCvProfiles.mockResolvedValue([{ ...profile, template: 'modern' }]);
+
+    await component.changeTemplate(profile, 'modern');
+
+    expect(component.templateSelections()[profile.id]).toBe('modern');
+    expect(pocketBaseService.setTemplateForCurrentUserCvProfile).toHaveBeenCalledWith(profile.id, 'modern', true);
   });
 });
