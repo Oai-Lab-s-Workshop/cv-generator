@@ -108,6 +108,73 @@
   opacity: 1;
 }
 
+.rich-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rich-editor-button {
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.45rem 0.75rem;
+}
+
+.rich-editor-button:hover,
+.rich-editor-button:focus-visible {
+  border-color: #2563eb;
+  background: #dbeafe;
+  outline: none;
+}
+
+.rich-editor-surface {
+  min-height: 9rem;
+  width: 100%;
+  overflow: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.8rem;
+  background: #fff;
+  color: #18202b;
+  caret-color: #0f3d8c;
+  color-scheme: light;
+  font: inherit;
+  line-height: 1.55;
+  padding: 0.8rem 0.95rem;
+}
+
+.rich-editor-surface:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+  outline: none;
+}
+
+.rich-editor-surface p,
+.rich-editor-surface ul,
+.rich-editor-surface ol {
+  margin: 0 0 0.75rem;
+}
+
+.rich-editor-surface p:last-child,
+.rich-editor-surface ul:last-child,
+.rich-editor-surface ol:last-child {
+  margin-bottom: 0;
+}
+
+.rich-editor-surface ul,
+.rich-editor-surface ol {
+  padding-left: 1.35rem;
+}
+
+.rich-editor-surface li {
+  margin: 0.2rem 0;
+}
+
 .form-actions {
   justify-content: flex-start;
   flex-wrap: wrap;
