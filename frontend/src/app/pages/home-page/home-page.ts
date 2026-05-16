@@ -8,6 +8,7 @@ import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { CV_TEMPLATE_OPTIONS } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
 import { environment } from '../../../environments/environment';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-home-page',
@@ -32,6 +33,7 @@ export class HomePage implements OnInit {
   readonly isSaving = signal<string | null>(null);
   readonly templateSelections = signal<Record<string, string>>({});
   readonly publicSelections = signal<Record<string, boolean>>({});
+  readonly themeService = inject(ThemeService);
   readonly bugReportUrl = signal(environment.bugReportUrl);
   readonly currentUser = this.authService.currentUser;
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
@@ -199,6 +201,10 @@ export class HomePage implements OnInit {
     } finally {
       this.isSaving.set(null);
     }
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggle();
   }
 
   logout(): void {

@@ -43,6 +43,13 @@
         </button>
       </div>
     }
+
+    <div class="home-navbar__utilities">
+      <button class="home-navbar__action" type="button" (click)="toggleTheme()" aria-label="Basculer le theme">
+        <i class="bi" [class.bi-sun]="themeService.currentTheme() === 'dark'" [class.bi-moon-fill]="themeService.currentTheme() === 'light'" [class.bi-circle-half]="themeService.currentTheme() === 'system'" aria-hidden="true"></i>
+        <span class="home-navbar__action-label">{{ themeService.currentTheme() === 'dark' ? 'Clair' : themeService.currentTheme() === 'light' ? 'Sombre' : 'Auto' }}</span>
+      </button>
+    </div>
   </nav>
 
   <section class="gallery-hero">
