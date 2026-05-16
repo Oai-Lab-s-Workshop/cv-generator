@@ -20,6 +20,13 @@ Date: 2026-05-16
 - `npm run build` in `frontend`: passes after implementation.
 - `npm test -- --runInBand` in `frontend`: still fails only on the same pre-existing `cv-shell-page.spec.ts` preview/print admin bar expectations recorded at baseline.
 
+## Reusable Material Flow Correction
+
+- Added a dedicated profile material page for reusable job and skill source data.
+- Removed job and skill CRUD from the CV profile editor; it now only selects existing records for each CV.
+- `npm run build` in `frontend`: passes after the correction.
+- `npm test -- --runInBand` in `frontend`: still fails only on the same pre-existing `cv-shell-page.spec.ts` preview/print admin bar expectations recorded at baseline.
+
 ## Implementation Constraint
 
 - Remove the draft concept without deleting legacy no-template profile records automatically.
