@@ -79,10 +79,25 @@
           <input [value]="jobForm().sortOrder ?? ''" (input)="setJobSortOrder($any($event.target).value)" name="job-sort-order" type="number" />
         </label>
 
-        <label class="editor-field editor-field--full">
+        <div class="editor-field editor-field--full">
           <span>Responsabilites</span>
-          <textarea [value]="jobForm().responsibilities" (input)="setJobFormValue('responsibilities', $any($event.target).value)" name="job-responsibilities" rows="4"></textarea>
-        </label>
+          <div class="rich-editor-toolbar" aria-label="Mise en forme des responsabilites">
+            <button type="button" class="rich-editor-button" (click)="formatResponsibilities('bold')">Gras</button>
+            <button type="button" class="rich-editor-button" (click)="formatResponsibilities('italic')">Italique</button>
+            <button type="button" class="rich-editor-button" (click)="formatResponsibilities('insertUnorderedList')">Liste</button>
+            <button type="button" class="rich-editor-button" (click)="formatResponsibilities('insertOrderedList')">Liste numerotee</button>
+            <button type="button" class="rich-editor-button" (click)="formatResponsibilities('removeFormat')">Nettoyer</button>
+          </div>
+          <div
+            #responsibilitiesEditor
+            class="rich-editor-surface"
+            contenteditable="true"
+            role="textbox"
+            aria-multiline="true"
+            aria-label="Responsabilites"
+            (input)="syncResponsibilitiesFromEditor($event)"
+          ></div>
+        </div>
       </div>
 
       <div class="form-actions">

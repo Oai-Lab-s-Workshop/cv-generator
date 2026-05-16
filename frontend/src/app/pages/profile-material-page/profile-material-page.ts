@@ -40,6 +40,7 @@ export class ProfileMaterialPage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
   private readonly jobFormSection = viewChild<ElementRef<HTMLElement>>('jobFormSection');
   private readonly skillFormSection = viewChild<ElementRef<HTMLElement>>('skillFormSection');
+  private readonly responsibilitiesEditor = viewChild<ElementRef<HTMLElement>>('responsibilitiesEditor');
 
   readonly jobs = signal<Job[]>([]);
   readonly skills = signal<Skill[]>([]);
@@ -56,6 +57,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editJob(job: Job): void {
+    const responsibilities = job.responsibilities ?? '';
     this.jobForm.set({
       id: job.id,
       label: job.label,
@@ -64,15 +66,17 @@ export class ProfileMaterialPage implements OnInit {
       location: job.location ?? '',
       startDate: job.startDate?.slice(0, 10) ?? '',
       endDate: job.endDate?.slice(0, 10) ?? '',
-      responsibilities: job.responsibilities ?? '',
+      responsibilities,
       sortOrder: job.sortOrder ?? null,
       type: job.type,
     });
+    this.setResponsibilitiesEditorHtml(responsibilities);
     this.scrollToFormAfterRender(this.jobFormSection(), 'input[name="job-label"]');
   }
 
   resetJobForm(): void {
     this.jobForm.set({ ...EMPTY_JOB_FORM });
+    this.setResponsibilitiesEditorHtml('');
   }
 
   setJobFormValue(field: keyof Omit<JobForm, 'id' | 'sortOrder'>, value: string): void {
@@ -82,6 +86,16 @@ export class ProfileMaterialPage implements OnInit {
   setJobSortOrder(value: string | number | null): void {
     const sortOrder = value === null || value === '' ? null : Number(value);
     this.jobForm.update((form) => ({ ...form, sortOrder: Number.isFinite(sortOrder) ? sortOrder : null }));
+  }
+
+  syncResponsibilitiesFromEditor(event: Event): void {
+    this.setJobFormValue('responsibilities', (event.target as HTMLElement).innerHTML);
+  }
+
+  formatResponsibilities(command: 'bold' | 'italic' | 'insertUnorderedList' | 'insertOrderedList' | 'removeFormat'): void {
+    this.responsibilitiesEditor()?.nativeElement.focus();
+    document.execCommand(command, false);
+    this.setJobFormValue('responsibilities', this.responsibilitiesEditor()?.nativeElement.innerHTML ?? '');
   }
 
   async saveJob(): Promise<void> {
@@ -210,6 +224,16 @@ export class ProfileMaterialPage implements OnInit {
       window.requestAnimationFrame(() => {
         section.nativeElement.querySelector<HTMLElement>(focusSelector)?.focus({ preventScroll: true });
       });
+    });
+  }
+
+  private setResponsibilitiesEditorHtml(html: string): void {
+    window.requestAnimationFrame(() => {
+      const editor = this.responsibilitiesEditor()?.nativeElement;
+
+      if (editor && editor.innerHTML !== html) {
+        editor.innerHTML = html;
+      }
     });
   }
 }
