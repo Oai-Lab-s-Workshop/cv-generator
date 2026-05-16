@@ -43,7 +43,6 @@ export class HomePage implements OnInit {
     () => this.profiles().filter((profile) => Boolean(profile.template) && profile.public === false).length,
   );
   readonly activeAiTokenCount = computed(() => this.aiTokens().filter((token) => token.status === 'active').length);
-  readonly templateCount = computed(() => this.templateOptions.length);
   readonly currentUserName = computed(() => {
     const user = this.currentUser();
     return user ? `${user.firstName} ${user.lastName}` : 'Utilisateur authentifie';
@@ -129,8 +128,8 @@ export class HomePage implements OnInit {
     return profile.public === false ? 'private' : 'live';
   }
 
-  async assignTemplate(profile: CvProfile): Promise<void> {
-    const template = this.templateSelections()[profile.id];
+  async changeTemplate(profile: CvProfile, template: string): Promise<void> {
+    this.templateSelections.update((current) => ({ ...current, [profile.id]: template }));
 
     if (!template) {
       this.errorMessage.set('Select a template first.');
@@ -200,10 +199,6 @@ export class HomePage implements OnInit {
     } finally {
       this.isSaving.set(null);
     }
-  }
-
-  updateTemplateSelection(profileId: string, template: string): void {
-    this.templateSelections.update((current) => ({ ...current, [profileId]: template }));
   }
 
   logout(): void {

@@ -8,9 +8,15 @@
 
     <div class="home-header__actions">
       @if (bugReportUrl()) {
-        <a class="secondary-button" [href]="bugReportUrl()" target="_blank" rel="noopener noreferrer">Signaler un bug</a>
+        <a class="secondary-button icon-action" [href]="bugReportUrl()" target="_blank" rel="noopener noreferrer" aria-label="Signaler un bug">
+          <i class="bi bi-bug" aria-hidden="true"></i>
+          <span class="icon-action__label">Signaler un bug</span>
+        </a>
       }
-      <button class="secondary-button" type="button" (click)="logout()">Se deconnecter</button>
+      <button class="secondary-button icon-action" type="button" aria-label="Se deconnecter" (click)="logout()">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span class="icon-action__label">Se deconnecter</span>
+      </button>
     </div>
   </section>
 
@@ -33,19 +39,18 @@
       <span>cles actives</span>
     </article>
 
-    <article class="insight-card">
-      <p class="insight-card__label">Templates</p>
-      <strong>{{ templateCount() }}</strong>
-      <span>modeles disponibles</span>
-    </article>
   </section>
 
-  <section class="command-panel" aria-label="Creation et raccourcis">
-    <div class="command-panel__form">
-      <div class="command-panel__heading">
+  <section class="cta-panel" aria-label="Creation d'un CV">
+    <div class="cta-panel__copy">
+      <div>
         <p class="eyebrow">Nouveau profil</p>
-        <h2>Creer un CV</h2>
+        <h2>Creer un CV cible</h2>
       </div>
+      <p>Point d'entree principal pour generer une nouvelle version exploitable depuis vos contenus.</p>
+    </div>
+
+    <div class="cta-panel__form">
 
       <label class="field field--name">
         <span>Nom du profil</span>
@@ -61,17 +66,17 @@
         </select>
       </label>
 
-      <button class="primary-button command-panel__button" type="button" [disabled]="isCreating()" (click)="createProfile()">
-        {{ isCreating() ? 'Creation...' : 'Creer' }}
+      <button class="primary-button cta-panel__button" type="button" [disabled]="isCreating()" (click)="createProfile()">
+        {{ isCreating() ? 'Creation...' : 'Creer le CV' }}
       </button>
     </div>
-
-    <nav class="shortcut-list" aria-label="Raccourcis d'administration">
-      <a class="shortcut-link" routerLink="/home/profile-material">Informations</a>
-      <a class="shortcut-link" routerLink="/home/templates">Templates</a>
-      <a class="shortcut-link" routerLink="/home/tokens">Tokens MCP</a>
-    </nav>
   </section>
+
+  <nav class="admin-menu" aria-label="Raccourcis d'administration">
+    <a class="admin-menu__link" routerLink="/home/profile-material">Informations</a>
+    <a class="admin-menu__link" routerLink="/home/templates">Templates</a>
+    <a class="admin-menu__link" routerLink="/home/tokens">Tokens MCP</a>
+  </nav>
 
   @if (isLoading()) {
     <section class="state-card">
@@ -127,7 +132,8 @@
                   <span class="sr-only">Template</span>
                   <select
                     [ngModel]="templateSelections()[profile.id]"
-                    (ngModelChange)="updateTemplateSelection(profile.id, $event)"
+                    [disabled]="isSaving() === profile.id"
+                    (ngModelChange)="changeTemplate(profile, $event)"
                   >
                     @for (template of templateOptions; track template.id) {
                       <option [value]="template.id">{{ template.label }}</option>
@@ -136,6 +142,12 @@
                 </label>
 
                 <label class="profile-cell visibility-control" role="cell" data-label="Visibilite">
+                  <input
+                    type="checkbox"
+                    [checked]="publicSelections()[profile.id]"
+                    [disabled]="!profile.template || isSaving() === profile.id"
+                    (change)="togglePublic(profile, $any($event.target).checked)"
+                  />
                   <span
                     class="visibility-control__state"
                     [class.visibility-control__state--live]="getVisibilityTone(profile) === 'live'"
@@ -145,18 +157,9 @@
                     <span class="visibility-control__dot" aria-hidden="true"></span>
                     <span>{{ isSaving() === profile.id ? 'Enregistrement...' : getVisibilityLabel(profile) }}</span>
                   </span>
-                  <input
-                    type="checkbox"
-                    [checked]="publicSelections()[profile.id]"
-                    [disabled]="!profile.template || isSaving() === profile.id"
-                    (change)="togglePublic(profile, $any($event.target).checked)"
-                  />
                 </label>
 
                 <div class="profile-cell profile-actions" role="cell" data-label="Actions">
-                  <button class="ghost-button" type="button" [disabled]="isSaving() === profile.id" (click)="assignTemplate(profile)">
-                    {{ isSaving() === profile.id ? '...' : (profile.template ? 'Sauver' : 'Generer') }}
-                  </button>
                   <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="text-link">Editer</a>
                   @if (profile.template) {
                     <a [routerLink]="['/', profile.slug]" class="text-link">Ouvrir</a>
