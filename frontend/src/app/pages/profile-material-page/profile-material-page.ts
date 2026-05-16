@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Job } from '../../core/models/job.model';
@@ -38,6 +38,8 @@ const EMPTY_SKILL_FORM: SkillForm = {
 })
 export class ProfileMaterialPage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
+  private readonly jobFormSection = viewChild<ElementRef<HTMLElement>>('jobFormSection');
+  private readonly skillFormSection = viewChild<ElementRef<HTMLElement>>('skillFormSection');
 
   readonly jobs = signal<Job[]>([]);
   readonly skills = signal<Skill[]>([]);
@@ -66,6 +68,7 @@ export class ProfileMaterialPage implements OnInit {
       sortOrder: job.sortOrder ?? null,
       type: job.type,
     });
+    this.scrollToForm(this.jobFormSection(), 'input[name="job-label"]');
   }
 
   resetJobForm(): void {
@@ -121,6 +124,7 @@ export class ProfileMaterialPage implements OnInit {
       level: skill.level ?? null,
       sortOrder: skill.sortOrder ?? null,
     });
+    this.scrollToForm(this.skillFormSection(), 'input[name="skill-name"]');
   }
 
   resetSkillForm(): void {
@@ -186,5 +190,16 @@ export class ProfileMaterialPage implements OnInit {
         this.isLoading.set(false);
       }
     }
+  }
+
+  private scrollToForm(section: ElementRef<HTMLElement> | undefined, focusSelector: string): void {
+    if (!section) {
+      return;
+    }
+
+    section.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => {
+      section.nativeElement.querySelector<HTMLElement>(focusSelector)?.focus({ preventScroll: true });
+    }, 250);
   }
 }
