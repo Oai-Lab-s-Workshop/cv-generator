@@ -1,13 +1,34 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { environment } from '../../../environments/environment';
+import { Achievement } from '../../core/models/achievement.model';
+import { Degree } from '../../core/models/degree.model';
+import { MediaFile } from '../../core/models/file.model';
+import { Hobby } from '../../core/models/hobby.model';
 import { Job } from '../../core/models/job.model';
+import { Project } from '../../core/models/project.model';
 import { Skill } from '../../core/models/skill.model';
-import { PocketBaseService, SaveCurrentUserJobInput, SaveCurrentUserSkillInput } from '../../core/services/pocketbase.service';
+import { AuthService } from '../../core/services/auth.service';
+import {
+  PocketBaseService,
+  SaveCurrentUserAchievementInput,
+  SaveCurrentUserDegreeInput,
+  SaveCurrentUserFileInput,
+  SaveCurrentUserHobbyInput,
+  SaveCurrentUserJobInput,
+  SaveCurrentUserProjectInput,
+  SaveCurrentUserSkillInput,
+} from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
 
 type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type SkillForm = Omit<SaveCurrentUserSkillInput, 'level' | 'sortOrder'> & { id?: string; level: number | null; sortOrder: number | null };
+type ProjectForm = Omit<SaveCurrentUserProjectInput, 'picture' | 'sortOrder'> & { id?: string; sortOrder: number | null };
+type AchievementForm = Omit<SaveCurrentUserAchievementInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
+type DegreeForm = Omit<SaveCurrentUserDegreeInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
+type HobbyForm = Omit<SaveCurrentUserHobbyInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
+type AssetForm = Omit<SaveCurrentUserFileInput, 'file' | 'sortOrder'> & { id?: string; sortOrder: number | null };
 
 const EMPTY_JOB_FORM: JobForm = {
   label: '',
@@ -29,6 +50,44 @@ const EMPTY_SKILL_FORM: SkillForm = {
   sortOrder: null,
 };
 
+const EMPTY_PROJECT_FORM: ProjectForm = {
+  name: '',
+  description: '',
+  url: '',
+  date: '',
+  type: 'work project',
+  file: '',
+  achievements: [],
+  sortOrder: null,
+};
+
+const EMPTY_ACHIEVEMENT_FORM: AchievementForm = {
+  title: '',
+  description: '',
+  sortOrder: null,
+};
+
+const EMPTY_DEGREE_FORM: DegreeForm = {
+  title: '',
+  school: '',
+  year: '',
+  level: '',
+  sortOrder: null,
+};
+
+const EMPTY_HOBBY_FORM: HobbyForm = {
+  name: '',
+  description: '',
+  sortOrder: null,
+};
+
+const EMPTY_ASSET_FORM: AssetForm = {
+  name: '',
+  alt: '',
+  kind: 'image',
+  sortOrder: null,
+};
+
 @Component({
   selector: 'app-profile-material-page',
   imports: [FormsModule, RouterLink],
@@ -38,22 +97,49 @@ const EMPTY_SKILL_FORM: SkillForm = {
 })
 export class ProfileMaterialPage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
-  private readonly jobFormSection = viewChild<ElementRef<HTMLElement>>('jobFormSection');
-  private readonly skillFormSection = viewChild<ElementRef<HTMLElement>>('skillFormSection');
+  private readonly authService = inject(AuthService);
   private readonly responsibilitiesEditor = viewChild<ElementRef<HTMLElement>>('responsibilitiesEditor');
 
   readonly jobs = signal<Job[]>([]);
   readonly skills = signal<Skill[]>([]);
+  readonly projects = signal<Project[]>([]);
+  readonly achievements = signal<Achievement[]>([]);
+  readonly degrees = signal<Degree[]>([]);
+  readonly hobbies = signal<Hobby[]>([]);
+  readonly assets = signal<MediaFile[]>([]);
+
   readonly jobForm = signal<JobForm>({ ...EMPTY_JOB_FORM });
   readonly skillForm = signal<SkillForm>({ ...EMPTY_SKILL_FORM });
+  readonly projectForm = signal<ProjectForm>({ ...EMPTY_PROJECT_FORM, achievements: [] });
+  readonly achievementForm = signal<AchievementForm>({ ...EMPTY_ACHIEVEMENT_FORM });
+  readonly degreeForm = signal<DegreeForm>({ ...EMPTY_DEGREE_FORM });
+  readonly hobbyForm = signal<HobbyForm>({ ...EMPTY_HOBBY_FORM });
+  readonly assetForm = signal<AssetForm>({ ...EMPTY_ASSET_FORM });
+
+  readonly selectedProjectPicture = signal<File | null>(null);
+  readonly selectedAssetFile = signal<File | null>(null);
   readonly isLoading = signal(true);
-  readonly isSavingJob = signal(false);
-  readonly isSavingSkill = signal(false);
+  readonly savingSection = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+  readonly bugReportUrl = signal(environment.bugReportUrl);
+  readonly currentUser = this.authService.currentUser;
+  readonly currentUserName = computed(() => {
+    const user = this.currentUser();
+    return user ? `${user.firstName} ${user.lastName}` : 'Utilisateur authentifie';
+  });
+  readonly totalMaterialCount = computed(
+    () => this.jobs().length + this.skills().length + this.projects().length + this.achievements().length + this.degrees().length + this.hobbies().length + this.assets().length,
+  );
 
   ngOnInit(): void {
+    void this.loadRuntimeConfig();
     void this.loadMaterial();
+  }
+
+  logout(): void {
+    this.authService.logout();
+    window.location.assign('/login');
   }
 
   editJob(job: Job): void {
@@ -71,7 +157,7 @@ export class ProfileMaterialPage implements OnInit {
       type: job.type,
     });
     this.setResponsibilitiesEditorHtml(responsibilities);
-    this.scrollToFormAfterRender(this.jobFormSection(), 'input[name="job-label"]');
+    this.scrollToSection('jobs-section', 'input[name="job-label"]');
   }
 
   resetJobForm(): void {
@@ -84,8 +170,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   setJobSortOrder(value: string | number | null): void {
-    const sortOrder = value === null || value === '' ? null : Number(value);
-    this.jobForm.update((form) => ({ ...form, sortOrder: Number.isFinite(sortOrder) ? sortOrder : null }));
+    this.jobForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
   }
 
   syncResponsibilitiesFromEditor(event: Event): void {
@@ -106,7 +191,7 @@ export class ProfileMaterialPage implements OnInit {
       position: form.position.trim(),
       startDate: form.startDate,
       type: form.type,
-      location: form.location?.trim() || undefined,
+      location: this.optionalText(form.location),
       endDate: form.endDate || undefined,
       responsibilities: this.normalizeHtmlEditorValue(form.responsibilities),
       sortOrder: form.sortOrder ?? undefined,
@@ -117,20 +202,10 @@ export class ProfileMaterialPage implements OnInit {
       return;
     }
 
-    this.isSavingJob.set(true);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
-
-    try {
+    await this.saveSection('jobs', form.id ? 'Experience mise a jour.' : 'Experience ajoutee.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserJob(form.id, input) : await this.pocketBaseService.createCurrentUserJob(input);
       this.resetJobForm();
-      await this.loadMaterial(false);
-      this.successMessage.set(form.id ? 'Experience mise a jour.' : 'Experience ajoutee.');
-    } catch (error: unknown) {
-      this.errorMessage.set(getErrorMessage(error));
-    } finally {
-      this.isSavingJob.set(false);
-    }
+    });
   }
 
   editSkill(skill: Skill): void {
@@ -142,7 +217,7 @@ export class ProfileMaterialPage implements OnInit {
       level: skill.level ?? null,
       sortOrder: skill.sortOrder ?? null,
     });
-    this.scrollToFormAfterRender(this.skillFormSection(), 'input[name="skill-name"]');
+    this.scrollToSection('skills-section', 'input[name="skill-name"]');
   }
 
   resetSkillForm(): void {
@@ -154,21 +229,19 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   setSkillLevel(value: string | number | null): void {
-    const level = value === null || value === '' ? null : Number(value);
-    this.skillForm.update((form) => ({ ...form, level: Number.isFinite(level) ? level : null }));
+    this.skillForm.update((form) => ({ ...form, level: this.toNullableNumber(value) }));
   }
 
   setSkillSortOrder(value: string | number | null): void {
-    const sortOrder = value === null || value === '' ? null : Number(value);
-    this.skillForm.update((form) => ({ ...form, sortOrder: Number.isFinite(sortOrder) ? sortOrder : null }));
+    this.skillForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
   }
 
   async saveSkill(): Promise<void> {
     const form = this.skillForm();
     const input: SaveCurrentUserSkillInput = {
       name: form.name.trim(),
-      category: form.category?.trim() || undefined,
-      type: form.type?.trim() || undefined,
+      category: this.optionalText(form.category),
+      type: this.optionalText(form.type),
       level: form.level ?? undefined,
       sortOrder: form.sortOrder ?? undefined,
     };
@@ -178,20 +251,262 @@ export class ProfileMaterialPage implements OnInit {
       return;
     }
 
-    this.isSavingSkill.set(true);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
-
-    try {
+    await this.saveSection('skills', form.id ? 'Competence mise a jour.' : 'Competence ajoutee.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserSkill(form.id, input) : await this.pocketBaseService.createCurrentUserSkill(input);
       this.resetSkillForm();
-      await this.loadMaterial(false);
-      this.successMessage.set(form.id ? 'Competence mise a jour.' : 'Competence ajoutee.');
-    } catch (error: unknown) {
-      this.errorMessage.set(getErrorMessage(error));
-    } finally {
-      this.isSavingSkill.set(false);
+    });
+  }
+
+  editProject(project: Project): void {
+    this.projectForm.set({
+      id: project.id,
+      name: project.name,
+      description: project.description ?? '',
+      url: project.url ?? '',
+      date: project.date ?? '',
+      type: project.type ?? 'work project',
+      file: project.file ?? '',
+      achievements: [...(project.achievements ?? [])],
+      sortOrder: project.sortOrder ?? null,
+    });
+    this.selectedProjectPicture.set(null);
+    this.scrollToSection('projects-section', 'input[name="project-name"]');
+  }
+
+  resetProjectForm(): void {
+    this.projectForm.set({ ...EMPTY_PROJECT_FORM, achievements: [] });
+    this.selectedProjectPicture.set(null);
+  }
+
+  setProjectFormValue(field: keyof Omit<ProjectForm, 'id' | 'sortOrder' | 'achievements'>, value: string): void {
+    this.projectForm.update((form) => ({ ...form, [field]: value }));
+  }
+
+  setProjectSortOrder(value: string | number | null): void {
+    this.projectForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
+  }
+
+  toggleProjectAchievement(achievementId: string, selected: boolean): void {
+    this.projectForm.update((form) => ({
+      ...form,
+      achievements: selected
+        ? Array.from(new Set([...(form.achievements ?? []), achievementId]))
+        : (form.achievements ?? []).filter((id) => id !== achievementId),
+    }));
+  }
+
+  onProjectPictureSelected(event: Event): void {
+    this.selectedProjectPicture.set((event.target as HTMLInputElement).files?.[0] ?? null);
+  }
+
+  async saveProject(): Promise<void> {
+    const form = this.projectForm();
+    const input: SaveCurrentUserProjectInput = {
+      name: form.name.trim(),
+      description: this.optionalText(form.description),
+      url: this.optionalText(form.url),
+      date: this.optionalText(form.date),
+      type: form.type || undefined,
+      file: this.optionalText(form.file),
+      achievements: form.achievements ?? [],
+      sortOrder: form.sortOrder ?? undefined,
+      picture: this.selectedProjectPicture(),
+    };
+
+    if (!input.name) {
+      this.errorMessage.set('Le nom du projet est obligatoire.');
+      return;
     }
+
+    await this.saveSection('projects', form.id ? 'Projet mis a jour.' : 'Projet ajoute.', async () => {
+      form.id ? await this.pocketBaseService.updateCurrentUserProject(form.id, input) : await this.pocketBaseService.createCurrentUserProject(input);
+      this.resetProjectForm();
+    });
+  }
+
+  editAchievement(achievement: Achievement): void {
+    this.achievementForm.set({
+      id: achievement.id,
+      title: achievement.title,
+      description: achievement.description ?? '',
+      sortOrder: achievement.sortOrder ?? null,
+    });
+    this.scrollToSection('achievements-section', 'input[name="achievement-title"]');
+  }
+
+  resetAchievementForm(): void {
+    this.achievementForm.set({ ...EMPTY_ACHIEVEMENT_FORM });
+  }
+
+  setAchievementFormValue(field: keyof Omit<AchievementForm, 'id' | 'sortOrder'>, value: string): void {
+    this.achievementForm.update((form) => ({ ...form, [field]: value }));
+  }
+
+  setAchievementSortOrder(value: string | number | null): void {
+    this.achievementForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
+  }
+
+  async saveAchievement(): Promise<void> {
+    const form = this.achievementForm();
+    const input: SaveCurrentUserAchievementInput = {
+      title: form.title.trim(),
+      description: this.optionalText(form.description),
+      sortOrder: form.sortOrder ?? undefined,
+    };
+
+    if (!input.title) {
+      this.errorMessage.set('Le titre de la realisation est obligatoire.');
+      return;
+    }
+
+    await this.saveSection('achievements', form.id ? 'Realisation mise a jour.' : 'Realisation ajoutee.', async () => {
+      form.id ? await this.pocketBaseService.updateCurrentUserAchievement(form.id, input) : await this.pocketBaseService.createCurrentUserAchievement(input);
+      this.resetAchievementForm();
+    });
+  }
+
+  editDegree(degree: Degree): void {
+    this.degreeForm.set({
+      id: degree.id,
+      title: degree.title,
+      school: degree.school ?? '',
+      year: degree.year ?? '',
+      level: degree.level ?? '',
+      sortOrder: degree.sortOrder ?? null,
+    });
+    this.scrollToSection('degrees-section', 'input[name="degree-title"]');
+  }
+
+  resetDegreeForm(): void {
+    this.degreeForm.set({ ...EMPTY_DEGREE_FORM });
+  }
+
+  setDegreeFormValue(field: keyof Omit<DegreeForm, 'id' | 'sortOrder'>, value: string): void {
+    this.degreeForm.update((form) => ({ ...form, [field]: value }));
+  }
+
+  setDegreeSortOrder(value: string | number | null): void {
+    this.degreeForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
+  }
+
+  async saveDegree(): Promise<void> {
+    const form = this.degreeForm();
+    const input: SaveCurrentUserDegreeInput = {
+      title: form.title.trim(),
+      school: this.optionalText(form.school),
+      year: this.optionalText(form.year),
+      level: this.optionalText(form.level),
+      sortOrder: form.sortOrder ?? undefined,
+    };
+
+    if (!input.title) {
+      this.errorMessage.set('Le titre du diplome est obligatoire.');
+      return;
+    }
+
+    await this.saveSection('degrees', form.id ? 'Diplome mis a jour.' : 'Diplome ajoute.', async () => {
+      form.id ? await this.pocketBaseService.updateCurrentUserDegree(form.id, input) : await this.pocketBaseService.createCurrentUserDegree(input);
+      this.resetDegreeForm();
+    });
+  }
+
+  editHobby(hobby: Hobby): void {
+    this.hobbyForm.set({
+      id: hobby.id,
+      name: hobby.name,
+      description: hobby.description ?? '',
+      sortOrder: hobby.sortOrder ?? null,
+    });
+    this.scrollToSection('hobbies-section', 'input[name="hobby-name"]');
+  }
+
+  resetHobbyForm(): void {
+    this.hobbyForm.set({ ...EMPTY_HOBBY_FORM });
+  }
+
+  setHobbyFormValue(field: keyof Omit<HobbyForm, 'id' | 'sortOrder'>, value: string): void {
+    this.hobbyForm.update((form) => ({ ...form, [field]: value }));
+  }
+
+  setHobbySortOrder(value: string | number | null): void {
+    this.hobbyForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
+  }
+
+  async saveHobby(): Promise<void> {
+    const form = this.hobbyForm();
+    const input: SaveCurrentUserHobbyInput = {
+      name: form.name.trim(),
+      description: this.optionalText(form.description),
+      sortOrder: form.sortOrder ?? undefined,
+    };
+
+    if (!input.name) {
+      this.errorMessage.set('Le nom du loisir est obligatoire.');
+      return;
+    }
+
+    await this.saveSection('hobbies', form.id ? 'Loisir mis a jour.' : 'Loisir ajoute.', async () => {
+      form.id ? await this.pocketBaseService.updateCurrentUserHobby(form.id, input) : await this.pocketBaseService.createCurrentUserHobby(input);
+      this.resetHobbyForm();
+    });
+  }
+
+  editAsset(asset: MediaFile): void {
+    this.assetForm.set({
+      id: asset.id,
+      name: asset.name ?? '',
+      alt: asset.alt ?? '',
+      kind: asset.kind ?? 'image',
+      sortOrder: asset.sortOrder ?? null,
+    });
+    this.selectedAssetFile.set(null);
+    this.scrollToSection('assets-section', 'input[name="asset-name"]');
+  }
+
+  resetAssetForm(): void {
+    this.assetForm.set({ ...EMPTY_ASSET_FORM });
+    this.selectedAssetFile.set(null);
+  }
+
+  setAssetFormValue(field: keyof Omit<AssetForm, 'id' | 'sortOrder'>, value: string): void {
+    this.assetForm.update((form) => ({ ...form, [field]: value }));
+  }
+
+  setAssetSortOrder(value: string | number | null): void {
+    this.assetForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
+  }
+
+  onAssetFileSelected(event: Event): void {
+    this.selectedAssetFile.set((event.target as HTMLInputElement).files?.[0] ?? null);
+  }
+
+  async saveAsset(): Promise<void> {
+    const form = this.assetForm();
+    const input: SaveCurrentUserFileInput = {
+      name: this.optionalText(form.name),
+      alt: this.optionalText(form.alt),
+      kind: form.kind || undefined,
+      sortOrder: form.sortOrder ?? undefined,
+      file: this.selectedAssetFile(),
+    };
+
+    if (!form.id && !input.file) {
+      this.errorMessage.set('Le fichier est obligatoire pour creer un asset.');
+      return;
+    }
+
+    await this.saveSection('assets', form.id ? 'Asset mis a jour.' : 'Asset ajoute.', async () => {
+      form.id ? await this.pocketBaseService.updateCurrentUserFile(form.id, input) : await this.pocketBaseService.createCurrentUserFile(input);
+      this.resetAssetForm();
+    });
+  }
+
+  isSaving(section: string): boolean {
+    return this.savingSection() === section;
+  }
+
+  isProjectAchievementSelected(achievementId: string): boolean {
+    return this.projectForm().achievements?.includes(achievementId) ?? false;
   }
 
   private async loadMaterial(showLoading = true): Promise<void> {
@@ -205,6 +520,11 @@ export class ProfileMaterialPage implements OnInit {
       const data = await this.pocketBaseService.getCurrentUserProfileMaterialData();
       this.jobs.set(data.jobs);
       this.skills.set(data.skills);
+      this.projects.set(data.projects);
+      this.achievements.set(data.achievements);
+      this.degrees.set(data.degrees);
+      this.hobbies.set(data.hobbies);
+      this.assets.set(data.files);
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
@@ -214,16 +534,44 @@ export class ProfileMaterialPage implements OnInit {
     }
   }
 
-  private scrollToFormAfterRender(section: ElementRef<HTMLElement> | undefined, focusSelector: string): void {
-    if (!section) {
-      return;
-    }
+  private async saveSection(section: string, message: string, operation: () => Promise<void>): Promise<void> {
+    this.savingSection.set(section);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
 
+    try {
+      await operation();
+      await this.loadMaterial(false);
+      this.successMessage.set(message);
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.savingSection.set(null);
+    }
+  }
+
+  private async loadRuntimeConfig(): Promise<void> {
+    try {
+      const response = await fetch('/assets/runtime-config.json', { cache: 'no-store' });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const config = (await response.json()) as { bugReportUrl?: unknown };
+      if (typeof config.bugReportUrl === 'string' && config.bugReportUrl.trim()) {
+        this.bugReportUrl.set(config.bugReportUrl.trim());
+      }
+    } catch {
+      // Runtime config is optional outside Docker.
+    }
+  }
+
+  private scrollToSection(sectionId: string, focusSelector: string): void {
     window.requestAnimationFrame(() => {
-      section.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      window.requestAnimationFrame(() => {
-        section.nativeElement.querySelector<HTMLElement>(focusSelector)?.focus({ preventScroll: true });
-      });
+      const section = document.getElementById(sectionId);
+      section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.requestAnimationFrame(() => section?.querySelector<HTMLElement>(focusSelector)?.focus({ preventScroll: true }));
     });
   }
 
@@ -250,5 +598,15 @@ export class ProfileMaterialPage implements OnInit {
     const text = container.textContent?.replace(/\u00a0/g, ' ').trim() ?? '';
 
     return text || hasMediaOrStructure ? trimmedHtml : undefined;
+  }
+
+  private optionalText(value: string | undefined): string | undefined {
+    const trimmed = value?.trim() ?? '';
+    return trimmed || undefined;
+  }
+
+  private toNullableNumber(value: string | number | null): number | null {
+    const numberValue = value === null || value === '' ? null : Number(value);
+    return Number.isFinite(numberValue) ? numberValue : null;
   }
 }
