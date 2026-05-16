@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { CV_TEMPLATE_OPTIONS } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-home-page',
@@ -28,6 +29,7 @@ export class HomePage implements OnInit {
   readonly isSaving = signal<string | null>(null);
   readonly templateSelections = signal<Record<string, string>>({});
   readonly publicSelections = signal<Record<string, boolean>>({});
+  readonly bugReportUrl = signal(environment.bugReportUrl);
   readonly currentUser = this.authService.currentUser;
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
   readonly currentUserName = computed(() => {
@@ -36,7 +38,25 @@ export class HomePage implements OnInit {
   });
 
   ngOnInit(): void {
+    void this.loadRuntimeConfig();
     void this.loadProfiles();
+  }
+
+  private async loadRuntimeConfig(): Promise<void> {
+    try {
+      const response = await fetch('/assets/runtime-config.json', { cache: 'no-store' });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const config = (await response.json()) as { bugReportUrl?: unknown };
+      if (typeof config.bugReportUrl === 'string' && config.bugReportUrl.trim()) {
+        this.bugReportUrl.set(config.bugReportUrl.trim());
+      }
+    } catch {
+      // Runtime config is optional outside Docker.
+    }
   }
 
   private async loadProfiles(): Promise<void> {

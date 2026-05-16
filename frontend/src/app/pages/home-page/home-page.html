@@ -6,7 +6,12 @@
       <p class="lede">Gerez vos profils CV, changez de template, modifiez vos contenus et previsualisez tous les templates.</p>
     </div>
 
-    <button class="secondary-button" type="button" (click)="logout()">Se deconnecter</button>
+    <div class="hero__actions">
+      @if (bugReportUrl()) {
+        <a class="secondary-button hero__link" [href]="bugReportUrl()" target="_blank" rel="noopener noreferrer">Signaler un bug</a>
+      }
+      <button class="secondary-button" type="button" (click)="logout()">Se deconnecter</button>
+    </div>
   </section>
 
   <section class="quick-actions">
