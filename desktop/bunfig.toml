@@ -1,0 +1,7 @@
+[test]
+coverage = true
+coverageReporter = ["text", "lcov"]
+coverageThreshold = { lines = 0.8, functions = 0.8, statements = 0.8 }
+
+[test.reporter]
+junit = "./test-results.xml"
