@@ -1,9 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { QuillModule } from 'ngx-quill';
-import { environment } from '../../../environments/environment';
-import { ThemeService } from '../../core/services/theme.service';
 import { Achievement } from '../../core/models/achievement.model';
 import { Degree } from '../../core/models/degree.model';
 import { MediaFile } from '../../core/models/file.model';
@@ -24,6 +21,7 @@ import {
   SaveCurrentUserSkillInput,
 } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { Navbar } from '../../shared/components/navbar/navbar';
 
 type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type SkillForm = Omit<SaveCurrentUserSkillInput, 'level' | 'sortOrder'> & { id?: string; level: number | null; sortOrder: number | null };
@@ -93,7 +91,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
 
 @Component({
   selector: 'app-profile-material-page',
-  imports: [FormsModule, RouterLink, QuillModule],
+  imports: [FormsModule, Navbar, QuillModule],
   templateUrl: './profile-material-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -139,8 +137,6 @@ export class ProfileMaterialPage implements OnInit {
   readonly projectAchievementQuery = signal('');
   readonly skillCategoryQuery = signal('');
   readonly newSkillCategoryName = signal('');
-  readonly themeService = inject(ThemeService);
-  readonly bugReportUrl = signal(environment.bugReportUrl);
   readonly currentUser = this.authService.currentUser;
   readonly currentUserName = computed(() => {
     const user = this.currentUser();
@@ -198,13 +194,7 @@ export class ProfileMaterialPage implements OnInit {
   readonly canCreateStandaloneSkillCategory = computed(() => this.canCreateSkillCategory(this.newSkillCategoryName()));
 
   ngOnInit(): void {
-    void this.loadRuntimeConfig();
     void this.loadMaterial();
-  }
-
-  logout(): void {
-    this.authService.logout();
-    window.location.assign('/login');
   }
 
   editJob(job: Job): void {
@@ -722,23 +712,6 @@ export class ProfileMaterialPage implements OnInit {
       return null;
     } finally {
       this.creatingSkillCategory.set(false);
-    }
-  }
-
-  private async loadRuntimeConfig(): Promise<void> {
-    try {
-      const response = await fetch('/assets/runtime-config.json', { cache: 'no-store' });
-
-      if (!response.ok) {
-        return;
-      }
-
-      const config = (await response.json()) as { bugReportUrl?: unknown };
-      if (typeof config.bugReportUrl === 'string' && config.bugReportUrl.trim()) {
-        this.bugReportUrl.set(config.bugReportUrl.trim());
-      }
-    } catch {
-      // Runtime config is optional outside Docker.
     }
   }
 
