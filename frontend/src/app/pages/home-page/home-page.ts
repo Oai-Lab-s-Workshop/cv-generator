@@ -31,6 +31,7 @@ export class HomePage implements OnInit {
   readonly newProfileTemplate = signal(CV_TEMPLATE_OPTIONS[0]?.id || 'classic');
   readonly errorMessage = signal<string | null>(null);
   readonly isSaving = signal<string | null>(null);
+  readonly isDeleting = signal<string | null>(null);
   readonly templateSelections = signal<Record<string, string>>({});
   readonly publicSelections = signal<Record<string, boolean>>({});
   readonly currentUser = this.authService.currentUser;
@@ -167,6 +168,20 @@ export class HomePage implements OnInit {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
       this.isCreating.set(false);
+    }
+  }
+
+  async deleteProfile(profile: CvProfile): Promise<void> {
+    if (!confirm(`Supprimer "${profile.label}" ? Cette action est irreversible.`)) return;
+    this.isDeleting.set(profile.id);
+    this.errorMessage.set(null);
+    try {
+      await this.pocketBaseService.deleteCurrentUserCvProfile(profile.id);
+      await this.loadProfiles();
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.isDeleting.set(null);
     }
   }
 

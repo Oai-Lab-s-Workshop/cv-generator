@@ -204,6 +204,11 @@ export class PocketBaseService {
     return this.normalizeCvProfile(updated);
   }
 
+  async deleteCurrentUserCvProfile(profileId: string): Promise<void> {
+    await this.getCurrentUserCvProfileById(profileId); // ownership check
+    await this.pb.collection('cv_profiles').delete(profileId);
+  }
+
   async updateCurrentUserCvProfile(
     profileId: string,
     payload: Partial<

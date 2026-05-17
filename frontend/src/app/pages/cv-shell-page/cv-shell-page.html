@@ -24,10 +24,6 @@
               <i class="bi bi-printer" aria-hidden="true"></i>
               <span>Imprimer</span>
             </button>
-            <button class="speed-dial-action" type="button" [disabled]="isExportingPdf()" (click)="downloadPdf(); closeAdminBar()">
-              <i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i>
-              <span>{{ isExportingPdf() ? 'Exporting...' : 'Download PDF' }}</span>
-            </button>
             <a
               [routerLink]="['/home/profiles', profile.id, 'edit']"
               class="speed-dial-action speed-dial-action--link"

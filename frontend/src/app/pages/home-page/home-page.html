@@ -152,6 +152,14 @@
                   @if (profile.template) {
                     <a [routerLink]="['/', profile.slug]" class="text-link">Ouvrir</a>
                   }
+                  <button
+                    class="text-link text-link--danger"
+                    type="button"
+                    [disabled]="isDeleting() === profile.id"
+                    (click)="deleteProfile(profile)"
+                  >
+                    {{ isDeleting() === profile.id ? 'Suppression...' : 'Supprimer' }}
+                  </button>
                 </div>
               </article>
             }
