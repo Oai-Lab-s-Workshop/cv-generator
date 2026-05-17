@@ -3,7 +3,40 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.55rem;
+  gap: 0.35rem;
+}
+
+.action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--home-primary);
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.action-icon:hover {
+  background: light-dark(rgba(15, 61, 140, 0.08), rgba(106, 158, 245, 0.12));
+}
+
+.action-icon--danger {
+  color: light-dark(#dc2626, #f87171);
+}
+
+.action-icon--danger:hover {
+  background: light-dark(rgba(220, 38, 38, 0.08), rgba(248, 113, 113, 0.12));
+}
+
+.action-icon:disabled {
+  opacity: 0.68;
+  cursor: wait;
 }
 
 .profile-table__head,
@@ -96,8 +129,7 @@
     align-self: center;
   }
 
-  .visibility-control__state,
-  .profile-actions .text-link {
+  .visibility-control__state {
     justify-self: start;
   }
 

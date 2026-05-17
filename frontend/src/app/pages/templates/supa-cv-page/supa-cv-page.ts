@@ -23,6 +23,7 @@ import { IconLabelData } from '../../../shared/components/icon-label-data/icon-l
 import { EducationChip } from '../../../shared/components/education-chip/education-chip';
 import { CardProject } from '../../../shared/components/card-project/card-project';
 import { Project } from '../../../core/models/project.model';
+import { Skill } from '../../../core/models/skill.model';
 
 type SectionKey = 'projects' | 'experience' | 'skills' | 'diplomas';
 type SectionMode = 'full' | 'compact';
@@ -81,6 +82,25 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
 
   protected extraStringArray(key: string): string[] {
     return this.cvProfileExtra.stringArray(this.cvData()?.profile, key);
+  }
+
+  protected visibleSkills(skills: Skill[]): Skill[] {
+    return skills.filter((skill) => skill.name.trim() !== '');
+  }
+
+  protected skillCategories(skills: Skill[]): string[] {
+    return Array.from(new Set(this.visibleSkills(skills).map((skill) => this.skillCategoryLabel(skill))));
+  }
+
+  protected skillCategoryLabel(skill: Skill): string {
+    return skill.expand?.category?.name || skill.type || 'Autre';
+  }
+
+  protected skillCategoryClass(skillOrCategory: Skill | string, skills: Skill[]): string {
+    const category = typeof skillOrCategory === 'string' ? skillOrCategory : this.skillCategoryLabel(skillOrCategory);
+    const categoryIndex = this.skillCategories(skills).indexOf(category);
+
+    return `skill--tone-${Math.max(categoryIndex, 0) % 6}`;
   }
 
   ngOnInit(): void {
