@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, Injector, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { environment } from '../../../environments/environment';
 import { Achievement } from '../../core/models/achievement.model';
 import { CvProfile, CvProfileExtraValue } from '../../core/models/cv-profile.model';
 import { Degree } from '../../core/models/degree.model';
@@ -10,10 +9,10 @@ import { Hobby } from '../../core/models/hobby.model';
 import { Job } from '../../core/models/job.model';
 import { Project } from '../../core/models/project.model';
 import { Skill } from '../../core/models/skill.model';
-import { AuthService } from '../../core/services/auth.service';
 import { CurrentUserCvProfileEditorData, PocketBaseService } from '../../core/services/pocketbase.service';
 import { CV_TEMPLATE_OPTIONS, CV_TEMPLATE_OPTIONS_BY_ID, CvTemplateExtraField, CvTemplateExtraFieldSource } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { Navbar } from '../../shared/components/navbar/navbar';
 
 type RelationType = 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies';
 type ExtraSourceRecord = Job | Project | Skill | Degree | Achievement | Hobby;
@@ -33,25 +32,18 @@ type PictureField = 'profilePictureFile' | 'coverPictureFile';
 
 @Component({
   selector: 'app-profile-editor-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, Navbar, RouterLink],
   templateUrl: './profile-editor-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-editor-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileEditorPage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
-  private readonly authService = inject(AuthService);
   private readonly injector = inject(Injector);
   private requestId = 0;
 
   readonly profileId = input.required<string>();
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
-  readonly currentUser = this.authService.currentUser;
-  readonly bugReportUrl = signal(environment.bugReportUrl);
-  readonly currentUserName = computed(() => {
-    const user = this.currentUser();
-    return user ? `${user.firstName} ${user.lastName}` : 'Utilisateur authentifie';
-  });
   readonly editorState = signal<EditorState | null>(null);
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
@@ -59,36 +51,12 @@ export class ProfileEditorPage implements OnInit {
   readonly successMessage = signal<string | null>(null);
 
   ngOnInit(): void {
-    void this.loadRuntimeConfig();
-
     effect(
       () => {
         void this.loadEditorData(this.profileId());
       },
       { injector: this.injector },
     );
-  }
-
-  logout(): void {
-    this.authService.logout();
-    window.location.assign('/login');
-  }
-
-  private async loadRuntimeConfig(): Promise<void> {
-    try {
-      const response = await fetch('/assets/runtime-config.json', { cache: 'no-store' });
-
-      if (!response.ok) {
-        return;
-      }
-
-      const config = (await response.json()) as { bugReportUrl?: unknown };
-      if (typeof config.bugReportUrl === 'string' && config.bugReportUrl.trim()) {
-        this.bugReportUrl.set(config.bugReportUrl.trim());
-      }
-    } catch {
-      // Runtime config is optional outside Docker.
-    }
   }
 
   async save(): Promise<void> {
