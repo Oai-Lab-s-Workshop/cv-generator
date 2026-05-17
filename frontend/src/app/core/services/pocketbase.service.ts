@@ -23,6 +23,7 @@ export interface CurrentUserCvProfileEditorData {
   availableDegrees: Degree[];
   availableAchievements: Achievement[];
   availableHobbies: Hobby[];
+  availablePictures: MediaFile[];
 }
 
 export interface CurrentUserProfileMaterialData {
@@ -50,10 +51,11 @@ export class PocketBaseService {
   private readonly pocketBaseClient = inject(PocketBaseClientService);
   private readonly authService = inject(AuthService);
   private readonly pb = this.pocketBaseClient.pb;
+  private readonly cvProfileExpand = 'user,profilePictureFile,coverPictureFile';
 
   async getCvProfileById(cvProfileId: string): Promise<CvProfile> {
     const profile = await this.pb.collection<CvProfile>('cv_profiles').getOne(cvProfileId, {
-      expand: 'user',
+      expand: this.cvProfileExpand,
     });
 
     return this.normalizeCvProfile(profile);
@@ -61,7 +63,7 @@ export class PocketBaseService {
 
   async getCvProfileBySlug(slug: string): Promise<CvProfile> {
     const profile = await this.pb.collection<CvProfile>('cv_profiles').getFirstListItem(`slug="${slug}"`, {
-      expand: 'user',
+      expand: this.cvProfileExpand,
     });
 
     return this.normalizeCvProfile(profile);
@@ -106,7 +108,7 @@ export class PocketBaseService {
   async getAllCvProfiles(): Promise<CvProfile[]> {
     const profiles = await this.pb.collection<CvProfile>('cv_profiles').getFullList({
       sort: '+label',
-      expand: 'user',
+      expand: this.cvProfileExpand,
     });
 
     return profiles.map((profile) => this.normalizeCvProfile(profile));
@@ -118,7 +120,7 @@ export class PocketBaseService {
     const profiles = await this.pb.collection<CvProfile>('cv_profiles').getFullList({
       filter: `user="${currentUserId}"`,
       sort: '+label',
-      expand: 'user',
+      expand: this.cvProfileExpand,
     });
 
     return profiles.map((profile) => this.normalizeCvProfile(profile));
@@ -129,7 +131,7 @@ export class PocketBaseService {
     const profile = await this.pb
       .collection<CvProfile>('cv_profiles')
       .getFirstListItem(`id="${profileId}" && user="${currentUserId}"`, {
-        expand: 'user',
+        expand: this.cvProfileExpand,
       });
 
     return this.normalizeCvProfile(profile);
@@ -200,7 +202,24 @@ export class PocketBaseService {
 
   async updateCurrentUserCvProfile(
     profileId: string,
-    payload: Partial<Pick<CvProfile, 'label' | 'profileName' | 'public' | 'template' | 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies' | 'extra'>>,
+    payload: Partial<
+      Pick<
+        CvProfile,
+        | 'label'
+        | 'profileName'
+        | 'public'
+        | 'template'
+        | 'jobs'
+        | 'projects'
+        | 'skills'
+        | 'degrees'
+        | 'achievements'
+        | 'hobbies'
+        | 'extra'
+        | 'profilePictureFile'
+        | 'coverPictureFile'
+      >
+    >,
   ): Promise<CvProfile> {
     const profile = await this.getCurrentUserCvProfileById(profileId);
     const template = payload.template ?? profile.template ?? '';
@@ -234,7 +253,7 @@ export class PocketBaseService {
 
   async getCurrentUserCvProfileEditorData(profileId: string): Promise<CurrentUserCvProfileEditorData> {
     const profile = await this.getCurrentUserCvProfileById(profileId);
-    const [availableJobs, availableProjects, availableSkills, availableDegrees, availableAchievements, availableHobbies] =
+    const [availableJobs, availableProjects, availableSkills, availableDegrees, availableAchievements, availableHobbies, availableFiles] =
       await Promise.all([
         this.getCurrentUserOwnedRecords<Job>('jobs', '+sortOrder,-startDate'),
         this.getCurrentUserOwnedRecords<Project>('projects', '+sortOrder,-date', 'file'),
@@ -242,6 +261,7 @@ export class PocketBaseService {
         this.getCurrentUserOwnedRecords<Degree>('degrees', '+sortOrder,-year'),
         this.getCurrentUserOwnedRecords<Achievement>('achievements', '+sortOrder,+title'),
         this.getCurrentUserOwnedRecords<Hobby>('hobbies', '+sortOrder,+name'),
+        this.getCurrentUserOwnedRecords<MediaFile>('files', '+sortOrder,+name'),
       ]);
 
     return {
@@ -252,6 +272,7 @@ export class PocketBaseService {
       availableDegrees,
       availableAchievements,
       availableHobbies,
+      availablePictures: availableFiles.filter((file) => file.kind === 'image').map((file) => this.normalizeMediaFile(file)),
     };
   }
 
@@ -496,15 +517,20 @@ export class PocketBaseService {
       throw new Error('CV profile not found.');
     }
 
+    const profilePictureFile = profile.expand?.profilePictureFile ? this.normalizeMediaFile(profile.expand.profilePictureFile as MediaFile & RecordModel) : undefined;
+    const coverPictureFile = profile.expand?.coverPictureFile ? this.normalizeMediaFile(profile.expand.coverPictureFile as MediaFile & RecordModel) : undefined;
+
     return {
       ...profile,
       extra: profile.extra ?? {},
-      profilePicture: this.getFileFieldUrl(profile as unknown as RecordModel, profile.profilePicture),
-      coverPicture: this.getFileFieldUrl(profile as unknown as RecordModel, profile.coverPicture),
+      profilePicture: profilePictureFile?.file || this.getFileFieldUrl(profile as unknown as RecordModel, profile.profilePicture),
+      coverPicture: coverPictureFile?.file || this.getFileFieldUrl(profile as unknown as RecordModel, profile.coverPicture),
       expand: profile.expand
         ? {
             ...profile.expand,
             user: profile.expand.user ? this.normalizeUser(profile.expand.user as User & RecordModel) ?? undefined : undefined,
+            profilePictureFile,
+            coverPictureFile,
           }
         : undefined,
     };

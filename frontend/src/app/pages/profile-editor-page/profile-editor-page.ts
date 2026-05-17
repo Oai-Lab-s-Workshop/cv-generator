@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { Achievement } from '../../core/models/achievement.model';
 import { CvProfile, CvProfileExtraValue } from '../../core/models/cv-profile.model';
 import { Degree } from '../../core/models/degree.model';
+import { MediaFile } from '../../core/models/file.model';
 import { Hobby } from '../../core/models/hobby.model';
 import { Job } from '../../core/models/job.model';
 import { Project } from '../../core/models/project.model';
@@ -25,7 +26,10 @@ type EditorState = {
   availableDegrees: Degree[];
   availableAchievements: Achievement[];
   availableHobbies: Hobby[];
+  availablePictures: MediaFile[];
 };
+
+type PictureField = 'profilePictureFile' | 'coverPictureFile';
 
 @Component({
   selector: 'app-profile-editor-page',
@@ -53,8 +57,6 @@ export class ProfileEditorPage implements OnInit {
   readonly isSaving = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
-  readonly selectedProfilePicture = signal<File | null>(null);
-  readonly selectedCoverPicture = signal<File | null>(null);
 
   ngOnInit(): void {
     void this.loadRuntimeConfig();
@@ -89,16 +91,6 @@ export class ProfileEditorPage implements OnInit {
     }
   }
 
-  onProfilePictureSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    this.selectedProfilePicture.set(file);
-  }
-
-  onCoverPictureSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    this.selectedCoverPicture.set(file);
-  }
-
   async save(): Promise<void> {
     const state = this.editorState();
 
@@ -129,17 +121,10 @@ export class ProfileEditorPage implements OnInit {
         degrees: state.profile.degrees ?? [],
         achievements: state.profile.achievements ?? [],
         hobbies: state.profile.hobbies ?? [],
+        profilePictureFile: state.profile.profilePictureFile || '',
+        coverPictureFile: state.profile.coverPictureFile || '',
         extra: state.profile.extra ?? {},
       });
-
-      if (this.selectedProfilePicture() || this.selectedCoverPicture()) {
-        await this.pocketBaseService.updateCurrentUserCvProfilePictures(state.profile.id, {
-          profilePicture: this.selectedProfilePicture(),
-          coverPicture: this.selectedCoverPicture(),
-        });
-        this.selectedProfilePicture.set(null);
-        this.selectedCoverPicture.set(null);
-      }
 
       await this.loadEditorData(state.profile.id);
       this.successMessage.set('Profil enregistre.');
@@ -357,6 +342,21 @@ export class ProfileEditorPage implements OnInit {
     return this.getUnlinkedRecords(state.availableHobbies, state.profile.hobbies);
   }
 
+  getPicturePreview(state: EditorState, field: PictureField): string | undefined {
+    const selectedPicture = this.getSelectedPicture(state, field);
+
+    if (selectedPicture) {
+      return selectedPicture.file;
+    }
+
+    return field === 'profilePictureFile' ? state.profile.profilePicture : state.profile.coverPicture;
+  }
+
+  getSelectedPictureName(state: EditorState, field: PictureField): string {
+    const selectedPicture = this.getSelectedPicture(state, field);
+    return selectedPicture?.name || selectedPicture?.alt || 'Image selectionnee';
+  }
+
   private async loadEditorData(profileId: string): Promise<void> {
     const currentRequestId = ++this.requestId;
     this.isLoading.set(true);
@@ -403,7 +403,13 @@ export class ProfileEditorPage implements OnInit {
       availableDegrees: data.availableDegrees,
       availableAchievements: data.availableAchievements,
       availableHobbies: data.availableHobbies,
+      availablePictures: data.availablePictures,
     };
+  }
+
+  private getSelectedPicture(state: EditorState, field: PictureField): MediaFile | undefined {
+    const selectedId = state.profile[field];
+    return selectedId ? state.availablePictures.find((picture) => picture.id === selectedId) : undefined;
   }
 
   private getLinkedRecords<T extends { id: string }>(records: T[], selectedIds: string[] | undefined): T[] {

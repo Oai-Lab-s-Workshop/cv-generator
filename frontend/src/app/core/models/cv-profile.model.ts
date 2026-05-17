@@ -1,3 +1,4 @@
+import { MediaFile } from './file.model';
 import { User } from './user.model';
 
 export type CvProfileExtraValue = string | number | boolean | string[] | null;
@@ -20,8 +21,12 @@ export interface CvProfile {
   skills?: string[];
   profilePicture?: string;
   coverPicture?: string;
+  profilePictureFile?: string;
+  coverPictureFile?: string;
   extra?: CvProfileExtraByTemplate;
   expand?: {
     user?: User;
+    profilePictureFile?: MediaFile;
+    coverPictureFile?: MediaFile;
   };
 }

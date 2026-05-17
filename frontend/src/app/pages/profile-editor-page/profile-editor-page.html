@@ -107,21 +107,33 @@
           <input [(ngModel)]="state.profile.public" name="public" type="checkbox" [ngModelOptions]="{ standalone: true }" />
         </label>
 
-        <div class="editor-field">
+        <label class="editor-field media-picker">
           <span>Photo de profil</span>
-          @if (state.profile.profilePicture) {
-            <img [src]="state.profile.profilePicture" alt="Photo de profil" class="editor-image" />
+          @if (getPicturePreview(state, 'profilePictureFile'); as preview) {
+            <img [src]="preview" [alt]="getSelectedPictureName(state, 'profilePictureFile')" class="editor-image" />
           }
-          <input type="file" accept="image/*" (change)="onProfilePictureSelected($event)" />
-        </div>
+          <select [(ngModel)]="state.profile.profilePictureFile" name="profilePictureFile">
+            <option value="">Aucune image</option>
+            @for (picture of state.availablePictures; track picture.id) {
+              <option [value]="picture.id">{{ picture.name || picture.alt || picture.file }}</option>
+            }
+          </select>
+          <small>Choisissez une image existante depuis vos informations.</small>
+        </label>
 
-        <div class="editor-field">
+        <label class="editor-field media-picker media-picker--cover">
           <span>Image de couverture</span>
-          @if (state.profile.coverPicture) {
-            <img [src]="state.profile.coverPicture" alt="Image de couverture" class="editor-image editor-image--cover" />
+          @if (getPicturePreview(state, 'coverPictureFile'); as preview) {
+            <img [src]="preview" [alt]="getSelectedPictureName(state, 'coverPictureFile')" class="editor-image editor-image--cover" />
           }
-          <input type="file" accept="image/*" (change)="onCoverPictureSelected($event)" />
-        </div>
+          <select [(ngModel)]="state.profile.coverPictureFile" name="coverPictureFile">
+            <option value="">Aucune image</option>
+            @for (picture of state.availablePictures; track picture.id) {
+              <option [value]="picture.id">{{ picture.name || picture.alt || picture.file }}</option>
+            }
+          </select>
+          <small>Les images se gerent dans <a routerLink="/home/profile-material">mes informations</a>.</small>
+        </label>
       </div>
 
       <div class="form-actions">
