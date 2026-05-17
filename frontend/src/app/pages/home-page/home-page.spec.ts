@@ -13,6 +13,8 @@ describe('HomePage', () => {
     getCurrentUserCvProfiles: jest.Mock;
     getCurrentUserAiTokens: jest.Mock;
     setTemplateForCurrentUserCvProfile: jest.Mock;
+    setPublicForCurrentUserCvProfile: jest.Mock;
+    deleteCurrentUserCvProfile: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -20,6 +22,8 @@ describe('HomePage', () => {
       getCurrentUserCvProfiles: jest.fn().mockResolvedValue([]),
       getCurrentUserAiTokens: jest.fn().mockResolvedValue([]),
       setTemplateForCurrentUserCvProfile: jest.fn().mockResolvedValue(undefined),
+      setPublicForCurrentUserCvProfile: jest.fn().mockResolvedValue(undefined),
+      deleteCurrentUserCvProfile: jest.fn().mockResolvedValue(undefined),
     };
 
     await TestBed.configureTestingModule({
@@ -66,5 +70,41 @@ describe('HomePage', () => {
 
     expect(component.templateSelections()[profile.id]).toBe('modern');
     expect(pocketBaseService.setTemplateForCurrentUserCvProfile).toHaveBeenCalledWith(profile.id, 'modern', true);
+  });
+
+  it('should delete a profile after confirmation', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const profile = {
+      id: 'profile-1',
+      slug: 'frontend',
+      label: 'Frontend CV',
+      profileName: 'Frontend',
+      template: 'classic',
+      public: true,
+      user: 'user-1',
+    };
+
+    await component.deleteProfile(profile);
+
+    expect(pocketBaseService.deleteCurrentUserCvProfile).toHaveBeenCalledWith(profile.id);
+    expect(pocketBaseService.getCurrentUserCvProfiles).toHaveBeenCalled();
+    expect(component.isDeleting()).toBeNull();
+  });
+
+  it('should not delete a profile when confirmation is cancelled', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    const profile = {
+      id: 'profile-1',
+      slug: 'frontend',
+      label: 'Frontend CV',
+      profileName: 'Frontend',
+      template: 'classic',
+      public: true,
+      user: 'user-1',
+    };
+
+    await component.deleteProfile(profile);
+
+    expect(pocketBaseService.deleteCurrentUserCvProfile).not.toHaveBeenCalled();
   });
 });
