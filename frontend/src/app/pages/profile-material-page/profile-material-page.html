@@ -27,6 +27,51 @@
     </article>
   </section>
 
+  <section class="material-map-card" aria-labelledby="material-map-title">
+    <div class="material-map-card__copy">
+      <p class="eyebrow">Modele mental</p>
+      <h2 id="material-map-title">Comment vos donnees se connectent</h2>
+      <p>Remplissez vos informations comme une bibliotheque: les elements de base alimentent ensuite les projets, les CV et les profils publics.</p>
+    </div>
+
+    <div class="material-map-grid" aria-label="Relations entre les donnees">
+      <article class="material-node material-node--primary">
+        <span>1</span>
+        <strong>Experiences</strong>
+        <p>Le contexte: entreprises, postes, missions et dates.</p>
+      </article>
+      <article class="material-node">
+        <span>2</span>
+        <strong>Realisations</strong>
+        <p>Les preuves d'impact, reutilisables seules ou dans un projet.</p>
+      </article>
+      <article class="material-node">
+        <span>3</span>
+        <strong>Projets</strong>
+        <p>Relient realisations et assets pour raconter un cas concret.</p>
+      </article>
+      <article class="material-node">
+        <span>4</span>
+        <strong>Competences</strong>
+        <p>Organisees par categories pour clarifier votre expertise.</p>
+      </article>
+      <article class="material-node">
+        <span>5</span>
+        <strong>Assets</strong>
+        <p>Images et documents utilisables dans les projets ou CV.</p>
+      </article>
+    </div>
+
+    <div class="fill-order" aria-label="Ordre conseille de saisie">
+      <strong>Ordre conseille</strong>
+      <span>Assets & categories</span>
+      <span>Realisations</span>
+      <span>Projets</span>
+      <span>Experiences & competences</span>
+      <span>Diplomes & loisirs</span>
+    </div>
+  </section>
+
   @if (successMessage()) {
     <section class="state-card state-card--success">
       <p>{{ successMessage() }}</p>
@@ -44,7 +89,40 @@
       <p>Chargement de vos informations...</p>
     </section>
   } @else {
-    <section class="material-card" id="jobs-section">
+    <section class="material-tabs-card" aria-labelledby="material-tabs-title">
+      <div class="material-tabs-card__header">
+        <div>
+          <p class="eyebrow">Bibliotheque</p>
+          <h2 id="material-tabs-title">Choisissez le type de donnee a completer</h2>
+        </div>
+        <span class="count-pill">{{ totalMaterialCount() }} elements</span>
+      </div>
+
+      <div class="material-tabs" role="tablist" aria-label="Sections de donnees reutilisables">
+        @for (tab of materialTabs; track tab.section) {
+          <button
+            type="button"
+            class="material-tab"
+            role="tab"
+            [id]="tab.section + '-tab'"
+            [class.material-tab--active]="isActiveSection(tab.section)"
+            [attr.aria-selected]="isActiveSection(tab.section)"
+            [attr.aria-controls]="tab.section + '-section'"
+            (click)="setActiveSection(tab.section)"
+          >
+            <span class="material-tab__meta">{{ tab.eyebrow }}</span>
+            <span class="material-tab__main">
+              <strong>{{ tab.label }}</strong>
+              <span>{{ getMaterialSectionCount(tab.section) }}</span>
+            </span>
+            <span class="material-tab__description">{{ tab.description }}</span>
+          </button>
+        }
+      </div>
+    </section>
+
+    @if (isActiveSection('jobs')) {
+    <section class="material-card" id="jobs-section" role="tabpanel" aria-labelledby="jobs-tab">
       <div class="material-card__header">
         <div>
           <p class="eyebrow">Experiences</p>
@@ -131,8 +209,10 @@
         }
       </div>
     </section>
+    }
 
-    <section class="material-card" id="projects-section">
+    @if (isActiveSection('projects')) {
+    <section class="material-card" id="projects-section" role="tabpanel" aria-labelledby="projects-tab">
       <div class="material-card__header">
         <div>
           <p class="eyebrow">Projets</p>
@@ -273,8 +353,10 @@
         }
       </div>
     </section>
+    }
 
-    <section class="material-card" id="skills-section">
+    @if (isActiveSection('skills')) {
+    <section class="material-card" id="skills-section" role="tabpanel" aria-labelledby="skills-tab">
       <div class="material-card__header">
         <div>
           <p class="eyebrow">Competences</p>
@@ -407,9 +489,10 @@
         }
       </div>
     </section>
+    }
 
-    <section class="material-split">
-      <section class="material-card" id="achievements-section">
+    @if (isActiveSection('achievements')) {
+      <section class="material-card" id="achievements-section" role="tabpanel" aria-labelledby="achievements-tab">
         <div class="material-card__header">
           <div>
             <p class="eyebrow">Realisations</p>
@@ -446,8 +529,10 @@
           }
         </div>
       </section>
+    }
 
-      <section class="material-card" id="degrees-section">
+    @if (isActiveSection('degrees')) {
+      <section class="material-card" id="degrees-section" role="tabpanel" aria-labelledby="degrees-tab">
         <div class="material-card__header">
           <div>
             <p class="eyebrow">Diplomes</p>
@@ -477,10 +562,10 @@
           }
         </div>
       </section>
-    </section>
+    }
 
-    <section class="material-split">
-      <section class="material-card" id="hobbies-section">
+    @if (isActiveSection('hobbies')) {
+      <section class="material-card" id="hobbies-section" role="tabpanel" aria-labelledby="hobbies-tab">
         <div class="material-card__header">
           <div>
             <p class="eyebrow">Loisirs</p>
@@ -508,8 +593,10 @@
           }
         </div>
       </section>
+    }
 
-      <section class="material-card" id="assets-section">
+    @if (isActiveSection('assets')) {
+      <section class="material-card" id="assets-section" role="tabpanel" aria-labelledby="assets-tab">
         <div class="material-card__header">
           <div>
             <p class="eyebrow">Assets</p>
@@ -548,6 +635,6 @@
           }
         </div>
       </section>
-    </section>
+    }
   }
 </main>
