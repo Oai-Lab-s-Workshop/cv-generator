@@ -274,6 +274,10 @@ h3 {
   color: var(--home-muted);
 }
 
+.text-link--danger {
+  color: light-dark(#dc2626, #f87171);
+}
+
 .primary-button:disabled,
 .secondary-button:disabled,
 .text-link:disabled {

@@ -1,7 +1,7 @@
 <main class="material-page">
   <app-navbar />
 
-  <section class="material-hero">
+  <section class="material-hero material-hero--with-action">
     <div>
       <p class="eyebrow">Edition</p>
       @if (editorState(); as state) {
@@ -11,6 +11,14 @@
       }
       <p class="lede">Cette page compose un CV a partir de vos donnees reutilisables. Les experiences et competences se gerent dans l'espace informations, puis se selectionnent ici.</p>
     </div>
+    @if (editorState(); as state) {
+      @if (state.profile.template && state.profile.slug) {
+        <a [routerLink]="['/', state.profile.slug]" class="primary-button hero-cta">
+          <i class="bi bi-eye" aria-hidden="true"></i>
+          Voir le CV
+        </a>
+      }
+    }
   </section>
 
   @if (isLoading()) {
@@ -99,9 +107,7 @@
           {{ isSaving() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
         </button>
         <a routerLink="/home" class="text-link">Retour a l'accueil</a>
-        @if (state.profile.template && state.profile.slug) {
-          <a [routerLink]="['/', state.profile.slug]" class="text-link">Voir le CV</a>
-        }
+
       </div>
     </section>
 

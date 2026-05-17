@@ -1,3 +1,15 @@
+.material-hero--with-action {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.hero-cta {
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+
 .material-card {
   margin-bottom: 1rem;
   padding: clamp(1rem, 2vw, 1.25rem);
