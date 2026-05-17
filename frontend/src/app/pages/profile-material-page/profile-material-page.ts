@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { QuillModule } from 'ngx-quill';
 import { environment } from '../../../environments/environment';
 import { ThemeService } from '../../core/services/theme.service';
 import { Achievement } from '../../core/models/achievement.model';
@@ -92,7 +93,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
 
 @Component({
   selector: 'app-profile-material-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, QuillModule],
   templateUrl: './profile-material-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -100,7 +101,6 @@ const EMPTY_ASSET_FORM: AssetForm = {
 export class ProfileMaterialPage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
   private readonly authService = inject(AuthService);
-  private readonly responsibilitiesEditor = viewChild<ElementRef<HTMLElement>>('responsibilitiesEditor');
 
   readonly jobs = signal<Job[]>([]);
   readonly skills = signal<Skill[]>([]);
@@ -121,6 +121,15 @@ export class ProfileMaterialPage implements OnInit {
 
   readonly selectedProjectPicture = signal<File | null>(null);
   readonly selectedAssetFile = signal<File | null>(null);
+  readonly responsibilitiesEditorModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ indent: '-1' }, { indent: '+1' }],
+      ['link'],
+      ['clean'],
+    ],
+  };
   readonly isLoading = signal(true);
   readonly savingSection = signal<string | null>(null);
   readonly creatingProjectAchievement = signal(false);
@@ -212,13 +221,11 @@ export class ProfileMaterialPage implements OnInit {
       sortOrder: job.sortOrder ?? null,
       type: job.type,
     });
-    this.setResponsibilitiesEditorHtml(responsibilities);
     this.scrollToSection('jobs-section', 'input[name="job-label"]');
   }
 
   resetJobForm(): void {
     this.jobForm.set({ ...EMPTY_JOB_FORM });
-    this.setResponsibilitiesEditorHtml('');
   }
 
   setJobFormValue(field: keyof Omit<JobForm, 'id' | 'sortOrder'>, value: string): void {
@@ -227,16 +234,6 @@ export class ProfileMaterialPage implements OnInit {
 
   setJobSortOrder(value: string | number | null): void {
     this.jobForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
-  }
-
-  syncResponsibilitiesFromEditor(event: Event): void {
-    this.setJobFormValue('responsibilities', (event.target as HTMLElement).innerHTML);
-  }
-
-  formatResponsibilities(command: 'bold' | 'italic' | 'insertUnorderedList' | 'insertOrderedList' | 'removeFormat'): void {
-    this.responsibilitiesEditor()?.nativeElement.focus();
-    document.execCommand(command, false);
-    this.setJobFormValue('responsibilities', this.responsibilitiesEditor()?.nativeElement.innerHTML ?? '');
   }
 
   async saveJob(): Promise<void> {
@@ -750,16 +747,6 @@ export class ProfileMaterialPage implements OnInit {
       const section = document.getElementById(sectionId);
       section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       window.requestAnimationFrame(() => section?.querySelector<HTMLElement>(focusSelector)?.focus({ preventScroll: true }));
-    });
-  }
-
-  private setResponsibilitiesEditorHtml(html: string): void {
-    window.requestAnimationFrame(() => {
-      const editor = this.responsibilitiesEditor()?.nativeElement;
-
-      if (editor && editor.innerHTML !== html) {
-        editor.innerHTML = html;
-      }
     });
   }
 

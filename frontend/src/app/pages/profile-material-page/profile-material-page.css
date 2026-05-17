@@ -122,8 +122,7 @@ h1 {
 
 .editor-field input,
 .editor-field select,
-.editor-field textarea,
-.rich-editor-surface {
+.editor-field textarea {
   box-sizing: border-box;
   width: 100%;
   border: 1px solid light-dark(#cbd5e1, #475569);
@@ -152,45 +151,72 @@ h1 {
 
 .editor-field input:focus,
 .editor-field select:focus,
-.editor-field textarea:focus,
-.rich-editor-surface:focus {
+.editor-field textarea:focus {
   border-color: light-dark(#2563eb, #60a5fa);
   box-shadow: light-dark(0 0 0 3px rgba(37, 99, 235, 0.14), 0 0 0 3px rgba(96, 165, 250, 0.2));
   outline: none;
 }
 
-.rich-editor-toolbar,
-.check-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+.responsibilities-editor {
+  display: grid;
+  grid-template-rows: auto minmax(9rem, auto);
+  width: 100%;
+  color: var(--home-text);
+  font-weight: 500;
 }
 
-.rich-editor-button,
-.check-card {
-  border: 1px solid light-dark(#bfdbfe, rgba(59, 130, 246, 0.35));
-  border-radius: 999px;
-  background: light-dark(#eff6ff, rgba(30, 58, 138, 0.25));
-  color: light-dark(#1d4ed8, #93c5fd);
+:host ::ng-deep .responsibilities-editor .ql-toolbar,
+:host ::ng-deep .responsibilities-editor .ql-container {
+  border-color: light-dark(#cbd5e1, #475569);
+  background: light-dark(#fff, #0f172a);
+  color: var(--home-text);
   font: inherit;
-  font-size: 0.9rem;
-  font-weight: 800;
 }
 
-.rich-editor-button {
-  cursor: pointer;
-  padding: 0.45rem 0.75rem;
+:host ::ng-deep .responsibilities-editor .ql-toolbar {
+  border-radius: 0.8rem 0.8rem 0 0;
 }
 
-.check-card {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 0.75rem;
+:host ::ng-deep .responsibilities-editor .ql-container {
+  height: auto;
+  min-height: 9rem;
+  border-radius: 0 0 0.8rem 0.8rem;
+  font-size: 1rem;
 }
 
-.check-card input {
-  margin: 0;
+:host ::ng-deep .responsibilities-editor .ql-editor {
+  height: auto;
+  min-height: 9rem;
+  caret-color: var(--home-primary);
+  line-height: 1.55;
+}
+
+:host ::ng-deep .responsibilities-editor .ql-editor.ql-blank::before {
+  color: var(--home-muted);
+  font-style: normal;
+}
+
+:host ::ng-deep .responsibilities-editor .ql-snow .ql-stroke {
+  stroke: var(--home-text);
+}
+
+:host ::ng-deep .responsibilities-editor .ql-snow .ql-fill {
+  fill: var(--home-text);
+}
+
+:host ::ng-deep .responsibilities-editor .ql-picker,
+:host ::ng-deep .responsibilities-editor .ql-picker-options {
+  color: var(--home-text);
+}
+
+:host ::ng-deep .responsibilities-editor:focus-within .ql-toolbar,
+:host ::ng-deep .responsibilities-editor:focus-within .ql-container {
+  border-color: light-dark(#2563eb, #60a5fa);
+  box-shadow: light-dark(0 0 0 3px rgba(37, 99, 235, 0.14), 0 0 0 3px rgba(96, 165, 250, 0.2));
+}
+
+:host ::ng-deep .responsibilities-editor:focus-within .ql-toolbar {
+  border-bottom-color: light-dark(#cbd5e1, #475569);
 }
 
 .multiselect-panel {
@@ -316,38 +342,6 @@ h1 {
 .create-inline-button:disabled {
   cursor: wait;
   opacity: 0.7;
-}
-
-.rich-editor-button:hover,
-.rich-editor-button:focus-visible {
-  border-color: light-dark(#2563eb, #60a5fa);
-  background: light-dark(#dbeafe, rgba(30, 58, 138, 0.4));
-  outline: none;
-}
-
-.rich-editor-surface {
-  min-height: 9rem;
-  overflow: auto;
-  caret-color: var(--home-primary);
-  line-height: 1.55;
-  padding: 0.8rem 0.95rem;
-}
-
-.rich-editor-surface p,
-.rich-editor-surface ul,
-.rich-editor-surface ol {
-  margin: 0 0 0.75rem;
-}
-
-.rich-editor-surface p:last-child,
-.rich-editor-surface ul:last-child,
-.rich-editor-surface ol:last-child {
-  margin-bottom: 0;
-}
-
-.rich-editor-surface ul,
-.rich-editor-surface ol {
-  padding-left: 1.35rem;
 }
 
 .form-actions {
