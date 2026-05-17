@@ -4,7 +4,7 @@ SHELL := /bin/bash
 HELPERS := scripts/make_helpers.sh
 SEED_USER_EMAIL := alexandre.cv@gmail.com
 
-.PHONY: env-init up down logs ps mcp-up mcp-down mcp-logs wait-pocketbase bootstrap bootstrap-with-seed seed clean-seed ensure-mcp-service-user frontend-install frontend-build frontend-test mcp-test mcp-package desktop-install desktop-typecheck desktop-prepare desktop-build desktop-package desktop-release-local desktop-check check ci
+.PHONY: env-init up down logs ps dev-up dev-down dev-logs dev-ps mcp-up mcp-down mcp-logs wait-pocketbase bootstrap bootstrap-with-seed seed clean-seed ensure-mcp-service-user frontend-install frontend-build frontend-test mcp-test mcp-package desktop-install desktop-typecheck desktop-prepare desktop-build desktop-package desktop-release-local desktop-check check ci
 
 env-init:
 	source "$(HELPERS)"; \
@@ -22,6 +22,19 @@ logs:
 
 ps:
 	docker compose ps
+
+# Dev targets — hot-reload with source bind-mount (docker-compose.dev.yml)
+dev-up: env-init
+	docker compose -f docker-compose.dev.yml up -d
+
+dev-down:
+	docker compose -f docker-compose.dev.yml down
+
+dev-logs:
+	docker compose -f docker-compose.dev.yml logs -f
+
+dev-ps:
+	docker compose -f docker-compose.dev.yml ps
 
 mcp-up: env-init
 	docker compose up -d mcp
@@ -104,7 +117,7 @@ frontend-install:
 	npm ci --prefix frontend
 
 frontend-build:
-	cd frontend && NODE_OPTIONS= node node_modules/.bin/ng build
+	cd frontend && npm ci && NODE_OPTIONS= node node_modules/.bin/ng build --configuration production
 
 frontend-test:
 	cd frontend && npm test -- --runInBand

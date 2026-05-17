@@ -66,6 +66,8 @@
   box-shadow: 0 18px 50px #0f172a29;
   position: relative;
   z-index: 1;
+  height: fit-content;
+  margin: auto;
 }
 
 .eyebrow {
@@ -145,14 +147,8 @@ button:disabled {
 
 @media (max-width: 920px) {
   .login-page {
-    height: auto;
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas:
-      'auth'
-      'preview';
   }
-
   .login-preview-pane {
     min-height: 0;
   }
