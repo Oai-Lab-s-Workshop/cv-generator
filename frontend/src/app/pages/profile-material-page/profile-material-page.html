@@ -323,25 +323,85 @@
         <span class="count-pill">{{ skills().length }} elements</span>
       </div>
 
+      <div class="category-manager" aria-label="Gestion des categories de competences">
+        <label class="editor-field">
+          <span>Ajouter une categorie</span>
+          <input [value]="newSkillCategoryName()" (input)="setNewSkillCategoryName($any($event.target).value)" type="text" placeholder="Ex: Frontend, Data, Architecture..." />
+        </label>
+        <button type="button" class="create-inline-button" [disabled]="!canCreateStandaloneSkillCategory()" (click)="createStandaloneSkillCategory()">
+          {{ creatingSkillCategory() ? 'Creation...' : 'Ajouter la categorie' }}
+        </button>
+        <div class="category-chip-list" aria-label="Categories existantes">
+          @for (category of skillCategories(); track category.id) {
+            <span class="category-chip">{{ category.name }}</span>
+          } @empty {
+            <p class="empty-copy">Aucune categorie personnalisee pour le moment.</p>
+          }
+        </div>
+      </div>
+
       <div class="editor-grid">
         <label class="editor-field">
           <span>Nom</span>
           <input [value]="skillForm().name" (input)="setSkillFormValue('name', $any($event.target).value)" name="skill-name" type="text" />
         </label>
-        <label class="editor-field">
+        <div class="editor-field editor-field--full">
           <span>Categorie</span>
-          <select [value]="skillForm().category" (change)="setSkillFormValue('category', $any($event.target).value)" name="skill-category">
-            <option value="">Non renseignee</option>
-            <option value="Frontend">Frontend</option>
-            <option value="Backend">Backend</option>
-            <option value="DevOps">DevOps</option>
-            <option value="E-commerce">E-commerce</option>
-            <option value="Design">Design</option>
-            <option value="Mobile">Mobile</option>
-            <option value="Motion">Motion</option>
-            <option value="Project Management">Project Management</option>
-          </select>
-        </label>
+          <div class="multiselect-panel">
+            <label class="multiselect-search">
+              <span>Rechercher ou creer</span>
+              <input [value]="skillCategoryQuery()" (input)="setSkillCategoryQuery($any($event.target).value)" name="skill-category" type="search" placeholder="Rechercher ou creer une categorie..." />
+            </label>
+
+            <section class="multiselect-section" aria-label="Categorie selectionnee">
+              <div class="multiselect-section__header">
+                <strong>Selectionnee</strong>
+                <span>{{ selectedSkillCategory() ? 1 : 0 }}</span>
+              </div>
+              @if (selectedSkillCategory(); as category) {
+                <div class="selected-chip-list">
+                  <article class="selected-chip">
+                    <span>{{ category.name }}</span>
+                    <button type="button" (click)="clearSkillCategory()" aria-label="Retirer la categorie">Retirer</button>
+                  </article>
+                </div>
+              } @else {
+                <p class="empty-copy">Aucune categorie selectionnee.</p>
+              }
+            </section>
+
+            <section class="multiselect-section" aria-label="Categories disponibles">
+              <div class="multiselect-section__header">
+                <strong>Disponibles</strong>
+                <span>{{ filteredSkillCategories().length }}</span>
+              </div>
+
+              @if (skillCategories().length === 0 && !skillCategoryQuery().trim()) {
+                <p class="empty-copy">Aucune categorie disponible. Tapez un nom pour en creer une.</p>
+              } @else if (filteredSkillCategories().length === 0) {
+                <p class="empty-copy">Aucune categorie ne correspond a cette recherche.</p>
+              } @else {
+                <div class="option-list">
+                  @for (category of filteredSkillCategories(); track category.id) {
+                    <article class="option-card">
+                      <div>
+                        <h3>{{ category.name }}</h3>
+                        <p>Categorie de competences</p>
+                      </div>
+                      <button type="button" class="row-action" (click)="selectSkillCategory(category.id)">Choisir</button>
+                    </article>
+                  }
+                </div>
+              }
+
+              @if (canCreateSkillCategoryFromQuery()) {
+                <button type="button" class="create-inline-button" [disabled]="creatingSkillCategory()" (click)="createAndSelectSkillCategory()">
+                  {{ creatingSkillCategory() ? 'Creation...' : 'Creer "' + skillCategoryQuery().trim() + '" et choisir' }}
+                </button>
+              }
+            </section>
+          </div>
+        </div>
         <label class="editor-field">
           <span>Type</span>
           <select [value]="skillForm().type" (change)="setSkillFormValue('type', $any($event.target).value)" name="skill-type">
@@ -376,7 +436,7 @@
             <article class="material-row" [class.material-row--editing]="skillForm().id === skill.id">
               <div>
                 <h3>{{ skill.name }}</h3>
-                <p>{{ skill.type || skill.category || 'Sans type' }}</p>
+                <p>{{ getSkillDescription(skill) }}</p>
               </div>
               <div class="material-row__actions">
                 @if (skillForm().id === skill.id) { <span class="editing-pill">En edition</span> }

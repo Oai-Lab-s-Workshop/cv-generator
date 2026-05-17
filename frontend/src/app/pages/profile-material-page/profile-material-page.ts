@@ -10,6 +10,7 @@ import { Hobby } from '../../core/models/hobby.model';
 import { Job } from '../../core/models/job.model';
 import { Project } from '../../core/models/project.model';
 import { Skill } from '../../core/models/skill.model';
+import { SkillCategory } from '../../core/models/skill-category.model';
 import { AuthService } from '../../core/services/auth.service';
 import {
   PocketBaseService,
@@ -103,6 +104,7 @@ export class ProfileMaterialPage implements OnInit {
 
   readonly jobs = signal<Job[]>([]);
   readonly skills = signal<Skill[]>([]);
+  readonly skillCategories = signal<SkillCategory[]>([]);
   readonly projects = signal<Project[]>([]);
   readonly achievements = signal<Achievement[]>([]);
   readonly degrees = signal<Degree[]>([]);
@@ -122,9 +124,12 @@ export class ProfileMaterialPage implements OnInit {
   readonly isLoading = signal(true);
   readonly savingSection = signal<string | null>(null);
   readonly creatingProjectAchievement = signal(false);
+  readonly creatingSkillCategory = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly projectAchievementQuery = signal('');
+  readonly skillCategoryQuery = signal('');
+  readonly newSkillCategoryName = signal('');
   readonly themeService = inject(ThemeService);
   readonly bugReportUrl = signal(environment.bugReportUrl);
   readonly currentUser = this.authService.currentUser;
@@ -163,6 +168,25 @@ export class ProfileMaterialPage implements OnInit {
     const normalizedTitle = this.normalizeSearchValue(title);
     return !this.achievements().some((achievement) => this.normalizeSearchValue(achievement.title) === normalizedTitle);
   });
+  readonly selectedSkillCategory = computed(() => {
+    const categoryId = this.skillForm().category;
+
+    return categoryId ? this.skillCategories().find((category) => category.id === categoryId) : undefined;
+  });
+  readonly filteredSkillCategories = computed(() => {
+    const selectedCategoryId = this.skillForm().category;
+    const query = this.skillCategoryQuery();
+
+    return this.skillCategories().filter((category) => {
+      if (category.id === selectedCategoryId) {
+        return false;
+      }
+
+      return this.matchesFuzzyQuery([category.name], query);
+    });
+  });
+  readonly canCreateSkillCategoryFromQuery = computed(() => this.canCreateSkillCategory(this.skillCategoryQuery()));
+  readonly canCreateStandaloneSkillCategory = computed(() => this.canCreateSkillCategory(this.newSkillCategoryName()));
 
   ngOnInit(): void {
     void this.loadRuntimeConfig();
@@ -254,6 +278,7 @@ export class ProfileMaterialPage implements OnInit {
 
   resetSkillForm(): void {
     this.skillForm.set({ ...EMPTY_SKILL_FORM });
+    this.skillCategoryQuery.set('');
   }
 
   setSkillFormValue(field: keyof Omit<SkillForm, 'id' | 'level' | 'sortOrder'>, value: string): void {
@@ -266,6 +291,39 @@ export class ProfileMaterialPage implements OnInit {
 
   setSkillSortOrder(value: string | number | null): void {
     this.skillForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
+  }
+
+  setSkillCategoryQuery(value: string): void {
+    this.skillCategoryQuery.set(value);
+  }
+
+  setNewSkillCategoryName(value: string): void {
+    this.newSkillCategoryName.set(value);
+  }
+
+  selectSkillCategory(categoryId: string): void {
+    this.skillForm.update((form) => ({ ...form, category: categoryId }));
+    this.skillCategoryQuery.set('');
+  }
+
+  clearSkillCategory(): void {
+    this.skillForm.update((form) => ({ ...form, category: '' }));
+  }
+
+  async createAndSelectSkillCategory(): Promise<void> {
+    const created = await this.createSkillCategoryFromName(this.skillCategoryQuery(), 'Categorie creee et selectionnee.');
+
+    if (created) {
+      this.selectSkillCategory(created.id);
+    }
+  }
+
+  async createStandaloneSkillCategory(): Promise<void> {
+    const created = await this.createSkillCategoryFromName(this.newSkillCategoryName(), 'Categorie ajoutee.');
+
+    if (created) {
+      this.newSkillCategoryName.set('');
+    }
   }
 
   async saveSkill(): Promise<void> {
@@ -587,6 +645,16 @@ export class ProfileMaterialPage implements OnInit {
     return this.projectForm().achievements?.includes(achievementId) ?? false;
   }
 
+  getSkillCategoryName(skill: Skill): string {
+    return skill.expand?.category?.name || this.skillCategories().find((category) => category.id === skill.category)?.name || '';
+  }
+
+  getSkillDescription(skill: Skill): string {
+    const categoryName = this.getSkillCategoryName(skill);
+
+    return [skill.type, categoryName].filter(Boolean).join(' · ') || 'Sans type';
+  }
+
   private async loadMaterial(showLoading = true): Promise<void> {
     if (showLoading) {
       this.isLoading.set(true);
@@ -598,6 +666,7 @@ export class ProfileMaterialPage implements OnInit {
       const data = await this.pocketBaseService.getCurrentUserProfileMaterialData();
       this.jobs.set(data.jobs);
       this.skills.set(data.skills);
+      this.skillCategories.set(data.skillCategories);
       this.projects.set(data.projects);
       this.achievements.set(data.achievements);
       this.degrees.set(data.degrees);
@@ -625,6 +694,37 @@ export class ProfileMaterialPage implements OnInit {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
       this.savingSection.set(null);
+    }
+  }
+
+  private async createSkillCategoryFromName(name: string, successMessage: string): Promise<SkillCategory | null> {
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      this.errorMessage.set('Le nom de la categorie est obligatoire.');
+      return null;
+    }
+
+    const existingCategory = this.skillCategories().find((category) => this.normalizeSearchValue(category.name) === this.normalizeSearchValue(trimmedName));
+    if (existingCategory) {
+      return existingCategory;
+    }
+
+    this.creatingSkillCategory.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    try {
+      const created = await this.pocketBaseService.createCurrentUserSkillCategory(trimmedName);
+      this.skillCategories.update((categories) => [...categories, created].sort((first, second) => first.name.localeCompare(second.name)));
+      this.successMessage.set(successMessage);
+
+      return created;
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+      return null;
+    } finally {
+      this.creatingSkillCategory.set(false);
     }
   }
 
@@ -681,6 +781,17 @@ export class ProfileMaterialPage implements OnInit {
   private optionalText(value: string | undefined): string | undefined {
     const trimmed = value?.trim() ?? '';
     return trimmed || undefined;
+  }
+
+  private canCreateSkillCategory(value: string): boolean {
+    const name = value.trim();
+
+    if (!name || this.creatingSkillCategory()) {
+      return false;
+    }
+
+    const normalizedName = this.normalizeSearchValue(name);
+    return !this.skillCategories().some((category) => this.normalizeSearchValue(category.name) === normalizedName);
   }
 
   private toNullableNumber(value: string | number | null): number | null {
