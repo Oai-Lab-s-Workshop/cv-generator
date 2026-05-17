@@ -14,6 +14,8 @@ concurrency:
 jobs:
   mcp-tests:
     runs-on: ubuntu-latest
+    env:
+      TEST_PASS_THRESHOLD_MCP: ${{ vars.TEST_PASS_THRESHOLD_MCP || '100' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -25,6 +27,87 @@ jobs:
       - name: Run MCP unit and Spring integration tests
         run: ./mvnw test
         working-directory: mcp
+
+      - name: Publish test summary & enforce threshold
+        if: always()
+        working-directory: mcp
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! compgen -G 'target/surefire-reports/TEST-*.xml' > /dev/null; then
+            echo "## 🧪 MCP Test Results" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "⚠️ No Surefire XML reports found — tests may have failed before producing a report." >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::No Surefire XML reports found"
+            exit 1
+          fi
+
+          tests=0 failures=0 errors=0 skipped=0
+          for xml in target/surefire-reports/TEST-*.xml; do
+            t="$(xmllint --xpath 'string(/testsuite/@tests)' "$xml" 2>/dev/null || echo 0)"
+            f="$(xmllint --xpath 'string(/testsuite/@failures)' "$xml" 2>/dev/null || echo 0)"
+            e="$(xmllint --xpath 'string(/testsuite/@errors)' "$xml" 2>/dev/null || echo 0)"
+            s="$(xmllint --xpath 'string(/testsuite/@skipped)' "$xml" 2>/dev/null || echo 0)"
+            tests=$(( tests + t ))
+            failures=$(( failures + f ))
+            errors=$(( errors + e ))
+            skipped=$(( skipped + s ))
+          done
+
+          passed=$(( tests - failures - errors - skipped ))
+          if [ "${tests}" -eq 0 ]; then
+            pass_rate=0
+          else
+            pass_rate=$(( (passed * 100) / tests ))
+          fi
+
+          {
+            echo "## 🧪 MCP Test Results"
+            echo ""
+            echo "| Metric | Value |"
+            echo "|--------|-------|"
+            echo "| Total | ${tests} |"
+            echo "| Passed | ${passed} |"
+            echo "| Failed | ${failures} |"
+            echo "| Errors | ${errors} |"
+            echo "| Skipped | ${skipped} |"
+            echo "| Pass rate | ${pass_rate}% |"
+            echo "| Threshold | ${TEST_PASS_THRESHOLD_MCP}% |"
+            echo ""
+            if [ "${pass_rate}" -ge "${TEST_PASS_THRESHOLD_MCP}" ]; then
+              echo "✅ **Pass rate meets threshold (${pass_rate}% ≥ ${TEST_PASS_THRESHOLD_MCP}%)**"
+            else
+              echo "❌ **Pass rate below threshold (${pass_rate}% < ${TEST_PASS_THRESHOLD_MCP}%)**"
+            fi
+
+            if [ "${failures}" -gt 0 ] || [ "${errors}" -gt 0 ]; then
+              echo ""
+              echo "### Failed tests"
+              echo ""
+              for xml in target/surefire-reports/TEST-*.xml; do
+                xmllint --xpath '//testcase[failure or error]/@name' "$xml" 2>/dev/null \
+                  | sed 's/ name="/\n- /g' | sed 's/"$//' | grep '^-' || true
+              done
+              echo ""
+              echo "<details><summary>Full failure details</summary>"
+              echo ""
+              echo '```'
+              for xml in target/surefire-reports/TEST-*.xml; do
+                has_failures="$(xmllint --xpath 'count(//testcase[failure or error])' "$xml" 2>/dev/null || echo 0)"
+                if [ "${has_failures}" -gt 0 ]; then
+                  xmllint --xpath '//testcase[failure or error]' "$xml" 2>/dev/null || true
+                fi
+              done
+              echo '```'
+              echo "</details>"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${pass_rate}" -lt "${TEST_PASS_THRESHOLD_MCP}" ]; then
+            echo "::error::Pass rate ${pass_rate}% is below threshold ${TEST_PASS_THRESHOLD_MCP}%"
+            exit 1
+          fi
 
       - name: Install smoke test dependencies
         run: |
