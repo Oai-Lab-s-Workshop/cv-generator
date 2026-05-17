@@ -107,7 +107,7 @@
             <section class="section--panel" [attr.data-mode]="sectionModes().experience">
                 <h3>Experience</h3> 
                 <div class="job-stack">
-                    @for (job of data.jobs; track job.id) {
+                    @for (job of chronologicalJobs(data.jobs); track job.id) {
                         <div class="job" [class.present]="!job.endDate">
                             <!-- <div class="full">
                                 <p>{{ getDate(job.startDate) }} - {{ job.endDate ? getDate(job.endDate) : 'Present' }} @if(job.location) {<i icon class="bi bi-geo-alt-fill"></i> {{ job.location }}}</p>

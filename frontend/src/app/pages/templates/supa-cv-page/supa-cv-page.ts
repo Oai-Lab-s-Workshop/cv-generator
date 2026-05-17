@@ -24,6 +24,7 @@ import { EducationChip } from '../../../shared/components/education-chip/educati
 import { CardProject } from '../../../shared/components/card-project/card-project';
 import { Project } from '../../../core/models/project.model';
 import { Skill } from '../../../core/models/skill.model';
+import { Job } from '../../../core/models/job.model';
 
 type SectionKey = 'projects' | 'experience' | 'skills' | 'diplomas';
 type SectionMode = 'full' | 'compact';
@@ -101,6 +102,22 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
     const categoryIndex = this.skillCategories(skills).indexOf(category);
 
     return `skill--tone-${Math.max(categoryIndex, 0) % 6}`;
+  }
+
+  protected chronologicalJobs(jobs: Job[]): Job[] {
+    return jobs
+      .map((job, index) => ({ job, index }))
+      .sort((left, right) => {
+        const leftDate = this.jobStartTime(left.job);
+        const rightDate = this.jobStartTime(right.job);
+
+        if (leftDate !== rightDate) {
+          return leftDate - rightDate;
+        }
+
+        return (left.job.sortOrder ?? left.index) - (right.job.sortOrder ?? right.index);
+      })
+      .map(({ job }) => job);
   }
 
   ngOnInit(): void {
@@ -270,6 +287,13 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
   private mmToPx(mm: number): number {
     return (mm * 96) / 25.4;
   }
+
+  private jobStartTime(job: Job): number {
+    const date = this.pocketBaseService.toDate(job.startDate);
+
+    return date && !Number.isNaN(date.getTime()) ? date.getTime() : Number.POSITIVE_INFINITY;
+  }
+
   protected getVisibleProjects(projects: Project[]): Project[] {
     const visibleProjectCount = this.visibleProjectCount();
     const featuredProjectIds = this.extraStringArray('featuredProjectIds');
