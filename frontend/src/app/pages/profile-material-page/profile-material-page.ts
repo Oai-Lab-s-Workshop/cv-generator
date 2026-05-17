@@ -30,6 +30,14 @@ type AchievementForm = Omit<SaveCurrentUserAchievementInput, 'sortOrder'> & { id
 type DegreeForm = Omit<SaveCurrentUserDegreeInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type HobbyForm = Omit<SaveCurrentUserHobbyInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type AssetForm = Omit<SaveCurrentUserFileInput, 'file' | 'sortOrder'> & { id?: string; sortOrder: number | null };
+type MaterialSection = 'jobs' | 'projects' | 'skills' | 'achievements' | 'degrees' | 'hobbies' | 'assets';
+
+interface MaterialTab {
+  readonly section: MaterialSection;
+  readonly label: string;
+  readonly eyebrow: string;
+  readonly description: string;
+}
 
 const EMPTY_JOB_FORM: JobForm = {
   label: '',
@@ -134,9 +142,19 @@ export class ProfileMaterialPage implements OnInit {
   readonly creatingSkillCategory = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+  readonly activeSection = signal<MaterialSection>('jobs');
   readonly projectAchievementQuery = signal('');
   readonly skillCategoryQuery = signal('');
   readonly newSkillCategoryName = signal('');
+  readonly materialTabs: MaterialTab[] = [
+    { section: 'jobs', label: 'Experiences', eyebrow: 'Parcours', description: 'Postes, missions et contexte chronologique.' },
+    { section: 'projects', label: 'Projets', eyebrow: 'Preuves', description: 'Cas concrets relies aux realisations et assets.' },
+    { section: 'skills', label: 'Competences', eyebrow: 'Savoir-faire', description: 'Competences groupees par categories.' },
+    { section: 'achievements', label: 'Realisations', eyebrow: 'Impact', description: 'Resultats reutilisables dans les projets et CV.' },
+    { section: 'degrees', label: 'Diplomes', eyebrow: 'Formation', description: 'Etudes, certifications et niveaux.' },
+    { section: 'hobbies', label: 'Loisirs', eyebrow: 'Profil', description: 'Centres d\'interet utiles au storytelling.' },
+    { section: 'assets', label: 'Assets', eyebrow: 'Medias', description: 'Images, documents et supports reutilisables.' },
+  ];
   readonly currentUser = this.authService.currentUser;
   readonly currentUserName = computed(() => {
     const user = this.currentUser();
@@ -198,6 +216,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editJob(job: Job): void {
+    this.setActiveSection('jobs');
     const responsibilities = job.responsibilities ?? '';
     this.jobForm.set({
       id: job.id,
@@ -252,6 +271,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editSkill(skill: Skill): void {
+    this.setActiveSection('skills');
     this.skillForm.set({
       id: skill.id,
       name: skill.name,
@@ -335,6 +355,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editProject(project: Project): void {
+    this.setActiveSection('projects');
     this.projectForm.set({
       id: project.id,
       name: project.name,
@@ -448,6 +469,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editAchievement(achievement: Achievement): void {
+    this.setActiveSection('achievements');
     this.achievementForm.set({
       id: achievement.id,
       title: achievement.title,
@@ -489,6 +511,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editDegree(degree: Degree): void {
+    this.setActiveSection('degrees');
     this.degreeForm.set({
       id: degree.id,
       title: degree.title,
@@ -534,6 +557,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editHobby(hobby: Hobby): void {
+    this.setActiveSection('hobbies');
     this.hobbyForm.set({
       id: hobby.id,
       name: hobby.name,
@@ -575,6 +599,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editAsset(asset: MediaFile): void {
+    this.setActiveSection('assets');
     this.assetForm.set({
       id: asset.id,
       name: asset.name ?? '',
@@ -626,6 +651,33 @@ export class ProfileMaterialPage implements OnInit {
 
   isSaving(section: string): boolean {
     return this.savingSection() === section;
+  }
+
+  setActiveSection(section: MaterialSection): void {
+    this.activeSection.set(section);
+  }
+
+  isActiveSection(section: MaterialSection): boolean {
+    return this.activeSection() === section;
+  }
+
+  getMaterialSectionCount(section: MaterialSection): number {
+    switch (section) {
+      case 'jobs':
+        return this.jobs().length;
+      case 'projects':
+        return this.projects().length;
+      case 'skills':
+        return this.skills().length;
+      case 'achievements':
+        return this.achievements().length;
+      case 'degrees':
+        return this.degrees().length;
+      case 'hobbies':
+        return this.hobbies().length;
+      case 'assets':
+        return this.assets().length;
+    }
   }
 
   isProjectAchievementSelected(achievementId: string): boolean {
