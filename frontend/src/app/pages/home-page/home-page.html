@@ -148,17 +148,23 @@
                 </label>
 
                 <div class="profile-cell profile-actions" role="cell" data-label="Actions">
-                  <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="text-link">Editer</a>
+                  <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="action-icon" title="Editer" aria-label="Editer">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                  </a>
                   @if (profile.template) {
-                    <a [routerLink]="['/', profile.slug]" class="text-link">Ouvrir</a>
+                    <a [routerLink]="['/', profile.slug]" class="action-icon" title="Ouvrir" aria-label="Ouvrir">
+                      <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                    </a>
                   }
                   <button
-                    class="text-link text-link--danger"
+                    class="action-icon action-icon--danger"
                     type="button"
+                    title="Supprimer"
+                    aria-label="Supprimer"
                     [disabled]="isDeleting() === profile.id"
                     (click)="deleteProfile(profile)"
                   >
-                    {{ isDeleting() === profile.id ? 'Suppression...' : 'Supprimer' }}
+                    <i class="bi bi-trash" aria-hidden="true"></i>
                   </button>
                 </div>
               </article>
