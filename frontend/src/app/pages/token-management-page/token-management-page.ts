@@ -1,17 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { environment } from '../../../environments/environment';
 import { AiToken, CreatedAiTokenResult } from '../../core/models/ai-token.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
-import { ThemeService } from '../../core/services/theme.service';
+import { Navbar } from '../../shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-token-management-page',
-  imports: [DatePipe, FormsModule, RouterLink],
+  imports: [DatePipe, FormsModule, Navbar],
   templateUrl: './token-management-page.html',
   styleUrls: ['../../styles/home-shared.css', './token-management-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,8 +27,6 @@ export class TokenManagementPage implements OnInit {
   readonly latestCreatedTokenDebug = signal<CreatedAiTokenResult | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly activeAiTokenMutationId = signal<string | null>(null);
-  readonly themeService = inject(ThemeService);
-  readonly bugReportUrl = signal(environment.bugReportUrl);
   readonly currentUser = this.authService.currentUser;
   readonly currentUserName = computed(() => {
     const user = this.currentUser();
@@ -53,17 +49,7 @@ export class TokenManagementPage implements OnInit {
   });
 
   ngOnInit(): void {
-    void this.loadRuntimeConfig();
     void this.loadAiTokens();
-  }
-
-  toggleTheme(): void {
-    this.themeService.toggle();
-  }
-
-  logout(): void {
-    this.authService.logout();
-    window.location.assign('/login');
   }
 
   getTokenStatusLabel(token: AiToken): string {
@@ -148,20 +134,4 @@ export class TokenManagementPage implements OnInit {
     this.newAiTokenExpiresAt.set('');
   }
 
-  private async loadRuntimeConfig(): Promise<void> {
-    try {
-      const response = await fetch('/assets/runtime-config.json', { cache: 'no-store' });
-
-      if (!response.ok) {
-        return;
-      }
-
-      const config = (await response.json()) as { bugReportUrl?: unknown };
-      if (typeof config.bugReportUrl === 'string' && config.bugReportUrl.trim()) {
-        this.bugReportUrl.set(config.bugReportUrl.trim());
-      }
-    } catch {
-      // Runtime config is optional outside Docker.
-    }
-  }
 }

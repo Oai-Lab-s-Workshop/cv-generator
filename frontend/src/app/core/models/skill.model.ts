@@ -1,3 +1,5 @@
+import { SkillCategory } from './skill-category.model';
+
 export interface Skill {
   id: string;
   user?: string;
@@ -7,4 +9,7 @@ export interface Skill {
   level?: number;
   sortOrder?: number;
   icon?: string;
+  expand?: {
+    category?: SkillCategory;
+  };
 }
