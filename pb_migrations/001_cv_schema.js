@@ -14,6 +14,7 @@ const OWNER_CAN_LIST_CV_PROFILE_RULE = "@request.auth.id != \"\" && user = @requ
 const PUBLIC_OR_OWNER_CAN_VIEW_CV_PROFILE_RULE = "public = true || (@request.auth.id != \"\" && user = @request.auth.id)";
 const AUTHENTICATED_CAN_CREATE_CV_PROFILE_RULE = "@request.auth.id != \"\"";
 const OWNER_CAN_UPDATE_CV_PROFILE_RULE = "@request.auth.id != \"\" && user = @request.auth.id";
+const OWNER_CAN_DELETE_CV_PROFILE_RULE = "@request.auth.id != \"\" && user = @request.auth.id";
 
 function createPublicBaseCollection(id, name, fields) {
   return new Collection({
@@ -565,6 +566,7 @@ migrate(
     cvProfilesCollection.viewRule = PUBLIC_OR_OWNER_CAN_VIEW_CV_PROFILE_RULE;
     cvProfilesCollection.createRule = AUTHENTICATED_CAN_CREATE_CV_PROFILE_RULE;
     cvProfilesCollection.updateRule = OWNER_CAN_UPDATE_CV_PROFILE_RULE;
+    cvProfilesCollection.deleteRule = OWNER_CAN_DELETE_CV_PROFILE_RULE;
     app.save(cvProfilesCollection);
   },
   (app) => {
