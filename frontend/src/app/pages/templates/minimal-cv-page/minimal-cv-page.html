@@ -34,13 +34,13 @@
 
     @if (data.profile.professionalSummary) {
       <section class="cv-section">
-        <h2>Profile</h2>
+        <h2>Profil</h2>
         <p [innerHTML]="data.profile.professionalSummary"></p>
       </section>
     }
 
     <section class="cv-section">
-      <h2>Experience</h2>
+      <h2>Experience lié au Poste</h2>
       @for (job of data.jobs; track job.id) {
         <article class="entry">
           <div class="entry__header">
@@ -64,13 +64,13 @@
           <article class="entry">
             <div class="entry__header">
               <div>
-                <h3>{{ diploma.title }}</h3>
+                <h3>{{ diploma.title }} </h3>
                 @if (diploma.school) {
                   <p class="entry__institution">{{ diploma.school }}</p>
                 }
               </div>
               @if (diploma.year) {
-                <p class="entry__meta">{{ diploma.year }}</p>
+                <p class="entry__meta">{{ diploma.level }} | {{ diploma.year }}</p>
               }
             </div>
           </article>
@@ -80,7 +80,7 @@
 
     @if (data.projects.length > 0) {
       <section class="cv-section">
-        <h2>Selected Projects</h2>
+        <h2>Projets Choisis</h2>
         @for (project of data.projects; track project.id) {
           <article class="entry">
             <div class="entry__header">
