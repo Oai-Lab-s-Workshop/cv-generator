@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const PB_URL = process.env.PB_URL || 'http://localhost:8090';
+const PB_URL = process.env.PB_URL || `http://localhost:${process.env.POCKETBASE_PORT || '8090'}`;
 const PB_ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL || 'admin@cv-generator.local';
 const PB_ADMIN_PASSWORD = process.env.PB_ADMIN_PASSWORD || 'changeme123!';
 const DEFAULT_USER_PASSWORD = process.env.SEED_USER_PASSWORD || 'changeme123!';
