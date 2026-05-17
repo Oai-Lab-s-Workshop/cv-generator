@@ -51,9 +51,10 @@ public class CvMcpTools {
         return pocketBaseClient.loadProfileMaterial(currentPrincipal().userId());
     }
 
-    @Tool(description = "Create a tailored public CV/resume profile for a specific job listing when the user asks to craft, tailor, adapt, or customize their resume for that role. Selects from the user's existing records and an allowed template to produce a shareable profile URL.")
+    @Tool(description = "Create a tailored public CV/resume profile for a specific job listing when the user asks to craft, tailor, adapt, or customize their resume for that role. Selects from the user's existing records and an allowed template to produce a shareable profile URL. The label is required and should be chosen by the agent to identify the saved resume clearly, such as company and role; the server stores the explicit label and does not generate it.")
     public CreateTailoredCvProfileResponse createTailoredCvProfile(CreateTailoredCvProfileRequest request) {
         AiTokenPrincipal principal = currentPrincipal();
+        String label = validateLabel(request.label());
         TemplateDescriptor template = resolveTemplate(request.templateId());
         String templateId = template.id();
         validateOwnedSelections(principal.userId(), request);
@@ -62,6 +63,7 @@ public class CvMcpTools {
         CreatedProfileRecord created = pocketBaseClient.createTailoredProfile(
                 principal.userId(),
                 new CreateProfilePayload(
+                        label,
                         request.profileName(),
                         templateId,
                         request.professionalSummary(),
@@ -80,6 +82,14 @@ public class CvMcpTools {
                 created.slug(),
                 frontendBaseUrl() + "/" + created.slug()
         );
+    }
+
+    private String validateLabel(String label) {
+        if (!StringUtils.hasText(label)) {
+            throw new IllegalArgumentException("label is required.");
+        }
+
+        return label;
     }
 
     private void validateOwnedSelections(String userId, CreateTailoredCvProfileRequest request) {
@@ -210,6 +220,7 @@ public class CvMcpTools {
     }
 
     public record CreateTailoredCvProfileRequest(
+            String label,
             String profileName,
             String jobListing,
             String templateId,

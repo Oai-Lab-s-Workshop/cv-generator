@@ -16,6 +16,7 @@ public final class TestData {
     public static final String TEMPLATE_MODERN = "modern";
     public static final String TEMPLATE_MINIMAL = "minimal";
     public static final String PROFILE_NAME = "Senior Developer CV";
+    public static final String PROFILE_LABEL = "Acme - Senior Developer";
     public static final String PROFILE_SLUG = "classic--senior-developer-cv-1700000000000";
     public static final String PROFILE_ID = "profile_qrs456";
     public static final String FRONTEND_BASE_URL = "https://resumate.app";
@@ -92,7 +93,7 @@ public final class TestData {
 
     public static CvMcpTools.CreateTailoredCvProfileRequest createCvRequest() {
         return new CvMcpTools.CreateTailoredCvProfileRequest(
-                PROFILE_NAME, JOB_LISTING, TEMPLATE_CLASSIC,
+                PROFILE_LABEL, PROFILE_NAME, JOB_LISTING, TEMPLATE_CLASSIC,
                 "Experienced Java developer",
                 List.of("skill1"), List.of("job1"), List.of("proj1"),
                 List.of("ach1"), List.of("deg1"), List.of("hob1"), Map.of()

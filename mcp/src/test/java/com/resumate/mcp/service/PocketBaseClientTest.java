@@ -188,7 +188,7 @@ class PocketBaseClientTest {
                 """);
 
         PocketBaseClient.CreateProfilePayload payload = new PocketBaseClient.CreateProfilePayload(
-                "My Profile", "classic", "Summary",
+                "RTM - Infographiste Multimédia", "My Profile", "classic", "Summary",
                 List.of("skill1"), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
@@ -199,7 +199,13 @@ class PocketBaseClientTest {
 
         mockWebServer.takeRequest();
         RecordedRequest createRequest = mockWebServer.takeRequest();
-        assertThat(createRequest.getBody().readUtf8()).contains("\"extra\":{}");
+        String createBody = createRequest.getBody().readUtf8();
+        assertThat(createBody).contains("\"label\":\"RTM - Infographiste Multimédia\"");
+        assertThat(createBody).contains("\"profileName\":\"My Profile\"");
+        assertThat(createBody).contains("\"template\":\"classic\"");
+        assertThat(createBody).contains("\"public\":true");
+        assertThat(createBody).contains("\"user\":\"userId\"");
+        assertThat(createBody).contains("\"extra\":{}");
     }
 
     @Test
@@ -213,7 +219,7 @@ class PocketBaseClientTest {
                 """);
 
         PocketBaseClient.CreateProfilePayload payload = new PocketBaseClient.CreateProfilePayload(
-                "My Profile", "modern", "Summary",
+                "Acme - Modern", "My Profile", "modern", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
                 Map.of("modern", Map.of("headline", "Senior developer"))
         );
@@ -234,7 +240,7 @@ class PocketBaseClientTest {
                 .setHeader(HttpHeaders.CONTENT_TYPE, "application/json"));
 
         PocketBaseClient.CreateProfilePayload payload = new PocketBaseClient.CreateProfilePayload(
-                "My Profile", "classic", "Summary",
+                "Acme - Classic", "My Profile", "classic", "Summary",
                 List.of("skill1"), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
