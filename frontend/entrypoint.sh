@@ -5,6 +5,8 @@ set -e
 # This overwrites the placeholder baked in at build time so that
 # BUG_REPORT_URL (and any future env-driven values) are applied per-deploy
 # without rebuilding the image.
+mkdir -p /usr/share/nginx/html/assets
+
 echo "{\"bugReportUrl\": \"${BUG_REPORT_URL:-}\"}" \
   > /usr/share/nginx/html/assets/runtime-config.json
 

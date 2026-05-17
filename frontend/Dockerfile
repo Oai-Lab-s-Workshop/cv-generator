@@ -16,7 +16,7 @@ RUN npx ng build --configuration production 2>&1
 
 # Stage 2: Serve via nginx
 FROM nginx:alpine
-COPY --from=build /app/dist/resumate /usr/share/nginx/html
+COPY --from=build /app/dist/resumate/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
