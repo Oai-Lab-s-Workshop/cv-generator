@@ -7,7 +7,12 @@ RUN npm ci
 
 COPY . .
 RUN mkdir -p src/assets && echo '{"bugReportUrl":""}' > src/assets/runtime-config.json
-RUN node_modules/.bin/ng build --configuration production
+
+# angular.json references "input": "../pb_data" for the seed.json asset.
+# That path is outside the Docker build context, so provide a stub.
+RUN mkdir -p /pb_data && echo '{}' > /pb_data/seed.json
+
+RUN npx ng build --configuration production 2>&1
 
 # Stage 2: Serve via nginx
 FROM nginx:alpine
