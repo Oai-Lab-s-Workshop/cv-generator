@@ -10,6 +10,7 @@ import { Job } from '../models/job.model';
 import { MediaFile } from '../models/file.model';
 import { Project } from '../models/project.model';
 import { Skill } from '../models/skill.model';
+import { SkillCategory } from '../models/skill-category.model';
 import { User } from '../models/user.model';
 import { generateAiTokenSecret, getAiTokenPrefix, hashAiTokenSecret } from '../utils/ai-token';
 import { AuthService } from './auth.service';
@@ -29,6 +30,7 @@ export interface CurrentUserCvProfileEditorData {
 export interface CurrentUserProfileMaterialData {
   jobs: Job[];
   skills: Skill[];
+  skillCategories: SkillCategory[];
   projects: Project[];
   achievements: Achievement[];
   degrees: Degree[];
@@ -90,7 +92,9 @@ export class PocketBaseService {
   }
 
   async getSkills(skillIds: string[]): Promise<Skill[]> {
-    return this.getOrderedRecords<Skill>('skills', skillIds, '+sortOrder,+name');
+    const skills = await this.getOrderedRecords<Skill>('skills', skillIds, '+sortOrder,+name', 'category');
+
+    return skills.map((skill) => this.normalizeSkill(skill));
   }
 
   async getDegrees(degreeIds: string[]): Promise<Degree[]> {
@@ -257,7 +261,7 @@ export class PocketBaseService {
       await Promise.all([
         this.getCurrentUserOwnedRecords<Job>('jobs', '+sortOrder,-startDate'),
         this.getCurrentUserOwnedRecords<Project>('projects', '+sortOrder,-date', 'file'),
-        this.getCurrentUserOwnedRecords<Skill>('skills', '+sortOrder,+name'),
+        this.getCurrentUserOwnedRecords<Skill>('skills', '+sortOrder,+name', 'category'),
         this.getCurrentUserOwnedRecords<Degree>('degrees', '+sortOrder,-year'),
         this.getCurrentUserOwnedRecords<Achievement>('achievements', '+sortOrder,+title'),
         this.getCurrentUserOwnedRecords<Hobby>('hobbies', '+sortOrder,+name'),
@@ -268,7 +272,7 @@ export class PocketBaseService {
       profile,
       availableJobs,
       availableProjects: availableProjects.map((project) => this.normalizeProject(project)),
-      availableSkills,
+      availableSkills: availableSkills.map((skill) => this.normalizeSkill(skill)),
       availableDegrees,
       availableAchievements,
       availableHobbies,
@@ -277,9 +281,10 @@ export class PocketBaseService {
   }
 
   async getCurrentUserProfileMaterialData(): Promise<CurrentUserProfileMaterialData> {
-    const [jobs, skills, projects, achievements, degrees, hobbies, files] = await Promise.all([
+    const [jobs, skills, skillCategories, projects, achievements, degrees, hobbies, files] = await Promise.all([
       this.getCurrentUserOwnedRecords<Job>('jobs', '+sortOrder,-startDate'),
-      this.getCurrentUserOwnedRecords<Skill>('skills', '+sortOrder,+name'),
+      this.getCurrentUserOwnedRecords<Skill>('skills', '+sortOrder,+name', 'category'),
+      this.getCurrentUserSkillCategories(),
       this.getCurrentUserOwnedRecords<Project>('projects', '+sortOrder,-date', 'file'),
       this.getCurrentUserOwnedRecords<Achievement>('achievements', '+sortOrder,+title'),
       this.getCurrentUserOwnedRecords<Degree>('degrees', '+sortOrder,-year'),
@@ -289,7 +294,8 @@ export class PocketBaseService {
 
     return {
       jobs,
-      skills,
+      skills: skills.map((skill) => this.normalizeSkill(skill)),
+      skillCategories,
       projects: projects.map((project) => this.normalizeProject(project)),
       achievements,
       degrees,
@@ -315,17 +321,51 @@ export class PocketBaseService {
 
   async createCurrentUserSkill(input: SaveCurrentUserSkillInput): Promise<Skill> {
     const currentUserId = this.requireCurrentUserId();
-    return this.pb.collection<Skill>('skills').create({
+    const created = await this.pb.collection<Skill>('skills').create({
       ...input,
       user: currentUserId,
+      category: input.category || null,
     });
+
+    return this.normalizeSkill(created);
   }
 
   async updateCurrentUserSkill(skillId: string, input: SaveCurrentUserSkillInput): Promise<Skill> {
     const currentUserId = this.requireCurrentUserId();
     const skill = await this.pb.collection<Skill>('skills').getFirstListItem(`id="${skillId}" && user="${currentUserId}"`);
 
-    return this.pb.collection<Skill>('skills').update(skill.id, input);
+    const updated = await this.pb.collection<Skill>('skills').update(skill.id, {
+      ...input,
+      category: input.category || null,
+    });
+
+    return this.normalizeSkill(updated);
+  }
+
+  async getCurrentUserSkillCategories(): Promise<SkillCategory[]> {
+    return this.getCurrentUserOwnedRecords<SkillCategory>('skill_categories', '+name');
+  }
+
+  async createCurrentUserSkillCategory(name: string): Promise<SkillCategory> {
+    const currentUserId = this.requireCurrentUserId();
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      throw new Error('Le nom de la categorie est obligatoire.');
+    }
+
+    const existingCategories = await this.getCurrentUserSkillCategories();
+    const normalizedName = this.normalizeSearchValue(trimmedName);
+    const existingCategory = existingCategories.find((category) => this.normalizeSearchValue(category.name) === normalizedName);
+
+    if (existingCategory) {
+      return existingCategory;
+    }
+
+    return this.pb.collection<SkillCategory>('skill_categories').create({
+      name: trimmedName,
+      user: currentUserId,
+    });
   }
 
   async createCurrentUserProject(input: SaveCurrentUserProjectInput): Promise<Project> {
@@ -559,6 +599,22 @@ export class PocketBaseService {
     };
   }
 
+  private normalizeSkill(skill: Skill | null): Skill {
+    if (!skill) {
+      throw new Error('Skill not found.');
+    }
+
+    return {
+      ...skill,
+      expand: skill.expand
+        ? {
+            ...skill.expand,
+            category: skill.expand.category,
+          }
+        : undefined,
+    };
+  }
+
   private normalizeMediaFile(file: MediaFile | null): MediaFile {
     if (!file) {
       throw new Error('File not found.');
@@ -656,6 +712,14 @@ export class PocketBaseService {
     }
 
     return currentUserId;
+  }
+
+  private normalizeSearchValue(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
   public toDate(value?: string | null): Date | undefined {

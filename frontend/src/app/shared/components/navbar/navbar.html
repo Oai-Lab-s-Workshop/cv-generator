@@ -1,0 +1,70 @@
+<nav class="home-navbar" aria-label="Navigation principale">
+  <a class="home-navbar__brand" routerLink="/home" aria-label="Accueil Resumate">
+    <span class="home-navbar__brand-mark" aria-hidden="true">
+      <i class="bi bi-file-earmark-person"></i>
+    </span>
+    <span class="home-navbar__brand-copy">
+      <strong>Resumate</strong>
+      <span>Console</span>
+    </span>
+  </a>
+
+  @if (isAuthenticated()) {
+    <div class="home-navbar__nav">
+      <a
+        class="home-navbar__link"
+        routerLink="/home"
+        routerLinkActive="home-navbar__link--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+        aria-label="Accueil"
+      >
+        <i class="bi bi-house" aria-hidden="true"></i>
+        <span>Accueil</span>
+      </a>
+      <a
+        class="home-navbar__link"
+        routerLink="/home/profile-material"
+        routerLinkActive="home-navbar__link--active"
+        ariaCurrentWhenActive="page"
+        aria-label="Informations"
+      >
+        <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+        <span>Informations</span>
+      </a>
+      <a
+        class="home-navbar__link"
+        routerLink="/home/templates"
+        routerLinkActive="home-navbar__link--active"
+        ariaCurrentWhenActive="page"
+        aria-label="Templates"
+      >
+        <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+        <span>Templates</span>
+      </a>
+      <a
+        class="home-navbar__link"
+        routerLink="/home/tokens"
+        routerLinkActive="home-navbar__link--active"
+        ariaCurrentWhenActive="page"
+        aria-label="Tokens MCP"
+      >
+        <i class="bi bi-key" aria-hidden="true"></i>
+        <span>Tokens MCP</span>
+      </a>
+    </div>
+
+    <div class="home-navbar__utilities">
+      @if (bugReportUrl()) {
+        <a class="home-navbar__action" [href]="bugReportUrl()" target="_blank" rel="noopener noreferrer" aria-label="Signaler un bug">
+          <i class="bi bi-bug" aria-hidden="true"></i>
+          <span class="home-navbar__action-label">Bug</span>
+        </a>
+      }
+      <button class="home-navbar__action home-navbar__action--logout" type="button" aria-label="Se deconnecter" (click)="logout()">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span class="home-navbar__action-label">Sortir</span>
+      </button>
+    </div>
+  }
+</nav>

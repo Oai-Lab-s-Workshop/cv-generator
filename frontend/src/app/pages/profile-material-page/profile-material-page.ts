@@ -1,8 +1,6 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { environment } from '../../../environments/environment';
-import { ThemeService } from '../../core/services/theme.service';
+import { QuillModule } from 'ngx-quill';
 import { Achievement } from '../../core/models/achievement.model';
 import { Degree } from '../../core/models/degree.model';
 import { MediaFile } from '../../core/models/file.model';
@@ -10,6 +8,7 @@ import { Hobby } from '../../core/models/hobby.model';
 import { Job } from '../../core/models/job.model';
 import { Project } from '../../core/models/project.model';
 import { Skill } from '../../core/models/skill.model';
+import { SkillCategory } from '../../core/models/skill-category.model';
 import { AuthService } from '../../core/services/auth.service';
 import {
   PocketBaseService,
@@ -22,6 +21,7 @@ import {
   SaveCurrentUserSkillInput,
 } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { Navbar } from '../../shared/components/navbar/navbar';
 
 type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type SkillForm = Omit<SaveCurrentUserSkillInput, 'level' | 'sortOrder'> & { id?: string; level: number | null; sortOrder: number | null };
@@ -30,6 +30,14 @@ type AchievementForm = Omit<SaveCurrentUserAchievementInput, 'sortOrder'> & { id
 type DegreeForm = Omit<SaveCurrentUserDegreeInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type HobbyForm = Omit<SaveCurrentUserHobbyInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type AssetForm = Omit<SaveCurrentUserFileInput, 'file' | 'sortOrder'> & { id?: string; sortOrder: number | null };
+type MaterialSection = 'jobs' | 'projects' | 'skills' | 'achievements' | 'degrees' | 'hobbies' | 'assets';
+
+interface MaterialTab {
+  readonly section: MaterialSection;
+  readonly label: string;
+  readonly eyebrow: string;
+  readonly description: string;
+}
 
 const EMPTY_JOB_FORM: JobForm = {
   label: '',
@@ -91,7 +99,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
 
 @Component({
   selector: 'app-profile-material-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, Navbar, QuillModule],
   templateUrl: './profile-material-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -99,10 +107,10 @@ const EMPTY_ASSET_FORM: AssetForm = {
 export class ProfileMaterialPage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
   private readonly authService = inject(AuthService);
-  private readonly responsibilitiesEditor = viewChild<ElementRef<HTMLElement>>('responsibilitiesEditor');
 
   readonly jobs = signal<Job[]>([]);
   readonly skills = signal<Skill[]>([]);
+  readonly skillCategories = signal<SkillCategory[]>([]);
   readonly projects = signal<Project[]>([]);
   readonly achievements = signal<Achievement[]>([]);
   readonly degrees = signal<Degree[]>([]);
@@ -119,12 +127,34 @@ export class ProfileMaterialPage implements OnInit {
 
   readonly selectedProjectPicture = signal<File | null>(null);
   readonly selectedAssetFile = signal<File | null>(null);
+  readonly responsibilitiesEditorModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ indent: '-1' }, { indent: '+1' }],
+      ['link'],
+      ['clean'],
+    ],
+  };
   readonly isLoading = signal(true);
   readonly savingSection = signal<string | null>(null);
+  readonly creatingProjectAchievement = signal(false);
+  readonly creatingSkillCategory = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
-  readonly themeService = inject(ThemeService);
-  readonly bugReportUrl = signal(environment.bugReportUrl);
+  readonly activeSection = signal<MaterialSection>('jobs');
+  readonly projectAchievementQuery = signal('');
+  readonly skillCategoryQuery = signal('');
+  readonly newSkillCategoryName = signal('');
+  readonly materialTabs: MaterialTab[] = [
+    { section: 'jobs', label: 'Experiences', eyebrow: 'Parcours', description: 'Postes, missions et contexte chronologique.' },
+    { section: 'projects', label: 'Projets', eyebrow: 'Preuves', description: 'Cas concrets relies aux realisations et assets.' },
+    { section: 'skills', label: 'Competences', eyebrow: 'Savoir-faire', description: 'Competences groupees par categories.' },
+    { section: 'achievements', label: 'Realisations', eyebrow: 'Impact', description: 'Resultats reutilisables dans les projets et CV.' },
+    { section: 'degrees', label: 'Diplomes', eyebrow: 'Formation', description: 'Etudes, certifications et niveaux.' },
+    { section: 'hobbies', label: 'Loisirs', eyebrow: 'Profil', description: 'Centres d\'interet utiles au storytelling.' },
+    { section: 'assets', label: 'Assets', eyebrow: 'Medias', description: 'Images, documents et supports reutilisables.' },
+  ];
   readonly currentUser = this.authService.currentUser;
   readonly currentUserName = computed(() => {
     const user = this.currentUser();
@@ -133,18 +163,60 @@ export class ProfileMaterialPage implements OnInit {
   readonly totalMaterialCount = computed(
     () => this.jobs().length + this.skills().length + this.projects().length + this.achievements().length + this.degrees().length + this.hobbies().length + this.assets().length,
   );
+  readonly selectedProjectAchievements = computed(() => {
+    const selectedIds = this.projectForm().achievements ?? [];
+    const achievementsById = new Map(this.achievements().map((achievement) => [achievement.id, achievement]));
+
+    return selectedIds.map((achievementId) => achievementsById.get(achievementId)).filter((achievement): achievement is Achievement => !!achievement);
+  });
+  readonly filteredAvailableProjectAchievements = computed(() => {
+    const selectedIdSet = new Set(this.projectForm().achievements ?? []);
+    const query = this.projectAchievementQuery();
+
+    return this.achievements().filter((achievement) => {
+      if (selectedIdSet.has(achievement.id)) {
+        return false;
+      }
+
+      return this.matchesFuzzyQuery([achievement.title, achievement.description], query);
+    });
+  });
+  readonly canCreateProjectAchievement = computed(() => {
+    const title = this.projectAchievementQuery().trim();
+
+    if (!title || this.creatingProjectAchievement()) {
+      return false;
+    }
+
+    const normalizedTitle = this.normalizeSearchValue(title);
+    return !this.achievements().some((achievement) => this.normalizeSearchValue(achievement.title) === normalizedTitle);
+  });
+  readonly selectedSkillCategory = computed(() => {
+    const categoryId = this.skillForm().category;
+
+    return categoryId ? this.skillCategories().find((category) => category.id === categoryId) : undefined;
+  });
+  readonly filteredSkillCategories = computed(() => {
+    const selectedCategoryId = this.skillForm().category;
+    const query = this.skillCategoryQuery();
+
+    return this.skillCategories().filter((category) => {
+      if (category.id === selectedCategoryId) {
+        return false;
+      }
+
+      return this.matchesFuzzyQuery([category.name], query);
+    });
+  });
+  readonly canCreateSkillCategoryFromQuery = computed(() => this.canCreateSkillCategory(this.skillCategoryQuery()));
+  readonly canCreateStandaloneSkillCategory = computed(() => this.canCreateSkillCategory(this.newSkillCategoryName()));
 
   ngOnInit(): void {
-    void this.loadRuntimeConfig();
     void this.loadMaterial();
   }
 
-  logout(): void {
-    this.authService.logout();
-    window.location.assign('/login');
-  }
-
   editJob(job: Job): void {
+    this.setActiveSection('jobs');
     const responsibilities = job.responsibilities ?? '';
     this.jobForm.set({
       id: job.id,
@@ -158,13 +230,11 @@ export class ProfileMaterialPage implements OnInit {
       sortOrder: job.sortOrder ?? null,
       type: job.type,
     });
-    this.setResponsibilitiesEditorHtml(responsibilities);
     this.scrollToSection('jobs-section', 'input[name="job-label"]');
   }
 
   resetJobForm(): void {
     this.jobForm.set({ ...EMPTY_JOB_FORM });
-    this.setResponsibilitiesEditorHtml('');
   }
 
   setJobFormValue(field: keyof Omit<JobForm, 'id' | 'sortOrder'>, value: string): void {
@@ -173,16 +243,6 @@ export class ProfileMaterialPage implements OnInit {
 
   setJobSortOrder(value: string | number | null): void {
     this.jobForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
-  }
-
-  syncResponsibilitiesFromEditor(event: Event): void {
-    this.setJobFormValue('responsibilities', (event.target as HTMLElement).innerHTML);
-  }
-
-  formatResponsibilities(command: 'bold' | 'italic' | 'insertUnorderedList' | 'insertOrderedList' | 'removeFormat'): void {
-    this.responsibilitiesEditor()?.nativeElement.focus();
-    document.execCommand(command, false);
-    this.setJobFormValue('responsibilities', this.responsibilitiesEditor()?.nativeElement.innerHTML ?? '');
   }
 
   async saveJob(): Promise<void> {
@@ -211,6 +271,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editSkill(skill: Skill): void {
+    this.setActiveSection('skills');
     this.skillForm.set({
       id: skill.id,
       name: skill.name,
@@ -224,6 +285,7 @@ export class ProfileMaterialPage implements OnInit {
 
   resetSkillForm(): void {
     this.skillForm.set({ ...EMPTY_SKILL_FORM });
+    this.skillCategoryQuery.set('');
   }
 
   setSkillFormValue(field: keyof Omit<SkillForm, 'id' | 'level' | 'sortOrder'>, value: string): void {
@@ -236,6 +298,39 @@ export class ProfileMaterialPage implements OnInit {
 
   setSkillSortOrder(value: string | number | null): void {
     this.skillForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
+  }
+
+  setSkillCategoryQuery(value: string): void {
+    this.skillCategoryQuery.set(value);
+  }
+
+  setNewSkillCategoryName(value: string): void {
+    this.newSkillCategoryName.set(value);
+  }
+
+  selectSkillCategory(categoryId: string): void {
+    this.skillForm.update((form) => ({ ...form, category: categoryId }));
+    this.skillCategoryQuery.set('');
+  }
+
+  clearSkillCategory(): void {
+    this.skillForm.update((form) => ({ ...form, category: '' }));
+  }
+
+  async createAndSelectSkillCategory(): Promise<void> {
+    const created = await this.createSkillCategoryFromName(this.skillCategoryQuery(), 'Categorie creee et selectionnee.');
+
+    if (created) {
+      this.selectSkillCategory(created.id);
+    }
+  }
+
+  async createStandaloneSkillCategory(): Promise<void> {
+    const created = await this.createSkillCategoryFromName(this.newSkillCategoryName(), 'Categorie ajoutee.');
+
+    if (created) {
+      this.newSkillCategoryName.set('');
+    }
   }
 
   async saveSkill(): Promise<void> {
@@ -260,6 +355,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editProject(project: Project): void {
+    this.setActiveSection('projects');
     this.projectForm.set({
       id: project.id,
       name: project.name,
@@ -272,12 +368,14 @@ export class ProfileMaterialPage implements OnInit {
       sortOrder: project.sortOrder ?? null,
     });
     this.selectedProjectPicture.set(null);
+    this.projectAchievementQuery.set('');
     this.scrollToSection('projects-section', 'input[name="project-name"]');
   }
 
   resetProjectForm(): void {
     this.projectForm.set({ ...EMPTY_PROJECT_FORM, achievements: [] });
     this.selectedProjectPicture.set(null);
+    this.projectAchievementQuery.set('');
   }
 
   setProjectFormValue(field: keyof Omit<ProjectForm, 'id' | 'sortOrder' | 'achievements'>, value: string): void {
@@ -295,6 +393,50 @@ export class ProfileMaterialPage implements OnInit {
         ? Array.from(new Set([...(form.achievements ?? []), achievementId]))
         : (form.achievements ?? []).filter((id) => id !== achievementId),
     }));
+  }
+
+  addProjectAchievement(achievementId: string): void {
+    this.toggleProjectAchievement(achievementId, true);
+  }
+
+  removeProjectAchievement(achievementId: string): void {
+    this.toggleProjectAchievement(achievementId, false);
+  }
+
+  setProjectAchievementQuery(value: string): void {
+    this.projectAchievementQuery.set(value);
+  }
+
+  async createAndLinkProjectAchievement(): Promise<void> {
+    const title = this.projectAchievementQuery().trim();
+
+    if (!title) {
+      this.errorMessage.set('Le titre de la realisation est obligatoire.');
+      return;
+    }
+
+    const existingAchievement = this.achievements().find((achievement) => this.normalizeSearchValue(achievement.title) === this.normalizeSearchValue(title));
+    if (existingAchievement) {
+      this.addProjectAchievement(existingAchievement.id);
+      this.projectAchievementQuery.set('');
+      return;
+    }
+
+    this.creatingProjectAchievement.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    try {
+      const created = await this.pocketBaseService.createCurrentUserAchievement({ title });
+      this.achievements.update((achievements) => [...achievements, created]);
+      this.addProjectAchievement(created.id);
+      this.projectAchievementQuery.set('');
+      this.successMessage.set('Realisation creee et liee au projet.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.creatingProjectAchievement.set(false);
+    }
   }
 
   onProjectPictureSelected(event: Event): void {
@@ -327,6 +469,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editAchievement(achievement: Achievement): void {
+    this.setActiveSection('achievements');
     this.achievementForm.set({
       id: achievement.id,
       title: achievement.title,
@@ -368,6 +511,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editDegree(degree: Degree): void {
+    this.setActiveSection('degrees');
     this.degreeForm.set({
       id: degree.id,
       title: degree.title,
@@ -413,6 +557,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editHobby(hobby: Hobby): void {
+    this.setActiveSection('hobbies');
     this.hobbyForm.set({
       id: hobby.id,
       name: hobby.name,
@@ -454,6 +599,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   editAsset(asset: MediaFile): void {
+    this.setActiveSection('assets');
     this.assetForm.set({
       id: asset.id,
       name: asset.name ?? '',
@@ -507,8 +653,45 @@ export class ProfileMaterialPage implements OnInit {
     return this.savingSection() === section;
   }
 
+  setActiveSection(section: MaterialSection): void {
+    this.activeSection.set(section);
+  }
+
+  isActiveSection(section: MaterialSection): boolean {
+    return this.activeSection() === section;
+  }
+
+  getMaterialSectionCount(section: MaterialSection): number {
+    switch (section) {
+      case 'jobs':
+        return this.jobs().length;
+      case 'projects':
+        return this.projects().length;
+      case 'skills':
+        return this.skills().length;
+      case 'achievements':
+        return this.achievements().length;
+      case 'degrees':
+        return this.degrees().length;
+      case 'hobbies':
+        return this.hobbies().length;
+      case 'assets':
+        return this.assets().length;
+    }
+  }
+
   isProjectAchievementSelected(achievementId: string): boolean {
     return this.projectForm().achievements?.includes(achievementId) ?? false;
+  }
+
+  getSkillCategoryName(skill: Skill): string {
+    return skill.expand?.category?.name || this.skillCategories().find((category) => category.id === skill.category)?.name || '';
+  }
+
+  getSkillDescription(skill: Skill): string {
+    const categoryName = this.getSkillCategoryName(skill);
+
+    return [skill.type, categoryName].filter(Boolean).join(' · ') || 'Sans type';
   }
 
   private async loadMaterial(showLoading = true): Promise<void> {
@@ -522,6 +705,7 @@ export class ProfileMaterialPage implements OnInit {
       const data = await this.pocketBaseService.getCurrentUserProfileMaterialData();
       this.jobs.set(data.jobs);
       this.skills.set(data.skills);
+      this.skillCategories.set(data.skillCategories);
       this.projects.set(data.projects);
       this.achievements.set(data.achievements);
       this.degrees.set(data.degrees);
@@ -552,20 +736,34 @@ export class ProfileMaterialPage implements OnInit {
     }
   }
 
-  private async loadRuntimeConfig(): Promise<void> {
+  private async createSkillCategoryFromName(name: string, successMessage: string): Promise<SkillCategory | null> {
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      this.errorMessage.set('Le nom de la categorie est obligatoire.');
+      return null;
+    }
+
+    const existingCategory = this.skillCategories().find((category) => this.normalizeSearchValue(category.name) === this.normalizeSearchValue(trimmedName));
+    if (existingCategory) {
+      return existingCategory;
+    }
+
+    this.creatingSkillCategory.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
     try {
-      const response = await fetch('/assets/runtime-config.json', { cache: 'no-store' });
+      const created = await this.pocketBaseService.createCurrentUserSkillCategory(trimmedName);
+      this.skillCategories.update((categories) => [...categories, created].sort((first, second) => first.name.localeCompare(second.name)));
+      this.successMessage.set(successMessage);
 
-      if (!response.ok) {
-        return;
-      }
-
-      const config = (await response.json()) as { bugReportUrl?: unknown };
-      if (typeof config.bugReportUrl === 'string' && config.bugReportUrl.trim()) {
-        this.bugReportUrl.set(config.bugReportUrl.trim());
-      }
-    } catch {
-      // Runtime config is optional outside Docker.
+      return created;
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+      return null;
+    } finally {
+      this.creatingSkillCategory.set(false);
     }
   }
 
@@ -574,16 +772,6 @@ export class ProfileMaterialPage implements OnInit {
       const section = document.getElementById(sectionId);
       section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       window.requestAnimationFrame(() => section?.querySelector<HTMLElement>(focusSelector)?.focus({ preventScroll: true }));
-    });
-  }
-
-  private setResponsibilitiesEditorHtml(html: string): void {
-    window.requestAnimationFrame(() => {
-      const editor = this.responsibilitiesEditor()?.nativeElement;
-
-      if (editor && editor.innerHTML !== html) {
-        editor.innerHTML = html;
-      }
     });
   }
 
@@ -607,8 +795,57 @@ export class ProfileMaterialPage implements OnInit {
     return trimmed || undefined;
   }
 
+  private canCreateSkillCategory(value: string): boolean {
+    const name = value.trim();
+
+    if (!name || this.creatingSkillCategory()) {
+      return false;
+    }
+
+    const normalizedName = this.normalizeSearchValue(name);
+    return !this.skillCategories().some((category) => this.normalizeSearchValue(category.name) === normalizedName);
+  }
+
   private toNullableNumber(value: string | number | null): number | null {
     const numberValue = value === null || value === '' ? null : Number(value);
     return Number.isFinite(numberValue) ? numberValue : null;
+  }
+
+  private matchesFuzzyQuery(values: Array<string | undefined>, query: string): boolean {
+    const normalizedQuery = this.normalizeSearchValue(query);
+
+    if (!normalizedQuery) {
+      return true;
+    }
+
+    return values.some((value) => {
+      const normalizedValue = this.normalizeSearchValue(value ?? '');
+
+      return normalizedValue.includes(normalizedQuery) || this.isSubsequence(normalizedQuery, normalizedValue);
+    });
+  }
+
+  private normalizeSearchValue(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  private isSubsequence(query: string, value: string): boolean {
+    let queryIndex = 0;
+
+    for (const character of value) {
+      if (character === query[queryIndex]) {
+        queryIndex += 1;
+      }
+
+      if (queryIndex === query.length) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

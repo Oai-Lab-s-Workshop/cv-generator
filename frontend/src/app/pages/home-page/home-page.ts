@@ -7,12 +7,11 @@ import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { CV_TEMPLATE_OPTIONS } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
-import { environment } from '../../../environments/environment';
-import { ThemeService } from '../../core/services/theme.service';
+import { Navbar } from '../../shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-home-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, Navbar, RouterLink],
   templateUrl: './home-page.html',
   styleUrls: ['../../styles/home-shared.css', './home-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,8 +33,6 @@ export class HomePage implements OnInit {
   readonly isSaving = signal<string | null>(null);
   readonly templateSelections = signal<Record<string, string>>({});
   readonly publicSelections = signal<Record<string, boolean>>({});
-  readonly themeService = inject(ThemeService);
-  readonly bugReportUrl = signal(environment.bugReportUrl);
   readonly currentUser = this.authService.currentUser;
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
   readonly totalProfileCount = computed(() => this.profiles().length);
@@ -52,26 +49,8 @@ export class HomePage implements OnInit {
   });
 
   ngOnInit(): void {
-    void this.loadRuntimeConfig();
     void this.loadProfiles();
     void this.loadAiTokens();
-  }
-
-  private async loadRuntimeConfig(): Promise<void> {
-    try {
-      const response = await fetch('/assets/runtime-config.json', { cache: 'no-store' });
-
-      if (!response.ok) {
-        return;
-      }
-
-      const config = (await response.json()) as { bugReportUrl?: unknown };
-      if (typeof config.bugReportUrl === 'string' && config.bugReportUrl.trim()) {
-        this.bugReportUrl.set(config.bugReportUrl.trim());
-      }
-    } catch {
-      // Runtime config is optional outside Docker.
-    }
   }
 
   private async loadProfiles(): Promise<void> {
@@ -211,12 +190,4 @@ export class HomePage implements OnInit {
     }
   }
 
-  toggleTheme(): void {
-    this.themeService.toggle();
-  }
-
-  logout(): void {
-    this.authService.logout();
-    window.location.assign('/login');
-  }
 }
