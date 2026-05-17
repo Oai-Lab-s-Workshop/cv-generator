@@ -134,14 +134,16 @@
         </label>
         <div class="editor-field editor-field--full">
           <span>Responsabilites</span>
-          <div class="rich-editor-toolbar" aria-label="Mise en forme des responsabilites">
-            <button type="button" class="rich-editor-button" (click)="formatResponsibilities('bold')">Gras</button>
-            <button type="button" class="rich-editor-button" (click)="formatResponsibilities('italic')">Italique</button>
-            <button type="button" class="rich-editor-button" (click)="formatResponsibilities('insertUnorderedList')">Liste</button>
-            <button type="button" class="rich-editor-button" (click)="formatResponsibilities('insertOrderedList')">Liste numerotee</button>
-            <button type="button" class="rich-editor-button" (click)="formatResponsibilities('removeFormat')">Nettoyer</button>
-          </div>
-          <div #responsibilitiesEditor class="rich-editor-surface" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Responsabilites" (input)="syncResponsibilitiesFromEditor($event)"></div>
+          <quill-editor
+            class="responsibilities-editor"
+            format="html"
+            theme="snow"
+            placeholder="Detaillez vos missions, resultats, contexte..."
+            [modules]="responsibilitiesEditorModules"
+            [sanitize]="true"
+            [ngModel]="jobForm().responsibilities"
+            (ngModelChange)="setJobFormValue('responsibilities', $event ?? '')"
+          />
         </div>
       </div>
 
