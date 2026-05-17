@@ -14,6 +14,7 @@ const idMaps = {
   users: new Map(),
   achievements: new Map(),
   hobbies: new Map(),
+  skill_categories: new Map(),
   skills: new Map(),
   projects: new Map(),
   jobs: new Map(),
@@ -56,7 +57,7 @@ async function getTotalItems(token, collection) {
 }
 
 async function ensureEmptyCollections(token) {
-  const collections = ['users', 'achievements', 'hobbies', 'skills', 'projects', 'jobs', 'degrees', 'cv_profiles'];
+  const collections = ['users', 'achievements', 'hobbies', 'skill_categories', 'skills', 'projects', 'jobs', 'degrees', 'cv_profiles'];
   const nonEmpty = [];
 
   for (const collection of collections) {
@@ -145,6 +146,25 @@ async function importSimpleCollection(token, collection) {
     }
 
     idMaps[collection].set(id, created.id);
+  }
+}
+
+async function importSkills(token) {
+  for (const skill of seed.skills || []) {
+    const { id, ...body } = skill;
+    let created;
+
+    try {
+      created = await createRecord(token, 'skills', {
+        ...body,
+        user: body.user ? idMaps.users.get(body.user) : undefined,
+        category: body.category ? idMaps.skill_categories.get(body.category) : undefined,
+      });
+    } catch (error) {
+      throw new Error(`Failed importing skills:${id} - ${error.message}`);
+    }
+
+    idMaps.skills.set(id, created.id);
   }
 }
 
@@ -239,7 +259,8 @@ async function main() {
   await importUsers(token);
   await importSimpleCollection(token, 'achievements');
   await importSimpleCollection(token, 'hobbies');
-  await importSimpleCollection(token, 'skills');
+  await importSimpleCollection(token, 'skill_categories');
+  await importSkills(token);
   await importProjects(token);
   await importJobs(token);
   await importSimpleCollection(token, 'degrees');

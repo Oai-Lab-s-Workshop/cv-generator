@@ -362,7 +362,7 @@
               <article class="relation-card">
                 <div>
                   <h4>{{ skill.name }}</h4>
-                  <p>{{ skill.type || skill.category || 'Sans type' }}</p>
+                  <p>{{ getSkillDescription(skill) }}</p>
                 </div>
                 <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('skills', skill.id)">Retirer</button>
               </article>
@@ -379,7 +379,7 @@
               <article class="relation-card">
                 <div>
                   <h4>{{ skill.name }}</h4>
-                  <p>{{ skill.type || skill.category || 'Sans type' }}</p>
+                  <p>{{ getSkillDescription(skill) }}</p>
                 </div>
                 <button type="button" class="relation-action" (click)="addRelation('skills', skill.id)">Ajouter</button>
               </article>

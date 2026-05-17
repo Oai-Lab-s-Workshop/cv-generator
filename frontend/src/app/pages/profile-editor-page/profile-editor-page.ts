@@ -276,7 +276,7 @@ export class ProfileEditorPage implements OnInit {
     }
 
     if ('category' in record) {
-      return record.type || record.category || 'Sans type';
+      return this.getSkillDescription(record);
     }
 
     if ('type' in record) {
@@ -316,6 +316,12 @@ export class ProfileEditorPage implements OnInit {
 
   getAvailableSkills(state: EditorState): Skill[] {
     return this.getUnlinkedRecords(state.availableSkills, state.profile.skills);
+  }
+
+  getSkillDescription(skill: Skill): string {
+    const categoryName = skill.expand?.category?.name || '';
+
+    return [skill.type, categoryName].filter(Boolean).join(' · ') || 'Sans type';
   }
 
   getLinkedDegrees(state: EditorState): Degree[] {
