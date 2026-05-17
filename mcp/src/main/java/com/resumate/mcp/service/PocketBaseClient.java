@@ -136,6 +136,7 @@ public class PocketBaseClient {
         String slug = payload.templateId() + "--" + slugify(payload.profileName()) + "-" + Instant.now().toEpochMilli();
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("slug", slug);
+        body.put("label", payload.label());
         body.put("profileName", payload.profileName());
         body.put("template", payload.templateId());
         body.put("public", true);
@@ -348,6 +349,7 @@ public class PocketBaseClient {
     }
 
     public record CreateProfilePayload(
+            String label,
             String profileName,
             String templateId,
             String professionalSummary,

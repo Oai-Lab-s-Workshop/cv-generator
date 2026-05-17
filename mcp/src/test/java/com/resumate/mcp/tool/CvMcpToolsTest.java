@@ -118,7 +118,7 @@ class CvMcpToolsTest {
                 .thenReturn(createdRecord);
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "Senior Dev CV", "Job listing text", "classic",
+                "Acme - Senior Dev", "Senior Dev CV", "Job listing text", "classic",
                 "Professional summary",
                 List.of("skill1"), List.of("job1"), List.of("proj1"),
                 List.of("ach1"), List.of("deg1"), List.of("hob1"), Map.of()
@@ -129,6 +129,27 @@ class CvMcpToolsTest {
         assertThat(response.profileId()).isEqualTo("profileId");
         assertThat(response.slug()).isEqualTo("classic--senior-dev-123");
         assertThat(response.frontendUrl()).isEqualTo("https://resumate.app/classic--senior-dev-123");
+        verify(pocketBaseClient).createTailoredProfile(eq("userId"), org.mockito.ArgumentMatchers.argThat(payload ->
+                payload.label().equals("Acme - Senior Dev")
+                        && payload.profileName().equals("Senior Dev CV")
+        ));
+    }
+
+    @Test
+    void createTailoredCvProfile_throws_whenLabelMissing() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                " ", "Dev CV", "Job listing", "classic",
+                "Summary", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
+        );
+
+        assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("label is required.");
     }
 
     @Test
@@ -139,7 +160,7 @@ class CvMcpToolsTest {
         setAuthentication(principal);
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "Dev CV", "Job listing", null,
+                "Acme - Dev", "Dev CV", "Job listing", null,
                 "Summary", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
@@ -160,7 +181,7 @@ class CvMcpToolsTest {
         ));
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "CV", "Job", "modern", "Summary",
+                "Acme - CV", "CV", "Job", "modern", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
@@ -174,7 +195,7 @@ class CvMcpToolsTest {
         SecurityContextHolder.clearContext();
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "CV", "Job", "classic", "Summary",
+                "Acme - CV", "CV", "Job", "classic", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
@@ -199,7 +220,7 @@ class CvMcpToolsTest {
                 .thenReturn(createdRecord);
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "CV", "Job", "classic", "Summary",
+                "Acme - CV", "CV", "Job", "classic", "Summary",
                 List.of("skill1"), List.of("job1"), List.of(),
                 List.of(), List.of(), List.of(), Map.of()
         );
@@ -229,7 +250,7 @@ class CvMcpToolsTest {
                 .thenReturn(createdRecord);
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "CV", "Job", "classic", "Summary",
+                "Acme - CV", "CV", "Job", "classic", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
         );
 
@@ -255,7 +276,7 @@ class CvMcpToolsTest {
                 .thenReturn(new CreatedProfileRecord("id", "slug"));
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "CV", "Job", "modern", "Summary",
+                "Acme - CV", "CV", "Job", "modern", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
                 Map.of("headline", "Senior developer", "accentColor", "#2563eb")
         );
@@ -279,7 +300,7 @@ class CvMcpToolsTest {
         ));
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "CV", "Job", "modern", "Summary",
+                "Acme - CV", "CV", "Job", "modern", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
                 Map.of("unknown", "value")
         );
@@ -305,7 +326,7 @@ class CvMcpToolsTest {
                 .thenReturn(new CreatedProfileRecord("id", "slug"));
 
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
-                "CV", "Job", "supa", "Summary",
+                "Acme - CV", "CV", "Job", "supa", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
                 Map.of("featuredProjectIds", List.of("proj1"))
         );

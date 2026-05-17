@@ -1,52 +1,56 @@
-function assertCvProfileImageAssetsBelongToOwner(record) {
-  const ownerId = record.getString('user');
-
-  for (const fieldName of ['profilePictureFile', 'coverPictureFile']) {
-    const fileId = record.getString(fieldName);
-
-    if (!fileId) {
-      continue;
-    }
-
-    let file;
-    try {
-      file = $app.findRecordById('files', fileId);
-    } catch {
-      throw new ForbiddenError('CV profile image assets must belong to the profile owner.');
-    }
-
-    if (!file || file.getString('user') !== ownerId) {
-      throw new ForbiddenError('CV profile image assets must belong to the profile owner.');
-    }
-  }
-}
-
 onRecordCreateRequest((e) => {
-  if (!e.auth) {
-    throw new UnauthorizedError('Authentication required.');
-  }
+  try {
+    if (!e.auth) {
+      throw new UnauthorizedError('Authentication required.');
+    }
 
-  const hasSuperuserAccess = e.hasSuperuserAuth();
-  const record = e.record;
-  if (!record) {
-    throw new BadRequestError('CV profile record is missing.');
-  }
+    const hasSuperuserAccess = e.hasSuperuserAuth();
+    const record = e.record;
+    if (!record) {
+      throw new BadRequestError('CV profile record is missing.');
+    }
 
-  const requestedOwnerId = record.getString('user');
-  const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
+    const requestedOwnerId = record.getString('user');
+    const isMcpServiceAccount = e.auth.getBool('isMcpServiceAccount');
+    const assertImageAssetsBelongToOwner = () => {
+      const ownerId = record.getString('user');
 
-  if (hasSuperuserAccess) {
+      for (const fieldName of ['profilePictureFile', 'coverPictureFile']) {
+        const fileId = record.getString(fieldName);
+
+        if (!fileId) {
+          continue;
+        }
+
+        let file;
+        try {
+          file = $app.findRecordById('files', fileId);
+        } catch {
+          throw new ForbiddenError('CV profile image assets must belong to the profile owner.');
+        }
+
+        if (!file || file.getString('user') !== ownerId) {
+          throw new ForbiddenError('CV profile image assets must belong to the profile owner.');
+        }
+      }
+    };
+
+    if (hasSuperuserAccess) {
+      return e.next();
+    }
+
+    if (isMcpServiceAccount && requestedOwnerId) {
+      assertImageAssetsBelongToOwner();
+      return e.next();
+    }
+
+    record.set('user', e.auth.id);
+    assertImageAssetsBelongToOwner();
     return e.next();
+  } catch (error) {
+    console.error('[cv_profiles] Create hook failed:', error?.message || error);
+    throw error;
   }
-
-  if (isMcpServiceAccount && requestedOwnerId) {
-    assertCvProfileImageAssetsBelongToOwner(record);
-    return e.next();
-  }
-
-  record.set('user', e.auth.id);
-  assertCvProfileImageAssetsBelongToOwner(record);
-  return e.next();
 }, 'cv_profiles');
 
 onRecordUpdateRequest((e) => {
@@ -70,7 +74,27 @@ onRecordUpdateRequest((e) => {
   if (!hasSuperuserAccess && !isMcpServiceAccount) {
     record.set('user', e.auth.id);
   }
-  assertCvProfileImageAssetsBelongToOwner(record);
+  const ownerId = record.getString('user');
+
+  for (const fieldName of ['profilePictureFile', 'coverPictureFile']) {
+    const fileId = record.getString(fieldName);
+
+    if (!fileId) {
+      continue;
+    }
+
+    let file;
+    try {
+      file = $app.findRecordById('files', fileId);
+    } catch {
+      throw new ForbiddenError('CV profile image assets must belong to the profile owner.');
+    }
+
+    if (!file || file.getString('user') !== ownerId) {
+      throw new ForbiddenError('CV profile image assets must belong to the profile owner.');
+    }
+  }
+
   return e.next();
 }, 'cv_profiles');
 
