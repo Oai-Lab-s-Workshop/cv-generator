@@ -100,12 +100,21 @@ describe('CvShellPage', () => {
     fixture.detectChanges();
 
     expect(component['isPreviewMode']()).toBe(true);
-    expect(previewButton.textContent).toContain('Exit Preview');
+    trigger.click();
+    fixture.detectChanges();
+
+    const updatedButtons = Array.from(fixture.nativeElement.querySelectorAll('.speed-dial-action')) as HTMLElement[];
+    const updatedPreviewButton = updatedButtons.find((button) => button.textContent?.includes('Quitter apercu'));
+    expect(updatedPreviewButton).toBeTruthy();
   });
 
   it('calls window.print when clicking print', () => {
+    const trigger = fixture.nativeElement.querySelector('.speed-dial-trigger') as HTMLButtonElement;
+    trigger.click();
+    fixture.detectChanges();
+
     const printSpy = jest.spyOn(window, 'print').mockImplementation(() => undefined);
-    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.secondary-button')) as HTMLButtonElement[];
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.speed-dial-action')) as HTMLButtonElement[];
     const printButton = buttons.find((button) => button.textContent?.includes('Imprimer')) as HTMLButtonElement;
 
     printButton.click();

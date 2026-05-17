@@ -1,0 +1,87 @@
+name: Frontend Tests
+
+on:
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+
+      - name: Run frontend unit tests
+        run: npm run test:unit -- --ci --coverage
+        working-directory: frontend
+
+      - name: Publish test summary
+        if: always()
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -f test-results.xml ]; then
+            echo "## 🧪 Frontend Test Results" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "⚠️ No test-results.xml found — tests may have failed before producing a report." >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::test-results.xml not found"
+            exit 1
+          fi
+
+          tests="$(xmllint --xpath 'string(//testsuites/@tests)' test-results.xml 2>/dev/null || xmllint --xpath 'string(//testsuite/@tests)' test-results.xml)"
+          failures="$(xmllint --xpath 'string(//testsuites/@failures)' test-results.xml 2>/dev/null || xmllint --xpath 'string(//testsuite/@failures)' test-results.xml)"
+          errors="$(xmllint --xpath 'string(//testsuites/@errors)' test-results.xml 2>/dev/null || xmllint --xpath 'string(//testsuite/@errors)' test-results.xml)"
+          skipped="$(xmllint --xpath 'string(//testsuites/@skipped)' test-results.xml 2>/dev/null || xmllint --xpath 'string(//testsuite/@skipped)' test-results.xml 2>/dev/null || echo 0)"
+          passed=$(( tests - failures - errors - skipped ))
+          pass_rate=$(( (passed * 100) / tests ))
+
+          {
+            echo "## 🧪 Frontend Test Results"
+            echo ""
+            echo "| Metric | Value |"
+            echo "|--------|-------|"
+            echo "| Total | ${tests} |"
+            echo "| Passed | ${passed} |"
+            echo "| Failed | ${failures} |"
+            echo "| Errors | ${errors} |"
+            echo "| Skipped | ${skipped} |"
+            echo "| Pass rate | ${pass_rate}% |"
+            echo ""
+            if [ "${failures}" -eq 0 ] && [ "${errors}" -eq 0 ]; then
+              echo "✅ **All tests passed**"
+            else
+              echo "❌ **${failures} failed, ${errors} errored**"
+            fi
+
+            if [ "${failures}" -gt 0 ] || [ "${errors}" -gt 0 ]; then
+              echo ""
+              echo "### Failed tests"
+              echo ""
+              xmllint --xpath '//testcase[failure or error]/@name' test-results.xml 2>/dev/null \
+                | sed 's/ name="/\n- /g' | sed 's/"$//' | grep '^-' || true
+              echo ""
+              echo "<details><summary>Full failure details</summary>"
+              echo ""
+              echo '```'
+              xmllint --xpath '//testcase[failure or error]' test-results.xml 2>/dev/null || echo "No details available"
+              echo '```'
+              echo "</details>"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
