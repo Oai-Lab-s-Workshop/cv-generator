@@ -121,8 +121,10 @@ export class ProfileMaterialPage implements OnInit {
   readonly selectedAssetFile = signal<File | null>(null);
   readonly isLoading = signal(true);
   readonly savingSection = signal<string | null>(null);
+  readonly creatingProjectAchievement = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+  readonly projectAchievementQuery = signal('');
   readonly themeService = inject(ThemeService);
   readonly bugReportUrl = signal(environment.bugReportUrl);
   readonly currentUser = this.authService.currentUser;
@@ -133,6 +135,34 @@ export class ProfileMaterialPage implements OnInit {
   readonly totalMaterialCount = computed(
     () => this.jobs().length + this.skills().length + this.projects().length + this.achievements().length + this.degrees().length + this.hobbies().length + this.assets().length,
   );
+  readonly selectedProjectAchievements = computed(() => {
+    const selectedIds = this.projectForm().achievements ?? [];
+    const achievementsById = new Map(this.achievements().map((achievement) => [achievement.id, achievement]));
+
+    return selectedIds.map((achievementId) => achievementsById.get(achievementId)).filter((achievement): achievement is Achievement => !!achievement);
+  });
+  readonly filteredAvailableProjectAchievements = computed(() => {
+    const selectedIdSet = new Set(this.projectForm().achievements ?? []);
+    const query = this.projectAchievementQuery();
+
+    return this.achievements().filter((achievement) => {
+      if (selectedIdSet.has(achievement.id)) {
+        return false;
+      }
+
+      return this.matchesFuzzyQuery([achievement.title, achievement.description], query);
+    });
+  });
+  readonly canCreateProjectAchievement = computed(() => {
+    const title = this.projectAchievementQuery().trim();
+
+    if (!title || this.creatingProjectAchievement()) {
+      return false;
+    }
+
+    const normalizedTitle = this.normalizeSearchValue(title);
+    return !this.achievements().some((achievement) => this.normalizeSearchValue(achievement.title) === normalizedTitle);
+  });
 
   ngOnInit(): void {
     void this.loadRuntimeConfig();
@@ -272,12 +302,14 @@ export class ProfileMaterialPage implements OnInit {
       sortOrder: project.sortOrder ?? null,
     });
     this.selectedProjectPicture.set(null);
+    this.projectAchievementQuery.set('');
     this.scrollToSection('projects-section', 'input[name="project-name"]');
   }
 
   resetProjectForm(): void {
     this.projectForm.set({ ...EMPTY_PROJECT_FORM, achievements: [] });
     this.selectedProjectPicture.set(null);
+    this.projectAchievementQuery.set('');
   }
 
   setProjectFormValue(field: keyof Omit<ProjectForm, 'id' | 'sortOrder' | 'achievements'>, value: string): void {
@@ -295,6 +327,50 @@ export class ProfileMaterialPage implements OnInit {
         ? Array.from(new Set([...(form.achievements ?? []), achievementId]))
         : (form.achievements ?? []).filter((id) => id !== achievementId),
     }));
+  }
+
+  addProjectAchievement(achievementId: string): void {
+    this.toggleProjectAchievement(achievementId, true);
+  }
+
+  removeProjectAchievement(achievementId: string): void {
+    this.toggleProjectAchievement(achievementId, false);
+  }
+
+  setProjectAchievementQuery(value: string): void {
+    this.projectAchievementQuery.set(value);
+  }
+
+  async createAndLinkProjectAchievement(): Promise<void> {
+    const title = this.projectAchievementQuery().trim();
+
+    if (!title) {
+      this.errorMessage.set('Le titre de la realisation est obligatoire.');
+      return;
+    }
+
+    const existingAchievement = this.achievements().find((achievement) => this.normalizeSearchValue(achievement.title) === this.normalizeSearchValue(title));
+    if (existingAchievement) {
+      this.addProjectAchievement(existingAchievement.id);
+      this.projectAchievementQuery.set('');
+      return;
+    }
+
+    this.creatingProjectAchievement.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    try {
+      const created = await this.pocketBaseService.createCurrentUserAchievement({ title });
+      this.achievements.update((achievements) => [...achievements, created]);
+      this.addProjectAchievement(created.id);
+      this.projectAchievementQuery.set('');
+      this.successMessage.set('Realisation creee et liee au projet.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.creatingProjectAchievement.set(false);
+    }
   }
 
   onProjectPictureSelected(event: Event): void {
@@ -610,5 +686,43 @@ export class ProfileMaterialPage implements OnInit {
   private toNullableNumber(value: string | number | null): number | null {
     const numberValue = value === null || value === '' ? null : Number(value);
     return Number.isFinite(numberValue) ? numberValue : null;
+  }
+
+  private matchesFuzzyQuery(values: Array<string | undefined>, query: string): boolean {
+    const normalizedQuery = this.normalizeSearchValue(query);
+
+    if (!normalizedQuery) {
+      return true;
+    }
+
+    return values.some((value) => {
+      const normalizedValue = this.normalizeSearchValue(value ?? '');
+
+      return normalizedValue.includes(normalizedQuery) || this.isSubsequence(normalizedQuery, normalizedValue);
+    });
+  }
+
+  private normalizeSearchValue(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  private isSubsequence(query: string, value: string): boolean {
+    let queryIndex = 0;
+
+    for (const character of value) {
+      if (character === query[queryIndex]) {
+        queryIndex += 1;
+      }
+
+      if (queryIndex === query.length) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

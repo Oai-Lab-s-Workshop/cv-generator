@@ -225,17 +225,61 @@
         </label>
         <div class="editor-field editor-field--full">
           <span>Realisations liees</span>
-          <div class="check-grid">
-            @if (achievements().length === 0) {
-              <p class="empty-copy">Aucune realisation disponible.</p>
-            } @else {
-              @for (achievement of achievements(); track achievement.id) {
-                <label class="check-card">
-                  <input type="checkbox" [checked]="isProjectAchievementSelected(achievement.id)" (change)="toggleProjectAchievement(achievement.id, $any($event.target).checked)" />
-                  <span>{{ achievement.title }}</span>
-                </label>
+          <div class="multiselect-panel">
+            <label class="multiselect-search">
+              <span>Rechercher ou creer</span>
+              <input [value]="projectAchievementQuery()" (input)="setProjectAchievementQuery($any($event.target).value)" type="search" placeholder="Rechercher ou creer une realisation..." />
+            </label>
+
+            <section class="multiselect-section" aria-label="Realisations selectionnees">
+              <div class="multiselect-section__header">
+                <strong>Selectionnees</strong>
+                <span>{{ selectedProjectAchievements().length }}</span>
+              </div>
+              @if (selectedProjectAchievements().length === 0) {
+                <p class="empty-copy">Aucune realisation liee au projet.</p>
+              } @else {
+                <div class="selected-chip-list">
+                  @for (achievement of selectedProjectAchievements(); track achievement.id) {
+                    <article class="selected-chip">
+                      <span>{{ achievement.title }}</span>
+                      <button type="button" (click)="removeProjectAchievement(achievement.id)" aria-label="Retirer la realisation">Retirer</button>
+                    </article>
+                  }
+                </div>
               }
-            }
+            </section>
+
+            <section class="multiselect-section" aria-label="Realisations disponibles">
+              <div class="multiselect-section__header">
+                <strong>Disponibles</strong>
+                <span>{{ filteredAvailableProjectAchievements().length }}</span>
+              </div>
+
+              @if (achievements().length === 0 && !projectAchievementQuery().trim()) {
+                <p class="empty-copy">Aucune realisation disponible. Tapez un titre pour en creer une.</p>
+              } @else if (filteredAvailableProjectAchievements().length === 0) {
+                <p class="empty-copy">Aucune realisation ne correspond a cette recherche.</p>
+              } @else {
+                <div class="option-list">
+                  @for (achievement of filteredAvailableProjectAchievements(); track achievement.id) {
+                    <article class="option-card">
+                      <div>
+                        <h3>{{ achievement.title }}</h3>
+                        <p>{{ achievement.description || 'Sans description' }}</p>
+                      </div>
+                      <button type="button" class="row-action" (click)="addProjectAchievement(achievement.id)">Ajouter</button>
+                    </article>
+                  }
+                </div>
+              }
+
+              @if (canCreateProjectAchievement()) {
+                <button type="button" class="create-inline-button" [disabled]="creatingProjectAchievement()" (click)="createAndLinkProjectAchievement()">
+                  {{ creatingProjectAchievement() ? 'Creation...' : 'Creer "' + projectAchievementQuery().trim() + '" et lier' }}
+                </button>
+              }
+            </section>
           </div>
         </div>
       </div>
