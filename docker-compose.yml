@@ -3,7 +3,6 @@ services:
     image: ghcr.io/muchobien/pocketbase:latest
     container_name: resumate-pb
     restart: unless-stopped
-    command: serve --http=0.0.0.0:${POCKETBASE_INTERNAL_PORT:-8090} --dir=/pb_data --publicDir=/pb_public --hooksDir=/pb_hooks --migrationsDir=/pb_migrations
     ports:
       - "${POCKETBASE_PORT:-8090}:${POCKETBASE_INTERNAL_PORT:-8090}"
     environment:
@@ -43,8 +42,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
     container_name: resumate-web
     restart: unless-stopped
     ports:
