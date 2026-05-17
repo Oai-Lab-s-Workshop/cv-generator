@@ -1,0 +1,53 @@
+name: MCP Tests
+
+on:
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mcp-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Run MCP unit and Spring integration tests
+        run: ./mvnw test
+        working-directory: mcp
+
+      - name: Install smoke test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Start PocketBase
+        run: docker compose up -d pocketbase
+
+      - name: Run PocketBase-backed MCP smoke test
+        run: scripts/mcp-pocketbase-smoke.sh
+
+      - name: Capture service logs on failure
+        if: failure()
+        run: docker compose logs pocketbase mcp > pocketbase-mcp-smoke.log || true
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: pocketbase-mcp-smoke-logs
+          path: pocketbase-mcp-smoke.log
+          retention-days: 3
+
+      - name: Stop services
+        if: always()
+        run: docker compose down
