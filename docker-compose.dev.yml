@@ -41,16 +41,33 @@ services:
         condition: service_healthy
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: resumate-web
+    image: node:22-alpine
+    container_name: resumate-web-dev
     restart: unless-stopped
+    working_dir: /workspace/frontend
     ports:
-      - "${FRONTEND_PORT:-4200}:80"
+      - "${FRONTEND_PORT:-4200}:${FRONTEND_INTERNAL_PORT:-4200}"
     environment:
-      BUG_REPORT_URL: ${BUG_REPORT_URL:-}
+      CHOKIDAR_USEPOLLING: "true"
+      FRONTEND_INTERNAL_PORT: ${FRONTEND_INTERNAL_PORT:-4200}
       POCKETBASE_INTERNAL_PORT: ${POCKETBASE_INTERNAL_PORT:-8090}
+      POCKETBASE_BASE_URL: ${POCKETBASE_BASE_URL:-http://pocketbase:${POCKETBASE_INTERNAL_PORT:-8090}}
+      BUG_REPORT_URL: ${BUG_REPORT_URL:-}
+    volumes:
+      - ./:/workspace
+      - frontend_node_modules:/workspace/frontend/node_modules
+    command:
+      - sh
+      - -c
+      - >
+        mkdir -p src/assets
+        && node -e "require('fs').writeFileSync('src/assets/runtime-config.json',
+        JSON.stringify({ bugReportUrl: process.env.BUG_REPORT_URL || '' }))"
+        && npm install
+        && npm start -- --port "${FRONTEND_INTERNAL_PORT:-4200}"
     depends_on:
       pocketbase:
         condition: service_healthy
+
+volumes:
+  frontend_node_modules:
