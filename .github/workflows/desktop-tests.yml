@@ -1,0 +1,32 @@
+name: Desktop Tests
+
+on:
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install desktop dependencies
+        run: bun install --frozen-lockfile
+        working-directory: desktop
+
+      - name: Run desktop unit tests
+        run: bun test
+        working-directory: desktop
+
+      - name: Typecheck desktop
+        run: bun run typecheck
+        working-directory: desktop
