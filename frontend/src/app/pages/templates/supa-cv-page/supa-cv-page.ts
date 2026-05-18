@@ -15,12 +15,16 @@ import {
   signal,
 } from '@angular/core';
 import { CvData } from '../../../core/models/cv-data.model';
+import { CvProfileExtraValue } from '../../../core/models/cv-profile.model';
+import { CvProfileExtraService } from '../../../core/services/cv-profile-extra.service';
 import { PocketBaseService } from '../../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../../core/utils/error-message';
 import { IconLabelData } from '../../../shared/components/icon-label-data/icon-label-data';
 import { EducationChip } from '../../../shared/components/education-chip/education-chip';
 import { CardProject } from '../../../shared/components/card-project/card-project';
 import { Project } from '../../../core/models/project.model';
+import { Skill } from '../../../core/models/skill.model';
+import { Job } from '../../../core/models/job.model';
 
 type SectionKey = 'projects' | 'experience' | 'skills' | 'diplomas';
 type SectionMode = 'full' | 'compact';
@@ -35,6 +39,7 @@ type SectionMode = 'full' | 'compact';
 })
 export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
   private readonly pocketBaseService = inject(PocketBaseService);
+  private readonly cvProfileExtra = inject(CvProfileExtraService);
   private readonly injector = inject(Injector);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly pageHeightMm = 297;
@@ -66,6 +71,53 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+  }
+
+  protected extra(key: string): CvProfileExtraValue | undefined {
+    return this.cvProfileExtra.get(this.cvData()?.profile, key);
+  }
+
+  protected extraBoolean(key: string): boolean {
+    return this.cvProfileExtra.boolean(this.cvData()?.profile, key);
+  }
+
+  protected extraStringArray(key: string): string[] {
+    return this.cvProfileExtra.stringArray(this.cvData()?.profile, key);
+  }
+
+  protected visibleSkills(skills: Skill[]): Skill[] {
+    return skills.filter((skill) => skill.name.trim() !== '');
+  }
+
+  protected skillCategories(skills: Skill[]): string[] {
+    return Array.from(new Set(this.visibleSkills(skills).map((skill) => this.skillCategoryLabel(skill))));
+  }
+
+  protected skillCategoryLabel(skill: Skill): string {
+    return skill.expand?.category?.name || skill.type || 'Autre';
+  }
+
+  protected skillCategoryClass(skillOrCategory: Skill | string, skills: Skill[]): string {
+    const category = typeof skillOrCategory === 'string' ? skillOrCategory : this.skillCategoryLabel(skillOrCategory);
+    const categoryIndex = this.skillCategories(skills).indexOf(category);
+
+    return `skill--tone-${Math.max(categoryIndex, 0) % 6}`;
+  }
+
+  protected chronologicalJobs(jobs: Job[]): Job[] {
+    return jobs
+      .map((job, index) => ({ job, index }))
+      .sort((left, right) => {
+        const leftDate = this.jobStartTime(left.job);
+        const rightDate = this.jobStartTime(right.job);
+
+        if (leftDate !== rightDate) {
+          return leftDate - rightDate;
+        }
+
+        return (left.job.sortOrder ?? left.index) - (right.job.sortOrder ?? right.index);
+      })
+      .map(({ job }) => job);
   }
 
   ngOnInit(): void {
@@ -170,11 +222,12 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.visibleProjectCount.set(projectCount);
+    const defaultMode: SectionMode = this.extraBoolean('compactMode') ? 'compact' : 'full';
     this.sectionModes.set({
-      projects: 'full',
-      experience: 'full',
-      skills: 'full',
-      diplomas: 'full',
+      projects: defaultMode,
+      experience: defaultMode,
+      skills: defaultMode,
+      diplomas: defaultMode,
     });
     this.changeDetectorRef.detectChanges();
 
@@ -234,9 +287,25 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
   private mmToPx(mm: number): number {
     return (mm * 96) / 25.4;
   }
+
+  private jobStartTime(job: Job): number {
+    const date = this.pocketBaseService.toDate(job.startDate);
+
+    return date && !Number.isNaN(date.getTime()) ? date.getTime() : Number.POSITIVE_INFINITY;
+  }
+
   protected getVisibleProjects(projects: Project[]): Project[] {
     const visibleProjectCount = this.visibleProjectCount();
+    const featuredProjectIds = this.extraStringArray('featuredProjectIds');
+    const orderedProjects = featuredProjectIds.length
+      ? [...projects].sort((left, right) => this.projectPriority(left.id, featuredProjectIds) - this.projectPriority(right.id, featuredProjectIds))
+      : projects;
 
-    return projects.slice(0, visibleProjectCount ?? projects.length);
+    return orderedProjects.slice(0, visibleProjectCount ?? orderedProjects.length);
+  }
+
+  private projectPriority(projectId: string, featuredProjectIds: string[]): number {
+    const index = featuredProjectIds.indexOf(projectId);
+    return index === -1 ? featuredProjectIds.length : index;
   }
 }

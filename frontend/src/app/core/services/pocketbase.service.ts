@@ -7,8 +7,10 @@ import { CvProfile } from '../models/cv-profile.model';
 import { Degree } from '../models/degree.model';
 import { Hobby } from '../models/hobby.model';
 import { Job } from '../models/job.model';
+import { MediaFile } from '../models/file.model';
 import { Project } from '../models/project.model';
 import { Skill } from '../models/skill.model';
+import { SkillCategory } from '../models/skill-category.model';
 import { User } from '../models/user.model';
 import { generateAiTokenSecret, getAiTokenPrefix, hashAiTokenSecret } from '../utils/ai-token';
 import { AuthService } from './auth.service';
@@ -22,17 +24,40 @@ export interface CurrentUserCvProfileEditorData {
   availableDegrees: Degree[];
   availableAchievements: Achievement[];
   availableHobbies: Hobby[];
+  availablePictures: MediaFile[];
 }
+
+export interface CurrentUserProfileMaterialData {
+  jobs: Job[];
+  skills: Skill[];
+  skillCategories: SkillCategory[];
+  projects: Project[];
+  achievements: Achievement[];
+  degrees: Degree[];
+  hobbies: Hobby[];
+  files: MediaFile[];
+}
+
+export type SaveCurrentUserJobInput = Pick<Job, 'label' | 'company' | 'position' | 'startDate' | 'type'> &
+  Partial<Pick<Job, 'location' | 'endDate' | 'responsibilities' | 'sortOrder'>>;
+export type SaveCurrentUserSkillInput = Pick<Skill, 'name'> & Partial<Pick<Skill, 'category' | 'type' | 'level' | 'sortOrder'>>;
+export type SaveCurrentUserProjectInput = Pick<Project, 'name'> &
+  Partial<Pick<Project, 'description' | 'url' | 'date' | 'type' | 'file' | 'sortOrder' | 'achievements'>> & { picture?: File | null };
+export type SaveCurrentUserAchievementInput = Pick<Achievement, 'title'> & Partial<Pick<Achievement, 'description' | 'sortOrder'>>;
+export type SaveCurrentUserDegreeInput = Pick<Degree, 'title'> & Partial<Pick<Degree, 'school' | 'year' | 'level' | 'sortOrder'>>;
+export type SaveCurrentUserHobbyInput = Pick<Hobby, 'name'> & Partial<Pick<Hobby, 'description' | 'sortOrder'>>;
+export type SaveCurrentUserFileInput = Partial<Pick<MediaFile, 'name' | 'alt' | 'kind' | 'sortOrder'>> & { file?: File | null };
 
 @Injectable({ providedIn: 'root' })
 export class PocketBaseService {
   private readonly pocketBaseClient = inject(PocketBaseClientService);
   private readonly authService = inject(AuthService);
   private readonly pb = this.pocketBaseClient.pb;
+  private readonly cvProfileExpand = 'user,profilePictureFile,coverPictureFile';
 
   async getCvProfileById(cvProfileId: string): Promise<CvProfile> {
     const profile = await this.pb.collection<CvProfile>('cv_profiles').getOne(cvProfileId, {
-      expand: 'user',
+      expand: this.cvProfileExpand,
     });
 
     return this.normalizeCvProfile(profile);
@@ -40,7 +65,7 @@ export class PocketBaseService {
 
   async getCvProfileBySlug(slug: string): Promise<CvProfile> {
     const profile = await this.pb.collection<CvProfile>('cv_profiles').getFirstListItem(`slug="${slug}"`, {
-      expand: 'user',
+      expand: this.cvProfileExpand,
     });
 
     return this.normalizeCvProfile(profile);
@@ -67,7 +92,9 @@ export class PocketBaseService {
   }
 
   async getSkills(skillIds: string[]): Promise<Skill[]> {
-    return this.getOrderedRecords<Skill>('skills', skillIds, '+sortOrder,+name');
+    const skills = await this.getOrderedRecords<Skill>('skills', skillIds, '+sortOrder,+name', 'category');
+
+    return skills.map((skill) => this.normalizeSkill(skill));
   }
 
   async getDegrees(degreeIds: string[]): Promise<Degree[]> {
@@ -84,8 +111,8 @@ export class PocketBaseService {
 
   async getAllCvProfiles(): Promise<CvProfile[]> {
     const profiles = await this.pb.collection<CvProfile>('cv_profiles').getFullList({
-      sort: '+profileName',
-      expand: 'user',
+      sort: '+label',
+      expand: this.cvProfileExpand,
     });
 
     return profiles.map((profile) => this.normalizeCvProfile(profile));
@@ -96,8 +123,8 @@ export class PocketBaseService {
 
     const profiles = await this.pb.collection<CvProfile>('cv_profiles').getFullList({
       filter: `user="${currentUserId}"`,
-      sort: '+profileName',
-      expand: 'user',
+      sort: '+label',
+      expand: this.cvProfileExpand,
     });
 
     return profiles.map((profile) => this.normalizeCvProfile(profile));
@@ -108,25 +135,36 @@ export class PocketBaseService {
     const profile = await this.pb
       .collection<CvProfile>('cv_profiles')
       .getFirstListItem(`id="${profileId}" && user="${currentUserId}"`, {
-        expand: 'user',
+        expand: this.cvProfileExpand,
       });
 
     return this.normalizeCvProfile(profile);
   }
 
-  async createCurrentUserCvProfile(profileName: string): Promise<CvProfile> {
+  async createCurrentUserCvProfile(label: string, profileName: string, template: string): Promise<CvProfile> {
     const currentUserId = this.requireCurrentUserId();
+    const trimmedLabel = label.trim();
     const trimmedProfileName = profileName.trim();
+    const trimmedTemplate = template.trim();
+
+    if (!trimmedLabel) {
+      throw new Error('Le label est obligatoire.');
+    }
 
     if (!trimmedProfileName) {
       throw new Error('Le nom du profil est obligatoire.');
     }
 
+    if (!trimmedTemplate) {
+      throw new Error('Le template est obligatoire.');
+    }
+
     const now = new Date();
     const created = await this.pb.collection<CvProfile>('cv_profiles').create({
-      slug: `brouillon--${currentUserId}--${now.getTime()}`,
+      slug: `profil--${currentUserId}--${now.getTime()}`,
+      label: trimmedLabel,
       profileName: trimmedProfileName,
-      template: '',
+      template: trimmedTemplate,
       public: false,
       user: currentUserId,
       achievements: [],
@@ -137,7 +175,11 @@ export class PocketBaseService {
       skills: [],
     });
 
-    return this.normalizeCvProfile(created);
+    const updated = await this.pb.collection<CvProfile>('cv_profiles').update(created.id, {
+      slug: `${trimmedTemplate}--${created.id}`,
+    });
+
+    return this.normalizeCvProfile(updated);
   }
 
   async setTemplateForCurrentUserCvProfile(profileId: string, template: string, isPublic: boolean): Promise<CvProfile> {
@@ -162,9 +204,31 @@ export class PocketBaseService {
     return this.normalizeCvProfile(updated);
   }
 
+  async deleteCurrentUserCvProfile(profileId: string): Promise<void> {
+    await this.getCurrentUserCvProfileById(profileId); // ownership check
+    await this.pb.collection('cv_profiles').delete(profileId);
+  }
+
   async updateCurrentUserCvProfile(
     profileId: string,
-    payload: Partial<Pick<CvProfile, 'profileName' | 'public' | 'template' | 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies'>>,
+    payload: Partial<
+      Pick<
+        CvProfile,
+        | 'label'
+        | 'profileName'
+        | 'public'
+        | 'template'
+        | 'jobs'
+        | 'projects'
+        | 'skills'
+        | 'degrees'
+        | 'achievements'
+        | 'hobbies'
+        | 'extra'
+        | 'profilePictureFile'
+        | 'coverPictureFile'
+      >
+    >,
   ): Promise<CvProfile> {
     const profile = await this.getCurrentUserCvProfileById(profileId);
     const template = payload.template ?? profile.template ?? '';
@@ -198,25 +262,195 @@ export class PocketBaseService {
 
   async getCurrentUserCvProfileEditorData(profileId: string): Promise<CurrentUserCvProfileEditorData> {
     const profile = await this.getCurrentUserCvProfileById(profileId);
-    const [availableJobs, availableProjects, availableSkills, availableDegrees, availableAchievements, availableHobbies] =
+    const [availableJobs, availableProjects, availableSkills, availableDegrees, availableAchievements, availableHobbies, availableFiles] =
       await Promise.all([
         this.getCurrentUserOwnedRecords<Job>('jobs', '+sortOrder,-startDate'),
         this.getCurrentUserOwnedRecords<Project>('projects', '+sortOrder,-date', 'file'),
-        this.getCurrentUserOwnedRecords<Skill>('skills', '+sortOrder,+name'),
+        this.getCurrentUserOwnedRecords<Skill>('skills', '+sortOrder,+name', 'category'),
         this.getCurrentUserOwnedRecords<Degree>('degrees', '+sortOrder,-year'),
         this.getCurrentUserOwnedRecords<Achievement>('achievements', '+sortOrder,+title'),
         this.getCurrentUserOwnedRecords<Hobby>('hobbies', '+sortOrder,+name'),
+        this.getCurrentUserOwnedRecords<MediaFile>('files', '+sortOrder,+name'),
       ]);
 
     return {
       profile,
       availableJobs,
       availableProjects: availableProjects.map((project) => this.normalizeProject(project)),
-      availableSkills,
+      availableSkills: availableSkills.map((skill) => this.normalizeSkill(skill)),
       availableDegrees,
       availableAchievements,
       availableHobbies,
+      availablePictures: availableFiles.filter((file) => file.kind === 'image').map((file) => this.normalizeMediaFile(file)),
     };
+  }
+
+  async getCurrentUserProfileMaterialData(): Promise<CurrentUserProfileMaterialData> {
+    const [jobs, skills, skillCategories, projects, achievements, degrees, hobbies, files] = await Promise.all([
+      this.getCurrentUserOwnedRecords<Job>('jobs', '+sortOrder,-startDate'),
+      this.getCurrentUserOwnedRecords<Skill>('skills', '+sortOrder,+name', 'category'),
+      this.getCurrentUserSkillCategories(),
+      this.getCurrentUserOwnedRecords<Project>('projects', '+sortOrder,-date', 'file'),
+      this.getCurrentUserOwnedRecords<Achievement>('achievements', '+sortOrder,+title'),
+      this.getCurrentUserOwnedRecords<Degree>('degrees', '+sortOrder,-year'),
+      this.getCurrentUserOwnedRecords<Hobby>('hobbies', '+sortOrder,+name'),
+      this.getCurrentUserOwnedRecords<MediaFile>('files', '+sortOrder,+name'),
+    ]);
+
+    return {
+      jobs,
+      skills: skills.map((skill) => this.normalizeSkill(skill)),
+      skillCategories,
+      projects: projects.map((project) => this.normalizeProject(project)),
+      achievements,
+      degrees,
+      hobbies,
+      files: files.map((file) => this.normalizeMediaFile(file)),
+    };
+  }
+
+  async createCurrentUserJob(input: SaveCurrentUserJobInput): Promise<Job> {
+    const currentUserId = this.requireCurrentUserId();
+    return this.pb.collection<Job>('jobs').create({
+      ...input,
+      user: currentUserId,
+    });
+  }
+
+  async updateCurrentUserJob(jobId: string, input: SaveCurrentUserJobInput): Promise<Job> {
+    const currentUserId = this.requireCurrentUserId();
+    const job = await this.pb.collection<Job>('jobs').getFirstListItem(`id="${jobId}" && user="${currentUserId}"`);
+
+    return this.pb.collection<Job>('jobs').update(job.id, input);
+  }
+
+  async createCurrentUserSkill(input: SaveCurrentUserSkillInput): Promise<Skill> {
+    const currentUserId = this.requireCurrentUserId();
+    const created = await this.pb.collection<Skill>('skills').create({
+      ...input,
+      user: currentUserId,
+      category: input.category || null,
+    });
+
+    return this.normalizeSkill(created);
+  }
+
+  async updateCurrentUserSkill(skillId: string, input: SaveCurrentUserSkillInput): Promise<Skill> {
+    const currentUserId = this.requireCurrentUserId();
+    const skill = await this.pb.collection<Skill>('skills').getFirstListItem(`id="${skillId}" && user="${currentUserId}"`);
+
+    const updated = await this.pb.collection<Skill>('skills').update(skill.id, {
+      ...input,
+      category: input.category || null,
+    });
+
+    return this.normalizeSkill(updated);
+  }
+
+  async getCurrentUserSkillCategories(): Promise<SkillCategory[]> {
+    return this.getCurrentUserOwnedRecords<SkillCategory>('skill_categories', '+name');
+  }
+
+  async createCurrentUserSkillCategory(name: string): Promise<SkillCategory> {
+    const currentUserId = this.requireCurrentUserId();
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      throw new Error('Le nom de la categorie est obligatoire.');
+    }
+
+    const existingCategories = await this.getCurrentUserSkillCategories();
+    const normalizedName = this.normalizeSearchValue(trimmedName);
+    const existingCategory = existingCategories.find((category) => this.normalizeSearchValue(category.name) === normalizedName);
+
+    if (existingCategory) {
+      return existingCategory;
+    }
+
+    return this.pb.collection<SkillCategory>('skill_categories').create({
+      name: trimmedName,
+      user: currentUserId,
+    });
+  }
+
+  async createCurrentUserProject(input: SaveCurrentUserProjectInput): Promise<Project> {
+    const currentUserId = this.requireCurrentUserId();
+    const created = await this.pb.collection<Project>('projects').create(this.toProjectFormData(input, currentUserId));
+
+    return this.normalizeProject(created);
+  }
+
+  async updateCurrentUserProject(projectId: string, input: SaveCurrentUserProjectInput): Promise<Project> {
+    const currentUserId = this.requireCurrentUserId();
+    const project = await this.pb.collection<Project>('projects').getFirstListItem(`id="${projectId}" && user="${currentUserId}"`);
+    const updated = await this.pb.collection<Project>('projects').update(project.id, this.toProjectFormData(input));
+
+    return this.normalizeProject(updated);
+  }
+
+  async createCurrentUserAchievement(input: SaveCurrentUserAchievementInput): Promise<Achievement> {
+    const currentUserId = this.requireCurrentUserId();
+    return this.pb.collection<Achievement>('achievements').create({
+      ...input,
+      user: currentUserId,
+    });
+  }
+
+  async updateCurrentUserAchievement(achievementId: string, input: SaveCurrentUserAchievementInput): Promise<Achievement> {
+    const currentUserId = this.requireCurrentUserId();
+    const achievement = await this.pb.collection<Achievement>('achievements').getFirstListItem(`id="${achievementId}" && user="${currentUserId}"`);
+
+    return this.pb.collection<Achievement>('achievements').update(achievement.id, input);
+  }
+
+  async createCurrentUserDegree(input: SaveCurrentUserDegreeInput): Promise<Degree> {
+    const currentUserId = this.requireCurrentUserId();
+    return this.pb.collection<Degree>('degrees').create({
+      ...input,
+      user: currentUserId,
+    });
+  }
+
+  async updateCurrentUserDegree(degreeId: string, input: SaveCurrentUserDegreeInput): Promise<Degree> {
+    const currentUserId = this.requireCurrentUserId();
+    const degree = await this.pb.collection<Degree>('degrees').getFirstListItem(`id="${degreeId}" && user="${currentUserId}"`);
+
+    return this.pb.collection<Degree>('degrees').update(degree.id, input);
+  }
+
+  async createCurrentUserHobby(input: SaveCurrentUserHobbyInput): Promise<Hobby> {
+    const currentUserId = this.requireCurrentUserId();
+    return this.pb.collection<Hobby>('hobbies').create({
+      ...input,
+      user: currentUserId,
+    });
+  }
+
+  async updateCurrentUserHobby(hobbyId: string, input: SaveCurrentUserHobbyInput): Promise<Hobby> {
+    const currentUserId = this.requireCurrentUserId();
+    const hobby = await this.pb.collection<Hobby>('hobbies').getFirstListItem(`id="${hobbyId}" && user="${currentUserId}"`);
+
+    return this.pb.collection<Hobby>('hobbies').update(hobby.id, input);
+  }
+
+  async createCurrentUserFile(input: SaveCurrentUserFileInput): Promise<MediaFile> {
+    const currentUserId = this.requireCurrentUserId();
+
+    if (!input.file) {
+      throw new Error('Le fichier est obligatoire.');
+    }
+
+    const created = await this.pb.collection<MediaFile>('files').create(this.toMediaFileFormData(input, currentUserId));
+
+    return this.normalizeMediaFile(created);
+  }
+
+  async updateCurrentUserFile(fileId: string, input: SaveCurrentUserFileInput): Promise<MediaFile> {
+    const currentUserId = this.requireCurrentUserId();
+    const file = await this.pb.collection<MediaFile>('files').getFirstListItem(`id="${fileId}" && user="${currentUserId}"`);
+    const updated = await this.pb.collection<MediaFile>('files').update(file.id, this.toMediaFileFormData(input));
+
+    return this.normalizeMediaFile(updated);
   }
 
   async getCurrentUserAiTokens(): Promise<AiToken[]> {
@@ -328,14 +562,20 @@ export class PocketBaseService {
       throw new Error('CV profile not found.');
     }
 
+    const profilePictureFile = profile.expand?.profilePictureFile ? this.normalizeMediaFile(profile.expand.profilePictureFile as MediaFile & RecordModel) : undefined;
+    const coverPictureFile = profile.expand?.coverPictureFile ? this.normalizeMediaFile(profile.expand.coverPictureFile as MediaFile & RecordModel) : undefined;
+
     return {
       ...profile,
-      profilePicture: this.getFileFieldUrl(profile as unknown as RecordModel, profile.profilePicture),
-      coverPicture: this.getFileFieldUrl(profile as unknown as RecordModel, profile.coverPicture),
+      extra: profile.extra ?? {},
+      profilePicture: profilePictureFile?.file || this.getFileFieldUrl(profile as unknown as RecordModel, profile.profilePicture),
+      coverPicture: coverPictureFile?.file || this.getFileFieldUrl(profile as unknown as RecordModel, profile.coverPicture),
       expand: profile.expand
         ? {
             ...profile.expand,
             user: profile.expand.user ? this.normalizeUser(profile.expand.user as User & RecordModel) ?? undefined : undefined,
+            profilePictureFile,
+            coverPictureFile,
           }
         : undefined,
     };
@@ -362,6 +602,86 @@ export class PocketBaseService {
       ...project,
       picture: this.getFileFieldUrl(project as unknown as RecordModel, project.picture),
     };
+  }
+
+  private normalizeSkill(skill: Skill | null): Skill {
+    if (!skill) {
+      throw new Error('Skill not found.');
+    }
+
+    return {
+      ...skill,
+      expand: skill.expand
+        ? {
+            ...skill.expand,
+            category: skill.expand.category,
+          }
+        : undefined,
+    };
+  }
+
+  private normalizeMediaFile(file: MediaFile | null): MediaFile {
+    if (!file) {
+      throw new Error('File not found.');
+    }
+
+    return {
+      ...file,
+      file: this.getFileFieldUrl(file as unknown as RecordModel, file.file) || file.file,
+    };
+  }
+
+  private toProjectFormData(input: SaveCurrentUserProjectInput, currentUserId?: string): FormData {
+    const formData = new FormData();
+    this.setFormDataValue(formData, 'name', input.name);
+    this.setFormDataValue(formData, 'description', input.description);
+    this.setFormDataValue(formData, 'url', input.url);
+    this.setFormDataValue(formData, 'date', input.date);
+    this.setFormDataValue(formData, 'type', input.type);
+    this.setFormDataValue(formData, 'file', input.file);
+    this.setFormDataNumber(formData, 'sortOrder', input.sortOrder);
+
+    formData.set('achievements', JSON.stringify(input.achievements ?? []));
+
+    if (input.picture) {
+      formData.set('picture', input.picture);
+    }
+
+    if (currentUserId) {
+      formData.set('user', currentUserId);
+    }
+
+    return formData;
+  }
+
+  private toMediaFileFormData(input: SaveCurrentUserFileInput, currentUserId?: string): FormData {
+    const formData = new FormData();
+    this.setFormDataValue(formData, 'name', input.name);
+    this.setFormDataValue(formData, 'alt', input.alt);
+    this.setFormDataValue(formData, 'kind', input.kind);
+    this.setFormDataNumber(formData, 'sortOrder', input.sortOrder);
+
+    if (input.file) {
+      formData.set('file', input.file);
+    }
+
+    if (currentUserId) {
+      formData.set('user', currentUserId);
+    }
+
+    return formData;
+  }
+
+  private setFormDataValue(formData: FormData, key: string, value: string | undefined): void {
+    if (value !== undefined) {
+      formData.set(key, value);
+    }
+  }
+
+  private setFormDataNumber(formData: FormData, key: string, value: number | undefined): void {
+    if (value !== undefined) {
+      formData.set(key, String(value));
+    }
   }
 
   private async getCurrentUserAiTokenById(tokenId: string): Promise<AiToken> {
@@ -397,6 +717,14 @@ export class PocketBaseService {
     }
 
     return currentUserId;
+  }
+
+  private normalizeSearchValue(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
   public toDate(value?: string | null): Date | undefined {

@@ -1,12 +1,32 @@
 <main class="token-management-page">
-  <section class="hero hero--split">
-    <div>
+  <app-navbar />
+
+  <section class="token-header">
+    <div class="token-header__copy">
       <p class="eyebrow">Administration</p>
       <h1>Cles API MCP</h1>
-      <p class="lede">Creez une cle API pour connecter un agent MCP a vos donnees existantes, puis revoquez-la sans exposer vos identifiants PocketBase.</p>
+      <p class="lede">Connectez un agent MCP aux donnees de {{ currentUserName() }} sans exposer les identifiants PocketBase.</p>
     </div>
+  </section>
 
-    <a class="secondary-button" routerLink="/home">Retour a l'accueil</a>
+  <section class="insight-grid" aria-label="Synthese des tokens MCP">
+    <article class="insight-card insight-card--live">
+      <p class="insight-card__label">Cles actives</p>
+      <strong>{{ isLoadingAiTokens() ? '...' : activeAiTokenCount() }}</strong>
+      <span>acces MCP ouverts</span>
+    </article>
+
+    <article class="insight-card">
+      <p class="insight-card__label">Total</p>
+      <strong>{{ isLoadingAiTokens() ? '...' : aiTokens().length }}</strong>
+      <span>cles creees</span>
+    </article>
+
+    <article class="insight-card">
+      <p class="insight-card__label">A surveiller</p>
+      <strong>{{ isLoadingAiTokens() ? '...' : expiringAiTokenCount() }}</strong>
+      <span>{{ revokedAiTokenCount() }} revoquees ou expirees</span>
+    </article>
   </section>
 
   @if (errorMessage()) {
@@ -16,73 +36,122 @@
     </section>
   }
 
-  <section class="token-layout">
-    <article class="state-card token-form-card">
-      <label class="quick-actions__field">
+  <section class="cta-panel" aria-label="Creation d'une cle API MCP">
+    <div class="cta-panel__copy">
+      <div>
+        <p class="eyebrow">Nouvelle cle</p>
+        <h2>Autoriser un agent MCP</h2>
+      </div>
+      <p>La cle complete ne sera affichee qu'une seule fois apres creation.</p>
+    </div>
+
+    <div class="cta-panel__form">
+      <label class="field field--name">
         <span>Label</span>
         <input [ngModel]="newAiTokenLabel()" (ngModelChange)="newAiTokenLabel.set($event)" type="text" placeholder="Ex. Assistant principal" />
       </label>
 
-      <label class="quick-actions__field">
+      <label class="field">
         <span>Expiration</span>
-        <input
-          [ngModel]="newAiTokenExpiresAt()"
-          (ngModelChange)="newAiTokenExpiresAt.set($event)"
-          type="datetime-local"
-        />
+        <input [ngModel]="newAiTokenExpiresAt()" (ngModelChange)="newAiTokenExpiresAt.set($event)" type="datetime-local" />
       </label>
 
-      <button class="primary-button" type="button" [disabled]="isCreatingAiToken()" (click)="createAiToken()">
-        {{ isCreatingAiToken() ? 'Creation...' : 'Creer une cle API MCP' }}
+      <button class="primary-button cta-panel__button" type="button" [disabled]="isCreatingAiToken()" (click)="createAiToken()">
+        {{ isCreatingAiToken() ? 'Creation...' : 'Creer la cle' }}
       </button>
-    </article>
-
-    <div class="token-stack">
-      @if (latestCreatedAiToken()) {
-        <article class="state-card state-card--success">
-          <h2>Cle API generee</h2>
-          <p>Copiez cette cle API maintenant. Elle n'est plus affichable apres cette session.</p>
-          <code class="token-secret">{{ latestCreatedAiToken() }}</code>
-          @if (latestCreatedTokenDebug(); as debug) {
-            <p class="token-meta">Diagnostic creation: user frontend = <code>{{ debug.debug.currentUserId }}</code></p>
-            <p class="token-meta">Diagnostic creation: record id = <code>{{ debug.record.id }}</code></p>
-            <p class="token-meta">Diagnostic creation: owner stocke = <code>{{ debug.record.user }}</code></p>
-            <p class="token-meta">Diagnostic creation: prefixe = <code>{{ debug.record.token_prefix }}</code></p>
-          }
-          <button class="secondary-button token-copy-button" type="button" (click)="copyLatestAiToken()">Copier</button>
-        </article>
-      }
-
-      @if (isLoadingAiTokens()) {
-        <article class="state-card">
-          <p>Chargement des cles API MCP...</p>
-        </article>
-      } @else if (aiTokens().length === 0) {
-        <article class="state-card">
-          <h2>Aucune cle API MCP</h2>
-          <p>Creez une premiere cle API pour autoriser un agent a lire vos donnees CV existantes et generer des profils.</p>
-        </article>
-      } @else {
-        <section class="profile-grid">
-          @for (token of aiTokens(); track token.id) {
-            <article class="profile-card">
-              <p class="profile-card__template">{{ token.status }}</p>
-              <h2>{{ token.label }}</h2>
-              <p class="profile-card__slug">{{ token.token_prefix }}...</p>
-              <p class="token-meta">{{ token.expiresAt ? 'Expire le ' + (token.expiresAt | date: 'medium') : 'Sans expiration' }}</p>
-
-              <button
-                class="secondary-button token-revoke-button"
-                type="button"
-                [disabled]="token.status !== 'active' || activeAiTokenMutationId() === token.id"
-                (click)="revokeAiToken(token)"
-              >
-                {{ activeAiTokenMutationId() === token.id ? 'Revocation...' : 'Revoquer' }}
-              </button>
-            </article>
-          }
-        </section>
-      }
     </div>
   </section>
+
+  @if (latestCreatedAiToken()) {
+    <section class="state-card state-card--success token-secret-card">
+      <div>
+        <p class="eyebrow">Cle generee</p>
+        <h2>Copiez cette cle maintenant</h2>
+        <p>Elle n'est plus affichable apres cette session.</p>
+      </div>
+      <code class="token-secret">{{ latestCreatedAiToken() }}</code>
+      @if (latestCreatedTokenDebug(); as debug) {
+        <div class="token-debug">
+          <p>Diagnostic creation: user frontend = <code>{{ debug.debug.currentUserId }}</code></p>
+          <p>Diagnostic creation: record id = <code>{{ debug.record.id }}</code></p>
+          <p>Diagnostic creation: owner stocke = <code>{{ debug.record.user }}</code></p>
+          <p>Diagnostic creation: prefixe = <code>{{ debug.record.token_prefix }}</code></p>
+        </div>
+      }
+      <button class="secondary-button token-copy-button" type="button" (click)="copyLatestAiToken()">Copier</button>
+    </section>
+  }
+
+  @if (isLoadingAiTokens()) {
+    <section class="state-card">
+      <p>Chargement des cles API MCP...</p>
+    </section>
+  } @else if (aiTokens().length === 0) {
+    <section class="state-card state-card--empty">
+      <h2>Aucune cle API MCP</h2>
+      <p>Creez une premiere cle API pour autoriser un agent a lire vos donnees CV existantes et generer des profils.</p>
+    </section>
+  } @else {
+    <section class="tokens-panel">
+      <div class="tokens-panel__header">
+        <div>
+          <p class="eyebrow">Tokens</p>
+          <h2>Cles API existantes</h2>
+        </div>
+        <p>Statut, expiration et revocation.</p>
+      </div>
+
+      <div class="token-table" role="table" aria-label="Cles API MCP">
+        <div class="token-table__head" role="row">
+          <span role="columnheader">Cle</span>
+          <span role="columnheader">Prefixe</span>
+          <span role="columnheader">Expiration</span>
+          <span role="columnheader">Statut</span>
+          <span role="columnheader">Actions</span>
+        </div>
+
+        <div class="token-table__body">
+          @for (token of aiTokens(); track token.id) {
+            <article class="token-row" role="row">
+              <div class="token-cell token-cell--main" role="cell" data-label="Cle">
+                <h3>{{ token.label }}</h3>
+                <p>{{ token.created ? 'Creee le ' + (token.created | date: 'medium') : 'Date de creation inconnue' }}</p>
+              </div>
+
+              <div class="token-cell token-cell--prefix" role="cell" data-label="Prefixe">
+                <code>{{ token.token_prefix }}...</code>
+              </div>
+
+              <div class="token-cell token-cell--expiration" role="cell" data-label="Expiration">
+                <span>{{ token.expiresAt ? (token.expiresAt | date: 'medium') : 'Sans expiration' }}</span>
+              </div>
+
+              <div class="token-cell token-status" role="cell" data-label="Statut">
+                <span
+                  class="token-status__state"
+                  [class.token-status__state--active]="token.status === 'active'"
+                  [class.token-status__state--revoked]="token.status === 'revoked'"
+                  [class.token-status__state--expired]="token.status === 'expired'"
+                >
+                  <span class="token-status__dot" aria-hidden="true"></span>
+                  <span>{{ getTokenStatusLabel(token) }}</span>
+                </span>
+              </div>
+
+              <div class="token-cell token-actions" role="cell" data-label="Actions">
+                <button
+                  class="text-link token-revoke-button"
+                  type="button"
+                  [disabled]="token.status !== 'active' || activeAiTokenMutationId() === token.id"
+                  (click)="revokeAiToken(token)"
+                >
+                  {{ activeAiTokenMutationId() === token.id ? 'Revocation...' : 'Revoquer' }}
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+  }
 </main>

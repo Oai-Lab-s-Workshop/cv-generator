@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const PB_URL = process.env.PB_URL || 'http://localhost:8090';
+const PB_URL = process.env.PB_URL || `http://localhost:${process.env.POCKETBASE_PORT || '8090'}`;
 const PB_ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL || 'admin@cv-generator.local';
 const PB_ADMIN_PASSWORD = process.env.PB_ADMIN_PASSWORD || 'changeme123!';
 const DEFAULT_USER_PASSWORD = process.env.SEED_USER_PASSWORD || 'changeme123!';
@@ -14,6 +14,7 @@ const idMaps = {
   users: new Map(),
   achievements: new Map(),
   hobbies: new Map(),
+  skill_categories: new Map(),
   skills: new Map(),
   projects: new Map(),
   jobs: new Map(),
@@ -56,7 +57,7 @@ async function getTotalItems(token, collection) {
 }
 
 async function ensureEmptyCollections(token) {
-  const collections = ['users', 'achievements', 'hobbies', 'skills', 'projects', 'jobs', 'degrees', 'cv_profiles'];
+  const collections = ['users', 'achievements', 'hobbies', 'skill_categories', 'skills', 'projects', 'jobs', 'degrees', 'cv_profiles'];
   const nonEmpty = [];
 
   for (const collection of collections) {
@@ -148,6 +149,25 @@ async function importSimpleCollection(token, collection) {
   }
 }
 
+async function importSkills(token) {
+  for (const skill of seed.skills || []) {
+    const { id, ...body } = skill;
+    let created;
+
+    try {
+      created = await createRecord(token, 'skills', {
+        ...body,
+        user: body.user ? idMaps.users.get(body.user) : undefined,
+        category: body.category ? idMaps.skill_categories.get(body.category) : undefined,
+      });
+    } catch (error) {
+      throw new Error(`Failed importing skills:${id} - ${error.message}`);
+    }
+
+    idMaps.skills.set(id, created.id);
+  }
+}
+
 async function importProjects(token) {
   for (const project of seed.projects || []) {
     let created;
@@ -185,6 +205,7 @@ async function importJobs(token) {
         startDate: job.startDate,
         endDate: job.endDate,
         responsibilities: job.responsibilities,
+        bulletPointSummary: job.bulletPointSummary,
         sortOrder: job.sortOrder,
         type: job.type,
         skills: mapRelationIds('skills', job.skills),
@@ -217,6 +238,7 @@ async function importCvProfiles(token) {
         jobs: mapRelationIds('jobs', profile.jobs),
         degrees: mapRelationIds('degrees', profile.degrees),
         skills: mapRelationIds('skills', profile.skills),
+        extra: profile.extra || {},
       });
     } catch (error) {
       throw new Error(`Failed importing cv_profiles:${profile.id} - ${error.message}`);
@@ -237,7 +259,8 @@ async function main() {
   await importUsers(token);
   await importSimpleCollection(token, 'achievements');
   await importSimpleCollection(token, 'hobbies');
-  await importSimpleCollection(token, 'skills');
+  await importSimpleCollection(token, 'skill_categories');
+  await importSkills(token);
   await importProjects(token);
   await importJobs(token);
   await importSimpleCollection(token, 'degrees');

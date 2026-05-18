@@ -21,3 +21,9 @@ desktop/node_modules/
 desktop/resources/pocketbase/*/
 desktop/resources/java-runtime/*/
 desktop/resources/mcp/*.jar
+release/
+frontend/dist/
+frontend/dist/*
+frontend/build/
+frontend/node_modules/
+frontend/src/assets/runtime-config.json

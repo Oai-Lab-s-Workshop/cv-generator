@@ -14,6 +14,10 @@ describe('CardProject', () => {
 
     fixture = TestBed.createComponent(CardProject);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('project', {
+      id: 'project-1',
+      name: 'Example project',
+    });
     fixture.detectChanges();
   });
 

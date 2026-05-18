@@ -1,12 +1,14 @@
 {
-  "name": "cv-generator",
+  "name": "resumate",
   "version": "1.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --host 0.0.0.0 --proxy-config proxy.conf.json",
+    "start": "ng serve --host 0.0.0.0 --proxy-config proxy.conf.js",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "jest"
+    "test": "jest",
+    "test:unit": "jest --runInBand",
+    "test:integration": "jest --runInBand"
   },
   "dependencies": {
     "@angular/animations": "^21.0.0",
@@ -21,7 +23,10 @@
     "html2pdf.js": "^0.14.0",
     "masonry-layout": "^4.2.2",
     "ngx-masonry": "^14.0.1",
+    "ngx-quill": "^30.1.3",
     "pocketbase": "^0.23.0",
+    "qrcode": "^1.5.4",
+    "quill": "^2.0.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -31,8 +36,10 @@
     "@angular/cli": "^21.0.0",
     "@angular/compiler-cli": "^21.0.0",
     "@types/jest": "^30.0.0",
+    "@types/qrcode": "^1.5.6",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
+    "jest-junit": "^16.0.0",
     "jest-preset-angular": "^16.1.4",
     "jsdom": "^26.1.0",
     "typescript": "~5.9.0"

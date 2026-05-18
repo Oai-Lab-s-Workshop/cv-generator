@@ -94,8 +94,8 @@ class McpServerIntegrationTest {
     void resolveAvailableTemplates_worksWithMock() {
         when(pocketBaseClient.resolveAvailableTemplates())
                 .thenReturn(List.of(
-                        new PocketBaseClient.TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills."),
-                        new PocketBaseClient.TemplateDescriptor("modern", "Modern", "Split-sidebar resume with timeline-style experience and card-based project highlights.")
+                        new PocketBaseClient.TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of()),
+                        new PocketBaseClient.TemplateDescriptor("modern", "Modern", "Split-sidebar resume with timeline-style experience and card-based project highlights.", List.of())
                 ));
 
         List<PocketBaseClient.TemplateDescriptor> templates =

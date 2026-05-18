@@ -1,114 +1,185 @@
-.minimal-cv-page {
-  max-width: 760px;
+:host {
+  display: block;
+  width: 210mm;
+  min-height: 297mm;
   margin: 0 auto;
-  padding: 2rem 1.25rem 3rem;
-  color: #111827;
+  background: #fff;
+}
+
+.minimal-cv-page {
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto;
+  padding: 16mm 18mm 14mm;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #fff;
+  color: #111;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 9.2pt;
+  line-height: 1.34;
 }
 
 .minimal-cv-page--state {
-  min-height: 50vh;
   display: grid;
   place-items: center;
   text-align: center;
 }
 
-.header {
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid #d1d5db;
+.cv-header {
+  padding-bottom: 4mm;
+  text-align: center;
+  border-bottom: 0.3mm solid #111;
 }
 
-.header__template,
-.section h2 {
-  margin: 0 0 0.5rem;
-  font-size: 0.78rem;
+.cv-header h1,
+.cv-header p,
+.contact-line,
+.cv-section h2,
+.entry h3,
+.entry p,
+.skill-list {
+  margin: 0;
+}
+
+.cv-header h1 {
+  font-size: 20pt;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: #6b7280;
 }
 
-.header h1,
-.section h3,
-.section p {
+.cv-header__title {
+  margin-top: 1.4mm;
+  font-size: 11pt;
+  font-style: italic;
+}
+
+.contact-line {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1mm 3mm;
+  margin-top: 2.5mm;
+  font-size: 8.2pt;
+  font-style: normal;
+}
+
+.contact-line span:not(:last-child)::after {
+  content: '|';
+  padding-left: 3mm;
+  color: #555;
+}
+
+.cv-section {
+  margin-top: 4mm;
+}
+
+.cv-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  margin-bottom: 2mm;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.cv-section h2::after {
+  content: '';
+  flex: 1;
+  height: 0.2mm;
+  background: #222;
+}
+
+.cv-section > p {
+  text-align: justify;
+}
+
+.entry {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  margin-top: 2.6mm;
+}
+
+.entry:first-of-type {
   margin-top: 0;
 }
 
-.header h1 {
-  margin-bottom: 0.5rem;
-  font-size: clamp(2.2rem, 4vw, 3.4rem);
-  line-height: 0.98;
-}
-
-.header__title {
-  margin: 0;
-  color: #4b5563;
-}
-
-.section {
-  margin-top: 1.5rem;
-}
-
-.section--inline {
+.entry__header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1rem;
-  color: #4b5563;
-}
-
-.line-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.9rem 0;
-  border-bottom: 1px solid #eceff3;
-}
-
-.line-item--stacked {
+  gap: 5mm;
   align-items: start;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
-.line-item--tight {
-  padding: 0.65rem 0;
+.entry h3 {
+  font-size: 9.7pt;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
-.line-item__copy {
-  margin: 0.65rem 0 0;
-  color: #4b5563;
+.entry__institution {
+  margin-top: 0.6mm;
+  font-style: italic;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
+.entry__meta {
+  color: #222;
+  font-size: 8.2pt;
+  line-height: 1.25;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.entry__copy {
+  margin-top: 1mm;
+  text-align: justify;
+}
+
+.skill-list {
+  text-align: justify;
 }
 
 a {
-  color: #0f4aa5;
+  color: #111;
+  text-decoration: none;
 }
 
-@media (max-width: 680px) {
-  .minimal-cv-page {
-    padding: 1.5rem 1rem 2.5rem;
-  }
-
-  .grid,
-  .line-item {
-    grid-template-columns: 1fr;
-    flex-direction: column;
-  }
+@page {
+  size: A4;
+  margin: 0;
 }
 
 @media print {
+  :host {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+    background: #fff;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+  }
+
   .minimal-cv-page {
-    padding: 0;
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 16mm 18mm 14mm;
   }
 }
 
 :host-context(.cv-preview-enabled) .minimal-cv-page {
   width: 210mm;
-  min-height: 297mm;
+  height: 297mm;
   margin: 0 auto;
-  padding: 12mm;
-  box-sizing: border-box;
-  background: #fff;
 }

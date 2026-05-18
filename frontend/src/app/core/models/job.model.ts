@@ -8,6 +8,7 @@ export interface Job {
   startDate: string;
   endDate?: string;
   responsibilities?: string;
+  bulletPointSummary?: string;
   sortOrder?: number;
   type: 'freelance' | 'sideproject' | 'work project';
   skills?: string[];
