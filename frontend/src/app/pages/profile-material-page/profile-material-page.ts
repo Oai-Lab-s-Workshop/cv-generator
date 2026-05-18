@@ -19,6 +19,7 @@ import {
   SaveCurrentUserJobInput,
   SaveCurrentUserProjectInput,
   SaveCurrentUserSkillInput,
+  UpdateCurrentUserInput,
 } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
 import { Navbar } from '../../shared/components/navbar/navbar';
@@ -125,6 +126,9 @@ export class ProfileMaterialPage implements OnInit {
   readonly hobbyForm = signal<HobbyForm>({ ...EMPTY_HOBBY_FORM });
   readonly assetForm = signal<AssetForm>({ ...EMPTY_ASSET_FORM });
 
+  readonly personalInfoForm = signal<UpdateCurrentUserInput>({});
+  readonly isSavingPersonalInfo = signal(false);
+
   readonly selectedProjectPicture = signal<File | null>(null);
   readonly selectedAssetFile = signal<File | null>(null);
   readonly responsibilitiesEditorModules = {
@@ -212,6 +216,7 @@ export class ProfileMaterialPage implements OnInit {
   readonly canCreateStandaloneSkillCategory = computed(() => this.canCreateSkillCategory(this.newSkillCategoryName()));
 
   ngOnInit(): void {
+    this.initPersonalInfoForm();
     void this.loadMaterial();
   }
 
@@ -647,6 +652,57 @@ export class ProfileMaterialPage implements OnInit {
       form.id ? await this.pocketBaseService.updateCurrentUserFile(form.id, input) : await this.pocketBaseService.createCurrentUserFile(input);
       this.resetAssetForm();
     });
+  }
+
+  initPersonalInfoForm(): void {
+    const user = this.currentUser();
+    if (!user) {
+      return;
+    }
+
+    this.personalInfoForm.set({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      linkedin: user.linkedin ?? '',
+      github: user.github ?? '',
+      website: user.website ?? '',
+      phone: user.phone ?? '',
+    });
+  }
+
+  setPersonalInfoField(field: keyof UpdateCurrentUserInput, value: string): void {
+    this.personalInfoForm.update((form) => ({ ...form, [field]: value }));
+  }
+
+  async savePersonalInfo(): Promise<void> {
+    const form = this.personalInfoForm();
+    const input: UpdateCurrentUserInput = {
+      firstName: form.firstName?.trim(),
+      lastName: form.lastName?.trim(),
+      linkedin: this.optionalText(form.linkedin),
+      github: this.optionalText(form.github),
+      website: this.optionalText(form.website),
+      phone: this.optionalText(form.phone),
+    };
+
+    if (!input.firstName || !input.lastName) {
+      this.errorMessage.set('Le prenom et le nom sont obligatoires.');
+      return;
+    }
+
+    this.isSavingPersonalInfo.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    try {
+      await this.pocketBaseService.updateCurrentUser(input);
+      await this.authService.refreshCurrentUser();
+      this.successMessage.set('Informations personnelles mises a jour.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.isSavingPersonalInfo.set(false);
+    }
   }
 
   isSaving(section: string): boolean {

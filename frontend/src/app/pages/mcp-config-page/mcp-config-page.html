@@ -1,0 +1,120 @@
+<main class="mcp-config-page">
+  <app-navbar />
+
+  <section class="mcp-config-hero">
+    <div>
+      <p class="eyebrow">Configuration</p>
+      <h1>{{ currentUserName() }}</h1>
+      <p class="lede">Configurez vos agents MCP pour interagir avec vos CV. Selectionnez votre agent, collez votre token, et copiez la configuration prete a l'emploi.</p>
+    </div>
+  </section>
+
+  <section class="mcp-config-steps">
+    <div class="step-card">
+      <div class="step-card__header">
+        <span class="step-number">1</span>
+        <div>
+          <p class="eyebrow">Agent</p>
+          <h2>Choisissez votre agent MCP</h2>
+        </div>
+      </div>
+
+      <div class="agent-grid">
+        @for (preset of agentPresets; track preset.id) {
+          <article
+            class="agent-card"
+            [class.agent-card--selected]="selectedAgent() === preset.id"
+            (click)="selectedAgent.set(preset.id)"
+          >
+            <h3>{{ preset.name }}</h3>
+            <p>{{ preset.description }}</p>
+            <span class="agent-card__badge">{{ preset.configFormat.toUpperCase() }}</span>
+          </article>
+        }
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-card__header">
+        <span class="step-number">2</span>
+        <div>
+          <p class="eyebrow">Credentials</p>
+          <h2>Entrez votre token et l'URL du serveur</h2>
+        </div>
+      </div>
+
+      <div class="editor-grid">
+        <label class="editor-field">
+          <span>Token MCP</span>
+          <input [ngModel]="customToken()" (ngModelChange)="customToken.set($event)" type="text" placeholder="rmcp_..." />
+          <small>
+            @if (aiTokens().length > 0) {
+              <a routerLink="/home/tokens">Gerer vos tokens</a> · Token actif: {{ aiTokens().filter(t => t.status === 'active').length }}
+            } @else {
+              <a routerLink="/home/tokens">Creer un token MCP</a>
+            }
+          </small>
+        </label>
+        <label class="editor-field">
+          <span>URL du serveur MCP</span>
+          <input [ngModel]="customUrl()" (ngModelChange)="customUrl.set($event)" type="url" placeholder="http://localhost:8080/mcp" />
+          <small>URL HTTP Stream de votre serveur MCP Resumate.</small>
+        </label>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-card__header">
+        <span class="step-number">3</span>
+        <div>
+          <p class="eyebrow">Configuration</p>
+          <h2>Copiez la configuration pour {{ getSelectedPreset()?.name }}</h2>
+        </div>
+      </div>
+
+      <div class="config-block">
+        <pre><code>{{ getGeneratedConfig() }}</code></pre>
+        <button
+          type="button"
+          class="copy-button"
+          [class.copy-button--copied]="isCopied(selectedAgent())"
+          (click)="copyConfig(selectedAgent())"
+        >
+          @if (isCopied(selectedAgent())) {
+            <i class="bi bi-check-lg" aria-hidden="true"></i>
+            <span>Copie!</span>
+          } @else {
+            <i class="bi bi-clipboard" aria-hidden="true"></i>
+            <span>Copier</span>
+          }
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="mcp-config-reference">
+    <div class="reference-card">
+      <div class="reference-card__header">
+        <p class="eyebrow">Reference</p>
+        <h2>Presets rapides</h2>
+      </div>
+
+      <div class="reference-table">
+        <div class="reference-table__head">
+          <span>Agent</span>
+          <span>Transport</span>
+          <span>URL par defaut</span>
+          <span>Authentification</span>
+        </div>
+        @for (preset of agentPresets; track preset.id) {
+          <div class="reference-table__row">
+            <strong>{{ preset.name }}</strong>
+            <span>HTTP Stream</span>
+            <code>http://localhost:8080/mcp</code>
+            <span>Bearer token</span>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+</main>

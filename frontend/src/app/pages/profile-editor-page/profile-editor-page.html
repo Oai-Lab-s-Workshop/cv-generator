@@ -43,6 +43,19 @@
           <p class="eyebrow">Profil CV</p>
           <h2>{{ state.profile.label || state.profile.profileName }}</h2>
         </div>
+        <div class="status-control">
+          <label class="status-control__label">
+            <span>Statut</span>
+            <select [ngModel]="state.profile.status || 'unsent'" (ngModelChange)="setStatus($event)" name="status">
+              @for (option of statusOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </label>
+          <span class="status-badge" [class]="getStatusOption(state.profile.status)?.tone || 'gray'">
+            {{ getStatusOption(state.profile.status)?.label || 'Non envoye' }}
+          </span>
+        </div>
       </div>
 
       <div class="editor-grid">
@@ -108,6 +121,57 @@
         </button>
         <a routerLink="/home" class="text-link">Retour a l'accueil</a>
 
+      </div>
+    </section>
+
+    <section class="material-card">
+      <div class="material-card__header">
+        <div>
+          <p class="eyebrow">Contenu</p>
+          <h2>Resume professionnel</h2>
+          <p class="relation-helper">Texte d'introduction affiche en haut du CV.</p>
+        </div>
+      </div>
+
+      <div class="editor-grid editor-grid--single">
+        <div class="editor-field editor-field--full">
+          <span>Paragraphe de presentation</span>
+          <quill-editor
+            class="summary-editor"
+            format="html"
+            theme="snow"
+            placeholder="Decrivez votre parcours, vos objectifs et ce qui vous distingue..."
+            [modules]="summaryEditorModules"
+            [sanitize]="true"
+            [ngModel]="state.profile.professionalSummary ?? ''"
+            (ngModelChange)="setProfessionalSummary($event ?? '')"
+          />
+        </div>
+      </div>
+    </section>
+
+    <section class="material-card">
+      <div class="material-card__header">
+        <div>
+          <p class="eyebrow">Personnalisation</p>
+          <h2>Surcharge des liens</h2>
+          <p class="relation-helper">Remplacez les liens de votre profil utilisateur pour ce CV uniquement. Laissez vide pour utiliser les valeurs par defaut.</p>
+        </div>
+      </div>
+
+      <div class="editor-grid">
+        <label class="editor-field">
+          <span>LinkedIn</span>
+          <input [ngModel]="state.profile.linkOverrides?.linkedin ?? ''" (ngModelChange)="setLinkOverrideField('linkedin', $event)" name="override-linkedin" type="url" [placeholder]="'Valeur par defaut: ' + (state.profile.expand?.user?.linkedin || 'Aucune')" />
+        </label>
+        <label class="editor-field">
+          <span>GitHub</span>
+          <input [ngModel]="state.profile.linkOverrides?.github ?? ''" (ngModelChange)="setLinkOverrideField('github', $event)" name="override-github" type="url" [placeholder]="'Valeur par defaut: ' + (state.profile.expand?.user?.github || 'Aucune')" />
+        </label>
+        <label class="editor-field">
+          <span>Site web</span>
+          <input [ngModel]="state.profile.linkOverrides?.website ?? ''" (ngModelChange)="setLinkOverrideField('website', $event)" name="override-website" type="url" [placeholder]="'Valeur par defaut: ' + (state.profile.expand?.user?.website || 'Aucune')" />
+        </label>
       </div>
     </section>
 

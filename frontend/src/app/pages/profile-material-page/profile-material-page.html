@@ -27,6 +27,47 @@
     </article>
   </section>
 
+  <section class="personal-info-card" aria-labelledby="personal-info-title">
+    <div class="personal-info-card__header">
+      <div>
+        <p class="eyebrow">Profil</p>
+        <h2 id="personal-info-title">Informations personnelles</h2>
+      </div>
+      <span class="count-pill">Identite et contacts</span>
+    </div>
+
+    <div class="editor-grid">
+      <label class="editor-field">
+        <span>Prenom</span>
+        <input [value]="personalInfoForm().firstName ?? ''" (input)="setPersonalInfoField('firstName', $any($event.target).value)" name="user-first-name" type="text" />
+      </label>
+      <label class="editor-field">
+        <span>Nom</span>
+        <input [value]="personalInfoForm().lastName ?? ''" (input)="setPersonalInfoField('lastName', $any($event.target).value)" name="user-last-name" type="text" />
+      </label>
+      <label class="editor-field">
+        <span>LinkedIn</span>
+        <input [value]="personalInfoForm().linkedin ?? ''" (input)="setPersonalInfoField('linkedin', $any($event.target).value)" name="user-linkedin" type="url" placeholder="https://linkedin.com/in/..." />
+      </label>
+      <label class="editor-field">
+        <span>GitHub</span>
+        <input [value]="personalInfoForm().github ?? ''" (input)="setPersonalInfoField('github', $any($event.target).value)" name="user-github" type="url" placeholder="https://github.com/..." />
+      </label>
+      <label class="editor-field">
+        <span>Site web</span>
+        <input [value]="personalInfoForm().website ?? ''" (input)="setPersonalInfoField('website', $any($event.target).value)" name="user-website" type="url" placeholder="https://..." />
+      </label>
+      <label class="editor-field">
+        <span>Telephone</span>
+        <input [value]="personalInfoForm().phone ?? ''" (input)="setPersonalInfoField('phone', $any($event.target).value)" name="user-phone" type="tel" placeholder="+33 6 12 34 56 78" />
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="primary-button" [disabled]="isSavingPersonalInfo()" (click)="savePersonalInfo()">{{ isSavingPersonalInfo() ? 'Enregistrement...' : 'Enregistrer' }}</button>
+    </div>
+  </section>
+
   <section class="material-map-card" aria-labelledby="material-map-title">
     <div class="material-map-card__copy">
       <p class="eyebrow">Modele mental</p>

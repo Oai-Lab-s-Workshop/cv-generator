@@ -96,6 +96,7 @@
             <span role="columnheader">Profil</span>
             <span role="columnheader">Route</span>
             <span role="columnheader">Template</span>
+            <span role="columnheader">Statut</span>
             <span role="columnheader">Visibilite</span>
             <span role="columnheader">Actions</span>
           </div>
@@ -128,6 +129,21 @@
                     }
                   </select>
                 </label>
+
+                <div class="profile-cell profile-cell--status" role="cell" data-label="Statut">
+                  <select
+                    [ngModel]="profile.status || 'unsent'"
+                    [disabled]="isSaving() === profile.id"
+                    (ngModelChange)="changeStatus(profile, $event)"
+                    class="status-select"
+                  >
+                    <option value="unsent">Non envoye</option>
+                    <option value="sent">Envoye</option>
+                    <option value="rejected">Rejete</option>
+                    <option value="responded">Repondu</option>
+                  </select>
+                  <span class="status-dot" [class]="'status-dot--' + getStatusTone(profile)"></span>
+                </div>
 
                 <label class="profile-cell visibility-control" role="cell" data-label="Visibilite">
                   <input

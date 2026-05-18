@@ -11,6 +11,25 @@ h1 {
   margin-bottom: 1rem;
 }
 
+.personal-info-card {
+  width: min(100%, 76rem);
+  margin-inline: auto;
+  margin-bottom: 1rem;
+  border: 1px solid var(--home-border);
+  border-radius: 1.15rem;
+  background: var(--home-surface);
+  box-shadow: var(--home-shadow);
+  backdrop-filter: blur(18px);
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+
+.personal-info-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .material-map-card,
 .material-tabs-card {
   width: min(100%, 76rem);
