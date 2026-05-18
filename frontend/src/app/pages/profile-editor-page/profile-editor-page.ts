@@ -2,17 +2,20 @@ import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, On
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Achievement } from '../../core/models/achievement.model';
-import { CvProfile } from '../../core/models/cv-profile.model';
+import { CvProfile, CvProfileExtraValue } from '../../core/models/cv-profile.model';
 import { Degree } from '../../core/models/degree.model';
+import { MediaFile } from '../../core/models/file.model';
 import { Hobby } from '../../core/models/hobby.model';
 import { Job } from '../../core/models/job.model';
 import { Project } from '../../core/models/project.model';
 import { Skill } from '../../core/models/skill.model';
 import { CurrentUserCvProfileEditorData, PocketBaseService } from '../../core/services/pocketbase.service';
-import { CV_TEMPLATE_OPTIONS } from '../../core/templates/cv-template-registry';
+import { CV_TEMPLATE_OPTIONS, CV_TEMPLATE_OPTIONS_BY_ID, CvTemplateExtraField, CvTemplateExtraFieldSource } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { Navbar } from '../../shared/components/navbar/navbar';
 
 type RelationType = 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies';
+type ExtraSourceRecord = Job | Project | Skill | Degree | Achievement | Hobby;
 
 type EditorState = {
   profile: CvProfile;
@@ -22,13 +25,16 @@ type EditorState = {
   availableDegrees: Degree[];
   availableAchievements: Achievement[];
   availableHobbies: Hobby[];
+  availablePictures: MediaFile[];
 };
+
+type PictureField = 'profilePictureFile' | 'coverPictureFile';
 
 @Component({
   selector: 'app-profile-editor-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, Navbar, RouterLink],
   templateUrl: './profile-editor-page.html',
-  styleUrl: './profile-editor-page.css',
+  styleUrls: ['../../styles/home-shared.css', './profile-editor-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileEditorPage implements OnInit {
@@ -43,8 +49,6 @@ export class ProfileEditorPage implements OnInit {
   readonly isSaving = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
-  readonly selectedProfilePicture = signal<File | null>(null);
-  readonly selectedCoverPicture = signal<File | null>(null);
 
   ngOnInit(): void {
     effect(
@@ -53,16 +57,6 @@ export class ProfileEditorPage implements OnInit {
       },
       { injector: this.injector },
     );
-  }
-
-  onProfilePictureSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    this.selectedProfilePicture.set(file);
-  }
-
-  onCoverPictureSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    this.selectedCoverPicture.set(file);
   }
 
   async save(): Promise<void> {
@@ -83,7 +77,9 @@ export class ProfileEditorPage implements OnInit {
     this.successMessage.set(null);
 
     try {
+      const label = state.profile.label?.trim() || '';
       await this.pocketBaseService.updateCurrentUserCvProfile(state.profile.id, {
+        label,
         profileName,
         public: state.profile.public !== false,
         template: state.profile.template,
@@ -93,16 +89,10 @@ export class ProfileEditorPage implements OnInit {
         degrees: state.profile.degrees ?? [],
         achievements: state.profile.achievements ?? [],
         hobbies: state.profile.hobbies ?? [],
+        profilePictureFile: state.profile.profilePictureFile || '',
+        coverPictureFile: state.profile.coverPictureFile || '',
+        extra: state.profile.extra ?? {},
       });
-
-      if (this.selectedProfilePicture() || this.selectedCoverPicture()) {
-        await this.pocketBaseService.updateCurrentUserCvProfilePictures(state.profile.id, {
-          profilePicture: this.selectedProfilePicture(),
-          coverPicture: this.selectedCoverPicture(),
-        });
-        this.selectedProfilePicture.set(null);
-        this.selectedCoverPicture.set(null);
-      }
 
       await this.loadEditorData(state.profile.id);
       this.successMessage.set('Profil enregistre.');
@@ -150,6 +140,128 @@ export class ProfileEditorPage implements OnInit {
     });
   }
 
+  getSelectedTemplateExtraSchema(state: EditorState): CvTemplateExtraField[] {
+    const templateId = state.profile.template;
+    return (templateId ? CV_TEMPLATE_OPTIONS_BY_ID.get(templateId)?.extraSchema : undefined) ?? [];
+  }
+
+  getExtraValue(state: EditorState, field: CvTemplateExtraField): CvProfileExtraValue | undefined {
+    const templateId = state.profile.template;
+    return templateId ? state.profile.extra?.[templateId]?.[field.id] : undefined;
+  }
+
+  getExtraTextValue(state: EditorState, field: CvTemplateExtraField): string {
+    const value = this.getExtraValue(state, field);
+    return typeof value === 'string' ? value : '';
+  }
+
+  getExtraBooleanValue(state: EditorState, field: CvTemplateExtraField): boolean {
+    return this.getExtraValue(state, field) === true;
+  }
+
+  getExtraStringArrayValue(state: EditorState, field: CvTemplateExtraField): string[] {
+    const value = this.getExtraValue(state, field);
+    return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : [];
+  }
+
+  setExtraValue(field: CvTemplateExtraField, value: CvProfileExtraValue): void {
+    this.editorState.update((state) => {
+      const templateId = state?.profile.template;
+
+      if (!state || !templateId) {
+        return state;
+      }
+
+      return {
+        ...state,
+        profile: {
+          ...state.profile,
+          extra: {
+            ...(state.profile.extra ?? {}),
+            [templateId]: {
+              ...(state.profile.extra?.[templateId] ?? {}),
+              [field.id]: value,
+            },
+          },
+        },
+      };
+    });
+  }
+
+  addExtraSourceValue(field: CvTemplateExtraField, recordId: string): void {
+    const state = this.editorState();
+
+    if (!state) {
+      return;
+    }
+
+    const currentIds = this.getExtraStringArrayValue(state, field);
+    if (!currentIds.includes(recordId)) {
+      this.setExtraValue(field, [...currentIds, recordId]);
+    }
+  }
+
+  removeExtraSourceValue(field: CvTemplateExtraField, recordId: string): void {
+    const state = this.editorState();
+
+    if (!state) {
+      return;
+    }
+
+    this.setExtraValue(
+      field,
+      this.getExtraStringArrayValue(state, field).filter((id) => id !== recordId),
+    );
+  }
+
+  getLinkedExtraSourceRecords(state: EditorState, field: CvTemplateExtraField): ExtraSourceRecord[] {
+    return this.getLinkedRecords(this.getExtraSourceRecords(state, field.source), this.getExtraStringArrayValue(state, field));
+  }
+
+  getAvailableExtraSourceRecords(state: EditorState, field: CvTemplateExtraField): ExtraSourceRecord[] {
+    return this.getUnlinkedRecords(this.getExtraSourceRecords(state, field.source), this.getExtraStringArrayValue(state, field));
+  }
+
+  getExtraSourceRecordTitle(record: ExtraSourceRecord): string {
+    if ('company' in record) {
+      return record.company;
+    }
+
+    if ('title' in record) {
+      return record.title;
+    }
+
+    return record.name;
+  }
+
+  getExtraSourceRecordDescription(record: ExtraSourceRecord): string {
+    if ('company' in record) {
+      return record.position;
+    }
+
+    if ('date' in record) {
+      return record.date || 'Sans date';
+    }
+
+    if ('category' in record) {
+      return this.getSkillDescription(record);
+    }
+
+    if ('type' in record) {
+      return record.type || 'Sans type';
+    }
+
+    if ('school' in record) {
+      return record.school || 'Sans ecole';
+    }
+
+    if ('description' in record) {
+      return record.description || 'Sans description';
+    }
+
+    return 'Sans description';
+  }
+
   getLinkedJobs(state: EditorState): Job[] {
     return this.getLinkedRecords(state.availableJobs, state.profile.jobs);
   }
@@ -174,6 +286,12 @@ export class ProfileEditorPage implements OnInit {
     return this.getUnlinkedRecords(state.availableSkills, state.profile.skills);
   }
 
+  getSkillDescription(skill: Skill): string {
+    const categoryName = skill.expand?.category?.name || '';
+
+    return [skill.type, categoryName].filter(Boolean).join(' · ') || 'Sans type';
+  }
+
   getLinkedDegrees(state: EditorState): Degree[] {
     return this.getLinkedRecords(state.availableDegrees, state.profile.degrees);
   }
@@ -196,6 +314,21 @@ export class ProfileEditorPage implements OnInit {
 
   getAvailableHobbies(state: EditorState): Hobby[] {
     return this.getUnlinkedRecords(state.availableHobbies, state.profile.hobbies);
+  }
+
+  getPicturePreview(state: EditorState, field: PictureField): string | undefined {
+    const selectedPicture = this.getSelectedPicture(state, field);
+
+    if (selectedPicture) {
+      return selectedPicture.file;
+    }
+
+    return field === 'profilePictureFile' ? state.profile.profilePicture : state.profile.coverPicture;
+  }
+
+  getSelectedPictureName(state: EditorState, field: PictureField): string {
+    const selectedPicture = this.getSelectedPicture(state, field);
+    return selectedPicture?.name || selectedPicture?.alt || 'Image selectionnee';
   }
 
   private async loadEditorData(profileId: string): Promise<void> {
@@ -236,6 +369,7 @@ export class ProfileEditorPage implements OnInit {
         degrees: [...(data.profile.degrees ?? [])],
         achievements: [...(data.profile.achievements ?? [])],
         hobbies: [...(data.profile.hobbies ?? [])],
+        extra: data.profile.extra ?? {},
       },
       availableJobs: data.availableJobs,
       availableProjects: data.availableProjects,
@@ -243,7 +377,13 @@ export class ProfileEditorPage implements OnInit {
       availableDegrees: data.availableDegrees,
       availableAchievements: data.availableAchievements,
       availableHobbies: data.availableHobbies,
+      availablePictures: data.availablePictures,
     };
+  }
+
+  private getSelectedPicture(state: EditorState, field: PictureField): MediaFile | undefined {
+    const selectedId = state.profile[field];
+    return selectedId ? state.availablePictures.find((picture) => picture.id === selectedId) : undefined;
   }
 
   private getLinkedRecords<T extends { id: string }>(records: T[], selectedIds: string[] | undefined): T[] {
@@ -254,5 +394,24 @@ export class ProfileEditorPage implements OnInit {
   private getUnlinkedRecords<T extends { id: string }>(records: T[], selectedIds: string[] | undefined): T[] {
     const selectedIdSet = new Set(selectedIds ?? []);
     return records.filter((record) => !selectedIdSet.has(record.id));
+  }
+
+  private getExtraSourceRecords(state: EditorState, source: CvTemplateExtraFieldSource | undefined): ExtraSourceRecord[] {
+    switch (source) {
+      case 'jobs':
+        return state.availableJobs;
+      case 'projects':
+        return state.availableProjects;
+      case 'skills':
+        return state.availableSkills;
+      case 'degrees':
+        return state.availableDegrees;
+      case 'achievements':
+        return state.availableAchievements;
+      case 'hobbies':
+        return state.availableHobbies;
+      default:
+        return [];
+    }
   }
 }

@@ -1,20 +1,22 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { AiToken, CreatedAiTokenResult } from '../../core/models/ai-token.model';
+import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { Navbar } from '../../shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-token-management-page',
-  imports: [DatePipe, FormsModule, RouterLink],
+  imports: [DatePipe, FormsModule, Navbar],
   templateUrl: './token-management-page.html',
-  styleUrl: './token-management-page.css',
+  styleUrls: ['../../styles/home-shared.css', './token-management-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TokenManagementPage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
+  private readonly authService = inject(AuthService);
 
   readonly aiTokens = signal<AiToken[]>([]);
   readonly isLoadingAiTokens = signal(true);
@@ -25,9 +27,40 @@ export class TokenManagementPage implements OnInit {
   readonly latestCreatedTokenDebug = signal<CreatedAiTokenResult | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly activeAiTokenMutationId = signal<string | null>(null);
+  readonly currentUser = this.authService.currentUser;
+  readonly currentUserName = computed(() => {
+    const user = this.currentUser();
+    return user ? `${user.firstName} ${user.lastName}` : 'Utilisateur authentifie';
+  });
+  readonly activeAiTokenCount = computed(() => this.aiTokens().filter((token) => token.status === 'active').length);
+  readonly revokedAiTokenCount = computed(() => this.aiTokens().filter((token) => token.status !== 'active').length);
+  readonly expiringAiTokenCount = computed(() => {
+    const now = Date.now();
+    const thirtyDaysFromNow = now + 30 * 24 * 60 * 60 * 1000;
+
+    return this.aiTokens().filter((token) => {
+      if (!token.expiresAt || token.status !== 'active') {
+        return false;
+      }
+
+      const expiresAt = new Date(token.expiresAt).getTime();
+      return Number.isFinite(expiresAt) && expiresAt >= now && expiresAt <= thirtyDaysFromNow;
+    }).length;
+  });
 
   ngOnInit(): void {
     void this.loadAiTokens();
+  }
+
+  getTokenStatusLabel(token: AiToken): string {
+    switch (token.status) {
+      case 'active':
+        return 'Active';
+      case 'revoked':
+        return 'Revoquee';
+      case 'expired':
+        return 'Expiree';
+    }
   }
 
   private async loadAiTokens(): Promise<void> {
@@ -100,4 +133,5 @@ export class TokenManagementPage implements OnInit {
     this.newAiTokenLabel.set('Assistant principal');
     this.newAiTokenExpiresAt.set('');
   }
+
 }

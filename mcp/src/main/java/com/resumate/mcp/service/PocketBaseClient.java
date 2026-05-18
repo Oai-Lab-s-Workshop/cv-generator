@@ -29,10 +29,34 @@ public class PocketBaseClient {
     private static final Logger logger = LoggerFactory.getLogger(PocketBaseClient.class);
 
     private static final List<TemplateDescriptor> TEMPLATE_DESCRIPTORS = List.of(
-            new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills."),
-            new TemplateDescriptor("modern", "Modern", "Split-sidebar resume with timeline-style . Most commmon CV layout."),
-            new TemplateDescriptor("minimal", "Minimal", "Single-column minimalist resume with inline contact details and compact sections."),
-            new TemplateDescriptor("supa", "Supa", "Clean, compact, print-first CV designed to fit into a single A4 page. Dynamic sizing, great for showcasing lots of Projects")
+            new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of()),
+            new TemplateDescriptor(
+                    "bento",
+                    "Bento",
+                    "Visual grid-based resume with strong project and profile presentation.",
+                    List.of(
+                            new ExtraFieldDescriptor("qrCodeUrl", "QR code URL", "text", false, "URL encoded into the QR code on the bento card. Leave empty to auto-generate from the profile public route.", null, List.of())
+                    )
+            ),
+            new TemplateDescriptor(
+                    "modern",
+                    "Modern",
+                    "Split-sidebar resume with timeline-style experience and card-based project highlights.",
+                    List.of(
+                            new ExtraFieldDescriptor("headline", "Headline", "text", false, "Short role-focused line displayed near the candidate name.", null, List.of()),
+                            new ExtraFieldDescriptor("accentColor", "Accent color", "color", false, "Main visual accent color for this profile.", null, List.of())
+                    )
+            ),
+            new TemplateDescriptor(
+                    "supa",
+                    "Supa",
+                    "Clean, compact, print-first CV designed to fit into a single A4 page. Dynamic sizing, great for showcasing lots of projects.",
+                    List.of(
+                            new ExtraFieldDescriptor("featuredProjectIds", "Featured projects", "multi_select", false, "Project IDs to emphasize in the compact Supa layout. Choose projects most relevant to the target role.", "projects", List.of()),
+                            new ExtraFieldDescriptor("compactMode", "Compact mode", "boolean", false, "Whether the template should aggressively reduce spacing to fit more content on one A4 page.", null, List.of())
+                    )
+            ),
+            new TemplateDescriptor("minimal", "Minimal", "Single-column minimalist resume with inline contact details and compact sections.", List.of())
     );
 
     private final PocketBaseProperties properties;
@@ -112,6 +136,7 @@ public class PocketBaseClient {
         String slug = payload.templateId() + "--" + slugify(payload.profileName()) + "-" + Instant.now().toEpochMilli();
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("slug", slug);
+        body.put("label", payload.label());
         body.put("profileName", payload.profileName());
         body.put("template", payload.templateId());
         body.put("public", true);
@@ -123,6 +148,7 @@ public class PocketBaseClient {
         body.put("achievements", defaultList(payload.achievementIds()));
         body.put("degrees", defaultList(payload.degreeIds()));
         body.put("hobbies", defaultList(payload.hobbyIds()));
+        body.put("extra", payload.extra() == null ? Map.of() : payload.extra());
 
         CreatedProfileRecord created;
         try {
@@ -297,7 +323,18 @@ public class PocketBaseClient {
         return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
     }
 
-    public record TemplateDescriptor(String id, String label, String description) {
+    public record TemplateDescriptor(String id, String label, String description, List<ExtraFieldDescriptor> extraSchema) {
+    }
+
+    public record ExtraFieldDescriptor(
+            String id,
+            String label,
+            String type,
+            boolean required,
+            String description,
+            String source,
+            List<String> options
+    ) {
     }
 
     public record ProfileMaterialBundle(
@@ -312,6 +349,7 @@ public class PocketBaseClient {
     }
 
     public record CreateProfilePayload(
+            String label,
             String profileName,
             String templateId,
             String professionalSummary,
@@ -320,7 +358,8 @@ public class PocketBaseClient {
             List<String> projectIds,
             List<String> achievementIds,
             List<String> degreeIds,
-            List<String> hobbyIds
+            List<String> hobbyIds,
+            Map<String, Object> extra
     ) {
     }
 

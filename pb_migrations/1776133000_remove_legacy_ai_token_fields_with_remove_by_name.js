@@ -38,7 +38,7 @@ migrate(
         name: 'allowedTemplates',
         type: 'select',
         required: false,
-        maxSelect: 999,
+        maxSelect: 3,
         values: ['classic', 'modern', 'minimal'],
         system: false,
         hidden: false,

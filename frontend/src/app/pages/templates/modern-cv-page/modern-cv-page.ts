@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injector, effect, inject, input, OnInit, signal } from '@angular/core';
 import { CvData } from '../../../core/models/cv-data.model';
+import { CvProfileExtraValue } from '../../../core/models/cv-profile.model';
+import { CvProfileExtraService } from '../../../core/services/cv-profile-extra.service';
 import { PocketBaseService } from '../../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../../core/utils/error-message';
 
@@ -11,6 +13,7 @@ import { getErrorMessage } from '../../../core/utils/error-message';
 })
 export class ModernCvPage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
+  private readonly cvProfileExtra = inject(CvProfileExtraService);
   private readonly injector = inject(Injector);
   private requestId = 0;
 
@@ -28,6 +31,14 @@ export class ModernCvPage implements OnInit {
     }
 
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+  }
+
+  protected extra(key: string): CvProfileExtraValue | undefined {
+    return this.cvProfileExtra.get(this.cvData()?.profile, key);
+  }
+
+  protected extraText(key: string): string | null {
+    return this.cvProfileExtra.text(this.cvData()?.profile, key);
   }
 
   ngOnInit(): void {

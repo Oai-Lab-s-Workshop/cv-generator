@@ -1,0 +1,42 @@
+@if (isLoading()) {
+  <section class="template-preview-list__state">
+    <p>Chargement des apercus...</p>
+  </section>
+} @else if (errorMessage()) {
+  <section class="template-preview-list__state template-preview-list__state--error">
+    <p>{{ errorMessage() }}</p>
+  </section>
+} @else {
+  <section #scrollContainer class="template-preview-list" [class.template-preview-list--auto-loop]="autoLoop()" [class.template-preview-list--bare]="!showChrome()">
+    @for (card of previewCards(); track card.id) {
+      <article class="template-preview-card">
+        @if (showChrome()) {
+          <header class="template-preview-card__header">
+            <div>
+              <p>{{ card.label }}</p>
+              <span>{{ card.id }}</span>
+            </div>
+
+            @if (allowA4Toggle()) {
+              <button
+                class="template-preview-card__a4-button"
+                type="button"
+                [attr.aria-label]="isA4PreviewEnabled(card.id) ? 'Afficher en format libre' : 'Afficher au format A4'"
+                [attr.title]="isA4PreviewEnabled(card.id) ? 'Format libre' : 'Format A4'"
+                (click)="toggleA4Preview(card.id)">
+                <i class="bi" [class.bi-aspect-ratio]="!isA4PreviewEnabled(card.id)" [class.bi-arrows-angle-expand]="isA4PreviewEnabled(card.id)"></i>
+              </button>
+            }
+          </header>
+        }
+
+        <div
+          class="template-preview-card__preview"
+          [class.template-preview-card__preview--a4]="isA4PreviewEnabled(card.id)"
+          [class.cv-preview-enabled]="isA4PreviewEnabled(card.id)">
+          <ng-container *ngComponentOutlet="card.component; inputs: { previewData: card.previewData }"></ng-container>
+        </div>
+      </article>
+    }
+  </section>
+}

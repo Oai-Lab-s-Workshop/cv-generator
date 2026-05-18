@@ -12,6 +12,7 @@ describe('CvShellPage', () => {
   let currentUserId = 'user-1';
 
   beforeEach(async () => {
+    currentUserId = 'user-1';
     pocketBaseService = {
       getCvProfileBySlug: jest.fn().mockResolvedValue({
         id: 'profile-1',
@@ -58,9 +59,21 @@ describe('CvShellPage', () => {
     const adminBar = fixture.nativeElement.querySelector('.admin-bar');
 
     expect(adminBar).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.speed-dial-trigger')).not.toBeNull();
+  });
+
+  it('opens speed dial actions from the admin trigger', () => {
+    const trigger = fixture.nativeElement.querySelector('.speed-dial-trigger') as HTMLButtonElement;
+
+    trigger.click();
+    fixture.detectChanges();
+
+    const adminBar = fixture.nativeElement.querySelector('.admin-bar');
+
+    expect(adminBar.textContent).toContain('Accueil');
     expect(adminBar.textContent).toContain('Preview');
     expect(adminBar.textContent).toContain('Download PDF');
-    expect(adminBar.textContent).toContain('Close');
+    expect(adminBar.textContent).toContain('Fermer');
   });
 
   it('hides the admin bar when the authenticated user does not own the profile', async () => {
@@ -76,23 +89,50 @@ describe('CvShellPage', () => {
   });
 
   it('toggles preview mode from the admin bar', async () => {
-    const previewButton = fixture.nativeElement.querySelector('.secondary-button') as HTMLButtonElement;
+    const trigger = fixture.nativeElement.querySelector('.speed-dial-trigger') as HTMLButtonElement;
+    trigger.click();
+    fixture.detectChanges();
+
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.speed-dial-action')) as HTMLElement[];
+    const previewButton = buttons.find((button) => button.textContent?.includes('Preview')) as HTMLButtonElement;
 
     previewButton.click();
     fixture.detectChanges();
 
     expect(component['isPreviewMode']()).toBe(true);
-    expect(fixture.nativeElement.querySelector('.cv-preview-enabled')).not.toBeNull();
+    trigger.click();
+    fixture.detectChanges();
+
+    const updatedButtons = Array.from(fixture.nativeElement.querySelectorAll('.speed-dial-action')) as HTMLElement[];
+    const updatedPreviewButton = updatedButtons.find((button) => button.textContent?.includes('Quitter apercu'));
+    expect(updatedPreviewButton).toBeTruthy();
   });
 
   it('calls window.print when clicking print', () => {
+    const trigger = fixture.nativeElement.querySelector('.speed-dial-trigger') as HTMLButtonElement;
+    trigger.click();
+    fixture.detectChanges();
+
     const printSpy = jest.spyOn(window, 'print').mockImplementation(() => undefined);
-    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.secondary-button')) as HTMLButtonElement[];
-    const printButton = buttons.find((button) => button.textContent?.includes('Print')) as HTMLButtonElement;
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.speed-dial-action')) as HTMLButtonElement[];
+    const printButton = buttons.find((button) => button.textContent?.includes('Imprimer')) as HTMLButtonElement;
 
     printButton.click();
 
     expect(printSpy).toHaveBeenCalled();
     printSpy.mockRestore();
+  });
+
+  it('routes manage action to the current profile editor', () => {
+    const trigger = fixture.nativeElement.querySelector('.speed-dial-trigger') as HTMLButtonElement;
+    trigger.click();
+    fixture.detectChanges();
+
+    const manageLinks = Array.from(
+      fixture.nativeElement.querySelectorAll('a.speed-dial-action'),
+    ) as HTMLAnchorElement[];
+    const manageLink = manageLinks.find((link) => link.textContent?.includes('Gerer')) as HTMLAnchorElement;
+
+    expect(manageLink.getAttribute('href')).toBe('/home/profiles/profile-1/edit');
   });
 });

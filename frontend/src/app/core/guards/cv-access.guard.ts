@@ -33,6 +33,6 @@ export const cvAccessGuard: CanActivateFn = async (route, state) => {
 
     return true;
   } catch {
-    return true;
+    return router.createUrlTree([authService.isAuthenticated() ? '/home' : '/login']);
   }
 };

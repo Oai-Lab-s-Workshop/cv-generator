@@ -3,6 +3,7 @@
   grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
   min-height: 100vh;
   color: #102030;
+  --modern-accent-color: #0f4aa5;
 }
 
 .modern-cv-page--state {
@@ -36,6 +37,12 @@
 .sidebar__title {
   margin: 0.75rem 0 0;
   color: #d9e7fb;
+}
+
+.sidebar__headline {
+  margin: 1rem 0 0;
+  color: color-mix(in srgb, var(--modern-accent-color) 28%, #ffffff);
+  font-weight: 700;
 }
 
 .sidebar__section {
@@ -95,7 +102,7 @@
 }
 
 a {
-  color: #0f4aa5;
+  color: var(--modern-accent-color);
 }
 
 @media (max-width: 760px) {

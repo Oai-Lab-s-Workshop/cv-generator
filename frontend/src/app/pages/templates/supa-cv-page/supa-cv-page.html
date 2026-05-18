@@ -58,18 +58,18 @@
                 <h3>Réseaux :</h3>
     
                 <div class="stack">
-                    @if (data.user?.linkedin) {
+                    @if (data.user.linkedin) {
                         <app-icon-label-data
                             label="LinkedIn"
-                            [data]="data.user?.linkedin"
+                            [data]="data.user.linkedin"
                             [reverse]="false">
                             <i icon class="bi bi-linkedin"></i>
                         </app-icon-label-data>
                     }
-                    @if (data.user?.github) {
+                    @if (data.user.github) {
                         <app-icon-label-data
                             label="GitHub"
-                            [data]="data.user?.github"
+                            [data]="data.user.github"
                             [reverse]="false">
                             <i icon class="bi bi-github"></i>
                         </app-icon-label-data>
@@ -107,7 +107,7 @@
             <section class="section--panel" [attr.data-mode]="sectionModes().experience">
                 <h3>Experience</h3> 
                 <div class="job-stack">
-                    @for (job of data.jobs; track job.id) {
+                    @for (job of chronologicalJobs(data.jobs); track job.id) {
                         <div class="job" [class.present]="!job.endDate">
                             <!-- <div class="full">
                                 <p>{{ getDate(job.startDate) }} - {{ job.endDate ? getDate(job.endDate) : 'Present' }} @if(job.location) {<i icon class="bi bi-geo-alt-fill"></i> {{ job.location }}}</p>
@@ -138,33 +138,24 @@
                 </div>
             </section>
             <section class="section--panel section--skills" [attr.data-mode]="sectionModes().skills">
-                <h3>Skills</h3>
-                <div class="skill-row skill-row--technical">
-                    <h4 class="skill-kind">Technique</h4>
-                    <div class="skill-stack-1">
-                        @for (skill of data.skills; track skill.id) {
-                            <!-- <article class="skill">render</article> -->
-                            @if(skill.type === 'Technical'){
-                                <article class="skill"> 
-                                    @if(skill.icon){ <img [src]="skill.icon"/> } 
-                                    {{ skill.name }}
-                                </article>
-                            }
+                <div class="section-heading section-heading--skills">
+                    <h3>Skills</h3>
+                    <div class="skill-legend" aria-label="Skill categories">
+                        @for (category of skillCategories(data.skills); track category) {
+                            <span class="skill-legend__item" [class]="'skill-legend__item ' + skillCategoryClass(category, data.skills)">
+                                <span class="skill-legend__swatch"></span>
+                                {{ category }}
+                            </span>
                         }
                     </div>
                 </div>
-                <div class="skill-row skill-row--professional">
-                    <h4 class="skill-kind">Professionnel</h4>
-                    <div class="skill-stack-2">
-                        @for (skill of data.skills; track skill.id) {
-                            @if(skill.type === 'Professional'){
-                               <article class="skill">
-                                    @if(skill.icon){ <img [src]="skill.icon"/> }
-                                    {{ skill.name }}
-                                </article>
-                            }
-                        }
-                    </div>
+                <div class="skill-mosaic">
+                    @for (skill of visibleSkills(data.skills); track skill.id) {
+                        <article [class]="'skill ' + skillCategoryClass(skill, data.skills)">
+                            @if(skill.icon){ <img [src]="skill.icon" [alt]="skill.name + ' icon'"/> }
+                            {{ skill.name }}
+                        </article>
+                    }
                 </div>
             </section>
             <section class="section--panel" [attr.data-mode]="sectionModes().diplomas">

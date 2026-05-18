@@ -3,11 +3,18 @@ import { authGuard, guestOnlyGuard } from './core/guards/auth.guard';
 import { cvAccessGuard } from './core/guards/cv-access.guard';
 
 export const routes: Routes = [
-  //TODO: fix redirect to home after login
-  //TODO: not redirect to home after trying to access a private CV without being authenticated
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./pages/root-redirect-page/root-redirect-page').then((module) => module.RootRedirectPage),
+  },
   {
     path: 'desktop',
     loadComponent: () => import('./pages/desktop-home-page/desktop-home-page').then((module) => module.DesktopHomePage),
+  },
+  {
+    path: 'desktop/users/setup',
+    loadComponent: () => import('./pages/desktop-user-setup-page/desktop-user-setup-page').then((module) => module.DesktopUserSetupPage),
   },
   {
     path: 'login',
@@ -16,6 +23,7 @@ export const routes: Routes = [
   },
   {
     path: 'home',
+    pathMatch: 'full',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/home-page/home-page').then((module) => module.HomePage),
   },
@@ -26,13 +34,17 @@ export const routes: Routes = [
       import('./pages/profile-editor-page/profile-editor-page').then((module) => module.ProfileEditorPage),
   },
   {
+    path: 'home/profile-material',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/profile-material-page/profile-material-page').then((module) => module.ProfileMaterialPage),
+  },
+  {
     path: 'home/tokens',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/token-management-page/token-management-page').then((module) => module.TokenManagementPage),
   },
   {
     path: 'home/templates',
-    canActivate: [authGuard],
     loadComponent: () => import('./pages/template-gallery-page/template-gallery-page').then((module) => module.TemplateGalleryPage),
   },
   {
