@@ -86,7 +86,7 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   protected visibleSkills(skills: Skill[]): Skill[] {
-    return skills.filter((skill) => skill.name.trim() !== '');
+    return skills.filter((skill) => skill.name.trim() !== '' && skill.type !== 'Language');
   }
 
   protected skillCategories(skills: Skill[]): string[] {
