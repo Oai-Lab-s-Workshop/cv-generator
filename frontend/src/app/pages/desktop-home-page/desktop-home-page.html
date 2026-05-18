@@ -42,25 +42,14 @@
           <dt>Admin URL</dt>
           <dd>{{ pocketBaseAdminUrl() }}</dd>
         </div>
-        <div>
-          <dt>Email</dt>
-          <dd>{{ config?.pocketbaseSuperuserEmail }}</dd>
-        </div>
-        <div>
-          <dt>Password</dt>
-          <dd>{{ isPasswordVisible() ? config?.pocketbaseSuperuserPassword : '••••••••••••••••' }}</dd>
-        </div>
       </dl>
 
       <div class="actions-row">
         <button type="button" class="primary-action" (click)="openPocketBaseAdmin()">Open Admin</button>
-        <button type="button" class="secondary-action" (click)="copy(config?.pocketbaseSuperuserPassword, 'Mot de passe admin')">Copy Password</button>
-        <button type="button" class="ghost-action" (click)="isPasswordVisible.set(!isPasswordVisible())">
-          {{ isPasswordVisible() ? 'Hide' : 'Reveal' }}
-        </button>
+        <a routerLink="/desktop/users/setup" class="secondary-action">Setup Users</a>
       </div>
 
-      <p class="warning">These credentials are generated locally for this device. Do not share them.</p>
+      <p class="warning">Administrator credentials stay in the desktop main process and are not exposed to the app UI.</p>
     </article>
 
     <article class="service-card">

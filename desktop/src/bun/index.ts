@@ -1,8 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 import { dirname, extname, resolve } from 'node:path';
 import Electrobun, { ApplicationMenu, BrowserWindow, type ApplicationMenuItemConfig } from 'electrobun';
 import { Utils } from 'electrobun/bun';
 import { renderConfigScript } from './config';
+import { jsonResponse, validateDesktopApiRequest } from './desktop-api';
 import { resolveDesktopPaths } from './sidecars/paths';
 import { getFreeLocalPort } from './sidecars/ports';
 import { startPocketBase } from './sidecars/pocketbase';
@@ -17,12 +19,31 @@ const LOADING_SERVER_CLEANUP_DELAY_MS = 2_000;
 const RETURN_HOME_ACTION = 'return-home';
 const startupStatus = new StartupStatusStore();
 
+type DesktopUserCreateBody = {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  passwordConfirm?: string;
+  verified?: boolean;
+  emailVisibility?: boolean;
+  phone?: string;
+  linkedin?: string;
+  github?: string;
+  website?: string;
+};
+
+type DesktopServerOptions = Parameters<typeof renderConfigScript>[0] & {
+  createLocalUser: (body: DesktopUserCreateBody) => Promise<void>;
+};
+
 async function main(): Promise<void> {
   startupStatus.start('BOOT-001');
   const paths = resolveDesktopPaths();
   startupStatus.ok('BOOT-001', paths.resourcesRoot);
 
   startupStatus.start('BOOT-010');
+  const desktopApiToken = randomBytes(32).toString('base64url');
   const [loadingPort, pocketbasePort, mcpPort, frontendPort] = await Promise.all([
     getFreeLocalPort(),
     getFreeLocalPort(),
@@ -61,10 +82,10 @@ async function main(): Promise<void> {
       appMode: 'desktop',
       pocketbaseUrl: pocketbase.url,
       pocketbaseAdminUrl: `${pocketbase.url}/_/`,
-      pocketbaseSuperuserEmail: pocketbase.superuserEmail,
-      pocketbaseSuperuserPassword: pocketbase.superuserPassword,
+      desktopApiToken,
       mcpUrl: mcp.url,
       mcpHealthUrl: mcp.healthUrl,
+      createLocalUser: (body) => createLocalPocketBaseUser(pocketbase.url, pocketbase.superuserEmail, pocketbase.superuserPassword, body),
     }, () => win);
     servers.push(frontend.server);
     startupStatus.ok('WEB-010', frontend.url);
@@ -274,7 +295,7 @@ function renderAngularHtml(indexPath: string, config: Parameters<typeof renderCo
 function startAngularServer(
   indexPath: string,
   port: number,
-  config: Parameters<typeof renderConfigScript>[0],
+  config: DesktopServerOptions,
   getWindow?: () => BrowserWindow | undefined,
 ): { url: string; server: ReturnType<typeof Bun.serve> } {
   const indexHtml = renderAngularHtml(indexPath, config);
@@ -287,31 +308,50 @@ function startAngularServer(
       const url = new URL(request.url);
       const pathname = decodeURIComponent(url.pathname);
 
+      if (pathname === '/api/desktop/users') {
+        const invalidResponse = validateDesktopApiRequest(request, config.desktopApiToken);
+        if (invalidResponse) {
+          return invalidResponse;
+        }
+
+        try {
+          await config.createLocalUser(await request.json() as DesktopUserCreateBody);
+          return jsonResponse({ success: true }, 201);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return jsonResponse({ error: message }, 400);
+        }
+      }
+
       // Window control API endpoints
       if (getWindow) {
+        if (pathname.startsWith('/api/window/')) {
+          const invalidResponse = validateDesktopApiRequest(request, config.desktopApiToken);
+          if (invalidResponse) {
+            return invalidResponse;
+          }
+        }
+
         switch (pathname) {
           case '/api/window/minimize':
             getWindow()?.minimize();
-            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+            return jsonResponse({ success: true });
           case '/api/window/maximize':
             getWindow()?.maximize();
-            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+            return jsonResponse({ success: true });
           case '/api/window/unmaximize':
             getWindow()?.unmaximize();
-            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+            return jsonResponse({ success: true });
           case '/api/window/close':
             getWindow()?.close();
-            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+            return jsonResponse({ success: true });
           case '/api/window/state': {
             const win = getWindow();
-            return new Response(
-              JSON.stringify({
-                minimized: win?.isMinimized() ?? false,
-                maximized: win?.isMaximized() ?? false,
-                fullscreen: win?.isFullScreen() ?? false,
-              }),
-              { headers: { 'content-type': 'application/json' } },
-            );
+            return jsonResponse({
+              minimized: win?.isMinimized() ?? false,
+              maximized: win?.isMaximized() ?? false,
+              fullscreen: win?.isFullScreen() ?? false,
+            });
           }
         }
       }
@@ -330,6 +370,72 @@ function startAngularServer(
   });
 
   return { url: `http://127.0.0.1:${port}/`, server };
+}
+
+async function createLocalPocketBaseUser(
+  baseUrl: string,
+  superuserEmail: string,
+  superuserPassword: string,
+  body: DesktopUserCreateBody,
+): Promise<void> {
+  const firstName = body.firstName?.trim();
+  const lastName = body.lastName?.trim();
+  const email = body.email?.trim();
+  const password = body.password ?? '';
+  const passwordConfirm = body.passwordConfirm ?? '';
+
+  if (!firstName || !lastName || !email || !password || password !== passwordConfirm) {
+    throw new Error('Invalid user creation payload.');
+  }
+
+  const token = await authenticatePocketBaseSuperuser(baseUrl, superuserEmail, superuserPassword);
+  const response = await fetch(`${baseUrl}/api/collections/users/records`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...body,
+      firstName,
+      lastName,
+      email,
+      verified: true,
+      emailVisibility: true,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`User creation failed: ${await response.text()}`);
+  }
+}
+
+async function authenticatePocketBaseSuperuser(baseUrl: string, superuserEmail: string, superuserPassword: string): Promise<string> {
+  const payload = {
+    identity: superuserEmail,
+    password: superuserPassword,
+  };
+  const endpoints = [
+    `${baseUrl}/api/collections/_superusers/auth-with-password`,
+    `${baseUrl}/api/admins/auth-with-password`,
+  ];
+
+  for (const endpoint of endpoints) {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      const data = await response.json() as { token?: string };
+      if (data.token) {
+        return data.token;
+      }
+    }
+  }
+
+  throw new Error('Unable to authenticate the local PocketBase administrator.');
 }
 
 function contentType(filePath: string): string {

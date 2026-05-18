@@ -4,8 +4,7 @@ export interface DesktopRuntimeConfig {
   appMode: 'desktop';
   pocketbaseUrl: string;
   pocketbaseAdminUrl?: string;
-  pocketbaseSuperuserEmail?: string;
-  pocketbaseSuperuserPassword?: string;
+  desktopApiToken?: string;
   mcpUrl?: string;
   mcpHealthUrl?: string;
 }

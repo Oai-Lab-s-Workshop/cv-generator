@@ -7,8 +7,7 @@ describe('renderConfigScript', () => {
       appMode: 'desktop',
       pocketbaseUrl: 'http://127.0.0.1:8090',
       pocketbaseAdminUrl: 'http://127.0.0.1:8090/_/',
-      pocketbaseSuperuserEmail: 'admin@example.test',
-      pocketbaseSuperuserPassword: 'secret-value',
+      desktopApiToken: 'desktop-api-token',
       mcpUrl: 'http://127.0.0.1:8081/mcp',
       mcpHealthUrl: 'http://127.0.0.1:8081/actuator/health',
     };
@@ -25,12 +24,25 @@ describe('renderConfigScript', () => {
       appMode: 'desktop',
       pocketbaseUrl: 'http://localhost:8090',
       pocketbaseAdminUrl: 'http://localhost:8090/_/',
-      pocketbaseSuperuserEmail: 'admin@example.test',
-      pocketbaseSuperuserPassword: 'value with "quotes"',
+      desktopApiToken: 'value with "quotes"',
       mcpUrl: 'http://localhost:8081/mcp',
       mcpHealthUrl: 'http://localhost:8081/health',
     });
 
     expect(script).toContain('value with \\"quotes\\"');
+  });
+
+  test('does not expose PocketBase superuser credentials', () => {
+    const script = renderConfigScript({
+      appMode: 'desktop',
+      pocketbaseUrl: 'http://localhost:8090',
+      pocketbaseAdminUrl: 'http://localhost:8090/_/',
+      desktopApiToken: 'desktop-api-token',
+      mcpUrl: 'http://localhost:8081/mcp',
+      mcpHealthUrl: 'http://localhost:8081/health',
+    });
+
+    expect(script).not.toContain('pocketbaseSuperuserEmail');
+    expect(script).not.toContain('pocketbaseSuperuserPassword');
   });
 });

@@ -73,7 +73,7 @@ class PocketBaseClientTest {
                         "Visual grid-based resume with strong project and profile presentation.",
                         "Split-sidebar resume with timeline-style experience and card-based project highlights.",
                         "Clean, compact, print-first CV designed to fit into a single A4 page. Dynamic sizing, great for showcasing lots of projects.",
-                        "Single-column minimalist resume with inline contact details and compact sections."
+                        "Harvard-style single-column resume with inline contact details, restrained typography, and compact sections."
                 );
         assertThat(result.get(2).extraSchema()).extracting(PocketBaseClient.ExtraFieldDescriptor::id)
                 .containsExactly("headline", "accentColor");
@@ -229,6 +229,28 @@ class PocketBaseClientTest {
         mockWebServer.takeRequest();
         RecordedRequest createRequest = mockWebServer.takeRequest();
         assertThat(createRequest.getBody().readUtf8()).contains("\"extra\":{\"modern\":{\"headline\":\"Senior developer\"}}");
+    }
+
+    @Test
+    void createTailoredProfile_usesProfileFallbackSlug_whenProfileNameIsNull() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("""
+                {
+                    "id": "profile123",
+                    "slug": "classic--profile-1700000000000"
+                }
+                """);
+
+        PocketBaseClient.CreateProfilePayload payload = new PocketBaseClient.CreateProfilePayload(
+                "Acme - Classic", null, "classic", "Summary",
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
+        );
+
+        client.createTailoredProfile("userId", payload);
+
+        mockWebServer.takeRequest();
+        RecordedRequest createRequest = mockWebServer.takeRequest();
+        assertThat(createRequest.getBody().readUtf8()).contains("\"slug\":\"classic--profile-");
     }
 
     @Test
