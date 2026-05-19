@@ -1,0 +1,85 @@
+@if (open) {
+  <div class="help-modal__backdrop" (click)="onBackdropClick()">
+    <div class="help-modal__panel" (click)="onPanelClick($event)">
+      <div class="help-modal__header">
+        <h2 class="help-modal__title">Comment vos donnees se connectent</h2>
+        <button type="button" class="help-modal__close" (click)="close.emit()" aria-label="Fermer">&times;</button>
+      </div>
+
+      <div class="help-modal__body">
+        <p class="help-modal__intro">Remplissez vos informations comme une bibliotheque : les elements de base alimentent ensuite les projets, les CV et les profils publics.</p>
+
+        <div class="help-diagram">
+          <div class="help-diagram__row help-diagram__row--top">
+            <div class="help-node">
+              <strong>Experiences</strong>
+              <span>Postes, missions, entreprises et dates</span>
+            </div>
+            <div class="help-node">
+              <strong>Competences</strong>
+              <span>Organisees par categories techniques, pro ou langues</span>
+            </div>
+            <div class="help-node">
+              <strong>Diplomes</strong>
+              <span>Formations et certifications</span>
+            </div>
+          </div>
+
+          <div class="help-diagram__arrow-row">
+            <span class="help-diagram__arrow">&#8595;</span>
+            <span class="help-diagram__arrow">&#8595;</span>
+            <span class="help-diagram__arrow">&#8595;</span>
+          </div>
+
+          <div class="help-diagram__cv">
+            <div class="help-node help-node--primary">
+              <strong>Profil / CV</strong>
+              <span>Assemblage final de toutes les donnees selectionnees</span>
+            </div>
+          </div>
+
+          <div class="help-diagram__arrow-row help-diagram__arrow-row--up">
+            <span class="help-diagram__arrow">&#8593;</span>
+            <span class="help-diagram__arrow">&#8593;</span>
+            <span class="help-diagram__arrow">&#8593;</span>
+            <span class="help-diagram__arrow">&#8593;</span>
+          </div>
+
+          <div class="help-diagram__row help-diagram__row--bottom">
+            <div class="help-node">
+              <strong>Realisations</strong>
+              <span>Preuves d'impact, reutilisables seules ou dans des projets</span>
+            </div>
+            <div class="help-node">
+              <strong>Projets</strong>
+              <span>Relient realisations et assets pour raconter un cas concret</span>
+            </div>
+            <div class="help-node">
+              <strong>Assets</strong>
+              <span>Images et documents utilisables dans les projets ou CV</span>
+            </div>
+            <div class="help-node">
+              <strong>Loisirs</strong>
+              <span>Centres d'interet personnels</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-fill-order">
+          <h3>Ordre conseille de saisie</h3>
+          <ol>
+            <li><strong>Assets & categories</strong> — importez vos fichiers et definissez vos categories de competences</li>
+            <li><strong>Realisations</strong> — creez des realisations reutilisables</li>
+            <li><strong>Projets</strong> — assemblez realisations et assets dans des projets concrets</li>
+            <li><strong>Experiences & competences</strong> — renseignez votre parcours et vos competences</li>
+            <li><strong>Diplomes & loisirs</strong> — completez avec vos formations et centres d'interet</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="help-modal__footer">
+        <button type="button" class="help-modal__done-btn" (click)="close.emit()">Compris !</button>
+      </div>
+    </div>
+  </div>
+}
