@@ -24,6 +24,7 @@ import { getErrorMessage } from '../../core/utils/error-message';
 import { HelpFabComponent } from '../../shared/components/help-fab/help-fab';
 import { HelpModalComponent } from '../../shared/components/help-modal/help-modal';
 import { Navbar } from '../../shared/components/navbar/navbar';
+import { TooltipDirective } from '../../shared/components/tooltip/tooltip';
 
 type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type SkillForm = Omit<SaveCurrentUserSkillInput, 'level' | 'sortOrder'> & { id?: string; level: number | null; sortOrder: number | null };
@@ -39,6 +40,7 @@ interface MaterialTab {
   readonly label: string;
   readonly eyebrow: string;
   readonly description: string;
+  readonly tooltipText: string;
 }
 
 const EMPTY_JOB_FORM: JobForm = {
@@ -101,7 +103,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
 
 @Component({
   selector: 'app-profile-material-page',
-  imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent],
+  imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent, TooltipDirective],
   templateUrl: './profile-material-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -150,13 +152,13 @@ export class ProfileMaterialPage implements OnInit {
   readonly newSkillCategoryName = signal('');
   readonly showHelpModal = signal(false);
   readonly materialTabs: MaterialTab[] = [
-    { section: 'jobs', label: 'Experiences', eyebrow: 'Parcours', description: 'Postes, missions et contexte chronologique.' },
-    { section: 'projects', label: 'Projets', eyebrow: 'Preuves', description: 'Cas concrets relies aux realisations et assets.' },
-    { section: 'skills', label: 'Competences', eyebrow: 'Savoir-faire', description: 'Competences groupees par categories.' },
-    { section: 'achievements', label: 'Realisations', eyebrow: 'Impact', description: 'Resultats reutilisables dans les projets et CV.' },
-    { section: 'degrees', label: 'Diplomes', eyebrow: 'Formation', description: 'Etudes, certifications et niveaux.' },
-    { section: 'hobbies', label: 'Loisirs', eyebrow: 'Profil', description: 'Centres d\'interet utiles au storytelling.' },
-    { section: 'assets', label: 'Assets', eyebrow: 'Medias', description: 'Images, documents et supports reutilisables.' },
+    { section: 'jobs', label: 'Experiences', eyebrow: 'Parcours', description: 'Postes, missions et contexte chronologique.', tooltipText: 'Vos experiences professionnelles : postes, missions et responsabilites' },
+    { section: 'projects', label: 'Projets', eyebrow: 'Preuves', description: 'Cas concrets relies aux realisations et assets.', tooltipText: 'Projets concrets reliant realisations et assets' },
+    { section: 'skills', label: 'Competences', eyebrow: 'Savoir-faire', description: 'Competences groupees par categories.', tooltipText: 'Competences organisees par categories (techniques, pro, langues...)' },
+    { section: 'achievements', label: 'Realisations', eyebrow: 'Impact', description: 'Resultats reutilisables dans les projets et CV.', tooltipText: 'Realisations reutilisables, preuves d\'impact mesurable' },
+    { section: 'degrees', label: 'Diplomes', eyebrow: 'Formation', description: 'Etudes, certifications et niveaux.', tooltipText: 'Diplomes, certifications et formations' },
+    { section: 'hobbies', label: 'Loisirs', eyebrow: 'Profil', description: 'Centres d\'interet utiles au storytelling.', tooltipText: 'Centres d\'interet et loisirs' },
+    { section: 'assets', label: 'Assets', eyebrow: 'Medias', description: 'Images, documents et supports reutilisables.', tooltipText: 'Fichiers media (images, documents) utilisables dans vos projets et CV' },
   ];
   readonly currentUser = this.authService.currentUser;
   readonly currentUserName = computed(() => {

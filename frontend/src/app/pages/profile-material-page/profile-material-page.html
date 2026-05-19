@@ -65,6 +65,7 @@
             [attr.aria-selected]="isActiveSection(tab.section)"
             [attr.aria-controls]="tab.section + '-section'"
             (click)="setActiveSection(tab.section)"
+            [appTooltip]="tab.tooltipText"
           >
             <span class="material-tab__meta">{{ tab.eyebrow }}</span>
             <span class="material-tab__main">
