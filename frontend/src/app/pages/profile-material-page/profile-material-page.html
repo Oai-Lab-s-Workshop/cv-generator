@@ -1,5 +1,6 @@
 <main class="material-page">
   <app-navbar />
+  <app-help-fab (open)="showHelpModal.set(true)" />
 
   <section class="material-hero">
     <div>
@@ -592,4 +593,6 @@
       </section>
     }
   }
+
+  <app-help-modal [open]="showHelpModal()" (close)="showHelpModal.set(false)" />
 </main>

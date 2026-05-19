@@ -21,6 +21,8 @@ import {
   SaveCurrentUserSkillInput,
 } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { HelpFabComponent } from '../../shared/components/help-fab/help-fab';
+import { HelpModalComponent } from '../../shared/components/help-modal/help-modal';
 import { Navbar } from '../../shared/components/navbar/navbar';
 
 type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
@@ -99,7 +101,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
 
 @Component({
   selector: 'app-profile-material-page',
-  imports: [FormsModule, Navbar, QuillModule],
+  imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent],
   templateUrl: './profile-material-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -146,6 +148,7 @@ export class ProfileMaterialPage implements OnInit {
   readonly projectAchievementQuery = signal('');
   readonly skillCategoryQuery = signal('');
   readonly newSkillCategoryName = signal('');
+  readonly showHelpModal = signal(false);
   readonly materialTabs: MaterialTab[] = [
     { section: 'jobs', label: 'Experiences', eyebrow: 'Parcours', description: 'Postes, missions et contexte chronologique.' },
     { section: 'projects', label: 'Projets', eyebrow: 'Preuves', description: 'Cas concrets relies aux realisations et assets.' },
