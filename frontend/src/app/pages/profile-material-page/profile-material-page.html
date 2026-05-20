@@ -89,44 +89,35 @@
       </div>
 
       <div class="editor-grid">
-        <label class="editor-field">
-          <span>Label</span>
-          <input [value]="jobForm().label" (input)="setJobFormValue('label', $any($event.target).value)" name="job-label" type="text" />
-        </label>
-        <label class="editor-field">
-          <span>Entreprise</span>
-          <input [value]="jobForm().company" (input)="setJobFormValue('company', $any($event.target).value)" name="job-company" type="text" />
-        </label>
-        <label class="editor-field">
-          <span>Poste</span>
-          <input [value]="jobForm().position" (input)="setJobFormValue('position', $any($event.target).value)" name="job-position" type="text" />
-        </label>
-        <label class="editor-field">
-          <span>Lieu</span>
-          <input [value]="jobForm().location" (input)="setJobFormValue('location', $any($event.target).value)" name="job-location" type="text" />
-        </label>
-        <label class="editor-field">
-          <span>Date de debut</span>
-          <input [value]="jobForm().startDate" (input)="setJobFormValue('startDate', $any($event.target).value)" name="job-start-date" type="date" />
-        </label>
-        <label class="editor-field">
-          <span>Date de fin</span>
-          <input [value]="jobForm().endDate" (input)="setJobFormValue('endDate', $any($event.target).value)" name="job-end-date" type="date" />
-        </label>
-        <label class="editor-field">
-          <span>Type</span>
-          <select [value]="jobForm().type" (change)="setJobFormValue('type', $any($event.target).value)" name="job-type">
+        <app-form-field label="Label" [required]="true" fieldId="job-label">
+          <input [value]="jobForm().label" (input)="setJobFormValue('label', $any($event.target).value)" id="job-label" type="text" />
+        </app-form-field>
+        <app-form-field label="Entreprise" [required]="true" fieldId="job-company">
+          <input [value]="jobForm().company" (input)="setJobFormValue('company', $any($event.target).value)" id="job-company" type="text" />
+        </app-form-field>
+        <app-form-field label="Poste" [required]="true" fieldId="job-position">
+          <input [value]="jobForm().position" (input)="setJobFormValue('position', $any($event.target).value)" id="job-position" type="text" />
+        </app-form-field>
+        <app-form-field label="Lieu" fieldId="job-location">
+          <input [value]="jobForm().location" (input)="setJobFormValue('location', $any($event.target).value)" id="job-location" type="text" />
+        </app-form-field>
+        <app-form-field label="Date de debut" [required]="true" fieldId="job-start-date">
+          <input [value]="jobForm().startDate" (input)="setJobFormValue('startDate', $any($event.target).value)" id="job-start-date" type="date" />
+        </app-form-field>
+        <app-form-field label="Date de fin" fieldId="job-end-date">
+          <input [value]="jobForm().endDate" (input)="setJobFormValue('endDate', $any($event.target).value)" id="job-end-date" type="date" />
+        </app-form-field>
+        <app-form-field label="Type" [required]="true" fieldId="job-type">
+          <select [value]="jobForm().type" (change)="setJobFormValue('type', $any($event.target).value)" id="job-type">
             <option value="work project">Work project</option>
             <option value="freelance">Freelance</option>
             <option value="sideproject">Side project</option>
           </select>
-        </label>
-        <label class="editor-field">
-          <span>Ordre</span>
-          <input [value]="jobForm().sortOrder ?? ''" (input)="setJobSortOrder($any($event.target).value)" name="job-sort-order" type="number" />
-        </label>
-        <div class="editor-field editor-field--full">
-          <span>Responsabilites</span>
+        </app-form-field>
+        <app-form-field label="Ordre" fieldId="job-sort-order">
+          <input [value]="jobForm().sortOrder ?? ''" (input)="setJobSortOrder($any($event.target).value)" id="job-sort-order" type="number" />
+        </app-form-field>
+        <app-form-field label="Responsabilites" class="editor-field--full" fieldId="job-responsibilities" helperText="Detaillez vos missions, resultats, contexte...">
           <quill-editor
             class="responsibilities-editor"
             format="html"
@@ -137,7 +128,7 @@
             [ngModel]="jobForm().responsibilities"
             (ngModelChange)="setJobFormValue('responsibilities', $event ?? '')"
           />
-        </div>
+        </app-form-field>
       </div>
 
       <div class="form-actions">
@@ -179,47 +170,39 @@
       </div>
 
       <div class="editor-grid">
-        <label class="editor-field">
-          <span>Nom</span>
-          <input [value]="projectForm().name" (input)="setProjectFormValue('name', $any($event.target).value)" name="project-name" type="text" />
-        </label>
-        <label class="editor-field">
-          <span>URL</span>
-          <input [value]="projectForm().url" (input)="setProjectFormValue('url', $any($event.target).value)" name="project-url" type="url" />
-        </label>
-        <label class="editor-field">
-          <span>Date</span>
-          <input [value]="projectForm().date" (input)="setProjectFormValue('date', $any($event.target).value)" name="project-date" type="text" />
-        </label>
-        <label class="editor-field">
-          <span>Type</span>
-          <select [value]="projectForm().type" (change)="setProjectFormValue('type', $any($event.target).value)" name="project-type">
+        <app-form-field label="Nom" [required]="true" fieldId="project-name">
+          <input [value]="projectForm().name" (input)="setProjectFormValue('name', $any($event.target).value)" id="project-name" type="text" />
+        </app-form-field>
+        <app-form-field label="URL" fieldId="project-url" helperText="https://example.com">
+          <input [value]="projectForm().url" (input)="setProjectFormValue('url', $any($event.target).value)" id="project-url" type="url" />
+        </app-form-field>
+        <app-form-field label="Date" fieldId="project-date">
+          <input [value]="projectForm().date" (input)="setProjectFormValue('date', $any($event.target).value)" id="project-date" type="date" />
+        </app-form-field>
+        <app-form-field label="Type" fieldId="project-type">
+          <select [value]="projectForm().type" (change)="setProjectFormValue('type', $any($event.target).value)" id="project-type">
             <option value="work project">Work project</option>
             <option value="freelance">Freelance</option>
             <option value="sideproject">Side project</option>
           </select>
-        </label>
-        <label class="editor-field">
-          <span>Asset lie</span>
-          <select [value]="projectForm().file" (change)="setProjectFormValue('file', $any($event.target).value)" name="project-file">
+        </app-form-field>
+        <app-form-field label="Asset lie" fieldId="project-file">
+          <select [value]="projectForm().file" (change)="setProjectFormValue('file', $any($event.target).value)" id="project-file">
             <option value="">Aucun</option>
             @for (asset of assets(); track asset.id) {
               <option [value]="asset.id">{{ asset.name || asset.file }}</option>
             }
           </select>
-        </label>
-        <label class="editor-field">
-          <span>Image projet</span>
-          <input type="file" accept="image/*" (change)="onProjectPictureSelected($event)" />
-        </label>
-        <label class="editor-field">
-          <span>Ordre</span>
-          <input [value]="projectForm().sortOrder ?? ''" (input)="setProjectSortOrder($any($event.target).value)" name="project-sort-order" type="number" />
-        </label>
-        <label class="editor-field editor-field--full">
-          <span>Description</span>
-          <textarea [value]="projectForm().description" (input)="setProjectFormValue('description', $any($event.target).value)" name="project-description" rows="4"></textarea>
-        </label>
+        </app-form-field>
+        <app-form-field label="Image projet" fieldId="project-picture">
+          <input type="file" accept="image/*" (change)="onProjectPictureSelected($event)" id="project-picture" />
+        </app-form-field>
+        <app-form-field label="Ordre" fieldId="project-sort-order">
+          <input [value]="projectForm().sortOrder ?? ''" (input)="setProjectSortOrder($any($event.target).value)" id="project-sort-order" type="number" />
+        </app-form-field>
+        <app-form-field label="Description" class="editor-field--full" fieldId="project-description">
+          <textarea [value]="projectForm().description" (input)="setProjectFormValue('description', $any($event.target).value)" id="project-description" rows="4"></textarea>
+        </app-form-field>
         <div class="editor-field editor-field--full">
           <span>Realisations liees</span>
           <div class="multiselect-panel">
@@ -340,10 +323,9 @@
       </div>
 
       <div class="editor-grid">
-        <label class="editor-field">
-          <span>Nom</span>
-          <input [value]="skillForm().name" (input)="setSkillFormValue('name', $any($event.target).value)" name="skill-name" type="text" />
-        </label>
+        <app-form-field label="Nom" [required]="true" fieldId="skill-name">
+          <input [value]="skillForm().name" (input)="setSkillFormValue('name', $any($event.target).value)" id="skill-name" type="text" />
+        </app-form-field>
         <div class="editor-field editor-field--full">
           <span>Categorie</span>
           <div class="multiselect-panel">
@@ -401,23 +383,20 @@
             </section>
           </div>
         </div>
-        <label class="editor-field">
-          <span>Type</span>
-          <select [value]="skillForm().type" (change)="setSkillFormValue('type', $any($event.target).value)" name="skill-type">
+        <app-form-field label="Type" fieldId="skill-type">
+          <select [value]="skillForm().type" (change)="setSkillFormValue('type', $any($event.target).value)" id="skill-type">
             <option value="Technical">Technical</option>
             <option value="Professional">Professional</option>
             <option value="Language">Language</option>
             <option value="Software">Software</option>
           </select>
-        </label>
-        <label class="editor-field">
-          <span>Niveau</span>
-          <input [value]="skillForm().level ?? ''" (input)="setSkillLevel($any($event.target).value)" name="skill-level" type="number" min="0" max="100" />
-        </label>
-        <label class="editor-field">
-          <span>Ordre</span>
-          <input [value]="skillForm().sortOrder ?? ''" (input)="setSkillSortOrder($any($event.target).value)" name="skill-sort-order" type="number" />
-        </label>
+        </app-form-field>
+        <app-form-field label="Niveau" fieldId="skill-level" helperText="0-100">
+          <input [value]="skillForm().level ?? ''" (input)="setSkillLevel($any($event.target).value)" id="skill-level" type="number" min="0" max="100" />
+        </app-form-field>
+        <app-form-field label="Ordre" fieldId="skill-sort-order">
+          <input [value]="skillForm().sortOrder ?? ''" (input)="setSkillSortOrder($any($event.target).value)" id="skill-sort-order" type="number" />
+        </app-form-field>
       </div>
 
       <div class="form-actions">
@@ -458,18 +437,15 @@
           <span class="count-pill">{{ achievements().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <label class="editor-field">
-            <span>Titre</span>
-            <input [value]="achievementForm().title" (input)="setAchievementFormValue('title', $any($event.target).value)" name="achievement-title" type="text" />
-          </label>
-          <label class="editor-field">
-            <span>Description</span>
-            <textarea [value]="achievementForm().description" (input)="setAchievementFormValue('description', $any($event.target).value)" rows="4"></textarea>
-          </label>
-          <label class="editor-field">
-            <span>Ordre</span>
-            <input [value]="achievementForm().sortOrder ?? ''" (input)="setAchievementSortOrder($any($event.target).value)" type="number" />
-          </label>
+          <app-form-field label="Titre" [required]="true" fieldId="achievement-title">
+            <input [value]="achievementForm().title" (input)="setAchievementFormValue('title', $any($event.target).value)" id="achievement-title" type="text" />
+          </app-form-field>
+          <app-form-field label="Description" fieldId="achievement-description">
+            <textarea [value]="achievementForm().description" (input)="setAchievementFormValue('description', $any($event.target).value)" id="achievement-description" rows="4"></textarea>
+          </app-form-field>
+          <app-form-field label="Ordre" fieldId="achievement-sort-order">
+            <input [value]="achievementForm().sortOrder ?? ''" (input)="setAchievementSortOrder($any($event.target).value)" id="achievement-sort-order" type="number" />
+          </app-form-field>
         </div>
         <div class="form-actions">
           <button type="button" class="primary-button" [disabled]="isSaving('achievements')" (click)="saveAchievement()">{{ achievementForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
@@ -498,11 +474,21 @@
           <span class="count-pill">{{ degrees().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <label class="editor-field"><span>Titre</span><input [value]="degreeForm().title" (input)="setDegreeFormValue('title', $any($event.target).value)" name="degree-title" type="text" /></label>
-          <label class="editor-field"><span>Ecole</span><input [value]="degreeForm().school" (input)="setDegreeFormValue('school', $any($event.target).value)" type="text" /></label>
-          <label class="editor-field"><span>Annee</span><input [value]="degreeForm().year" (input)="setDegreeFormValue('year', $any($event.target).value)" type="text" /></label>
-          <label class="editor-field"><span>Niveau</span><input [value]="degreeForm().level" (input)="setDegreeFormValue('level', $any($event.target).value)" type="text" /></label>
-          <label class="editor-field"><span>Ordre</span><input [value]="degreeForm().sortOrder ?? ''" (input)="setDegreeSortOrder($any($event.target).value)" type="number" /></label>
+          <app-form-field label="Titre" [required]="true" fieldId="degree-title">
+            <input [value]="degreeForm().title" (input)="setDegreeFormValue('title', $any($event.target).value)" id="degree-title" type="text" />
+          </app-form-field>
+          <app-form-field label="Ecole" fieldId="degree-school">
+            <input [value]="degreeForm().school" (input)="setDegreeFormValue('school', $any($event.target).value)" id="degree-school" type="text" />
+          </app-form-field>
+          <app-form-field label="Annee" fieldId="degree-year">
+            <input [value]="degreeForm().year" (input)="setDegreeFormValue('year', $any($event.target).value)" id="degree-year" type="date" />
+          </app-form-field>
+          <app-form-field label="Niveau" fieldId="degree-level">
+            <input [value]="degreeForm().level" (input)="setDegreeFormValue('level', $any($event.target).value)" id="degree-level" type="text" />
+          </app-form-field>
+          <app-form-field label="Ordre" fieldId="degree-sort-order">
+            <input [value]="degreeForm().sortOrder ?? ''" (input)="setDegreeSortOrder($any($event.target).value)" id="degree-sort-order" type="number" />
+          </app-form-field>
         </div>
         <div class="form-actions">
           <button type="button" class="primary-button" [disabled]="isSaving('degrees')" (click)="saveDegree()">{{ degreeForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
@@ -531,9 +517,15 @@
           <span class="count-pill">{{ hobbies().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <label class="editor-field"><span>Nom</span><input [value]="hobbyForm().name" (input)="setHobbyFormValue('name', $any($event.target).value)" name="hobby-name" type="text" /></label>
-          <label class="editor-field"><span>Description</span><textarea [value]="hobbyForm().description" (input)="setHobbyFormValue('description', $any($event.target).value)" rows="4"></textarea></label>
-          <label class="editor-field"><span>Ordre</span><input [value]="hobbyForm().sortOrder ?? ''" (input)="setHobbySortOrder($any($event.target).value)" type="number" /></label>
+          <app-form-field label="Nom" [required]="true" fieldId="hobby-name">
+            <input [value]="hobbyForm().name" (input)="setHobbyFormValue('name', $any($event.target).value)" id="hobby-name" type="text" />
+          </app-form-field>
+          <app-form-field label="Description" fieldId="hobby-description">
+            <textarea [value]="hobbyForm().description" (input)="setHobbyFormValue('description', $any($event.target).value)" id="hobby-description" rows="4"></textarea>
+          </app-form-field>
+          <app-form-field label="Ordre" fieldId="hobby-sort-order">
+            <input [value]="hobbyForm().sortOrder ?? ''" (input)="setHobbySortOrder($any($event.target).value)" id="hobby-sort-order" type="number" />
+          </app-form-field>
         </div>
         <div class="form-actions">
           <button type="button" class="primary-button" [disabled]="isSaving('hobbies')" (click)="saveHobby()">{{ hobbyForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
@@ -562,19 +554,26 @@
           <span class="count-pill">{{ assets().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <label class="editor-field"><span>Nom</span><input [value]="assetForm().name" (input)="setAssetFormValue('name', $any($event.target).value)" name="asset-name" type="text" /></label>
-          <label class="editor-field"><span>Texte alternatif</span><input [value]="assetForm().alt" (input)="setAssetFormValue('alt', $any($event.target).value)" type="text" /></label>
-          <label class="editor-field">
-            <span>Type</span>
-            <select [value]="assetForm().kind" (change)="setAssetFormValue('kind', $any($event.target).value)">
+          <app-form-field label="Nom" fieldId="asset-name">
+            <input [value]="assetForm().name" (input)="setAssetFormValue('name', $any($event.target).value)" id="asset-name" type="text" />
+          </app-form-field>
+          <app-form-field label="Texte alternatif" fieldId="asset-alt">
+            <input [value]="assetForm().alt" (input)="setAssetFormValue('alt', $any($event.target).value)" id="asset-alt" type="text" />
+          </app-form-field>
+          <app-form-field label="Type" fieldId="asset-kind">
+            <select [value]="assetForm().kind" (change)="setAssetFormValue('kind', $any($event.target).value)" id="asset-kind">
               <option value="image">Image</option>
               <option value="video">Video</option>
               <option value="document">Document</option>
               <option value="other">Autre</option>
             </select>
-          </label>
-          <label class="editor-field"><span>Fichier</span><input type="file" (change)="onAssetFileSelected($event)" /></label>
-          <label class="editor-field"><span>Ordre</span><input [value]="assetForm().sortOrder ?? ''" (input)="setAssetSortOrder($any($event.target).value)" type="number" /></label>
+          </app-form-field>
+          <app-form-field label="Fichier" fieldId="asset-file">
+            <input type="file" (change)="onAssetFileSelected($event)" id="asset-file" />
+          </app-form-field>
+          <app-form-field label="Ordre" fieldId="asset-sort-order">
+            <input [value]="assetForm().sortOrder ?? ''" (input)="setAssetSortOrder($any($event.target).value)" id="asset-sort-order" type="number" />
+          </app-form-field>
         </div>
         <div class="form-actions">
           <button type="button" class="primary-button" [disabled]="isSaving('assets')" (click)="saveAsset()">{{ assetForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
