@@ -138,12 +138,13 @@
         }
       </div>
 
-      <div class="material-list">
+      <div class="material-list" [appSortableList]="jobs()" (appSortableListChange)="onReorderJobs($event)">
         @if (jobs().length === 0) {
           <p class="empty-copy">Aucune experience enregistree.</p>
         } @else {
-          @for (job of jobs(); track job.id) {
-            <article class="material-row" [class.material-row--editing]="jobForm().id === job.id">
+          @for (job of jobs(); track job.id; let i = $index) {
+            <article class="material-row" [class.material-row--editing]="jobForm().id === job.id" [attr.draggable]="true" [attr.data-index]="i">
+              <i class="bi bi-grip-vertical drag-handle"></i>
               <div>
                 <h3>{{ job.company }}</h3>
                 <p>{{ job.position }} · {{ job.label }}</p>
@@ -156,6 +157,12 @@
           }
         }
       </div>
+      @if (sectionOrderDirty().jobs) {
+        <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().jobs" (click)="onUpdateOrder('jobs')">
+          @if (sectionOrderSaving().jobs) { <i class="bi bi-arrow-repeat spin"></i> }
+          {{ sectionOrderSaving().jobs ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
+        </button>
+      }
     </section>
     }
 
@@ -225,12 +232,13 @@
         }
       </div>
 
-      <div class="material-list material-list--cards">
+      <div class="material-list material-list--cards" [appSortableList]="projects()" (appSortableListChange)="onReorderProjects($event)">
         @if (projects().length === 0) {
           <p class="empty-copy">Aucun projet enregistre.</p>
         } @else {
-          @for (project of projects(); track project.id) {
-            <article class="material-row" [class.material-row--editing]="projectForm().id === project.id">
+          @for (project of projects(); track project.id; let i = $index) {
+            <article class="material-row" [class.material-row--editing]="projectForm().id === project.id" [attr.draggable]="true" [attr.data-index]="i">
+              <i class="bi bi-grip-vertical drag-handle"></i>
               @if (project.picture) {
                 <img class="material-thumb" [src]="project.picture" [alt]="project.name" />
               }
@@ -246,6 +254,12 @@
           }
         }
       </div>
+      @if (sectionOrderDirty().projects) {
+        <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().projects" (click)="onUpdateOrder('projects')">
+          @if (sectionOrderSaving().projects) { <i class="bi bi-arrow-repeat spin"></i> }
+          {{ sectionOrderSaving().projects ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
+        </button>
+      }
     </section>
     }
 
@@ -315,12 +329,13 @@
         }
       </div>
 
-      <div class="material-list">
+      <div class="material-list" [appSortableList]="skills()" (appSortableListChange)="onReorderSkills($event)">
         @if (skills().length === 0) {
           <p class="empty-copy">Aucune competence enregistree.</p>
         } @else {
-          @for (skill of skills(); track skill.id) {
-            <article class="material-row" [class.material-row--editing]="skillForm().id === skill.id">
+          @for (skill of skills(); track skill.id; let i = $index) {
+            <article class="material-row" [class.material-row--editing]="skillForm().id === skill.id" [attr.draggable]="true" [attr.data-index]="i">
+              <i class="bi bi-grip-vertical drag-handle"></i>
               <div>
                 <h3>{{ skill.name }}</h3>
                 <p>{{ getSkillDescription(skill) }}</p>
@@ -333,6 +348,12 @@
           }
         }
       </div>
+      @if (sectionOrderDirty().skills) {
+        <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().skills" (click)="onUpdateOrder('skills')">
+          @if (sectionOrderSaving().skills) { <i class="bi bi-arrow-repeat spin"></i> }
+          {{ sectionOrderSaving().skills ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
+        </button>
+      }
     </section>
     }
 
@@ -360,9 +381,10 @@
           <button type="button" class="primary-button" [disabled]="isSaving('achievements')" (click)="saveAchievement()">{{ achievementForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
           @if (achievementForm().id) { <button type="button" class="secondary-button" (click)="resetAchievementForm()">Annuler</button> }
         </div>
-        <div class="material-list">
-          @for (achievement of achievements(); track achievement.id) {
-            <article class="material-row" [class.material-row--editing]="achievementForm().id === achievement.id">
+        <div class="material-list" [appSortableList]="achievements()" (appSortableListChange)="onReorderAchievements($event)">
+          @for (achievement of achievements(); track achievement.id; let i = $index) {
+            <article class="material-row" [class.material-row--editing]="achievementForm().id === achievement.id" [attr.draggable]="true" [attr.data-index]="i">
+              <i class="bi bi-grip-vertical drag-handle"></i>
               <div><h3>{{ achievement.title }}</h3><p>{{ achievement.description || 'Sans description' }}</p></div>
               <button type="button" class="row-action" (click)="editAchievement(achievement)">Modifier</button>
             </article>
@@ -370,6 +392,12 @@
             <p class="empty-copy">Aucune realisation enregistree.</p>
           }
         </div>
+        @if (sectionOrderDirty().achievements) {
+          <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().achievements" (click)="onUpdateOrder('achievements')">
+            @if (sectionOrderSaving().achievements) { <i class="bi bi-arrow-repeat spin"></i> }
+            {{ sectionOrderSaving().achievements ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
+          </button>
+        }
       </section>
     }
 
@@ -403,9 +431,10 @@
           <button type="button" class="primary-button" [disabled]="isSaving('degrees')" (click)="saveDegree()">{{ degreeForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
           @if (degreeForm().id) { <button type="button" class="secondary-button" (click)="resetDegreeForm()">Annuler</button> }
         </div>
-        <div class="material-list">
-          @for (degree of degrees(); track degree.id) {
-            <article class="material-row" [class.material-row--editing]="degreeForm().id === degree.id">
+        <div class="material-list" [appSortableList]="degrees()" (appSortableListChange)="onReorderDegrees($event)">
+          @for (degree of degrees(); track degree.id; let i = $index) {
+            <article class="material-row" [class.material-row--editing]="degreeForm().id === degree.id" [attr.draggable]="true" [attr.data-index]="i">
+              <i class="bi bi-grip-vertical drag-handle"></i>
               <div><h3>{{ degree.title }}</h3><p>{{ degree.school || 'Sans ecole' }} · {{ degree.year || 'Sans annee' }}</p></div>
               <button type="button" class="row-action" (click)="editDegree(degree)">Modifier</button>
             </article>
@@ -413,6 +442,12 @@
             <p class="empty-copy">Aucun diplome enregistre.</p>
           }
         </div>
+        @if (sectionOrderDirty().degrees) {
+          <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().degrees" (click)="onUpdateOrder('degrees')">
+            @if (sectionOrderSaving().degrees) { <i class="bi bi-arrow-repeat spin"></i> }
+            {{ sectionOrderSaving().degrees ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
+          </button>
+        }
       </section>
     }
 
@@ -440,9 +475,10 @@
           <button type="button" class="primary-button" [disabled]="isSaving('hobbies')" (click)="saveHobby()">{{ hobbyForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
           @if (hobbyForm().id) { <button type="button" class="secondary-button" (click)="resetHobbyForm()">Annuler</button> }
         </div>
-        <div class="material-list">
-          @for (hobby of hobbies(); track hobby.id) {
-            <article class="material-row" [class.material-row--editing]="hobbyForm().id === hobby.id">
+        <div class="material-list" [appSortableList]="hobbies()" (appSortableListChange)="onReorderHobbies($event)">
+          @for (hobby of hobbies(); track hobby.id; let i = $index) {
+            <article class="material-row" [class.material-row--editing]="hobbyForm().id === hobby.id" [attr.draggable]="true" [attr.data-index]="i">
+              <i class="bi bi-grip-vertical drag-handle"></i>
               <div><h3>{{ hobby.name }}</h3><p>{{ hobby.description || 'Sans description' }}</p></div>
               <button type="button" class="row-action" (click)="editHobby(hobby)">Modifier</button>
             </article>
@@ -450,6 +486,12 @@
             <p class="empty-copy">Aucun loisir enregistre.</p>
           }
         </div>
+        @if (sectionOrderDirty().hobbies) {
+          <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().hobbies" (click)="onUpdateOrder('hobbies')">
+            @if (sectionOrderSaving().hobbies) { <i class="bi bi-arrow-repeat spin"></i> }
+            {{ sectionOrderSaving().hobbies ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
+          </button>
+        }
       </section>
     }
 
@@ -488,9 +530,10 @@
           <button type="button" class="primary-button" [disabled]="isSaving('assets')" (click)="saveAsset()">{{ assetForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
           @if (assetForm().id) { <button type="button" class="secondary-button" (click)="resetAssetForm()">Annuler</button> }
         </div>
-        <div class="material-list">
-          @for (asset of assets(); track asset.id) {
-            <article class="material-row" [class.material-row--editing]="assetForm().id === asset.id">
+        <div class="material-list" [appSortableList]="assets()" (appSortableListChange)="onReorderAssets($event)">
+          @for (asset of assets(); track asset.id; let i = $index) {
+            <article class="material-row" [class.material-row--editing]="assetForm().id === asset.id" [attr.draggable]="true" [attr.data-index]="i">
+              <i class="bi bi-grip-vertical drag-handle"></i>
               @if (asset.kind === 'image') { <img class="material-thumb" [src]="asset.file" [alt]="asset.alt || asset.name || 'Asset'" /> }
               <div><h3>{{ asset.name || 'Asset sans nom' }}</h3><p>{{ asset.kind || 'other' }} · {{ asset.alt || 'Sans alt' }}</p></div>
               <button type="button" class="row-action" (click)="editAsset(asset)">Modifier</button>
@@ -499,6 +542,12 @@
             <p class="empty-copy">Aucun asset enregistre.</p>
           }
         </div>
+        @if (sectionOrderDirty().assets) {
+          <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().assets" (click)="onUpdateOrder('assets')">
+            @if (sectionOrderSaving().assets) { <i class="bi bi-arrow-repeat spin"></i> }
+            {{ sectionOrderSaving().assets ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
+          </button>
+        }
       </section>
     }
   }

@@ -500,6 +500,58 @@ h1 {
   gap: 0.5rem;
 }
 
+.drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: light-dark(#94a3b8, #64748b);
+  cursor: grab;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.update-order-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 8px 16px;
+  border: 1px solid light-dark(#0f3d8c, #6a9ef5);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: light-dark(#0f3d8c, #6a9ef5);
+  background: light-dark(#eff6ff, rgba(111, 158, 245, 0.1));
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.update-order-btn:hover:not(:disabled) {
+  background: light-dark(#dbeafe, rgba(111, 158, 245, 0.18));
+}
+
+.update-order-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .material-thumb {
   width: 4.25rem;
   height: 4.25rem;

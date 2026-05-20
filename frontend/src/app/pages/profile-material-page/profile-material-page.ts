@@ -26,6 +26,7 @@ import { HelpFabComponent } from '../../shared/components/help-fab/help-fab';
 import { HelpModalComponent } from '../../shared/components/help-modal/help-modal';
 import { Navbar } from '../../shared/components/navbar/navbar';
 import { PickerComponent, PickerItem } from '../../shared/components/picker/picker';
+import { SortableListDirective } from '../../shared/components/sortable-list/sortable-list';
 import { TooltipDirective } from '../../shared/components/tooltip/tooltip';
 
 type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
@@ -105,7 +106,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
 
 @Component({
   selector: 'app-profile-material-page',
-  imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent, TooltipDirective, FormFieldComponent, PickerComponent],
+  imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent, TooltipDirective, FormFieldComponent, PickerComponent, SortableListDirective],
   templateUrl: './profile-material-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -153,6 +154,15 @@ export class ProfileMaterialPage implements OnInit {
   readonly skillCategoryQuery = signal('');
   readonly newSkillCategoryName = signal('');
   readonly showHelpModal = signal(false);
+  readonly sectionOrderDirty = signal<Record<MaterialSection, boolean>>({ jobs: false, projects: false, skills: false, achievements: false, degrees: false, hobbies: false, assets: false });
+  readonly sectionOrderSaving = signal<Record<MaterialSection, boolean>>({ jobs: false, projects: false, skills: false, achievements: false, degrees: false, hobbies: false, assets: false });
+  readonly persistedJobs = signal<Job[]>([]);
+  readonly persistedProjects = signal<Project[]>([]);
+  readonly persistedSkills = signal<Skill[]>([]);
+  readonly persistedAchievements = signal<Achievement[]>([]);
+  readonly persistedDegrees = signal<Degree[]>([]);
+  readonly persistedHobbies = signal<Hobby[]>([]);
+  readonly persistedAssets = signal<MediaFile[]>([]);
   readonly materialTabs: MaterialTab[] = [
     { section: 'jobs', label: 'Experiences', eyebrow: 'Parcours', description: 'Postes, missions et contexte chronologique.', tooltipText: 'Vos experiences professionnelles : postes, missions et responsabilites' },
     { section: 'projects', label: 'Projets', eyebrow: 'Preuves', description: 'Cas concrets relies aux realisations et assets.', tooltipText: 'Projets concrets reliant realisations et assets' },
@@ -789,6 +799,14 @@ export class ProfileMaterialPage implements OnInit {
       this.degrees.set(data.degrees);
       this.hobbies.set(data.hobbies);
       this.assets.set(data.files);
+      this.persistedJobs.set([...data.jobs]);
+      this.persistedProjects.set([...data.projects]);
+      this.persistedSkills.set([...data.skills]);
+      this.persistedAchievements.set([...data.achievements]);
+      this.persistedDegrees.set([...data.degrees]);
+      this.persistedHobbies.set([...data.hobbies]);
+      this.persistedAssets.set([...data.files]);
+      this.sectionOrderDirty.set({ jobs: false, projects: false, skills: false, achievements: false, degrees: false, hobbies: false, assets: false });
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
@@ -842,6 +860,81 @@ export class ProfileMaterialPage implements OnInit {
       return null;
     } finally {
       this.creatingSkillCategory.set(false);
+    }
+  }
+
+  onReorderJobs(reordered: Job[]): void {
+    this.jobs.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, jobs: true }));
+  }
+
+  onReorderProjects(reordered: Project[]): void {
+    this.projects.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, projects: true }));
+  }
+
+  onReorderSkills(reordered: Skill[]): void {
+    this.skills.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, skills: true }));
+  }
+
+  onReorderAchievements(reordered: Achievement[]): void {
+    this.achievements.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, achievements: true }));
+  }
+
+  onReorderDegrees(reordered: Degree[]): void {
+    this.degrees.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, degrees: true }));
+  }
+
+  onReorderHobbies(reordered: Hobby[]): void {
+    this.hobbies.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, hobbies: true }));
+  }
+
+  onReorderAssets(reordered: MediaFile[]): void {
+    this.assets.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, assets: true }));
+  }
+
+  async onUpdateOrder(section: MaterialSection): Promise<void> {
+    const collectionMap: Record<MaterialSection, 'jobs' | 'projects' | 'skills' | 'achievements' | 'degrees' | 'hobbies' | 'files'> = {
+      jobs: 'jobs', projects: 'projects', skills: 'skills', achievements: 'achievements', degrees: 'degrees', hobbies: 'hobbies', assets: 'files',
+    };
+    const collection = collectionMap[section];
+    const itemsMap: Record<MaterialSection, { id: string; sortOrder: number }[]> = {
+      jobs: this.jobs().map((j, i) => ({ id: j.id, sortOrder: i + 1 })),
+      projects: this.projects().map((p, i) => ({ id: p.id, sortOrder: i + 1 })),
+      skills: this.skills().map((s, i) => ({ id: s.id, sortOrder: i + 1 })),
+      achievements: this.achievements().map((a, i) => ({ id: a.id, sortOrder: i + 1 })),
+      degrees: this.degrees().map((d, i) => ({ id: d.id, sortOrder: i + 1 })),
+      hobbies: this.hobbies().map((h, i) => ({ id: h.id, sortOrder: i + 1 })),
+      assets: this.assets().map((a, i) => ({ id: a.id, sortOrder: i + 1 })),
+    };
+    this.sectionOrderSaving.update((s) => ({ ...s, [section]: true }));
+    this.errorMessage.set(null);
+    try {
+      await this.pocketBaseService.updateCurrentUserSortOrders(collection, itemsMap[section]);
+      this.sectionOrderDirty.update((d) => ({ ...d, [section]: false }));
+      this.updatePersistedSnapshot(section);
+      this.successMessage.set('Ordre mis a jour.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.sectionOrderSaving.update((s) => ({ ...s, [section]: false }));
+    }
+  }
+
+  private updatePersistedSnapshot(section: MaterialSection): void {
+    switch (section) {
+      case 'jobs': this.persistedJobs.set([...this.jobs()]); break;
+      case 'projects': this.persistedProjects.set([...this.projects()]); break;
+      case 'skills': this.persistedSkills.set([...this.skills()]); break;
+      case 'achievements': this.persistedAchievements.set([...this.achievements()]); break;
+      case 'degrees': this.persistedDegrees.set([...this.degrees()]); break;
+      case 'hobbies': this.persistedHobbies.set([...this.hobbies()]); break;
+      case 'assets': this.persistedAssets.set([...this.assets()]); break;
     }
   }
 
