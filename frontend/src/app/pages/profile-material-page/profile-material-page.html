@@ -89,34 +89,37 @@
       </div>
 
       <div class="editor-grid">
-        <app-form-field label="Label" [required]="true" fieldId="job-label" [invalid]="isJobFieldInvalid('label')" errorMessage="Ce champ est requis">
-          <input [value]="jobForm().label" (input)="setJobFormValue('label', $any($event.target).value)" id="job-label" type="text" />
-        </app-form-field>
-        <app-form-field label="Entreprise" [required]="true" fieldId="job-company" [invalid]="isJobFieldInvalid('company')" errorMessage="Ce champ est requis">
-          <input [value]="jobForm().company" (input)="setJobFormValue('company', $any($event.target).value)" id="job-company" type="text" />
-        </app-form-field>
-        <app-form-field label="Poste" [required]="true" fieldId="job-position" [invalid]="isJobFieldInvalid('position')" errorMessage="Ce champ est requis">
-          <input [value]="jobForm().position" (input)="setJobFormValue('position', $any($event.target).value)" id="job-position" type="text" />
-        </app-form-field>
-        <app-form-field label="Lieu" fieldId="job-location">
-          <input [value]="jobForm().location" (input)="setJobFormValue('location', $any($event.target).value)" id="job-location" type="text" />
-        </app-form-field>
-        <app-form-field label="Date de debut" [required]="true" fieldId="job-start-date" [invalid]="isJobFieldInvalid('startDate')" errorMessage="Ce champ est requis">
-          <input [value]="jobForm().startDate" (input)="setJobFormValue('startDate', $any($event.target).value)" id="job-start-date" type="date" />
-        </app-form-field>
-        <app-form-field label="Date de fin" fieldId="job-end-date">
-          <input [value]="jobForm().endDate" (input)="setJobFormValue('endDate', $any($event.target).value)" id="job-end-date" type="date" />
-        </app-form-field>
-        <app-form-field label="Type" [required]="true" fieldId="job-type">
-          <select [value]="jobForm().type" (change)="setJobFormValue('type', $any($event.target).value)" id="job-type">
-            <option value="work project">Work project</option>
-            <option value="freelance">Freelance</option>
-            <option value="sideproject">Side project</option>
-          </select>
-        </app-form-field>
-        <app-form-field label="Ordre" fieldId="job-sort-order">
-          <input [value]="jobForm().sortOrder ?? ''" (input)="setJobSortOrder($any($event.target).value)" id="job-sort-order" type="number" />
-        </app-form-field>
+        <div class="form-section">
+          <span class="form-section__label">Informations principales</span>
+          <app-form-field label="Label" [required]="true" fieldId="job-label" [invalid]="isJobFieldInvalid('label')" errorMessage="Ce champ est requis">
+            <input [value]="jobForm().label" (input)="setJobFormValue('label', $any($event.target).value)" id="job-label" type="text" />
+          </app-form-field>
+          <app-form-field label="Entreprise" [required]="true" fieldId="job-company" [invalid]="isJobFieldInvalid('company')" errorMessage="Ce champ est requis">
+            <input [value]="jobForm().company" (input)="setJobFormValue('company', $any($event.target).value)" id="job-company" type="text" />
+          </app-form-field>
+          <app-form-field label="Poste" [required]="true" fieldId="job-position" [invalid]="isJobFieldInvalid('position')" errorMessage="Ce champ est requis">
+            <input [value]="jobForm().position" (input)="setJobFormValue('position', $any($event.target).value)" id="job-position" type="text" />
+          </app-form-field>
+        </div>
+        <div class="form-section">
+          <span class="form-section__label">Details</span>
+          <app-form-field label="Lieu" fieldId="job-location">
+            <input [value]="jobForm().location" (input)="setJobFormValue('location', $any($event.target).value)" id="job-location" type="text" />
+          </app-form-field>
+          <app-form-field label="Date de debut" [required]="true" fieldId="job-start-date" [invalid]="isJobFieldInvalid('startDate')" errorMessage="Ce champ est requis">
+            <input [value]="jobForm().startDate" (input)="setJobFormValue('startDate', $any($event.target).value)" id="job-start-date" type="date" />
+          </app-form-field>
+          <app-form-field label="Date de fin" fieldId="job-end-date">
+            <input [value]="jobForm().endDate" (input)="setJobFormValue('endDate', $any($event.target).value)" id="job-end-date" type="date" />
+          </app-form-field>
+          <app-form-field label="Type" [required]="true" fieldId="job-type">
+            <select [value]="jobForm().type" (change)="setJobFormValue('type', $any($event.target).value)" id="job-type">
+              <option value="work project">Work project</option>
+              <option value="freelance">Freelance</option>
+              <option value="sideproject">Side project</option>
+            </select>
+          </app-form-field>
+        </div>
         <app-form-field label="Responsabilites" class="editor-field--full" fieldId="job-responsibilities" helperText="Detaillez vos missions, resultats, contexte...">
           <quill-editor
             class="responsibilities-editor"
@@ -177,40 +180,43 @@
       </div>
 
       <div class="editor-grid">
-        <app-form-field label="Nom" [required]="true" fieldId="project-name" [invalid]="isProjectFieldInvalid('name')" errorMessage="Ce champ est requis">
-          <input [value]="projectForm().name" (input)="setProjectFormValue('name', $any($event.target).value)" id="project-name" type="text" />
-        </app-form-field>
-        <app-form-field label="URL" fieldId="project-url" helperText="https://example.com" [invalid]="isProjectUrlInvalid()" errorMessage="Format d'URL invalide">
-          <input [value]="projectForm().url" (input)="setProjectFormValue('url', $any($event.target).value)" id="project-url" type="url" />
-        </app-form-field>
-        <app-form-field label="Date" fieldId="project-date">
-          <input [value]="projectForm().date" (input)="setProjectFormValue('date', $any($event.target).value)" id="project-date" type="date" />
-        </app-form-field>
-        <app-form-field label="Type" fieldId="project-type">
-          <select [value]="projectForm().type" (change)="setProjectFormValue('type', $any($event.target).value)" id="project-type">
-            <option value="work project">Work project</option>
-            <option value="freelance">Freelance</option>
-            <option value="sideproject">Side project</option>
-          </select>
-        </app-form-field>
-        <app-form-field label="Asset lie" fieldId="project-file">
-          <app-picker
-            mode="single"
-            [items]="assetPickerItems()"
-            [selected]="selectedProjectFileIds()"
-            placeholder="Aucun"
-            (selectionChange)="onProjectAssetSelectionChange($event)"
-          />
-        </app-form-field>
-        <app-form-field label="Image projet" fieldId="project-picture">
-          <input type="file" accept="image/*" (change)="onProjectPictureSelected($event)" id="project-picture" />
-        </app-form-field>
-        <app-form-field label="Ordre" fieldId="project-sort-order">
-          <input [value]="projectForm().sortOrder ?? ''" (input)="setProjectSortOrder($any($event.target).value)" id="project-sort-order" type="number" />
-        </app-form-field>
-        <app-form-field label="Description" class="editor-field--full" fieldId="project-description">
-          <textarea [value]="projectForm().description" (input)="setProjectFormValue('description', $any($event.target).value)" id="project-description" rows="4"></textarea>
-        </app-form-field>
+        <div class="form-section">
+          <span class="form-section__label">Informations principales</span>
+          <app-form-field label="Nom" [required]="true" fieldId="project-name" [invalid]="isProjectFieldInvalid('name')" errorMessage="Ce champ est requis">
+            <input [value]="projectForm().name" (input)="setProjectFormValue('name', $any($event.target).value)" id="project-name" type="text" />
+          </app-form-field>
+          <app-form-field label="URL" fieldId="project-url" helperText="https://example.com" [invalid]="isProjectUrlInvalid()" errorMessage="Format d'URL invalide">
+            <input [value]="projectForm().url" (input)="setProjectFormValue('url', $any($event.target).value)" id="project-url" type="url" />
+          </app-form-field>
+          <app-form-field label="Date" fieldId="project-date">
+            <input [value]="projectForm().date" (input)="setProjectFormValue('date', $any($event.target).value)" id="project-date" type="date" />
+          </app-form-field>
+          <app-form-field label="Type" fieldId="project-type">
+            <select [value]="projectForm().type" (change)="setProjectFormValue('type', $any($event.target).value)" id="project-type">
+              <option value="work project">Work project</option>
+              <option value="freelance">Freelance</option>
+              <option value="sideproject">Side project</option>
+            </select>
+          </app-form-field>
+        </div>
+        <div class="form-section">
+          <span class="form-section__label">Details</span>
+          <app-form-field label="Asset lie" fieldId="project-file">
+            <app-picker
+              mode="single"
+              [items]="assetPickerItems()"
+              [selected]="selectedProjectFileIds()"
+              placeholder="Aucun"
+              (selectionChange)="onProjectAssetSelectionChange($event)"
+            />
+          </app-form-field>
+          <app-form-field label="Image projet" fieldId="project-picture">
+            <input type="file" accept="image/*" (change)="onProjectPictureSelected($event)" id="project-picture" />
+          </app-form-field>
+          <app-form-field label="Description" class="editor-field--full" fieldId="project-description">
+            <textarea [value]="projectForm().description" (input)="setProjectFormValue('description', $any($event.target).value)" id="project-description" rows="4"></textarea>
+          </app-form-field>
+        </div>
         <app-form-field label="Realisations liees" class="editor-field--full" fieldId="project-achievements">
           <app-picker
             mode="multi"
@@ -317,9 +323,6 @@
         <app-form-field label="Niveau" fieldId="skill-level" helperText="0-100">
           <input [value]="skillForm().level ?? ''" (input)="setSkillLevel($any($event.target).value)" id="skill-level" type="number" min="0" max="100" />
         </app-form-field>
-        <app-form-field label="Ordre" fieldId="skill-sort-order">
-          <input [value]="skillForm().sortOrder ?? ''" (input)="setSkillSortOrder($any($event.target).value)" id="skill-sort-order" type="number" />
-        </app-form-field>
       </div>
 
       <div class="form-actions">
@@ -373,9 +376,6 @@
           <app-form-field label="Description" fieldId="achievement-description">
             <textarea [value]="achievementForm().description" (input)="setAchievementFormValue('description', $any($event.target).value)" id="achievement-description" rows="4"></textarea>
           </app-form-field>
-          <app-form-field label="Ordre" fieldId="achievement-sort-order">
-            <input [value]="achievementForm().sortOrder ?? ''" (input)="setAchievementSortOrder($any($event.target).value)" id="achievement-sort-order" type="number" />
-          </app-form-field>
         </div>
         <div class="form-actions">
           <button type="button" class="primary-button" [disabled]="isSaving('achievements')" (click)="saveAchievement()">{{ achievementForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
@@ -423,9 +423,6 @@
           <app-form-field label="Niveau" fieldId="degree-level">
             <input [value]="degreeForm().level" (input)="setDegreeFormValue('level', $any($event.target).value)" id="degree-level" type="text" />
           </app-form-field>
-          <app-form-field label="Ordre" fieldId="degree-sort-order">
-            <input [value]="degreeForm().sortOrder ?? ''" (input)="setDegreeSortOrder($any($event.target).value)" id="degree-sort-order" type="number" />
-          </app-form-field>
         </div>
         <div class="form-actions">
           <button type="button" class="primary-button" [disabled]="isSaving('degrees')" (click)="saveDegree()">{{ degreeForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
@@ -466,9 +463,6 @@
           </app-form-field>
           <app-form-field label="Description" fieldId="hobby-description">
             <textarea [value]="hobbyForm().description" (input)="setHobbyFormValue('description', $any($event.target).value)" id="hobby-description" rows="4"></textarea>
-          </app-form-field>
-          <app-form-field label="Ordre" fieldId="hobby-sort-order">
-            <input [value]="hobbyForm().sortOrder ?? ''" (input)="setHobbySortOrder($any($event.target).value)" id="hobby-sort-order" type="number" />
           </app-form-field>
         </div>
         <div class="form-actions">
@@ -521,9 +515,6 @@
           </app-form-field>
           <app-form-field label="Fichier" fieldId="asset-file">
             <input type="file" (change)="onAssetFileSelected($event)" id="asset-file" />
-          </app-form-field>
-          <app-form-field label="Ordre" fieldId="asset-sort-order">
-            <input [value]="assetForm().sortOrder ?? ''" (input)="setAssetSortOrder($any($event.target).value)" id="asset-sort-order" type="number" />
           </app-form-field>
         </div>
         <div class="form-actions">

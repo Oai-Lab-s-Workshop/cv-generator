@@ -283,10 +283,6 @@ export class ProfileMaterialPage implements OnInit {
     this.jobForm.update((form) => ({ ...form, [field]: value }));
   }
 
-  setJobSortOrder(value: string | number | null): void {
-    this.jobForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
-  }
-
   async saveJob(): Promise<void> {
     this.jobFormSubmitted.set(true);
     const form = this.jobForm();
@@ -337,10 +333,6 @@ export class ProfileMaterialPage implements OnInit {
 
   setSkillLevel(value: string | number | null): void {
     this.skillForm.update((form) => ({ ...form, level: this.toNullableNumber(value) }));
-  }
-
-  setSkillSortOrder(value: string | number | null): void {
-    this.skillForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
   }
 
   setSkillCategoryQuery(value: string): void {
@@ -424,10 +416,6 @@ export class ProfileMaterialPage implements OnInit {
 
   setProjectFormValue(field: keyof Omit<ProjectForm, 'id' | 'sortOrder' | 'achievements'>, value: string): void {
     this.projectForm.update((form) => ({ ...form, [field]: value }));
-  }
-
-  setProjectSortOrder(value: string | number | null): void {
-    this.projectForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
   }
 
   toggleProjectAchievement(achievementId: string, selected: boolean): void {
@@ -586,10 +574,6 @@ export class ProfileMaterialPage implements OnInit {
     this.achievementForm.update((form) => ({ ...form, [field]: value }));
   }
 
-  setAchievementSortOrder(value: string | number | null): void {
-    this.achievementForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
-  }
-
   async saveAchievement(): Promise<void> {
     this.achievementFormSubmitted.set(true);
     const form = this.achievementForm();
@@ -629,10 +613,6 @@ export class ProfileMaterialPage implements OnInit {
 
   setDegreeFormValue(field: keyof Omit<DegreeForm, 'id' | 'sortOrder'>, value: string): void {
     this.degreeForm.update((form) => ({ ...form, [field]: value }));
-  }
-
-  setDegreeSortOrder(value: string | number | null): void {
-    this.degreeForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
   }
 
   async saveDegree(): Promise<void> {
@@ -676,10 +656,6 @@ export class ProfileMaterialPage implements OnInit {
     this.hobbyForm.update((form) => ({ ...form, [field]: value }));
   }
 
-  setHobbySortOrder(value: string | number | null): void {
-    this.hobbyForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
-  }
-
   async saveHobby(): Promise<void> {
     this.hobbyFormSubmitted.set(true);
     const form = this.hobbyForm();
@@ -720,10 +696,6 @@ export class ProfileMaterialPage implements OnInit {
 
   setAssetFormValue(field: keyof Omit<AssetForm, 'id' | 'sortOrder'>, value: string): void {
     this.assetForm.update((form) => ({ ...form, [field]: value }));
-  }
-
-  setAssetSortOrder(value: string | number | null): void {
-    this.assetForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
   }
 
   onAssetFileSelected(event: Event): void {
