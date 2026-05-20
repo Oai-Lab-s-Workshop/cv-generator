@@ -16,7 +16,7 @@ h1 {
   grid-template-columns: minmax(13.5rem, 16rem) minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
-  width: min(100%, 92rem);
+  width: min(100%, 76rem);
   margin-inline: auto;
 }
 
