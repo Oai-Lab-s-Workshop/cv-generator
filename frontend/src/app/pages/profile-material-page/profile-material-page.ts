@@ -25,6 +25,7 @@ import { FormFieldComponent } from '../../shared/components/form-field/form-fiel
 import { HelpFabComponent } from '../../shared/components/help-fab/help-fab';
 import { HelpModalComponent } from '../../shared/components/help-modal/help-modal';
 import { Navbar } from '../../shared/components/navbar/navbar';
+import { PickerComponent, PickerItem } from '../../shared/components/picker/picker';
 import { TooltipDirective } from '../../shared/components/tooltip/tooltip';
 
 type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
@@ -104,7 +105,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
 
 @Component({
   selector: 'app-profile-material-page',
-  imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent, TooltipDirective, FormFieldComponent],
+  imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent, TooltipDirective, FormFieldComponent, PickerComponent],
   templateUrl: './profile-material-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -216,6 +217,23 @@ export class ProfileMaterialPage implements OnInit {
   });
   readonly canCreateSkillCategoryFromQuery = computed(() => this.canCreateSkillCategory(this.skillCategoryQuery()));
   readonly canCreateStandaloneSkillCategory = computed(() => this.canCreateSkillCategory(this.newSkillCategoryName()));
+  readonly projectAchievementPickerItems = computed<PickerItem[]>(() =>
+    this.achievements().map((a) => ({ id: a.id, label: a.title, subtitle: a.description || undefined })),
+  );
+  readonly skillCategoryPickerItems = computed<PickerItem[]>(() =>
+    this.skillCategories().map((c) => ({ id: c.id, label: c.name })),
+  );
+  readonly assetPickerItems = computed<PickerItem[]>(() =>
+    this.assets().map((a) => ({ id: a.id, label: a.name || a.file })),
+  );
+  readonly selectedProjectFileIds = computed<string[]>(() => {
+    const file = this.projectForm().file;
+    return file ? [file] : [];
+  });
+  readonly selectedSkillCategoryIds = computed<string[]>(() => {
+    const category = this.skillForm().category;
+    return category ? [category] : [];
+  });
 
   ngOnInit(): void {
     void this.loadMaterial();
@@ -443,6 +461,60 @@ export class ProfileMaterialPage implements OnInit {
     } finally {
       this.creatingProjectAchievement.set(false);
     }
+  }
+
+  onProjectAchievementSelectionChange(selectedIds: string[]): void {
+    this.projectForm.update((form) => ({ ...form, achievements: selectedIds }));
+  }
+
+  async onProjectAchievementCreate(name: string): Promise<void> {
+    const existingAchievement = this.achievements().find((a) => this.normalizeSearchValue(a.title) === this.normalizeSearchValue(name));
+    if (existingAchievement) {
+      this.onProjectAchievementSelectionChange([...(this.projectForm().achievements ?? []), existingAchievement.id]);
+      return;
+    }
+    this.creatingProjectAchievement.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+    try {
+      const created = await this.pocketBaseService.createCurrentUserAchievement({ title: name });
+      this.achievements.update((achievements) => [...achievements, created]);
+      this.onProjectAchievementSelectionChange([...(this.projectForm().achievements ?? []), created.id]);
+      this.successMessage.set('Realisation creee et liee au projet.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.creatingProjectAchievement.set(false);
+    }
+  }
+
+  onSkillCategorySelectionChange(selectedIds: string[]): void {
+    this.skillForm.update((form) => ({ ...form, category: selectedIds[0] ?? '' }));
+  }
+
+  async onSkillCategoryCreate(name: string): Promise<void> {
+    const existingCategory = this.skillCategories().find((c) => this.normalizeSearchValue(c.name) === this.normalizeSearchValue(name));
+    if (existingCategory) {
+      this.onSkillCategorySelectionChange([existingCategory.id]);
+      return;
+    }
+    this.creatingSkillCategory.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+    try {
+      const created = await this.pocketBaseService.createCurrentUserSkillCategory(name);
+      this.skillCategories.update((categories) => [...categories, created]);
+      this.onSkillCategorySelectionChange([created.id]);
+      this.successMessage.set('Categorie creee et selectionnee.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.creatingSkillCategory.set(false);
+    }
+  }
+
+  onProjectAssetSelectionChange(selectedIds: string[]): void {
+    this.projectForm.update((form) => ({ ...form, file: selectedIds[0] ?? '' }));
   }
 
   onProjectPictureSelected(event: Event): void {

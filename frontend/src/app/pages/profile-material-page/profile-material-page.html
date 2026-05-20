@@ -187,12 +187,13 @@
           </select>
         </app-form-field>
         <app-form-field label="Asset lie" fieldId="project-file">
-          <select [value]="projectForm().file" (change)="setProjectFormValue('file', $any($event.target).value)" id="project-file">
-            <option value="">Aucun</option>
-            @for (asset of assets(); track asset.id) {
-              <option [value]="asset.id">{{ asset.name || asset.file }}</option>
-            }
-          </select>
+          <app-picker
+            mode="single"
+            [items]="assetPickerItems()"
+            [selected]="selectedProjectFileIds()"
+            placeholder="Aucun"
+            (selectionChange)="onProjectAssetSelectionChange($event)"
+          />
         </app-form-field>
         <app-form-field label="Image projet" fieldId="project-picture">
           <input type="file" accept="image/*" (change)="onProjectPictureSelected($event)" id="project-picture" />
@@ -203,65 +204,18 @@
         <app-form-field label="Description" class="editor-field--full" fieldId="project-description">
           <textarea [value]="projectForm().description" (input)="setProjectFormValue('description', $any($event.target).value)" id="project-description" rows="4"></textarea>
         </app-form-field>
-        <div class="editor-field editor-field--full">
-          <span>Realisations liees</span>
-          <div class="multiselect-panel">
-            <label class="multiselect-search">
-              <span>Rechercher ou creer</span>
-              <input [value]="projectAchievementQuery()" (input)="setProjectAchievementQuery($any($event.target).value)" type="search" placeholder="Rechercher ou creer une realisation..." />
-            </label>
-
-            <section class="multiselect-section" aria-label="Realisations selectionnees">
-              <div class="multiselect-section__header">
-                <strong>Selectionnees</strong>
-                <span>{{ selectedProjectAchievements().length }}</span>
-              </div>
-              @if (selectedProjectAchievements().length === 0) {
-                <p class="empty-copy">Aucune realisation liee au projet.</p>
-              } @else {
-                <div class="selected-chip-list">
-                  @for (achievement of selectedProjectAchievements(); track achievement.id) {
-                    <article class="selected-chip">
-                      <span>{{ achievement.title }}</span>
-                      <button type="button" (click)="removeProjectAchievement(achievement.id)" aria-label="Retirer la realisation">Retirer</button>
-                    </article>
-                  }
-                </div>
-              }
-            </section>
-
-            <section class="multiselect-section" aria-label="Realisations disponibles">
-              <div class="multiselect-section__header">
-                <strong>Disponibles</strong>
-                <span>{{ filteredAvailableProjectAchievements().length }}</span>
-              </div>
-
-              @if (achievements().length === 0 && !projectAchievementQuery().trim()) {
-                <p class="empty-copy">Aucune realisation disponible. Tapez un titre pour en creer une.</p>
-              } @else if (filteredAvailableProjectAchievements().length === 0) {
-                <p class="empty-copy">Aucune realisation ne correspond a cette recherche.</p>
-              } @else {
-                <div class="option-list">
-                  @for (achievement of filteredAvailableProjectAchievements(); track achievement.id) {
-                    <article class="option-card">
-                      <div>
-                        <h3>{{ achievement.title }}</h3>
-                        <p>{{ achievement.description || 'Sans description' }}</p>
-                      </div>
-                      <button type="button" class="row-action" (click)="addProjectAchievement(achievement.id)">Ajouter</button>
-                    </article>
-                  }
-                </div>
-              }
-
-              @if (canCreateProjectAchievement()) {
-                <button type="button" class="create-inline-button" [disabled]="creatingProjectAchievement()" (click)="createAndLinkProjectAchievement()">
-                  {{ creatingProjectAchievement() ? 'Creation...' : 'Creer "' + projectAchievementQuery().trim() + '" et lier' }}
-                </button>
-              }
-            </section>
-          </div>
-        </div>
+        <app-form-field label="Realisations liees" class="editor-field--full" fieldId="project-achievements">
+          <app-picker
+            mode="multi"
+            [allowCreate]="true"
+            [items]="projectAchievementPickerItems()"
+            [selected]="projectForm().achievements ?? []"
+            placeholder="Rechercher ou creer une realisation..."
+            createLabel="Creer"
+            (selectionChange)="onProjectAchievementSelectionChange($event)"
+            (create)="onProjectAchievementCreate($event)"
+          />
+        </app-form-field>
       </div>
 
       <div class="form-actions">
@@ -326,63 +280,18 @@
         <app-form-field label="Nom" [required]="true" fieldId="skill-name">
           <input [value]="skillForm().name" (input)="setSkillFormValue('name', $any($event.target).value)" id="skill-name" type="text" />
         </app-form-field>
-        <div class="editor-field editor-field--full">
-          <span>Categorie</span>
-          <div class="multiselect-panel">
-            <label class="multiselect-search">
-              <span>Rechercher ou creer</span>
-              <input [value]="skillCategoryQuery()" (input)="setSkillCategoryQuery($any($event.target).value)" name="skill-category" type="search" placeholder="Rechercher ou creer une categorie..." />
-            </label>
-
-            <section class="multiselect-section" aria-label="Categorie selectionnee">
-              <div class="multiselect-section__header">
-                <strong>Selectionnee</strong>
-                <span>{{ selectedSkillCategory() ? 1 : 0 }}</span>
-              </div>
-              @if (selectedSkillCategory(); as category) {
-                <div class="selected-chip-list">
-                  <article class="selected-chip">
-                    <span>{{ category.name }}</span>
-                    <button type="button" (click)="clearSkillCategory()" aria-label="Retirer la categorie">Retirer</button>
-                  </article>
-                </div>
-              } @else {
-                <p class="empty-copy">Aucune categorie selectionnee.</p>
-              }
-            </section>
-
-            <section class="multiselect-section" aria-label="Categories disponibles">
-              <div class="multiselect-section__header">
-                <strong>Disponibles</strong>
-                <span>{{ filteredSkillCategories().length }}</span>
-              </div>
-
-              @if (skillCategories().length === 0 && !skillCategoryQuery().trim()) {
-                <p class="empty-copy">Aucune categorie disponible. Tapez un nom pour en creer une.</p>
-              } @else if (filteredSkillCategories().length === 0) {
-                <p class="empty-copy">Aucune categorie ne correspond a cette recherche.</p>
-              } @else {
-                <div class="option-list">
-                  @for (category of filteredSkillCategories(); track category.id) {
-                    <article class="option-card">
-                      <div>
-                        <h3>{{ category.name }}</h3>
-                        <p>Categorie de competences</p>
-                      </div>
-                      <button type="button" class="row-action" (click)="selectSkillCategory(category.id)">Choisir</button>
-                    </article>
-                  }
-                </div>
-              }
-
-              @if (canCreateSkillCategoryFromQuery()) {
-                <button type="button" class="create-inline-button" [disabled]="creatingSkillCategory()" (click)="createAndSelectSkillCategory()">
-                  {{ creatingSkillCategory() ? 'Creation...' : 'Creer "' + skillCategoryQuery().trim() + '" et choisir' }}
-                </button>
-              }
-            </section>
-          </div>
-        </div>
+        <app-form-field label="Categorie" class="editor-field--full" fieldId="skill-category">
+          <app-picker
+            mode="single"
+            [allowCreate]="true"
+            [items]="skillCategoryPickerItems()"
+            [selected]="selectedSkillCategoryIds()"
+            placeholder="Rechercher ou creer une categorie..."
+            createLabel="Creer"
+            (selectionChange)="onSkillCategorySelectionChange($event)"
+            (create)="onSkillCategoryCreate($event)"
+          />
+        </app-form-field>
         <app-form-field label="Type" fieldId="skill-type">
           <select [value]="skillForm().type" (change)="setSkillFormValue('type', $any($event.target).value)" id="skill-type">
             <option value="Technical">Technical</option>
