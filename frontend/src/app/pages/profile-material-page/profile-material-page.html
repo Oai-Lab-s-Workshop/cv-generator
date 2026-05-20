@@ -45,6 +45,7 @@
       <p>Chargement de vos informations...</p>
     </section>
   } @else {
+    <div class="material-workspace">
     <section class="material-tabs-card" aria-labelledby="material-tabs-title">
       <div class="material-tabs-card__header">
         <div>
@@ -571,6 +572,7 @@
         }
       </section>
     }
+    </div>
   }
 
   <app-help-modal [open]="showHelpModal()" (close)="showHelpModal.set(false)" />
