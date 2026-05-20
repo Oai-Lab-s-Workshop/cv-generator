@@ -297,32 +297,38 @@
       </div>
 
       <div class="editor-grid">
-        <app-form-field label="Nom" [required]="true" fieldId="skill-name" [invalid]="isSkillFieldInvalid('name')" errorMessage="Ce champ est requis">
-          <input [value]="skillForm().name" (input)="setSkillFormValue('name', $any($event.target).value)" id="skill-name" type="text" />
-        </app-form-field>
-        <app-form-field label="Categorie" class="editor-field--full" fieldId="skill-category">
-          <app-picker
-            mode="single"
-            [allowCreate]="true"
-            [items]="skillCategoryPickerItems()"
-            [selected]="selectedSkillCategoryIds()"
-            placeholder="Rechercher ou creer une categorie..."
-            createLabel="Creer"
-            (selectionChange)="onSkillCategorySelectionChange($event)"
-            (create)="onSkillCategoryCreate($event)"
-          />
-        </app-form-field>
-        <app-form-field label="Type" fieldId="skill-type">
-          <select [value]="skillForm().type" (change)="setSkillFormValue('type', $any($event.target).value)" id="skill-type">
-            <option value="Technical">Technical</option>
-            <option value="Professional">Professional</option>
-            <option value="Language">Language</option>
-            <option value="Software">Software</option>
-          </select>
-        </app-form-field>
-        <app-form-field label="Niveau" fieldId="skill-level" helperText="0-100">
-          <input [value]="skillForm().level ?? ''" (input)="setSkillLevel($any($event.target).value)" id="skill-level" type="number" min="0" max="100" />
-        </app-form-field>
+        <div class="form-section">
+          <span class="form-section__label">Informations principales</span>
+          <app-form-field label="Nom" [required]="true" fieldId="skill-name" [invalid]="isSkillFieldInvalid('name')" errorMessage="Ce champ est requis">
+            <input [value]="skillForm().name" (input)="setSkillFormValue('name', $any($event.target).value)" id="skill-name" type="text" />
+          </app-form-field>
+        </div>
+        <div class="form-section">
+          <span class="form-section__label">Details</span>
+          <app-form-field label="Categorie" class="editor-field--full" fieldId="skill-category">
+            <app-picker
+              mode="single"
+              [allowCreate]="true"
+              [items]="skillCategoryPickerItems()"
+              [selected]="selectedSkillCategoryIds()"
+              placeholder="Rechercher ou creer une categorie..."
+              createLabel="Creer"
+              (selectionChange)="onSkillCategorySelectionChange($event)"
+              (create)="onSkillCategoryCreate($event)"
+            />
+          </app-form-field>
+          <app-form-field label="Type" fieldId="skill-type">
+            <select [value]="skillForm().type" (change)="setSkillFormValue('type', $any($event.target).value)" id="skill-type">
+              <option value="Technical">Technical</option>
+              <option value="Professional">Professional</option>
+              <option value="Language">Language</option>
+              <option value="Software">Software</option>
+            </select>
+          </app-form-field>
+          <app-form-field label="Niveau" fieldId="skill-level" helperText="0-100">
+            <input [value]="skillForm().level ?? ''" (input)="setSkillLevel($any($event.target).value)" id="skill-level" type="number" min="0" max="100" />
+          </app-form-field>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -370,12 +376,18 @@
           <span class="count-pill">{{ achievements().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <app-form-field label="Titre" [required]="true" fieldId="achievement-title" [invalid]="isAchievementFieldInvalid('title')" errorMessage="Ce champ est requis">
-            <input [value]="achievementForm().title" (input)="setAchievementFormValue('title', $any($event.target).value)" id="achievement-title" type="text" />
-          </app-form-field>
-          <app-form-field label="Description" fieldId="achievement-description">
-            <textarea [value]="achievementForm().description" (input)="setAchievementFormValue('description', $any($event.target).value)" id="achievement-description" rows="4"></textarea>
-          </app-form-field>
+          <div class="form-section">
+            <span class="form-section__label">Informations principales</span>
+            <app-form-field label="Titre" [required]="true" fieldId="achievement-title" [invalid]="isAchievementFieldInvalid('title')" errorMessage="Ce champ est requis">
+              <input [value]="achievementForm().title" (input)="setAchievementFormValue('title', $any($event.target).value)" id="achievement-title" type="text" />
+            </app-form-field>
+          </div>
+          <div class="form-section">
+            <span class="form-section__label">Details</span>
+            <app-form-field label="Description" fieldId="achievement-description">
+              <textarea [value]="achievementForm().description" (input)="setAchievementFormValue('description', $any($event.target).value)" id="achievement-description" rows="4"></textarea>
+            </app-form-field>
+          </div>
         </div>
         <div class="form-actions">
           <button type="button" class="primary-button" [disabled]="isSaving('achievements')" (click)="saveAchievement()">{{ achievementForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
@@ -411,18 +423,24 @@
           <span class="count-pill">{{ degrees().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <app-form-field label="Titre" [required]="true" fieldId="degree-title" [invalid]="isDegreeFieldInvalid('title')" errorMessage="Ce champ est requis">
-            <input [value]="degreeForm().title" (input)="setDegreeFormValue('title', $any($event.target).value)" id="degree-title" type="text" />
-          </app-form-field>
-          <app-form-field label="Ecole" fieldId="degree-school">
-            <input [value]="degreeForm().school" (input)="setDegreeFormValue('school', $any($event.target).value)" id="degree-school" type="text" />
-          </app-form-field>
-          <app-form-field label="Annee" fieldId="degree-year">
-            <input [value]="degreeForm().year" (input)="setDegreeFormValue('year', $any($event.target).value)" id="degree-year" type="date" />
-          </app-form-field>
-          <app-form-field label="Niveau" fieldId="degree-level">
-            <input [value]="degreeForm().level" (input)="setDegreeFormValue('level', $any($event.target).value)" id="degree-level" type="text" />
-          </app-form-field>
+          <div class="form-section">
+            <span class="form-section__label">Informations principales</span>
+            <app-form-field label="Titre" [required]="true" fieldId="degree-title" [invalid]="isDegreeFieldInvalid('title')" errorMessage="Ce champ est requis">
+              <input [value]="degreeForm().title" (input)="setDegreeFormValue('title', $any($event.target).value)" id="degree-title" type="text" />
+            </app-form-field>
+          </div>
+          <div class="form-section">
+            <span class="form-section__label">Details</span>
+            <app-form-field label="Ecole" fieldId="degree-school">
+              <input [value]="degreeForm().school" (input)="setDegreeFormValue('school', $any($event.target).value)" id="degree-school" type="text" />
+            </app-form-field>
+            <app-form-field label="Annee" fieldId="degree-year">
+              <input [value]="degreeForm().year" (input)="setDegreeFormValue('year', $any($event.target).value)" id="degree-year" type="date" />
+            </app-form-field>
+            <app-form-field label="Niveau" fieldId="degree-level">
+              <input [value]="degreeForm().level" (input)="setDegreeFormValue('level', $any($event.target).value)" id="degree-level" type="text" />
+            </app-form-field>
+          </div>
         </div>
         <div class="form-actions">
           <button type="button" class="primary-button" [disabled]="isSaving('degrees')" (click)="saveDegree()">{{ degreeForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
@@ -458,12 +476,18 @@
           <span class="count-pill">{{ hobbies().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <app-form-field label="Nom" [required]="true" fieldId="hobby-name" [invalid]="isHobbyFieldInvalid('name')" errorMessage="Ce champ est requis">
-            <input [value]="hobbyForm().name" (input)="setHobbyFormValue('name', $any($event.target).value)" id="hobby-name" type="text" />
-          </app-form-field>
-          <app-form-field label="Description" fieldId="hobby-description">
-            <textarea [value]="hobbyForm().description" (input)="setHobbyFormValue('description', $any($event.target).value)" id="hobby-description" rows="4"></textarea>
-          </app-form-field>
+          <div class="form-section">
+            <span class="form-section__label">Informations principales</span>
+            <app-form-field label="Nom" [required]="true" fieldId="hobby-name" [invalid]="isHobbyFieldInvalid('name')" errorMessage="Ce champ est requis">
+              <input [value]="hobbyForm().name" (input)="setHobbyFormValue('name', $any($event.target).value)" id="hobby-name" type="text" />
+            </app-form-field>
+          </div>
+          <div class="form-section">
+            <span class="form-section__label">Details</span>
+            <app-form-field label="Description" fieldId="hobby-description">
+              <textarea [value]="hobbyForm().description" (input)="setHobbyFormValue('description', $any($event.target).value)" id="hobby-description" rows="4"></textarea>
+            </app-form-field>
+          </div>
         </div>
         <div class="form-actions">
           <button type="button" class="primary-button" [disabled]="isSaving('hobbies')" (click)="saveHobby()">{{ hobbyForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
@@ -499,23 +523,29 @@
           <span class="count-pill">{{ assets().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <app-form-field label="Nom" fieldId="asset-name">
-            <input [value]="assetForm().name" (input)="setAssetFormValue('name', $any($event.target).value)" id="asset-name" type="text" />
-          </app-form-field>
-          <app-form-field label="Texte alternatif" fieldId="asset-alt">
-            <input [value]="assetForm().alt" (input)="setAssetFormValue('alt', $any($event.target).value)" id="asset-alt" type="text" />
-          </app-form-field>
-          <app-form-field label="Type" fieldId="asset-kind">
-            <select [value]="assetForm().kind" (change)="setAssetFormValue('kind', $any($event.target).value)" id="asset-kind">
-              <option value="image">Image</option>
-              <option value="video">Video</option>
-              <option value="document">Document</option>
-              <option value="other">Autre</option>
-            </select>
-          </app-form-field>
-          <app-form-field label="Fichier" fieldId="asset-file">
-            <input type="file" (change)="onAssetFileSelected($event)" id="asset-file" />
-          </app-form-field>
+          <div class="form-section">
+            <span class="form-section__label">Informations principales</span>
+            <app-form-field label="Nom" fieldId="asset-name">
+              <input [value]="assetForm().name" (input)="setAssetFormValue('name', $any($event.target).value)" id="asset-name" type="text" />
+            </app-form-field>
+          </div>
+          <div class="form-section">
+            <span class="form-section__label">Details</span>
+            <app-form-field label="Texte alternatif" fieldId="asset-alt">
+              <input [value]="assetForm().alt" (input)="setAssetFormValue('alt', $any($event.target).value)" id="asset-alt" type="text" />
+            </app-form-field>
+            <app-form-field label="Type" fieldId="asset-kind">
+              <select [value]="assetForm().kind" (change)="setAssetFormValue('kind', $any($event.target).value)" id="asset-kind">
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+                <option value="document">Document</option>
+                <option value="other">Autre</option>
+              </select>
+            </app-form-field>
+            <app-form-field label="Fichier" fieldId="asset-file">
+              <input type="file" (change)="onAssetFileSelected($event)" id="asset-file" />
+            </app-form-field>
+          </div>
         </div>
         <div class="form-actions">
           <button type="button" class="primary-button" [disabled]="isSaving('assets')" (click)="saveAsset()">{{ assetForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
