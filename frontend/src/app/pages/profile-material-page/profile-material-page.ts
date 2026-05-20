@@ -28,6 +28,7 @@ import { Navbar } from '../../shared/components/navbar/navbar';
 import { PickerComponent, PickerItem } from '../../shared/components/picker/picker';
 import { SortableListDirective } from '../../shared/components/sortable-list/sortable-list';
 import { TooltipDirective } from '../../shared/components/tooltip/tooltip';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state';
 
 type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type SkillForm = Omit<SaveCurrentUserSkillInput, 'level' | 'sortOrder'> & { id?: string; level: number | null; sortOrder: number | null };
@@ -106,7 +107,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
 
 @Component({
   selector: 'app-profile-material-page',
-  imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent, TooltipDirective, FormFieldComponent, PickerComponent, SortableListDirective],
+  imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent, TooltipDirective, FormFieldComponent, PickerComponent, SortableListDirective, EmptyStateComponent],
   templateUrl: './profile-material-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

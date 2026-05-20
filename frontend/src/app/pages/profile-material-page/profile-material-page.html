@@ -140,7 +140,7 @@
 
       <div class="material-list" [appSortableList]="jobs()" (appSortableListChange)="onReorderJobs($event)">
         @if (jobs().length === 0) {
-          <p class="empty-copy">Aucune experience enregistree.</p>
+          <app-empty-state icon="bi-briefcase" title="Aucune experience enregistree" description="Ajoutez votre premiere experience professionnelle" actionLabel="Ajouter" (action)="setActiveSection('jobs')" />
         } @else {
           @for (job of jobs(); track job.id; let i = $index) {
             <article class="material-row" [class.material-row--editing]="jobForm().id === job.id" [attr.draggable]="true" [attr.data-index]="i">
@@ -234,7 +234,7 @@
 
       <div class="material-list material-list--cards" [appSortableList]="projects()" (appSortableListChange)="onReorderProjects($event)">
         @if (projects().length === 0) {
-          <p class="empty-copy">Aucun projet enregistre.</p>
+          <app-empty-state icon="bi-folder" title="Aucun projet enregistre" description="Ajoutez un premier projet pour illustrer vos competences" actionLabel="Ajouter" (action)="setActiveSection('projects')" />
         } @else {
           @for (project of projects(); track project.id; let i = $index) {
             <article class="material-row" [class.material-row--editing]="projectForm().id === project.id" [attr.draggable]="true" [attr.data-index]="i">
@@ -331,7 +331,7 @@
 
       <div class="material-list" [appSortableList]="skills()" (appSortableListChange)="onReorderSkills($event)">
         @if (skills().length === 0) {
-          <p class="empty-copy">Aucune competence enregistree.</p>
+          <app-empty-state icon="bi-lightbulb" title="Aucune competence enregistree" description="Ajoutez vos competences, organisees par categories" actionLabel="Ajouter" (action)="setActiveSection('skills')" />
         } @else {
           @for (skill of skills(); track skill.id; let i = $index) {
             <article class="material-row" [class.material-row--editing]="skillForm().id === skill.id" [attr.draggable]="true" [attr.data-index]="i">
@@ -389,7 +389,7 @@
               <button type="button" class="row-action" (click)="editAchievement(achievement)">Modifier</button>
             </article>
           } @empty {
-            <p class="empty-copy">Aucune realisation enregistree.</p>
+            <app-empty-state icon="bi-trophy" title="Aucune realisation enregistree" description="Creez des realisations reutilisables dans vos projets" actionLabel="Ajouter" (action)="setActiveSection('achievements')" />
           }
         </div>
         @if (sectionOrderDirty().achievements) {
@@ -439,7 +439,7 @@
               <button type="button" class="row-action" (click)="editDegree(degree)">Modifier</button>
             </article>
           } @empty {
-            <p class="empty-copy">Aucun diplome enregistre.</p>
+            <app-empty-state icon="bi-mortarboard" title="Aucun diplome enregistre" description="Ajoutez vos diplomes et formations" actionLabel="Ajouter" (action)="setActiveSection('degrees')" />
           }
         </div>
         @if (sectionOrderDirty().degrees) {
@@ -483,7 +483,7 @@
               <button type="button" class="row-action" (click)="editHobby(hobby)">Modifier</button>
             </article>
           } @empty {
-            <p class="empty-copy">Aucun loisir enregistre.</p>
+            <app-empty-state icon="bi-heart" title="Aucun loisir enregistre" description="Partagez vos centres d'interet" actionLabel="Ajouter" (action)="setActiveSection('hobbies')" />
           }
         </div>
         @if (sectionOrderDirty().hobbies) {
@@ -539,7 +539,7 @@
               <button type="button" class="row-action" (click)="editAsset(asset)">Modifier</button>
             </article>
           } @empty {
-            <p class="empty-copy">Aucun asset enregistre.</p>
+            <app-empty-state icon="bi-file-earmark" title="Aucun asset enregistre" description="Importez des fichiers media (images, documents)" actionLabel="Ajouter" (action)="setActiveSection('assets')" />
           }
         </div>
         @if (sectionOrderDirty().assets) {
