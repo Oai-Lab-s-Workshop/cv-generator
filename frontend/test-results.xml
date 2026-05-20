@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="60" failures="0" errors="0" time="5.394">
+  <testsuite name="TooltipDirective" errors="0" failures="0" skipped="0" timestamp="2026-05-20T14:45:28" time="2.239" tests="12">
+    <testcase classname="TooltipDirective should create" name="TooltipDirective should create" time="0.057">
+    </testcase>
+    <testcase classname="TooltipDirective should not show tooltip before hover" name="TooltipDirective should not show tooltip before hover" time="0.014">
+    </testcase>
+    <testcase classname="TooltipDirective shows tooltip after hover delay" name="TooltipDirective shows tooltip after hover delay" time="0.049">
+    </testcase>
+    <testcase classname="TooltipDirective removes tooltip on mouseleave" name="TooltipDirective removes tooltip on mouseleave" time="0.017">
+    </testcase>
+    <testcase classname="TooltipDirective follows pointer movement while visible" name="TooltipDirective follows pointer movement while visible" time="0.063">
+    </testcase>
+    <testcase classname="TooltipDirective does not render empty tooltip content" name="TooltipDirective does not render empty tooltip content" time="0.004">
+    </testcase>
+    <testcase classname="TooltipDirective keeps only one tooltip in the document" name="TooltipDirective keeps only one tooltip in the document" time="0.01">
+    </testcase>
+    <testcase classname="TooltipDirective does not show stale tooltip after rapid enter and leave" name="TooltipDirective does not show stale tooltip after rapid enter and leave" time="0.004">
+    </testcase>
+    <testcase classname="TooltipDirective cancels first pending tooltip when hovering another trigger" name="TooltipDirective cancels first pending tooltip when hovering another trigger" time="0.004">
+    </testcase>
+    <testcase classname="TooltipDirective cleans up tooltip when host is destroyed" name="TooltipDirective cleans up tooltip when host is destroyed" time="0.003">
+    </testcase>
+    <testcase classname="TooltipDirective shows and hides tooltip from keyboard focus" name="TooltipDirective shows and hides tooltip from keyboard focus" time="0.006">
+    </testcase>
+    <testcase classname="TooltipDirective keeps tooltip inside viewport edges" name="TooltipDirective keeps tooltip inside viewport edges" time="0.008">
+    </testcase>
+  </testsuite>
+  <testsuite name="ProfileMaterialPage" errors="0" failures="0" skipped="0" timestamp="2026-05-20T14:45:28" time="3.708" tests="48">
+    <testcase classname="ProfileMaterialPage should create" name="ProfileMaterialPage should create" time="0.318">
+    </testcase>
+    <testcase classname="ProfileMaterialPage renders 7 tab buttons" name="ProfileMaterialPage renders 7 tab buttons" time="0.027">
+    </testcase>
+    <testcase classname="ProfileMaterialPage shows help FAB" name="ProfileMaterialPage shows help FAB" time="0.032">
+    </testcase>
+    <testcase classname="ProfileMaterialPage shows help modal when FAB is clicked" name="ProfileMaterialPage shows help modal when FAB is clicked" time="0.021">
+    </testcase>
+    <testcase classname="ProfileMaterialPage closes help modal on Escape key" name="ProfileMaterialPage closes help modal on Escape key" time="0.023">
+    </testcase>
+    <testcase classname="ProfileMaterialPage shows empty state when collections are empty" name="ProfileMaterialPage shows empty state when collections are empty" time="0.021">
+    </testcase>
+    <testcase classname="ProfileMaterialPage displays material count in insight grid" name="ProfileMaterialPage displays material count in insight grid" time="0.023">
+    </testcase>
+    <testcase classname="ProfileMaterialPage switches active section when tab is clicked" name="ProfileMaterialPage switches active section when tab is clicked" time="0.032">
+    </testcase>
+    <testcase classname="ProfileMaterialPage adds a job via form submission" name="ProfileMaterialPage adds a job via form submission" time="0.03">
+    </testcase>
+    <testcase classname="ProfileMaterialPage prevents job save when required fields are empty" name="ProfileMaterialPage prevents job save when required fields are empty" time="0.019">
+    </testcase>
+    <testcase classname="ProfileMaterialPage shows inline validation errors after submit with empty required fields" name="ProfileMaterialPage shows inline validation errors after submit with empty required fields" time="0.022">
+    </testcase>
+    <testcase classname="ProfileMaterialPage edits an existing job when clicked" name="ProfileMaterialPage edits an existing job when clicked" time="0.016">
+    </testcase>
+    <testcase classname="ProfileMaterialPage resets job form" name="ProfileMaterialPage resets job form" time="0.015">
+    </testcase>
+    <testcase classname="ProfileMaterialPage reorders jobs and marks section dirty" name="ProfileMaterialPage reorders jobs and marks section dirty" time="0.035">
+    </testcase>
+    <testcase classname="ProfileMaterialPage saves reordered items via batch update" name="ProfileMaterialPage saves reordered items via batch update" time="0.026">
+    </testcase>
+    <testcase classname="ProfileMaterialPage shows error state when API fails" name="ProfileMaterialPage shows error state when API fails" time="0.027">
+    </testcase>
+    <testcase classname="ProfileMaterialPage validates project URL format" name="ProfileMaterialPage validates project URL format" time="0.029">
+    </testcase>
+    <testcase classname="ProfileMaterialPage accepts valid project URL" name="ProfileMaterialPage accepts valid project URL" time="0.023">
+    </testcase>
+    <testcase classname="ProfileMaterialPage adds a project with achievements" name="ProfileMaterialPage adds a project with achievements" time="0.027">
+    </testcase>
+    <testcase classname="ProfileMaterialPage creates and links a new achievement from picker" name="ProfileMaterialPage creates and links a new achievement from picker" time="0.021">
+    </testcase>
+    <testcase classname="ProfileMaterialPage creates and selects a skill category from picker" name="ProfileMaterialPage creates and selects a skill category from picker" time="0.022">
+    </testcase>
+    <testcase classname="ProfileMaterialPage adds a skill" name="ProfileMaterialPage adds a skill" time="0.064">
+    </testcase>
+    <testcase classname="ProfileMaterialPage adds an achievement" name="ProfileMaterialPage adds an achievement" time="0.025">
+    </testcase>
+    <testcase classname="ProfileMaterialPage adds a degree" name="ProfileMaterialPage adds a degree" time="0.024">
+    </testcase>
+    <testcase classname="ProfileMaterialPage adds a hobby" name="ProfileMaterialPage adds a hobby" time="0.018">
+    </testcase>
+    <testcase classname="ProfileMaterialPage computes total material count correctly" name="ProfileMaterialPage computes total material count correctly" time="0.018">
+    </testcase>
+    <testcase classname="ProfileMaterialPage gets correct section counts" name="ProfileMaterialPage gets correct section counts" time="0.015">
+    </testcase>
+    <testcase classname="ProfileMaterialPage selects project asset via picker" name="ProfileMaterialPage selects project asset via picker" time="0.015">
+    </testcase>
+    <testcase classname="ProfileMaterialPage selects skill category via picker" name="ProfileMaterialPage selects skill category via picker" time="0.019">
+    </testcase>
+    <testcase classname="ProfileMaterialPage clears skill category" name="ProfileMaterialPage clears skill category" time="0.019">
+    </testcase>
+    <testcase classname="ProfileMaterialPage shows editing pill when editing an item" name="ProfileMaterialPage shows editing pill when editing an item" time="0.022">
+    </testcase>
+    <testcase classname="ProfileMaterialPage resets project form clears achievements" name="ProfileMaterialPage resets project form clears achievements" time="0.023">
+    </testcase>
+    <testcase classname="ProfileMaterialPage resets asset form clears selected file" name="ProfileMaterialPage resets asset form clears selected file" time="0.031">
+    </testcase>
+    <testcase classname="ProfileMaterialPage normalizes HTML editor value with only br tag" name="ProfileMaterialPage normalizes HTML editor value with only br tag" time="0.018">
+    </testcase>
+    <testcase classname="ProfileMaterialPage normalizes HTML editor value with whitespace only" name="ProfileMaterialPage normalizes HTML editor value with whitespace only" time="0.015">
+    </testcase>
+    <testcase classname="ProfileMaterialPage preserves HTML editor value with real content" name="ProfileMaterialPage preserves HTML editor value with real content" time="0.016">
+    </testcase>
+    <testcase classname="ProfileMaterialPage preserves HTML editor value with media" name="ProfileMaterialPage preserves HTML editor value with media" time="0.015">
+    </testcase>
+    <testcase classname="ProfileMaterialPage matches fuzzy query on empty query" name="ProfileMaterialPage matches fuzzy query on empty query" time="0.016">
+    </testcase>
+    <testcase classname="ProfileMaterialPage matches fuzzy query on partial match" name="ProfileMaterialPage matches fuzzy query on partial match" time="0.016">
+    </testcase>
+    <testcase classname="ProfileMaterialPage does not match fuzzy query on no match" name="ProfileMaterialPage does not match fuzzy query on no match" time="0.018">
+    </testcase>
+    <testcase classname="ProfileMaterialPage detects subsequence match" name="ProfileMaterialPage detects subsequence match" time="0.02">
+    </testcase>
+    <testcase classname="ProfileMaterialPage detects non-subsequence" name="ProfileMaterialPage detects non-subsequence" time="0.015">
+    </testcase>
+    <testcase classname="ProfileMaterialPage converts string to nullable number" name="ProfileMaterialPage converts string to nullable number" time="0.017">
+    </testcase>
+    <testcase classname="ProfileMaterialPage optionalText returns undefined for empty string" name="ProfileMaterialPage optionalText returns undefined for empty string" time="0.037">
+    </testcase>
+    <testcase classname="ProfileMaterialPage optionalText returns trimmed text" name="ProfileMaterialPage optionalText returns trimmed text" time="0.022">
+    </testcase>
+    <testcase classname="ProfileMaterialPage shows success message after save" name="ProfileMaterialPage shows success message after save" time="0.02">
+    </testcase>
+    <testcase classname="ProfileMaterialPage shows saving state during save" name="ProfileMaterialPage shows saving state during save" time="0.014">
+    </testcase>
+    <testcase classname="ProfileMaterialPage updates persisted snapshot after reorder save" name="ProfileMaterialPage updates persisted snapshot after reorder save" time="0.016">
+    </testcase>
+  </testsuite>
+</testsuites>
