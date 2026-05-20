@@ -89,19 +89,19 @@
       </div>
 
       <div class="editor-grid">
-        <app-form-field label="Label" [required]="true" fieldId="job-label">
+        <app-form-field label="Label" [required]="true" fieldId="job-label" [invalid]="isJobFieldInvalid('label')" errorMessage="Ce champ est requis">
           <input [value]="jobForm().label" (input)="setJobFormValue('label', $any($event.target).value)" id="job-label" type="text" />
         </app-form-field>
-        <app-form-field label="Entreprise" [required]="true" fieldId="job-company">
+        <app-form-field label="Entreprise" [required]="true" fieldId="job-company" [invalid]="isJobFieldInvalid('company')" errorMessage="Ce champ est requis">
           <input [value]="jobForm().company" (input)="setJobFormValue('company', $any($event.target).value)" id="job-company" type="text" />
         </app-form-field>
-        <app-form-field label="Poste" [required]="true" fieldId="job-position">
+        <app-form-field label="Poste" [required]="true" fieldId="job-position" [invalid]="isJobFieldInvalid('position')" errorMessage="Ce champ est requis">
           <input [value]="jobForm().position" (input)="setJobFormValue('position', $any($event.target).value)" id="job-position" type="text" />
         </app-form-field>
         <app-form-field label="Lieu" fieldId="job-location">
           <input [value]="jobForm().location" (input)="setJobFormValue('location', $any($event.target).value)" id="job-location" type="text" />
         </app-form-field>
-        <app-form-field label="Date de debut" [required]="true" fieldId="job-start-date">
+        <app-form-field label="Date de debut" [required]="true" fieldId="job-start-date" [invalid]="isJobFieldInvalid('startDate')" errorMessage="Ce champ est requis">
           <input [value]="jobForm().startDate" (input)="setJobFormValue('startDate', $any($event.target).value)" id="job-start-date" type="date" />
         </app-form-field>
         <app-form-field label="Date de fin" fieldId="job-end-date">
@@ -177,10 +177,10 @@
       </div>
 
       <div class="editor-grid">
-        <app-form-field label="Nom" [required]="true" fieldId="project-name">
+        <app-form-field label="Nom" [required]="true" fieldId="project-name" [invalid]="isProjectFieldInvalid('name')" errorMessage="Ce champ est requis">
           <input [value]="projectForm().name" (input)="setProjectFormValue('name', $any($event.target).value)" id="project-name" type="text" />
         </app-form-field>
-        <app-form-field label="URL" fieldId="project-url" helperText="https://example.com">
+        <app-form-field label="URL" fieldId="project-url" helperText="https://example.com" [invalid]="isProjectUrlInvalid()" errorMessage="Format d'URL invalide">
           <input [value]="projectForm().url" (input)="setProjectFormValue('url', $any($event.target).value)" id="project-url" type="url" />
         </app-form-field>
         <app-form-field label="Date" fieldId="project-date">
@@ -291,7 +291,7 @@
       </div>
 
       <div class="editor-grid">
-        <app-form-field label="Nom" [required]="true" fieldId="skill-name">
+        <app-form-field label="Nom" [required]="true" fieldId="skill-name" [invalid]="isSkillFieldInvalid('name')" errorMessage="Ce champ est requis">
           <input [value]="skillForm().name" (input)="setSkillFormValue('name', $any($event.target).value)" id="skill-name" type="text" />
         </app-form-field>
         <app-form-field label="Categorie" class="editor-field--full" fieldId="skill-category">
@@ -367,7 +367,7 @@
           <span class="count-pill">{{ achievements().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <app-form-field label="Titre" [required]="true" fieldId="achievement-title">
+          <app-form-field label="Titre" [required]="true" fieldId="achievement-title" [invalid]="isAchievementFieldInvalid('title')" errorMessage="Ce champ est requis">
             <input [value]="achievementForm().title" (input)="setAchievementFormValue('title', $any($event.target).value)" id="achievement-title" type="text" />
           </app-form-field>
           <app-form-field label="Description" fieldId="achievement-description">
@@ -411,7 +411,7 @@
           <span class="count-pill">{{ degrees().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <app-form-field label="Titre" [required]="true" fieldId="degree-title">
+          <app-form-field label="Titre" [required]="true" fieldId="degree-title" [invalid]="isDegreeFieldInvalid('title')" errorMessage="Ce champ est requis">
             <input [value]="degreeForm().title" (input)="setDegreeFormValue('title', $any($event.target).value)" id="degree-title" type="text" />
           </app-form-field>
           <app-form-field label="Ecole" fieldId="degree-school">
@@ -461,7 +461,7 @@
           <span class="count-pill">{{ hobbies().length }}</span>
         </div>
         <div class="editor-grid editor-grid--single">
-          <app-form-field label="Nom" [required]="true" fieldId="hobby-name">
+          <app-form-field label="Nom" [required]="true" fieldId="hobby-name" [invalid]="isHobbyFieldInvalid('name')" errorMessage="Ce champ est requis">
             <input [value]="hobbyForm().name" (input)="setHobbyFormValue('name', $any($event.target).value)" id="hobby-name" type="text" />
           </app-form-field>
           <app-form-field label="Description" fieldId="hobby-description">

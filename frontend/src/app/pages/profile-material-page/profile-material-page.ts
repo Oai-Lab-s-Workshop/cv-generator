@@ -132,6 +132,13 @@ export class ProfileMaterialPage implements OnInit {
   readonly degreeForm = signal<DegreeForm>({ ...EMPTY_DEGREE_FORM });
   readonly hobbyForm = signal<HobbyForm>({ ...EMPTY_HOBBY_FORM });
   readonly assetForm = signal<AssetForm>({ ...EMPTY_ASSET_FORM });
+  readonly jobFormSubmitted = signal(false);
+  readonly projectFormSubmitted = signal(false);
+  readonly skillFormSubmitted = signal(false);
+  readonly achievementFormSubmitted = signal(false);
+  readonly degreeFormSubmitted = signal(false);
+  readonly hobbyFormSubmitted = signal(false);
+  readonly assetFormSubmitted = signal(false);
 
   readonly selectedProjectPicture = signal<File | null>(null);
   readonly selectedAssetFile = signal<File | null>(null);
@@ -281,6 +288,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   async saveJob(): Promise<void> {
+    this.jobFormSubmitted.set(true);
     const form = this.jobForm();
     const input: SaveCurrentUserJobInput = {
       label: form.label.trim(),
@@ -295,13 +303,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.label || !input.company || !input.position || !input.startDate || !input.type) {
-      this.errorMessage.set('Label, entreprise, poste, date de debut et type sont obligatoires pour une experience.');
       return;
     }
 
     await this.saveSection('jobs', form.id ? 'Experience mise a jour.' : 'Experience ajoutee.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserJob(form.id, input) : await this.pocketBaseService.createCurrentUserJob(input);
       this.resetJobForm();
+      this.jobFormSubmitted.set(false);
     });
   }
 
@@ -369,6 +377,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   async saveSkill(): Promise<void> {
+    this.skillFormSubmitted.set(true);
     const form = this.skillForm();
     const input: SaveCurrentUserSkillInput = {
       name: form.name.trim(),
@@ -379,13 +388,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.name) {
-      this.errorMessage.set('Le nom de la competence est obligatoire.');
       return;
     }
 
     await this.saveSection('skills', form.id ? 'Competence mise a jour.' : 'Competence ajoutee.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserSkill(form.id, input) : await this.pocketBaseService.createCurrentUserSkill(input);
       this.resetSkillForm();
+      this.skillFormSubmitted.set(false);
     });
   }
 
@@ -533,6 +542,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   async saveProject(): Promise<void> {
+    this.projectFormSubmitted.set(true);
     const form = this.projectForm();
     const input: SaveCurrentUserProjectInput = {
       name: form.name.trim(),
@@ -547,13 +557,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.name) {
-      this.errorMessage.set('Le nom du projet est obligatoire.');
       return;
     }
 
     await this.saveSection('projects', form.id ? 'Projet mis a jour.' : 'Projet ajoute.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserProject(form.id, input) : await this.pocketBaseService.createCurrentUserProject(input);
       this.resetProjectForm();
+      this.projectFormSubmitted.set(false);
     });
   }
 
@@ -581,6 +591,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   async saveAchievement(): Promise<void> {
+    this.achievementFormSubmitted.set(true);
     const form = this.achievementForm();
     const input: SaveCurrentUserAchievementInput = {
       title: form.title.trim(),
@@ -589,13 +600,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.title) {
-      this.errorMessage.set('Le titre de la realisation est obligatoire.');
       return;
     }
 
     await this.saveSection('achievements', form.id ? 'Realisation mise a jour.' : 'Realisation ajoutee.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserAchievement(form.id, input) : await this.pocketBaseService.createCurrentUserAchievement(input);
       this.resetAchievementForm();
+      this.achievementFormSubmitted.set(false);
     });
   }
 
@@ -625,6 +636,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   async saveDegree(): Promise<void> {
+    this.degreeFormSubmitted.set(true);
     const form = this.degreeForm();
     const input: SaveCurrentUserDegreeInput = {
       title: form.title.trim(),
@@ -635,13 +647,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.title) {
-      this.errorMessage.set('Le titre du diplome est obligatoire.');
       return;
     }
 
     await this.saveSection('degrees', form.id ? 'Diplome mis a jour.' : 'Diplome ajoute.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserDegree(form.id, input) : await this.pocketBaseService.createCurrentUserDegree(input);
       this.resetDegreeForm();
+      this.degreeFormSubmitted.set(false);
     });
   }
 
@@ -669,6 +681,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   async saveHobby(): Promise<void> {
+    this.hobbyFormSubmitted.set(true);
     const form = this.hobbyForm();
     const input: SaveCurrentUserHobbyInput = {
       name: form.name.trim(),
@@ -677,13 +690,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.name) {
-      this.errorMessage.set('Le nom du loisir est obligatoire.');
       return;
     }
 
     await this.saveSection('hobbies', form.id ? 'Loisir mis a jour.' : 'Loisir ajoute.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserHobby(form.id, input) : await this.pocketBaseService.createCurrentUserHobby(input);
       this.resetHobbyForm();
+      this.hobbyFormSubmitted.set(false);
     });
   }
 
@@ -718,6 +731,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   async saveAsset(): Promise<void> {
+    this.assetFormSubmitted.set(true);
     const form = this.assetForm();
     const input: SaveCurrentUserFileInput = {
       name: this.optionalText(form.name),
@@ -728,18 +742,48 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!form.id && !input.file) {
-      this.errorMessage.set('Le fichier est obligatoire pour creer un asset.');
       return;
     }
 
     await this.saveSection('assets', form.id ? 'Asset mis a jour.' : 'Asset ajoute.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserFile(form.id, input) : await this.pocketBaseService.createCurrentUserFile(input);
       this.resetAssetForm();
+      this.assetFormSubmitted.set(false);
     });
   }
 
   isSaving(section: string): boolean {
     return this.savingSection() === section;
+  }
+
+  isJobFieldInvalid(field: 'label' | 'company' | 'position' | 'startDate'): boolean {
+    return this.jobFormSubmitted() && !this.jobForm()[field]?.trim();
+  }
+
+  isProjectFieldInvalid(field: 'name'): boolean {
+    return this.projectFormSubmitted() && !this.projectForm()[field]?.trim();
+  }
+
+  isProjectUrlInvalid(): boolean {
+    const url = this.projectForm().url?.trim();
+    if (!this.projectFormSubmitted() || !url) return false;
+    try { new URL(url); return false; } catch { return true; }
+  }
+
+  isSkillFieldInvalid(field: 'name'): boolean {
+    return this.skillFormSubmitted() && !this.skillForm()[field]?.trim();
+  }
+
+  isAchievementFieldInvalid(field: 'title'): boolean {
+    return this.achievementFormSubmitted() && !this.achievementForm()[field]?.trim();
+  }
+
+  isDegreeFieldInvalid(field: 'title'): boolean {
+    return this.degreeFormSubmitted() && !this.degreeForm()[field]?.trim();
+  }
+
+  isHobbyFieldInvalid(field: 'name'): boolean {
+    return this.hobbyFormSubmitted() && !this.hobbyForm()[field]?.trim();
   }
 
   setActiveSection(section: MaterialSection): void {
