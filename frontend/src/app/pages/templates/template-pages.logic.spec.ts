@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Type } from '@angular/core';
+import { ChangeDetectorRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { CvProfileExtraService } from '../../core/services/cv-profile-extra.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
@@ -116,16 +116,80 @@ describe('CV template page logic', () => {
     component.ngOnDestroy();
   });
 
-  it('renders template pages with preview data through Angular inputs', async () => {
-    for (const TemplatePage of [MinimalCvPage, ModernCvPage, SupaCVPage, BentoCvPage] as Type<unknown>[]) {
-      const fixture = TestBed.createComponent(TemplatePage);
-      fixture.componentRef.setInput('previewData', cvData());
-      fixture.detectChanges();
-      await fixture.whenStable();
-      fixture.detectChanges();
+  it('covers bento fallback helpers and A4 fitting branches', () => {
+    const component = TestBed.runInInjectionContext(() => new BentoCvPage());
+    const api = component as never as Record<string, (...args: unknown[]) => unknown>;
+    const data = cvData() as never as { jobs: unknown[]; skills: unknown[]; degrees: unknown[]; profile: { slug: string }; user: { website?: string } | null };
 
-      expect(fixture.nativeElement.textContent).toContain('Jane');
-      fixture.destroy();
+    expect(api['getDisplayName']({ ...data, user: null, profile: { ...data.profile, profileName: 'Profile Name' } })).toBe('Profile Name');
+    expect(api['getDisplayName']({ ...data, user: null, profile: { ...data.profile, profileName: '' } })).toBe('Curriculum Vitae');
+    expect(api['getInitials']({ ...data, user: null, profile: { ...data.profile, profileName: 'Solo' } })).toBe('S');
+    expect(api['getRoleLines']({ ...data, profile: { ...data.profile, profileName: '' } })).toEqual(['Profil professionnel']);
+    expect(api['getExperienceYears']([])).toBe(1);
+    expect(api['getStrengthSkills']([{ id: 'lang', name: 'English', type: 'Language' }])).toHaveLength(1);
+    expect(api['getJobSkills']({ skills: ['missing'] }, data.skills)).toHaveLength(2);
+    expect(api['getVisibleDegrees']([1, 2, 3, 4, 5])).toHaveLength(4);
+    component.mode.set('tight');
+    expect(api['getVisibleDegrees']([1, 2, 3, 4, 5])).toHaveLength(3);
+    expect(api['getDateRange']({ startDate: null, endDate: null })).toBe("Debut - Aujourd'hui");
+    expect(api['getDate']('bad-date')).toBe('');
+    expect(api['extra']('missing')).toBeUndefined();
+    expect(api['extraText']('featuredProjects')).toBeNull();
+    expect(api['getProfileUrl']({ ...data, user: null })).toContain('/classic--profile-1');
+
+    component.cvData.set({ ...data, jobs: data.jobs, projects: [{ id: 'project-1' }, { id: 'project-2' }, { id: 'project-3' }] } as never);
+    (component as never as { bentoSheet?: { nativeElement: { scrollHeight: number } } }).bentoSheet = { nativeElement: { scrollHeight: 10_000 } };
+    api['fitToA4']();
+    expect(component.mode()).toBe('tight');
+    expect(component.visibleJobCount()).toBeGreaterThanOrEqual(4);
+
+    (component as never as { bentoSheet?: { nativeElement: { scrollHeight: number } } }).bentoSheet = { nativeElement: { scrollHeight: 100 } };
+    api['fitToA4']();
+    expect(component.mode()).toBe('full');
+  });
+
+  it('covers supa loading, project ordering and fitting branches', async () => {
+    const component = TestBed.runInInjectionContext(() => new SupaCVPage());
+    component.cvData.set(cvData() as never);
+    const api = component as never as Record<string, (...args: unknown[]) => unknown>;
+    const data = cvData() as never as { projects: { id: string }[]; skills: unknown[]; jobs: unknown[] };
+
+    expect(api['getDate']('bad-date')).toBe('');
+    expect(api['skillCategoryLabel']({ name: 'No category' })).toBe('Autre');
+    expect(api['skillCategoryClass']('Unknown', data.skills)).toBe('skill--tone-0');
+    expect(api['getVisibleProjects']([{ id: 'project-2' }, { id: 'project-1' }])).toEqual([{ id: 'project-2' }, { id: 'project-1' }]);
+    component.cvData.set({ ...(cvData() as object), profile: { ...(cvData() as never as { profile: object }).profile, extra: { classic: { featuredProjectIds: ['project-1'] } } } } as never);
+    expect(api['getVisibleProjects']([{ id: 'project-2' }, { id: 'project-1' }])).toEqual([{ id: 'project-1' }, { id: 'project-2' }]);
+
+    await api['loadCvData']('profile-1');
+    expect(component.isLoading()).toBe(false);
+
+    expect(api['mainFits']()).toBe(true);
+    const root = { getBoundingClientRect: () => ({ top: 0 }) };
+    const main = { scrollHeight: 10_000, getBoundingClientRect: () => ({ top: 0 }) };
+    (component as never as { resumeRoot?: { nativeElement: unknown }; resumeMain?: { nativeElement: unknown } }).resumeRoot = { nativeElement: root };
+    (component as never as { resumeRoot?: { nativeElement: unknown }; resumeMain?: { nativeElement: unknown } }).resumeMain = { nativeElement: main };
+    expect(api['mainFits']()).toBe(false);
+    api['fitSectionsToA4']();
+    expect(component.sectionModes().projects).toBe('compact');
+    expect(component.visibleProjectCount()).toBeGreaterThanOrEqual(1);
+
+    (main as { scrollHeight: number }).scrollHeight = 100;
+    api['fitSectionsToA4']();
+    expect(component.sectionModes().experience).toBe('full');
+  });
+
+  it('covers template pages error and previewData load paths', async () => {
+    // Test loadCvData error for each template
+    const ctors = [SupaCVPage, BentoCvPage, ModernCvPage, MinimalCvPage];
+    for (const Ctor of ctors) {
+      pocketBaseService.getCvDataByProfileId.mockRejectedValueOnce(new Error('Load error'));
+      const component = TestBed.runInInjectionContext(() => new Ctor());
+      const c = component as unknown as { loadCvData: (id: string) => Promise<void>; errorMessage: () => string | null; cvData: () => unknown; ngOnDestroy?: () => void };
+      await c.loadCvData('profile-1');
+      expect(c.errorMessage()).toBe('Load error');
+      expect(c.cvData()).toBeNull();
+      c.ngOnDestroy?.();
     }
   });
 

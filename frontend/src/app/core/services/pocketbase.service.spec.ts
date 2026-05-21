@@ -238,6 +238,170 @@ describe('PocketBaseService', () => {
   it('parses date strings safely', () => {
     expect(service.toDate()).toBeUndefined();
     expect(service.toDate('2024-01-02 03:04:05')?.getFullYear()).toBe(2024);
+    expect(service.toDate(null as never)).toBeUndefined();
+  });
+
+  it('resolves user links with override, null, and missing fields', () => {
+    const nullResult = service.resolveUserLinks({} as never, null);
+    expect(nullResult).toBeNull();
+    const user = { id: 'u1', firstName: 'A' } as never;
+    const override = { linkedin: 'https://li.test' };
+    const resolved = service.resolveUserLinks({ linkOverrides: override } as never, user);
+    expect((resolved as unknown as Record<string, unknown>)['linkedin']).toBe('https://li.test');
+    // Without overrides, should keep original
+    const noOverride = service.resolveUserLinks({} as never, { id: 'u2', github: 'gh' } as never);
+    expect((noOverride as unknown as Record<string, unknown>)['github']).toBe('gh');
+  });
+
+  it('gets profile by slug', async () => {
+    collections['cv_profiles'] = {
+      getFirstListItem: jest.fn().mockResolvedValue({
+        id: 'profile-1', slug: 'classic--profile-1', user: 'user-1', profileName: 'Jane',
+        profilePicture: 'p.png',
+        expand: { user: { id: 'user-1', firstName: 'Jane' } },
+      }),
+    } as never;
+    const profile = await service.getCvProfileBySlug('classic--profile-1');
+    expect(profile.profilePicture).toBe('https://files.test/profile-1/p.png');
+  });
+
+  it('gets all CV profiles', async () => {
+    collections['cv_profiles'] = {
+      getFullList: jest.fn().mockResolvedValue([{
+        id: 'profile-1', slug: 'a--p1', user: 'user-1', profileName: 'Test',
+        expand: { user: { id: 'user-1', firstName: 'T' }, profilePictureFile: null, coverPictureFile: null },
+      }]),
+    } as never;
+    const profiles = await service.getAllCvProfiles();
+    expect(profiles).toHaveLength(1);
+  });
+
+  it('gets current user CV profile by id', async () => {
+    collections['cv_profiles'] = {
+      getFirstListItem: jest.fn().mockResolvedValue({ id: 'p1', slug: 's', user: 'user-1', profileName: 'P' }),
+    } as never;
+    const profile = await service.getCurrentUserCvProfileById('p1');
+    expect(profile.id).toBe('p1');
+  });
+
+  it('sets link overrides for CV profile', async () => {
+    collections['cv_profiles'] = {
+      getFirstListItem: jest.fn().mockResolvedValue({ id: 'p1', user: 'user-1', profileName: 'P' }),
+      update: jest.fn().mockResolvedValue({ id: 'p1', user: 'user-1', profileName: 'P', linkOverrides: { github: 'gh' } }),
+    } as never;
+    const profile = await service.setLinkOverridesForCvProfile('p1', { github: 'gh' });
+    expect((profile as unknown as Record<string, unknown>)['linkOverrides']).toEqual({ github: 'gh' });
+  });
+
+  it('sets status for CV profile', async () => {
+    collections['cv_profiles'] = {
+      getFirstListItem: jest.fn().mockResolvedValue({ id: 'p1', user: 'user-1', profileName: 'P' }),
+      update: jest.fn().mockResolvedValue({ id: 'p1', user: 'user-1', profileName: 'P', status: 'sent' }),
+    } as never;
+    const profile = await service.setStatusForCvProfile('p1', 'sent');
+    expect((profile as unknown as Record<string, unknown>)['status']).toBe('sent');
+  });
+
+  it('updates sort orders', async () => {
+    for (const col of ['jobs', 'skills']) {
+      collections[col] = { update: jest.fn().mockResolvedValue({}) } as never;
+    }
+    await service.updateCurrentUserSortOrders('jobs', [{ id: 'j1', sortOrder: 1 }]);
+    expect(collections['jobs']['update']).toHaveBeenCalled();
+  });
+
+  it('normalizes project with null throws', () => {
+    expect(() => service['normalizeProject'](null as never)).toThrow('Project not found.');
+  });
+
+  it('normalizes skill with null throws', () => {
+    expect(() => service['normalizeSkill'](null as never)).toThrow('Skill not found.');
+  });
+
+  it('normalizes media file with null throws', () => {
+    expect(() => service['normalizeMediaFile'](null as never)).toThrow('File not found.');
+  });
+
+  it('normalizes CV profile with null throws', () => {
+    expect(() => service['normalizeCvProfile'](null as never)).toThrow('CV profile not found.');
+  });
+
+  it('handles project creation without currentUserId', async () => {
+    collections['projects'] = {
+      create: jest.fn((payload: unknown) => Promise.resolve(formDataToObject(payload))),
+    } as never;
+    const picture = new File(['x'], 'p.png');
+    const result = await service.createCurrentUserProject({ name: 'Proj', picture } as never);
+    expect(result).toBeTruthy();
+  });
+
+  it('handles media file creation with user', async () => {
+    collections['files'] = {
+      create: jest.fn((payload: unknown) => Promise.resolve(formDataToObject(payload))),
+    } as never;
+    const file = new File(['x'], 'doc.pdf');
+    const result = await service.createCurrentUserFile({ name: 'Doc', kind: 'document', file } as never);
+    expect((result as unknown as Record<string, unknown>)['user']).toBe('user-1');
+  });
+
+  it('gets projects and skills with normalization', async () => {
+    collections['projects'] = {
+      getFullList: jest.fn().mockResolvedValue([{ id: 'p1', picture: 'pic.png' }]),
+    } as never;
+    const projects = await service.getProjects(['p1']);
+    expect(projects).toHaveLength(1);
+    expect(projects[0].picture).toBe('https://files.test/p1/pic.png');
+
+    collections['skills'] = {
+      getFullList: jest.fn().mockResolvedValue([{ id: 's1', name: 'S', expand: { category: { id: 'c1', name: 'Cat' } } }]),
+    } as never;
+    const skills = await service.getSkills(['s1']);
+    expect(skills).toHaveLength(1);
+    expect(skills[0].expand?.category?.name).toBe('Cat');
+  });
+
+  it('gets editor data with all collections', async () => {
+    collections['cv_profiles'] = {
+      getFirstListItem: jest.fn().mockResolvedValue({
+        id: 'p1', user: 'user-1', profileName: 'P',
+        jobs: [], projects: [], skills: [], degrees: [], achievements: [], hobbies: [],
+      }),
+    } as never;
+    for (const name of ['jobs', 'projects', 'skills', 'degrees', 'achievements', 'hobbies', 'files']) {
+      collections[name] = {
+        getFullList: jest.fn().mockResolvedValue([]),
+      } as never;
+    }
+    const data = await service.getCurrentUserCvProfileEditorData('p1');
+    expect(data.profile).toBeDefined();
+  });
+
+  it('gets profile material data', async () => {
+    for (const name of ['jobs', 'skills', 'skill_categories', 'projects', 'achievements', 'degrees', 'hobbies', 'files']) {
+      collections[name] = {
+        getFullList: jest.fn().mockResolvedValue([]),
+      } as never;
+    }
+    const data = await service.getCurrentUserProfileMaterialData();
+    expect(data.jobs).toBeDefined();
+    expect(data.files).toBeDefined();
+  });
+
+  it('creates AI token with expiresAt', async () => {
+    collections['ai_tokens'] = {
+      create: jest.fn().mockResolvedValue({ id: 'tok', label: 'T' }),
+    } as never;
+    const result = await service.createCurrentUserAiToken({ label: 'T', expiresAt: '2025-12-31' });
+    expect(result.rawToken).toBeDefined();
+  });
+
+  it('normalizes skill without expand', async () => {
+    collections['skills'] = {
+      getFullList: jest.fn().mockResolvedValue([{ id: 's1', name: 'S' }]),
+    } as never;
+    const skills = await service.getSkills(['s1']);
+    expect(skills).toHaveLength(1);
+    expect(skills[0].expand).toBeUndefined();
   });
 
   function formDataToObject(payload: unknown): Record<string, unknown> {
