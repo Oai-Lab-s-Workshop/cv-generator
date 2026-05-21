@@ -47,4 +47,39 @@ describe('StartupStatusStore', () => {
     expect(nextSnapshot.steps).toHaveLength(STARTUP_STEPS.length);
     expect(nextSnapshot.steps[0].status).toBe('pending');
   });
+
+  test('falls back to boot failure when no step is active', () => {
+    const store = new StartupStatusStore();
+
+    store.failActive('No active step');
+    const snapshot = store.snapshot();
+
+    expect(snapshot.activeCode).toBe('BOOT-001');
+    expect(snapshot.failedCode).toBe('BOOT-001');
+    expect(snapshot.steps.find((step) => step.code === 'BOOT-001')?.detail).toBe('No active step');
+  });
+
+  test('tracks redirect URL and reporter facade transitions', () => {
+    const store = new StartupStatusStore();
+
+    store.reporter.start('WEB-010', 'serving');
+    store.reporter.ok('WEB-010', 'served');
+    store.setRedirectUrl('http://127.0.0.1:3000');
+    const snapshot = store.snapshot();
+
+    expect(snapshot.redirectUrl).toBe('http://127.0.0.1:3000');
+    expect(snapshot.activeCode).toBeNull();
+    expect(snapshot.steps.find((step) => step.code === 'WEB-010')?.status).toBe('ok');
+  });
+
+  test('reporter facade can mark a step as failed', () => {
+    const store = new StartupStatusStore();
+
+    store.reporter.fail('MCP-020', 'jar failed');
+    const snapshot = store.snapshot();
+
+    expect(snapshot.activeCode).toBe('MCP-020');
+    expect(snapshot.failedCode).toBe('MCP-020');
+    expect(snapshot.steps.find((step) => step.code === 'MCP-020')?.status).toBe('failed');
+  });
 });

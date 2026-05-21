@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { createServer } from 'node:net';
-import { getFreeLocalPort, waitForTcp } from './ports';
+import { getFreeLocalPort, waitForHttp, waitForTcp } from './ports';
 
 describe('port helpers', () => {
   test('allocates a usable local port', async () => {
@@ -23,6 +23,43 @@ describe('port helpers', () => {
       await expect(waitForTcp(port, 1_000)).resolves.toBeUndefined();
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  test('waits for a successful HTTP response', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (() => Promise.resolve(new Response('ok', { status: 200 }))) as typeof fetch;
+
+    try {
+      await expect(waitForHttp('http://127.0.0.1:1234', 10)).resolves.toBeUndefined();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test('reports HTTP timeout details', async () => {
+    const originalFetch = globalThis.fetch;
+    const originalSleep = Bun.sleep;
+    globalThis.fetch = (() => Promise.resolve(new Response('nope', { status: 503 }))) as typeof fetch;
+    Bun.sleep = (() => Promise.resolve()) as typeof Bun.sleep;
+
+    try {
+      await expect(waitForHttp('http://127.0.0.1:1234', 1)).rejects.toThrow('HTTP 503');
+    } finally {
+      globalThis.fetch = originalFetch;
+      Bun.sleep = originalSleep;
+    }
+  });
+
+  test('reports TCP timeout details', async () => {
+    const port = await getFreeLocalPort();
+    const originalSleep = Bun.sleep;
+    Bun.sleep = (() => Promise.resolve()) as typeof Bun.sleep;
+
+    try {
+      await expect(waitForTcp(port, 1)).rejects.toThrow(`Timed out waiting for TCP 127.0.0.1:${port}`);
+    } finally {
+      Bun.sleep = originalSleep;
     }
   });
 });
