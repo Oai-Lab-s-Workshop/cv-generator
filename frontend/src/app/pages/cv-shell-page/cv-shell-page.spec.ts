@@ -72,7 +72,7 @@ describe('CvShellPage', () => {
 
     expect(adminBar.textContent).toContain('Accueil');
     expect(adminBar.textContent).toContain('Preview');
-    expect(adminBar.textContent).toContain('Download PDF');
+    expect(adminBar.textContent).toContain('Imprimer');
     expect(adminBar.textContent).toContain('Fermer');
   });
 
