@@ -21,7 +21,14 @@ import {
   SaveCurrentUserSkillInput,
 } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { FormFieldComponent } from '../../shared/components/form-field/form-field';
+import { HelpFabComponent } from '../../shared/components/help-fab/help-fab';
+import { HelpModalComponent } from '../../shared/components/help-modal/help-modal';
 import { Navbar } from '../../shared/components/navbar/navbar';
+import { PickerComponent, PickerItem } from '../../shared/components/picker/picker';
+import { SortableListDirective } from '../../shared/components/sortable-list/sortable-list';
+import { TooltipDirective } from '../../shared/components/tooltip/tooltip';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state';
 
 type JobForm = Omit<SaveCurrentUserJobInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type SkillForm = Omit<SaveCurrentUserSkillInput, 'level' | 'sortOrder'> & { id?: string; level: number | null; sortOrder: number | null };
@@ -37,6 +44,7 @@ interface MaterialTab {
   readonly label: string;
   readonly eyebrow: string;
   readonly description: string;
+  readonly tooltipText: string;
 }
 
 const EMPTY_JOB_FORM: JobForm = {
@@ -99,7 +107,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
 
 @Component({
   selector: 'app-profile-material-page',
-  imports: [FormsModule, Navbar, QuillModule],
+  imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent, TooltipDirective, FormFieldComponent, PickerComponent, SortableListDirective, EmptyStateComponent],
   templateUrl: './profile-material-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -124,6 +132,13 @@ export class ProfileMaterialPage implements OnInit {
   readonly degreeForm = signal<DegreeForm>({ ...EMPTY_DEGREE_FORM });
   readonly hobbyForm = signal<HobbyForm>({ ...EMPTY_HOBBY_FORM });
   readonly assetForm = signal<AssetForm>({ ...EMPTY_ASSET_FORM });
+  readonly jobFormSubmitted = signal(false);
+  readonly projectFormSubmitted = signal(false);
+  readonly skillFormSubmitted = signal(false);
+  readonly achievementFormSubmitted = signal(false);
+  readonly degreeFormSubmitted = signal(false);
+  readonly hobbyFormSubmitted = signal(false);
+  readonly assetFormSubmitted = signal(false);
 
   readonly selectedProjectPicture = signal<File | null>(null);
   readonly selectedAssetFile = signal<File | null>(null);
@@ -146,14 +161,24 @@ export class ProfileMaterialPage implements OnInit {
   readonly projectAchievementQuery = signal('');
   readonly skillCategoryQuery = signal('');
   readonly newSkillCategoryName = signal('');
+  readonly showHelpModal = signal(false);
+  readonly sectionOrderDirty = signal<Record<MaterialSection, boolean>>({ jobs: false, projects: false, skills: false, achievements: false, degrees: false, hobbies: false, assets: false });
+  readonly sectionOrderSaving = signal<Record<MaterialSection, boolean>>({ jobs: false, projects: false, skills: false, achievements: false, degrees: false, hobbies: false, assets: false });
+  readonly persistedJobs = signal<Job[]>([]);
+  readonly persistedProjects = signal<Project[]>([]);
+  readonly persistedSkills = signal<Skill[]>([]);
+  readonly persistedAchievements = signal<Achievement[]>([]);
+  readonly persistedDegrees = signal<Degree[]>([]);
+  readonly persistedHobbies = signal<Hobby[]>([]);
+  readonly persistedAssets = signal<MediaFile[]>([]);
   readonly materialTabs: MaterialTab[] = [
-    { section: 'jobs', label: 'Experiences', eyebrow: 'Parcours', description: 'Postes, missions et contexte chronologique.' },
-    { section: 'projects', label: 'Projets', eyebrow: 'Preuves', description: 'Cas concrets relies aux realisations et assets.' },
-    { section: 'skills', label: 'Competences', eyebrow: 'Savoir-faire', description: 'Competences groupees par categories.' },
-    { section: 'achievements', label: 'Realisations', eyebrow: 'Impact', description: 'Resultats reutilisables dans les projets et CV.' },
-    { section: 'degrees', label: 'Diplomes', eyebrow: 'Formation', description: 'Etudes, certifications et niveaux.' },
-    { section: 'hobbies', label: 'Loisirs', eyebrow: 'Profil', description: 'Centres d\'interet utiles au storytelling.' },
-    { section: 'assets', label: 'Assets', eyebrow: 'Medias', description: 'Images, documents et supports reutilisables.' },
+    { section: 'jobs', label: 'Experiences', eyebrow: 'Parcours', description: 'Postes, missions et contexte chronologique.', tooltipText: 'Vos experiences professionnelles : postes, missions et responsabilites' },
+    { section: 'projects', label: 'Projets', eyebrow: 'Preuves', description: 'Cas concrets relies aux realisations et assets.', tooltipText: 'Projets concrets reliant realisations et assets' },
+    { section: 'skills', label: 'Competences', eyebrow: 'Savoir-faire', description: 'Competences groupees par categories.', tooltipText: 'Competences organisees par categories (techniques, pro, langues...)' },
+    { section: 'achievements', label: 'Realisations', eyebrow: 'Impact', description: 'Resultats reutilisables dans les projets et CV.', tooltipText: 'Realisations reutilisables, preuves d\'impact mesurable' },
+    { section: 'degrees', label: 'Diplomes', eyebrow: 'Formation', description: 'Etudes, certifications et niveaux.', tooltipText: 'Diplomes, certifications et formations' },
+    { section: 'hobbies', label: 'Loisirs', eyebrow: 'Profil', description: 'Centres d\'interet utiles au storytelling.', tooltipText: 'Centres d\'interet et loisirs' },
+    { section: 'assets', label: 'Assets', eyebrow: 'Medias', description: 'Images, documents et supports reutilisables.', tooltipText: 'Fichiers media (images, documents) utilisables dans vos projets et CV' },
   ];
   readonly currentUser = this.authService.currentUser;
   readonly currentUserName = computed(() => {
@@ -210,6 +235,23 @@ export class ProfileMaterialPage implements OnInit {
   });
   readonly canCreateSkillCategoryFromQuery = computed(() => this.canCreateSkillCategory(this.skillCategoryQuery()));
   readonly canCreateStandaloneSkillCategory = computed(() => this.canCreateSkillCategory(this.newSkillCategoryName()));
+  readonly projectAchievementPickerItems = computed<PickerItem[]>(() =>
+    this.achievements().map((a) => ({ id: a.id, label: a.title, subtitle: a.description || undefined })),
+  );
+  readonly skillCategoryPickerItems = computed<PickerItem[]>(() =>
+    this.skillCategories().map((c) => ({ id: c.id, label: c.name })),
+  );
+  readonly assetPickerItems = computed<PickerItem[]>(() =>
+    this.assets().map((a) => ({ id: a.id, label: a.name || a.file })),
+  );
+  readonly selectedProjectFileIds = computed<string[]>(() => {
+    const file = this.projectForm().file;
+    return file ? [file] : [];
+  });
+  readonly selectedSkillCategoryIds = computed<string[]>(() => {
+    const category = this.skillForm().category;
+    return category ? [category] : [];
+  });
 
   ngOnInit(): void {
     void this.loadMaterial();
@@ -241,11 +283,8 @@ export class ProfileMaterialPage implements OnInit {
     this.jobForm.update((form) => ({ ...form, [field]: value }));
   }
 
-  setJobSortOrder(value: string | number | null): void {
-    this.jobForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
-  }
-
   async saveJob(): Promise<void> {
+    this.jobFormSubmitted.set(true);
     const form = this.jobForm();
     const input: SaveCurrentUserJobInput = {
       label: form.label.trim(),
@@ -260,13 +299,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.label || !input.company || !input.position || !input.startDate || !input.type) {
-      this.errorMessage.set('Label, entreprise, poste, date de debut et type sont obligatoires pour une experience.');
       return;
     }
 
     await this.saveSection('jobs', form.id ? 'Experience mise a jour.' : 'Experience ajoutee.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserJob(form.id, input) : await this.pocketBaseService.createCurrentUserJob(input);
       this.resetJobForm();
+      this.jobFormSubmitted.set(false);
     });
   }
 
@@ -294,10 +333,6 @@ export class ProfileMaterialPage implements OnInit {
 
   setSkillLevel(value: string | number | null): void {
     this.skillForm.update((form) => ({ ...form, level: this.toNullableNumber(value) }));
-  }
-
-  setSkillSortOrder(value: string | number | null): void {
-    this.skillForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
   }
 
   setSkillCategoryQuery(value: string): void {
@@ -334,6 +369,7 @@ export class ProfileMaterialPage implements OnInit {
   }
 
   async saveSkill(): Promise<void> {
+    this.skillFormSubmitted.set(true);
     const form = this.skillForm();
     const input: SaveCurrentUserSkillInput = {
       name: form.name.trim(),
@@ -344,13 +380,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.name) {
-      this.errorMessage.set('Le nom de la competence est obligatoire.');
       return;
     }
 
     await this.saveSection('skills', form.id ? 'Competence mise a jour.' : 'Competence ajoutee.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserSkill(form.id, input) : await this.pocketBaseService.createCurrentUserSkill(input);
       this.resetSkillForm();
+      this.skillFormSubmitted.set(false);
     });
   }
 
@@ -380,10 +416,6 @@ export class ProfileMaterialPage implements OnInit {
 
   setProjectFormValue(field: keyof Omit<ProjectForm, 'id' | 'sortOrder' | 'achievements'>, value: string): void {
     this.projectForm.update((form) => ({ ...form, [field]: value }));
-  }
-
-  setProjectSortOrder(value: string | number | null): void {
-    this.projectForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
   }
 
   toggleProjectAchievement(achievementId: string, selected: boolean): void {
@@ -439,11 +471,66 @@ export class ProfileMaterialPage implements OnInit {
     }
   }
 
+  onProjectAchievementSelectionChange(selectedIds: string[]): void {
+    this.projectForm.update((form) => ({ ...form, achievements: selectedIds }));
+  }
+
+  async onProjectAchievementCreate(name: string): Promise<void> {
+    const existingAchievement = this.achievements().find((a) => this.normalizeSearchValue(a.title) === this.normalizeSearchValue(name));
+    if (existingAchievement) {
+      this.onProjectAchievementSelectionChange([...(this.projectForm().achievements ?? []), existingAchievement.id]);
+      return;
+    }
+    this.creatingProjectAchievement.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+    try {
+      const created = await this.pocketBaseService.createCurrentUserAchievement({ title: name });
+      this.achievements.update((achievements) => [...achievements, created]);
+      this.onProjectAchievementSelectionChange([...(this.projectForm().achievements ?? []), created.id]);
+      this.successMessage.set('Realisation creee et liee au projet.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.creatingProjectAchievement.set(false);
+    }
+  }
+
+  onSkillCategorySelectionChange(selectedIds: string[]): void {
+    this.skillForm.update((form) => ({ ...form, category: selectedIds[0] ?? '' }));
+  }
+
+  async onSkillCategoryCreate(name: string): Promise<void> {
+    const existingCategory = this.skillCategories().find((c) => this.normalizeSearchValue(c.name) === this.normalizeSearchValue(name));
+    if (existingCategory) {
+      this.onSkillCategorySelectionChange([existingCategory.id]);
+      return;
+    }
+    this.creatingSkillCategory.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+    try {
+      const created = await this.pocketBaseService.createCurrentUserSkillCategory(name);
+      this.skillCategories.update((categories) => [...categories, created]);
+      this.onSkillCategorySelectionChange([created.id]);
+      this.successMessage.set('Categorie creee et selectionnee.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.creatingSkillCategory.set(false);
+    }
+  }
+
+  onProjectAssetSelectionChange(selectedIds: string[]): void {
+    this.projectForm.update((form) => ({ ...form, file: selectedIds[0] ?? '' }));
+  }
+
   onProjectPictureSelected(event: Event): void {
     this.selectedProjectPicture.set((event.target as HTMLInputElement).files?.[0] ?? null);
   }
 
   async saveProject(): Promise<void> {
+    this.projectFormSubmitted.set(true);
     const form = this.projectForm();
     const input: SaveCurrentUserProjectInput = {
       name: form.name.trim(),
@@ -458,13 +545,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.name) {
-      this.errorMessage.set('Le nom du projet est obligatoire.');
       return;
     }
 
     await this.saveSection('projects', form.id ? 'Projet mis a jour.' : 'Projet ajoute.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserProject(form.id, input) : await this.pocketBaseService.createCurrentUserProject(input);
       this.resetProjectForm();
+      this.projectFormSubmitted.set(false);
     });
   }
 
@@ -487,11 +574,8 @@ export class ProfileMaterialPage implements OnInit {
     this.achievementForm.update((form) => ({ ...form, [field]: value }));
   }
 
-  setAchievementSortOrder(value: string | number | null): void {
-    this.achievementForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
-  }
-
   async saveAchievement(): Promise<void> {
+    this.achievementFormSubmitted.set(true);
     const form = this.achievementForm();
     const input: SaveCurrentUserAchievementInput = {
       title: form.title.trim(),
@@ -500,13 +584,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.title) {
-      this.errorMessage.set('Le titre de la realisation est obligatoire.');
       return;
     }
 
     await this.saveSection('achievements', form.id ? 'Realisation mise a jour.' : 'Realisation ajoutee.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserAchievement(form.id, input) : await this.pocketBaseService.createCurrentUserAchievement(input);
       this.resetAchievementForm();
+      this.achievementFormSubmitted.set(false);
     });
   }
 
@@ -531,11 +615,8 @@ export class ProfileMaterialPage implements OnInit {
     this.degreeForm.update((form) => ({ ...form, [field]: value }));
   }
 
-  setDegreeSortOrder(value: string | number | null): void {
-    this.degreeForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
-  }
-
   async saveDegree(): Promise<void> {
+    this.degreeFormSubmitted.set(true);
     const form = this.degreeForm();
     const input: SaveCurrentUserDegreeInput = {
       title: form.title.trim(),
@@ -546,13 +627,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.title) {
-      this.errorMessage.set('Le titre du diplome est obligatoire.');
       return;
     }
 
     await this.saveSection('degrees', form.id ? 'Diplome mis a jour.' : 'Diplome ajoute.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserDegree(form.id, input) : await this.pocketBaseService.createCurrentUserDegree(input);
       this.resetDegreeForm();
+      this.degreeFormSubmitted.set(false);
     });
   }
 
@@ -575,11 +656,8 @@ export class ProfileMaterialPage implements OnInit {
     this.hobbyForm.update((form) => ({ ...form, [field]: value }));
   }
 
-  setHobbySortOrder(value: string | number | null): void {
-    this.hobbyForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
-  }
-
   async saveHobby(): Promise<void> {
+    this.hobbyFormSubmitted.set(true);
     const form = this.hobbyForm();
     const input: SaveCurrentUserHobbyInput = {
       name: form.name.trim(),
@@ -588,13 +666,13 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!input.name) {
-      this.errorMessage.set('Le nom du loisir est obligatoire.');
       return;
     }
 
     await this.saveSection('hobbies', form.id ? 'Loisir mis a jour.' : 'Loisir ajoute.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserHobby(form.id, input) : await this.pocketBaseService.createCurrentUserHobby(input);
       this.resetHobbyForm();
+      this.hobbyFormSubmitted.set(false);
     });
   }
 
@@ -620,15 +698,12 @@ export class ProfileMaterialPage implements OnInit {
     this.assetForm.update((form) => ({ ...form, [field]: value }));
   }
 
-  setAssetSortOrder(value: string | number | null): void {
-    this.assetForm.update((form) => ({ ...form, sortOrder: this.toNullableNumber(value) }));
-  }
-
   onAssetFileSelected(event: Event): void {
     this.selectedAssetFile.set((event.target as HTMLInputElement).files?.[0] ?? null);
   }
 
   async saveAsset(): Promise<void> {
+    this.assetFormSubmitted.set(true);
     const form = this.assetForm();
     const input: SaveCurrentUserFileInput = {
       name: this.optionalText(form.name),
@@ -639,18 +714,48 @@ export class ProfileMaterialPage implements OnInit {
     };
 
     if (!form.id && !input.file) {
-      this.errorMessage.set('Le fichier est obligatoire pour creer un asset.');
       return;
     }
 
     await this.saveSection('assets', form.id ? 'Asset mis a jour.' : 'Asset ajoute.', async () => {
       form.id ? await this.pocketBaseService.updateCurrentUserFile(form.id, input) : await this.pocketBaseService.createCurrentUserFile(input);
       this.resetAssetForm();
+      this.assetFormSubmitted.set(false);
     });
   }
 
   isSaving(section: string): boolean {
     return this.savingSection() === section;
+  }
+
+  isJobFieldInvalid(field: 'label' | 'company' | 'position' | 'startDate'): boolean {
+    return this.jobFormSubmitted() && !this.jobForm()[field]?.trim();
+  }
+
+  isProjectFieldInvalid(field: 'name'): boolean {
+    return this.projectFormSubmitted() && !this.projectForm()[field]?.trim();
+  }
+
+  isProjectUrlInvalid(): boolean {
+    const url = this.projectForm().url?.trim();
+    if (!this.projectFormSubmitted() || !url) return false;
+    try { new URL(url); return false; } catch { return true; }
+  }
+
+  isSkillFieldInvalid(field: 'name'): boolean {
+    return this.skillFormSubmitted() && !this.skillForm()[field]?.trim();
+  }
+
+  isAchievementFieldInvalid(field: 'title'): boolean {
+    return this.achievementFormSubmitted() && !this.achievementForm()[field]?.trim();
+  }
+
+  isDegreeFieldInvalid(field: 'title'): boolean {
+    return this.degreeFormSubmitted() && !this.degreeForm()[field]?.trim();
+  }
+
+  isHobbyFieldInvalid(field: 'name'): boolean {
+    return this.hobbyFormSubmitted() && !this.hobbyForm()[field]?.trim();
   }
 
   setActiveSection(section: MaterialSection): void {
@@ -711,6 +816,14 @@ export class ProfileMaterialPage implements OnInit {
       this.degrees.set(data.degrees);
       this.hobbies.set(data.hobbies);
       this.assets.set(data.files);
+      this.persistedJobs.set([...data.jobs]);
+      this.persistedProjects.set([...data.projects]);
+      this.persistedSkills.set([...data.skills]);
+      this.persistedAchievements.set([...data.achievements]);
+      this.persistedDegrees.set([...data.degrees]);
+      this.persistedHobbies.set([...data.hobbies]);
+      this.persistedAssets.set([...data.files]);
+      this.sectionOrderDirty.set({ jobs: false, projects: false, skills: false, achievements: false, degrees: false, hobbies: false, assets: false });
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
@@ -764,6 +877,81 @@ export class ProfileMaterialPage implements OnInit {
       return null;
     } finally {
       this.creatingSkillCategory.set(false);
+    }
+  }
+
+  onReorderJobs(reordered: Job[]): void {
+    this.jobs.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, jobs: true }));
+  }
+
+  onReorderProjects(reordered: Project[]): void {
+    this.projects.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, projects: true }));
+  }
+
+  onReorderSkills(reordered: Skill[]): void {
+    this.skills.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, skills: true }));
+  }
+
+  onReorderAchievements(reordered: Achievement[]): void {
+    this.achievements.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, achievements: true }));
+  }
+
+  onReorderDegrees(reordered: Degree[]): void {
+    this.degrees.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, degrees: true }));
+  }
+
+  onReorderHobbies(reordered: Hobby[]): void {
+    this.hobbies.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, hobbies: true }));
+  }
+
+  onReorderAssets(reordered: MediaFile[]): void {
+    this.assets.set(reordered);
+    this.sectionOrderDirty.update((d) => ({ ...d, assets: true }));
+  }
+
+  async onUpdateOrder(section: MaterialSection): Promise<void> {
+    const collectionMap: Record<MaterialSection, 'jobs' | 'projects' | 'skills' | 'achievements' | 'degrees' | 'hobbies' | 'files'> = {
+      jobs: 'jobs', projects: 'projects', skills: 'skills', achievements: 'achievements', degrees: 'degrees', hobbies: 'hobbies', assets: 'files',
+    };
+    const collection = collectionMap[section];
+    const itemsMap: Record<MaterialSection, { id: string; sortOrder: number }[]> = {
+      jobs: this.jobs().map((j, i) => ({ id: j.id, sortOrder: i + 1 })),
+      projects: this.projects().map((p, i) => ({ id: p.id, sortOrder: i + 1 })),
+      skills: this.skills().map((s, i) => ({ id: s.id, sortOrder: i + 1 })),
+      achievements: this.achievements().map((a, i) => ({ id: a.id, sortOrder: i + 1 })),
+      degrees: this.degrees().map((d, i) => ({ id: d.id, sortOrder: i + 1 })),
+      hobbies: this.hobbies().map((h, i) => ({ id: h.id, sortOrder: i + 1 })),
+      assets: this.assets().map((a, i) => ({ id: a.id, sortOrder: i + 1 })),
+    };
+    this.sectionOrderSaving.update((s) => ({ ...s, [section]: true }));
+    this.errorMessage.set(null);
+    try {
+      await this.pocketBaseService.updateCurrentUserSortOrders(collection, itemsMap[section]);
+      this.sectionOrderDirty.update((d) => ({ ...d, [section]: false }));
+      this.updatePersistedSnapshot(section);
+      this.successMessage.set('Ordre mis a jour.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.sectionOrderSaving.update((s) => ({ ...s, [section]: false }));
+    }
+  }
+
+  private updatePersistedSnapshot(section: MaterialSection): void {
+    switch (section) {
+      case 'jobs': this.persistedJobs.set([...this.jobs()]); break;
+      case 'projects': this.persistedProjects.set([...this.projects()]); break;
+      case 'skills': this.persistedSkills.set([...this.skills()]); break;
+      case 'achievements': this.persistedAchievements.set([...this.achievements()]); break;
+      case 'degrees': this.persistedDegrees.set([...this.degrees()]); break;
+      case 'hobbies': this.persistedHobbies.set([...this.hobbies()]); break;
+      case 'assets': this.persistedAssets.set([...this.assets()]); break;
     }
   }
 

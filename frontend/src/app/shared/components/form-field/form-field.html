@@ -1,0 +1,13 @@
+<div class="form-field" [class.form-field--invalid]="invalid" [class.form-field--required]="required">
+  <label [for]="fieldId">
+    {{ label }}
+    @if (required) { <span class="form-field__required">*</span> }
+  </label>
+  <ng-content></ng-content>
+  @if (invalid && errorMessage) {
+    <span class="form-field__error">{{ errorMessage }}</span>
+  }
+  @if (helperText && !invalid) {
+    <span class="form-field__helper">{{ helperText }}</span>
+  }
+</div>
