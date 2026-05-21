@@ -112,6 +112,20 @@ export class HomePage implements OnInit {
     return profile.public === false ? 'private' : 'live';
   }
 
+  private replaceProfile(updatedProfile: CvProfile): void {
+    this.profiles.update((profiles) =>
+      profiles.map((profile) => (profile.id === updatedProfile.id ? updatedProfile : profile)),
+    );
+    this.templateSelections.update((current) => ({
+      ...current,
+      [updatedProfile.id]: updatedProfile.template || this.templateOptions[0]?.id || 'classic',
+    }));
+    this.publicSelections.update((current) => ({
+      ...current,
+      [updatedProfile.id]: updatedProfile.public !== false,
+    }));
+  }
+
   async changeTemplate(profile: CvProfile, template: string): Promise<void> {
     this.templateSelections.update((current) => ({ ...current, [profile.id]: template }));
 
@@ -124,12 +138,12 @@ export class HomePage implements OnInit {
     this.errorMessage.set(null);
 
     try {
-      await this.pocketBaseService.setTemplateForCurrentUserCvProfile(
+      const updatedProfile = await this.pocketBaseService.setTemplateForCurrentUserCvProfile(
         profile.id,
         template,
         this.publicSelections()[profile.id] ?? true,
       );
-      await this.loadProfiles();
+      this.replaceProfile(updatedProfile);
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
@@ -186,19 +200,21 @@ export class HomePage implements OnInit {
     }
   }
 
-  async togglePublic(profile: CvProfile, isPublic: boolean): Promise<void> {
-    this.publicSelections.update((current) => ({ ...current, [profile.id]: isPublic }));
-
+  async togglePublic(profile: CvProfile): Promise<void> {
     if (!profile.template) {
       return;
     }
+
+    const isPublic = !(this.publicSelections()[profile.id] ?? profile.public !== false);
+
+    this.publicSelections.update((current) => ({ ...current, [profile.id]: isPublic }));
 
     this.isSaving.set(profile.id);
     this.errorMessage.set(null);
 
     try {
-      await this.pocketBaseService.setPublicForCurrentUserCvProfile(profile.id, isPublic);
-      await this.loadProfiles();
+      const updatedProfile = await this.pocketBaseService.setPublicForCurrentUserCvProfile(profile.id, isPublic);
+      this.replaceProfile(updatedProfile);
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
@@ -211,8 +227,8 @@ export class HomePage implements OnInit {
     this.errorMessage.set(null);
 
     try {
-      await this.pocketBaseService.setStatusForCvProfile(profile.id, status);
-      await this.loadProfiles();
+      const updatedProfile = await this.pocketBaseService.setStatusForCvProfile(profile.id, status);
+      this.replaceProfile(updatedProfile);
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {

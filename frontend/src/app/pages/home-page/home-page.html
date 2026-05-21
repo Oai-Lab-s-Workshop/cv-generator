@@ -144,23 +144,26 @@
                   <span class="status-dot" [class]="'status-dot--' + getStatusTone(profile)"></span>
                 </div>
 
-                <label class="profile-cell visibility-control" role="cell" data-label="Visibilite">
-                  <input
-                    type="checkbox"
-                    [checked]="publicSelections()[profile.id]"
+                <div class="profile-cell" role="cell" data-label="Visibilite">
+                  <button
+                    class="visibility-control"
+                    type="button"
                     [disabled]="!profile.template || isSaving() === profile.id"
-                    (change)="togglePublic(profile, $any($event.target).checked)"
-                  />
-                  <span
-                    class="visibility-control__state"
-                    [class.visibility-control__state--live]="getVisibilityTone(profile) === 'live'"
-                    [class.visibility-control__state--private]="getVisibilityTone(profile) === 'private'"
-                    [class.visibility-control__state--missing]="getVisibilityTone(profile) === 'missing'"
+                    [attr.aria-pressed]="profile.template ? (publicSelections()[profile.id] ?? profile.public !== false) : null"
+                    [attr.aria-label]="'Basculer la visibilite: ' + getVisibilityLabel(profile)"
+                    (click)="togglePublic(profile)"
                   >
-                    <span class="visibility-control__dot" aria-hidden="true"></span>
-                    <span>{{ isSaving() === profile.id ? 'Enregistrement...' : getVisibilityLabel(profile) }}</span>
-                  </span>
-                </label>
+                    <span
+                      class="visibility-control__state"
+                      [class.visibility-control__state--live]="getVisibilityTone(profile) === 'live'"
+                      [class.visibility-control__state--private]="getVisibilityTone(profile) === 'private'"
+                      [class.visibility-control__state--missing]="getVisibilityTone(profile) === 'missing'"
+                    >
+                      <span class="visibility-control__dot" aria-hidden="true"></span>
+                      <span>{{ isSaving() === profile.id ? 'Enregistrement...' : getVisibilityLabel(profile) }}</span>
+                    </span>
+                  </button>
+                </div>
 
                 <div class="profile-cell profile-actions" role="cell" data-label="Actions">
                   <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="action-icon" title="Editer" aria-label="Editer">
