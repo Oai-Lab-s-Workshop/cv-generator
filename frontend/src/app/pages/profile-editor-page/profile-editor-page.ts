@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { QuillModule } from 'ngx-quill';
 import { RouterLink } from '@angular/router';
 import { Achievement } from '../../core/models/achievement.model';
-import { CvProfile, CvProfileExtraValue } from '../../core/models/cv-profile.model';
+import { CvProfile, CvProfileExtraValue, CvProfileLinkOverrides, CvProfileStatus } from '../../core/models/cv-profile.model';
 import { Degree } from '../../core/models/degree.model';
 import { MediaFile } from '../../core/models/file.model';
 import { Hobby } from '../../core/models/hobby.model';
@@ -13,6 +14,13 @@ import { CurrentUserCvProfileEditorData, PocketBaseService } from '../../core/se
 import { CV_TEMPLATE_OPTIONS, CV_TEMPLATE_OPTIONS_BY_ID, CvTemplateExtraField, CvTemplateExtraFieldSource } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
 import { Navbar } from '../../shared/components/navbar/navbar';
+
+export const CV_PROFILE_STATUS_OPTIONS: { value: CvProfileStatus; label: string; tone: string }[] = [
+  { value: 'unsent', label: 'Non envoye', tone: 'gray' },
+  { value: 'sent', label: 'Envoye', tone: 'blue' },
+  { value: 'rejected', label: 'Rejete', tone: 'red' },
+  { value: 'responded', label: 'Repondu', tone: 'green' },
+];
 
 type RelationType = 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies';
 type ExtraSourceRecord = Job | Project | Skill | Degree | Achievement | Hobby;
@@ -32,7 +40,7 @@ type PictureField = 'profilePictureFile' | 'coverPictureFile';
 
 @Component({
   selector: 'app-profile-editor-page',
-  imports: [FormsModule, Navbar, RouterLink],
+  imports: [FormsModule, Navbar, RouterLink, QuillModule],
   templateUrl: './profile-editor-page.html',
   styleUrls: ['../../styles/home-shared.css', './profile-editor-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,11 +52,20 @@ export class ProfileEditorPage implements OnInit {
 
   readonly profileId = input.required<string>();
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
+  readonly statusOptions = CV_PROFILE_STATUS_OPTIONS;
   readonly editorState = signal<EditorState | null>(null);
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+  readonly summaryEditorModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link'],
+      ['clean'],
+    ],
+  };
 
   ngOnInit(): void {
     effect(
@@ -83,6 +100,7 @@ export class ProfileEditorPage implements OnInit {
         profileName,
         public: state.profile.public !== false,
         template: state.profile.template,
+        professionalSummary: state.profile.professionalSummary,
         jobs: state.profile.jobs ?? [],
         projects: state.profile.projects ?? [],
         skills: state.profile.skills ?? [],
@@ -92,6 +110,8 @@ export class ProfileEditorPage implements OnInit {
         profilePictureFile: state.profile.profilePictureFile || '',
         coverPictureFile: state.profile.coverPictureFile || '',
         extra: state.profile.extra ?? {},
+        linkOverrides: state.profile.linkOverrides,
+        status: state.profile.status,
       });
 
       await this.loadEditorData(state.profile.id);
@@ -186,6 +206,65 @@ export class ProfileEditorPage implements OnInit {
         },
       };
     });
+  }
+
+  setProfessionalSummary(value: string): void {
+    this.editorState.update((state) => {
+      if (!state) {
+        return state;
+      }
+
+      return {
+        ...state,
+        profile: {
+          ...state.profile,
+          professionalSummary: value || undefined,
+        },
+      };
+    });
+  }
+
+  setLinkOverrideField(field: keyof CvProfileLinkOverrides, value: string): void {
+    this.editorState.update((state) => {
+      if (!state) {
+        return state;
+      }
+
+      const currentOverrides = state.profile.linkOverrides ?? {};
+      const updatedOverrides: CvProfileLinkOverrides = { ...currentOverrides, [field]: value || undefined };
+
+      return {
+        ...state,
+        profile: {
+          ...state.profile,
+          linkOverrides: updatedOverrides,
+        },
+      };
+    });
+  }
+
+  setStatus(status: CvProfileStatus): void {
+    this.editorState.update((state) => {
+      if (!state) {
+        return state;
+      }
+
+      return {
+        ...state,
+        profile: {
+          ...state.profile,
+          status,
+        },
+      };
+    });
+  }
+
+  getStatusOption(status?: CvProfileStatus): { value: CvProfileStatus; label: string; tone: string } | undefined {
+    if (!status) {
+      return this.statusOptions.find((opt) => opt.value === 'unsent');
+    }
+
+    return this.statusOptions.find((opt) => opt.value === status);
   }
 
   addExtraSourceValue(field: CvTemplateExtraField, recordId: string): void {

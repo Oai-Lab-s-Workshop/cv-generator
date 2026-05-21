@@ -3,7 +3,7 @@ import { RecordModel } from 'pocketbase';
 import { Achievement } from '../models/achievement.model';
 import { AiToken, CreateAiTokenInput, CreatedAiTokenResult } from '../models/ai-token.model';
 import { CvData } from '../models/cv-data.model';
-import { CvProfile } from '../models/cv-profile.model';
+import { CvProfile, CvProfileLinkOverrides, CvProfileStatus } from '../models/cv-profile.model';
 import { Degree } from '../models/degree.model';
 import { Hobby } from '../models/hobby.model';
 import { Job } from '../models/job.model';
@@ -47,6 +47,7 @@ export type SaveCurrentUserAchievementInput = Pick<Achievement, 'title'> & Parti
 export type SaveCurrentUserDegreeInput = Pick<Degree, 'title'> & Partial<Pick<Degree, 'school' | 'year' | 'level' | 'sortOrder'>>;
 export type SaveCurrentUserHobbyInput = Pick<Hobby, 'name'> & Partial<Pick<Hobby, 'description' | 'sortOrder'>>;
 export type SaveCurrentUserFileInput = Partial<Pick<MediaFile, 'name' | 'alt' | 'kind' | 'sortOrder'>> & { file?: File | null };
+export type UpdateCurrentUserInput = Partial<Pick<User, 'firstName' | 'lastName' | 'linkedin' | 'github' | 'website' | 'phone'>>;
 
 @Injectable({ providedIn: 'root' })
 export class PocketBaseService {
@@ -227,6 +228,9 @@ export class PocketBaseService {
         | 'extra'
         | 'profilePictureFile'
         | 'coverPictureFile'
+        | 'professionalSummary'
+        | 'linkOverrides'
+        | 'status'
       >
     >,
   ): Promise<CvProfile> {
@@ -463,6 +467,24 @@ export class PocketBaseService {
     return tokens.map((token) => this.normalizeAiToken(token));
   }
 
+  async updateCurrentUser(input: UpdateCurrentUserInput): Promise<User> {
+    const currentUserId = this.requireCurrentUserId();
+    const updated = await this.pb.collection<User>('users').update(currentUserId, input);
+    return this.normalizeUser(updated) as User;
+  }
+
+  async setLinkOverridesForCvProfile(profileId: string, linkOverrides: CvProfile['linkOverrides']): Promise<CvProfile> {
+    const profile = await this.getCurrentUserCvProfileById(profileId);
+    const updated = await this.pb.collection<CvProfile>('cv_profiles').update(profile.id, { linkOverrides });
+    return this.normalizeCvProfile(updated);
+  }
+
+  async setStatusForCvProfile(profileId: string, status: CvProfile['status']): Promise<CvProfile> {
+    const profile = await this.getCurrentUserCvProfileById(profileId);
+    const updated = await this.pb.collection<CvProfile>('cv_profiles').update(profile.id, { status });
+    return this.normalizeCvProfile(updated);
+  }
+
   async createCurrentUserAiToken(input: CreateAiTokenInput): Promise<CreatedAiTokenResult> {
     const currentUserId = this.requireCurrentUserId();
     const rawToken = generateAiTokenSecret();
@@ -513,13 +535,26 @@ export class PocketBaseService {
 
     return {
       profile,
-      user,
+      user: this.resolveUserLinks(profile, user),
       jobs,
       projects,
       skills,
       degrees,
       achievements,
       hobbies,
+    };
+  }
+
+  resolveUserLinks(profile: CvProfile, user: User | null): User | null {
+    if (!user) {
+      return null;
+    }
+
+    return {
+      ...user,
+      linkedin: profile.linkOverrides?.linkedin ?? user.linkedin,
+      github: profile.linkOverrides?.github ?? user.github,
+      website: profile.linkOverrides?.website ?? user.website,
     };
   }
 

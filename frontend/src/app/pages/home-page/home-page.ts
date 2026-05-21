@@ -2,12 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } 
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AiToken } from '../../core/models/ai-token.model';
-import { CvProfile } from '../../core/models/cv-profile.model';
+import { CvProfile, CvProfileStatus } from '../../core/models/cv-profile.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { CV_TEMPLATE_OPTIONS } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
 import { Navbar } from '../../shared/components/navbar/navbar';
+import { CV_PROFILE_STATUS_OPTIONS } from '../profile-editor-page/profile-editor-page';
 
 @Component({
   selector: 'app-home-page',
@@ -203,6 +204,30 @@ export class HomePage implements OnInit {
     } finally {
       this.isSaving.set(null);
     }
+  }
+
+  async changeStatus(profile: CvProfile, status: CvProfileStatus): Promise<void> {
+    this.isSaving.set(profile.id);
+    this.errorMessage.set(null);
+
+    try {
+      await this.pocketBaseService.setStatusForCvProfile(profile.id, status);
+      await this.loadProfiles();
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.isSaving.set(null);
+    }
+  }
+
+  getStatusLabel(profile: CvProfile): string {
+    const status = profile.status ?? 'unsent';
+    return CV_PROFILE_STATUS_OPTIONS.find((opt) => opt.value === status)?.label ?? 'Non envoye';
+  }
+
+  getStatusTone(profile: CvProfile): string {
+    const status = profile.status ?? 'unsent';
+    return CV_PROFILE_STATUS_OPTIONS.find((opt) => opt.value === status)?.tone ?? 'gray';
   }
 
 }

@@ -199,6 +199,122 @@
   color: light-dark(#b91c1c, #fb7185);
 }
 
+.status-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-control__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--home-muted);
+}
+
+.status-control__label select {
+  border: 1px solid light-dark(#cbd5e1, #475569);
+  border-radius: 0.6rem;
+  padding: 0.35rem 0.55rem;
+  background: light-dark(#fff, #0f172a);
+  color: var(--home-text);
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.42rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.status-badge.gray {
+  background: light-dark(#f1f5f9, rgba(100, 116, 139, 0.25));
+  color: light-dark(#475569, #94a3b8);
+}
+
+.status-badge.blue {
+  background: light-dark(#dbeafe, rgba(30, 58, 138, 0.3));
+  color: light-dark(#1d4ed8, #93c5fd);
+}
+
+.status-badge.red {
+  background: light-dark(#fee2e2, rgba(225, 29, 72, 0.2));
+  color: light-dark(#b91c1c, #fb7185);
+}
+
+.status-badge.green {
+  background: light-dark(#dcfce7, rgba(22, 163, 74, 0.2));
+  color: light-dark(#15803d, #4ade80);
+}
+
+.summary-editor {
+  display: grid;
+  grid-template-rows: auto minmax(8rem, auto);
+  width: 100%;
+  color: var(--home-text);
+  font-weight: 500;
+}
+
+:host ::ng-deep .summary-editor .ql-toolbar,
+:host ::ng-deep .summary-editor .ql-container {
+  border-color: light-dark(#cbd5e1, #475569);
+  background: light-dark(#fff, #0f172a);
+  color: var(--home-text);
+  font: inherit;
+}
+
+:host ::ng-deep .summary-editor .ql-toolbar {
+  border-radius: 0.8rem 0.8rem 0 0;
+}
+
+:host ::ng-deep .summary-editor .ql-container {
+  height: auto;
+  min-height: 8rem;
+  border-radius: 0 0 0.8rem 0.8rem;
+  font-size: 1rem;
+}
+
+:host ::ng-deep .summary-editor .ql-editor {
+  height: auto;
+  min-height: 8rem;
+  caret-color: var(--home-primary);
+  line-height: 1.55;
+}
+
+:host ::ng-deep .summary-editor .ql-editor.ql-blank::before {
+  color: var(--home-muted);
+  font-style: normal;
+}
+
+:host ::ng-deep .summary-editor .ql-snow .ql-stroke {
+  stroke: var(--home-text);
+}
+
+:host ::ng-deep .summary-editor .ql-snow .ql-fill {
+  fill: var(--home-text);
+}
+
+:host ::ng-deep .summary-editor .ql-picker,
+:host ::ng-deep .summary-editor .ql-picker-options {
+  color: var(--home-text);
+}
+
+:host ::ng-deep .summary-editor:focus-within .ql-toolbar,
+:host ::ng-deep .summary-editor:focus-within .ql-container {
+  border-color: light-dark(#2563eb, #60a5fa);
+  box-shadow: light-dark(0 0 0 3px rgba(37, 99, 235, 0.14), 0 0 0 3px rgba(96, 165, 250, 0.2));
+}
+
+:host ::ng-deep .summary-editor:focus-within .ql-toolbar {
+  border-bottom-color: light-dark(#cbd5e1, #475569);
+}
+
 @media (max-width: 720px) {
   .material-card__header {
     flex-direction: column;

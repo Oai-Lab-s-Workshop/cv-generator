@@ -27,4 +27,6 @@ frontend/dist/*
 frontend/build/
 frontend/node_modules/
 frontend/src/assets/runtime-config.json
+frontend/coverage/
 coverage/
+frontend/test-results.xml

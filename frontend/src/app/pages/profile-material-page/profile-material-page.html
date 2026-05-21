@@ -28,6 +28,92 @@
     </article>
   </section>
 
+  <section class="personal-info-card" aria-labelledby="personal-info-title">
+    <div class="personal-info-card__header">
+      <div>
+        <p class="eyebrow">Profil</p>
+        <h2 id="personal-info-title">Informations personnelles</h2>
+      </div>
+      <span class="count-pill">Identite et contacts</span>
+    </div>
+
+    <div class="editor-grid">
+      <label class="editor-field">
+        <span>Prenom</span>
+        <input [value]="personalInfoForm().firstName ?? ''" (input)="setPersonalInfoField('firstName', $any($event.target).value)" name="user-first-name" type="text" />
+      </label>
+      <label class="editor-field">
+        <span>Nom</span>
+        <input [value]="personalInfoForm().lastName ?? ''" (input)="setPersonalInfoField('lastName', $any($event.target).value)" name="user-last-name" type="text" />
+      </label>
+      <label class="editor-field">
+        <span>LinkedIn</span>
+        <input [value]="personalInfoForm().linkedin ?? ''" (input)="setPersonalInfoField('linkedin', $any($event.target).value)" name="user-linkedin" type="url" placeholder="https://linkedin.com/in/..." />
+      </label>
+      <label class="editor-field">
+        <span>GitHub</span>
+        <input [value]="personalInfoForm().github ?? ''" (input)="setPersonalInfoField('github', $any($event.target).value)" name="user-github" type="url" placeholder="https://github.com/..." />
+      </label>
+      <label class="editor-field">
+        <span>Site web</span>
+        <input [value]="personalInfoForm().website ?? ''" (input)="setPersonalInfoField('website', $any($event.target).value)" name="user-website" type="url" placeholder="https://..." />
+      </label>
+      <label class="editor-field">
+        <span>Telephone</span>
+        <input [value]="personalInfoForm().phone ?? ''" (input)="setPersonalInfoField('phone', $any($event.target).value)" name="user-phone" type="tel" placeholder="+33 6 12 34 56 78" />
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="primary-button" [disabled]="isSavingPersonalInfo()" (click)="savePersonalInfo()">{{ isSavingPersonalInfo() ? 'Enregistrement...' : 'Enregistrer' }}</button>
+    </div>
+  </section>
+
+  <section class="material-map-card" aria-labelledby="material-map-title">
+    <div class="material-map-card__copy">
+      <p class="eyebrow">Modele mental</p>
+      <h2 id="material-map-title">Comment vos donnees se connectent</h2>
+      <p>Remplissez vos informations comme une bibliotheque: les elements de base alimentent ensuite les projets, les CV et les profils publics.</p>
+    </div>
+
+    <div class="material-map-grid" aria-label="Relations entre les donnees">
+      <article class="material-node material-node--primary">
+        <span>1</span>
+        <strong>Experiences</strong>
+        <p>Le contexte: entreprises, postes, missions et dates.</p>
+      </article>
+      <article class="material-node">
+        <span>2</span>
+        <strong>Realisations</strong>
+        <p>Les preuves d'impact, reutilisables seules ou dans un projet.</p>
+      </article>
+      <article class="material-node">
+        <span>3</span>
+        <strong>Projets</strong>
+        <p>Relient realisations et assets pour raconter un cas concret.</p>
+      </article>
+      <article class="material-node">
+        <span>4</span>
+        <strong>Competences</strong>
+        <p>Organisees par categories pour clarifier votre expertise.</p>
+      </article>
+      <article class="material-node">
+        <span>5</span>
+        <strong>Assets</strong>
+        <p>Images et documents utilisables dans les projets ou CV.</p>
+      </article>
+    </div>
+
+    <div class="fill-order" aria-label="Ordre conseille de saisie">
+      <strong>Ordre conseille</strong>
+      <span>Assets & categories</span>
+      <span>Realisations</span>
+      <span>Projets</span>
+      <span>Experiences & competences</span>
+      <span>Diplomes & loisirs</span>
+    </div>
+  </section>
+
   @if (successMessage()) {
     <section class="state-card state-card--success">
       <p>{{ successMessage() }}</p>

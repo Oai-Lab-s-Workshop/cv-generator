@@ -41,7 +41,7 @@
 
 .profile-table__head,
 .profile-row {
-  grid-template-columns: minmax(11rem, 1.25fr) minmax(9rem, 0.9fr) minmax(10rem, 0.9fr) minmax(10rem, 0.95fr) minmax(6rem, 0.55fr);
+  grid-template-columns: minmax(11rem, 1.25fr) minmax(9rem, 0.9fr) minmax(10rem, 0.9fr) minmax(7rem, 0.7fr) minmax(10rem, 0.95fr) minmax(6rem, 0.55fr);
 }
 
 .profile-cell--main p {
@@ -54,6 +54,55 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.86rem;
   overflow-wrap: anywhere;
+}
+
+.profile-cell--status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.status-select {
+  border: 1px solid light-dark(#cbd5e1, #475569);
+  border-radius: 0.6rem;
+  padding: 0.3rem 0.45rem;
+  background: light-dark(#fff, #0f172a);
+  color: var(--home-text);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.status-select:disabled {
+  opacity: 0.68;
+  cursor: wait;
+}
+
+.status-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.status-dot--gray {
+  background: #94a3b8;
+  box-shadow: light-dark(0 0 0 3px rgba(148, 163, 184, 0.16), 0 0 0 3px rgba(148, 163, 184, 0.25));
+}
+
+.status-dot--blue {
+  background: light-dark(#2563eb, #60a5fa);
+  box-shadow: light-dark(0 0 0 3px rgba(37, 99, 235, 0.16), 0 0 0 3px rgba(96, 165, 250, 0.2));
+}
+
+.status-dot--red {
+  background: light-dark(#dc2626, #f87171);
+  box-shadow: light-dark(0 0 0 3px rgba(220, 38, 38, 0.16), 0 0 0 3px rgba(248, 113, 113, 0.2));
+}
+
+.status-dot--green {
+  background: light-dark(#22c55e, #4ade80);
+  box-shadow: light-dark(0 0 0 3px rgba(34, 197, 94, 0.16), 0 0 0 3px rgba(74, 222, 128, 0.2));
 }
 
 .visibility-control {
