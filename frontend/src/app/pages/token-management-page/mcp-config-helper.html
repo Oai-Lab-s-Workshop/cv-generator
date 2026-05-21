@@ -1,0 +1,43 @@
+<section class="mcp-helper" aria-label="Configuration rapide MCP">
+  <div class="mcp-helper__header">
+    <div>
+      <p class="eyebrow">Config rapide MCP</p>
+      <h2>Brancher un agent avec une cle existante</h2>
+    </div>
+    <p>{{ activeTokenCount() }} token{{ activeTokenCount() !== 1 ? 's' : '' }} actif{{ activeTokenCount() !== 1 ? 's' : '' }}</p>
+  </div>
+
+  <div class="mcp-helper__grid">
+    <div class="mcp-helper__controls">
+      <label class="field mcp-helper__field">
+        <span>Agent MCP</span>
+        <select [ngModel]="selectedAgent()" (ngModelChange)="selectedAgent.set($event)">
+          @for (preset of agentPresets; track preset.id) {
+            <option [value]="preset.id">{{ preset.name }}</option>
+          }
+        </select>
+        <small>{{ getSelectedPreset()?.description }}</small>
+      </label>
+
+      <label class="field mcp-helper__field">
+        <span>Token MCP</span>
+        <input [ngModel]="customToken()" (ngModelChange)="customToken.set($event)" type="text" placeholder="rmcp_..." />
+      </label>
+
+      <label class="field mcp-helper__field">
+        <span>URL serveur MCP</span>
+        <input [ngModel]="customUrl()" (ngModelChange)="customUrl.set($event)" type="url" placeholder="http://localhost:8080/mcp" />
+      </label>
+    </div>
+
+    <div class="mcp-helper__output">
+      <div class="mcp-helper__output-header">
+        <span>Configuration {{ getSelectedPreset()?.name }}</span>
+        <button type="button" class="secondary-button" [class.mcp-helper__copy--copied]="isCopied()" (click)="copyConfig()">
+          {{ isCopied() ? 'Copie!' : 'Copier la config' }}
+        </button>
+      </div>
+      <pre><code>{{ getGeneratedConfig() }}</code></pre>
+    </div>
+  </div>
+</section>

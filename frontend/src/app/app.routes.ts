@@ -44,11 +44,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/token-management-page/token-management-page').then((module) => module.TokenManagementPage),
   },
   {
-    path: 'home/mcp-config',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/mcp-config-page/mcp-config-page').then((module) => module.McpConfigPage),
-  },
-  {
     path: 'home/templates',
     loadComponent: () => import('./pages/template-gallery-page/template-gallery-page').then((module) => module.TemplateGalleryPage),
   },
