@@ -18,6 +18,13 @@ const mockProfile = {
   status: 'unsent' as const,
 };
 
+function mockWideScreen(matches: boolean): void {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: jest.fn().mockReturnValue({ matches }),
+  });
+}
+
 describe('HomePage', () => {
   let component: HomePage;
   let fixture: ComponentFixture<HomePage>;
@@ -241,6 +248,48 @@ describe('HomePage', () => {
     expect(component.isSaving()).toBeNull();
   });
 
+  // --- Row navigation ---
+  it('opens the editor from row click on wide screens', () => {
+    const router = TestBed.inject(Router);
+    jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    mockWideScreen(true);
+
+    component.openProfileFromRow(mockProfile);
+
+    expect(router.navigate).toHaveBeenCalledWith(['/home/profiles', mockProfile.id, 'edit']);
+  });
+
+  it('does not open the editor from row click on narrow screens', () => {
+    const router = TestBed.inject(Router);
+    jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    mockWideScreen(false);
+
+    component.openProfileFromRow(mockProfile);
+
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('does not open the editor when row click starts from an interactive control', () => {
+    const router = TestBed.inject(Router);
+    const button = document.createElement('button');
+    const event = new MouseEvent('click');
+    jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    mockWideScreen(true);
+    Object.defineProperty(event, 'target', { value: button });
+
+    component.openProfileFromRow(mockProfile, event);
+
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('reports whether the profile table is in wide mode', () => {
+    mockWideScreen(true);
+    expect(component.isWideTableMode()).toBe(true);
+
+    mockWideScreen(false);
+    expect(component.isWideTableMode()).toBe(false);
+  });
+
   // --- Change status ---
   it('changes profile status successfully', async () => {
     component.profiles.set([{ ...mockProfile }]);
@@ -258,6 +307,18 @@ describe('HomePage', () => {
     await component.changeStatus(mockProfile, 'responded');
     expect(component.errorMessage()).toBe('Status failed');
     expect(component.isSaving()).toBeNull();
+  });
+
+  it('selects a profile status from the compact menu', async () => {
+    const event = { stopPropagation: jest.fn() } as unknown as Event;
+    component.openStatusMenuFor.set(mockProfile.id);
+    pocketBaseService.setStatusForCvProfile.mockResolvedValue({ ...mockProfile, status: 'responded' });
+
+    await component.selectStatus(mockProfile, 'responded', event);
+
+    expect(event.stopPropagation).toHaveBeenCalled();
+    expect(component.openStatusMenuFor()).toBeNull();
+    expect(pocketBaseService.setStatusForCvProfile).toHaveBeenCalledWith(mockProfile.id, 'responded');
   });
 
   // --- Load error paths ---
