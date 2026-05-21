@@ -491,6 +491,7 @@ h3 {
 
   .insight-grid {
     grid-template-columns: 1fr;
+    display: none;
   }
 
   .profile-cell,
