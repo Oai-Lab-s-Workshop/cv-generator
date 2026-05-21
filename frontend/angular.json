@@ -18,7 +18,7 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.json",
             "optimization": { "fonts": { "inline": false } },
-            "allowedCommonJsDependencies": ["html2canvas", "html2pdf.js", "qrcode", "quill-delta"],
+            "allowedCommonJsDependencies": ["html2canvas", "qrcode", "quill-delta"],
             "assets": [
               "src/favicon.ico",
               "src/assets",
