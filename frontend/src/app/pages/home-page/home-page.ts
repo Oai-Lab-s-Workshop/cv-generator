@@ -35,8 +35,10 @@ export class HomePage implements OnInit {
   readonly isDeleting = signal<string | null>(null);
   readonly templateSelections = signal<Record<string, string>>({});
   readonly publicSelections = signal<Record<string, boolean>>({});
+  readonly openStatusMenuFor = signal<string | null>(null);
   readonly currentUser = this.authService.currentUser;
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
+  readonly statusOptions = CV_PROFILE_STATUS_OPTIONS;
   readonly totalProfileCount = computed(() => this.profiles().length);
   readonly publicProfileCount = computed(
     () => this.profiles().filter((profile) => Boolean(profile.template) && profile.public !== false).length,
@@ -110,6 +112,63 @@ export class HomePage implements OnInit {
     }
 
     return profile.public === false ? 'private' : 'live';
+  }
+
+  async copyRoute(profile: CvProfile): Promise<void> {
+    if (!profile.template || !profile.slug || !navigator.clipboard) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(`${window.location.origin}/${profile.slug}`);
+  }
+
+  isWideTableMode(): boolean {
+    return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 801px)').matches;
+  }
+
+  openProfileFromRow(profile: CvProfile, event?: Event): void {
+    if (!this.isWideTableMode()) {
+      return;
+    }
+
+    if (event && this.isInteractiveEvent(event)) {
+      return;
+    }
+
+    void this.router.navigate(['/home/profiles', profile.id, 'edit']);
+  }
+
+  openProfileFromRowKeyboard(profile: CvProfile, event: KeyboardEvent): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    if (this.isInteractiveEvent(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    this.openProfileFromRow(profile, event);
+  }
+
+  toggleStatusMenu(profileId: string, event: Event): void {
+    event.stopPropagation();
+    this.openStatusMenuFor.update((current) => (current === profileId ? null : profileId));
+  }
+
+  async selectStatus(profile: CvProfile, status: CvProfileStatus, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.openStatusMenuFor.set(null);
+    await this.changeStatus(profile, status);
+  }
+
+  closeStatusMenu(event?: Event): void {
+    event?.stopPropagation();
+    this.openStatusMenuFor.set(null);
+  }
+
+  private isInteractiveEvent(event: Event): boolean {
+    return event.target instanceof Element && Boolean(event.target.closest('button, a, select, input, label, textarea'));
   }
 
   private replaceProfile(updatedProfile: CvProfile): void {
