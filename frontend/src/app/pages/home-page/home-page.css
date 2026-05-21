@@ -41,7 +41,7 @@
 
 .profile-table__head,
 .profile-row {
-  grid-template-columns: minmax(11rem, 1.25fr) minmax(9rem, 0.9fr) minmax(10rem, 0.9fr) minmax(7rem, 0.7fr) minmax(10rem, 0.95fr) minmax(6rem, 0.55fr);
+  grid-template-columns:minmax(11rem,1.25fr) minmax(9rem,.9fr) minmax(11rem,.9fr) minmax(9rem,.7fr) minmax(5rem,.55fr) minmax(7rem,0.55fr);
 }
 
 .profile-cell--main p {
@@ -109,7 +109,24 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 0.5rem;
+  width: 100%;
+  min-height: 2rem;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.visibility-control:disabled {
+  cursor: not-allowed;
+}
+
+.visibility-control:focus-visible {
+  border-radius: 0.5rem;
+  outline: 2px solid light-dark(#2563eb, #60a5fa);
+  outline-offset: 3px;
 }
 
 .visibility-control__state {
@@ -120,6 +137,10 @@
   color: var(--home-muted);
   font-weight: 800;
   font-size: 0.86rem;
+}
+
+.visibility-control:disabled .visibility-control__state {
+  opacity: 0.68;
 }
 
 .visibility-control__dot {
@@ -153,27 +174,13 @@
   box-shadow: light-dark(0 0 0 4px rgba(245, 158, 11, 0.16), 0 0 0 4px rgba(251, 191, 36, 0.2));
 }
 
-.visibility-control input[type='checkbox'] {
-  width: 1rem;
-  height: 1rem;
-  margin: 0;
-  accent-color: var(--home-primary);
-  cursor: pointer;
-}
-
-.visibility-control input[type='checkbox']:disabled {
-  cursor: not-allowed;
-}
-
 @media (max-width: 860px) {
   .profile-cell--main,
-  .visibility-control,
   .profile-actions {
     grid-template-columns: minmax(6.5rem, 0.35fr) minmax(0, 1fr);
   }
 
   .profile-cell--main::before,
-  .visibility-control::before,
   .profile-actions::before {
     align-self: center;
   }

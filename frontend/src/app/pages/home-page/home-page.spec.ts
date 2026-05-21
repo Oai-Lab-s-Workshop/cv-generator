@@ -35,11 +35,11 @@ describe('HomePage', () => {
     pocketBaseService = {
       getCurrentUserCvProfiles: jest.fn().mockResolvedValue([]),
       getCurrentUserAiTokens: jest.fn().mockResolvedValue([]),
-      setTemplateForCurrentUserCvProfile: jest.fn().mockResolvedValue(undefined),
-      setPublicForCurrentUserCvProfile: jest.fn().mockResolvedValue(undefined),
+      setTemplateForCurrentUserCvProfile: jest.fn().mockResolvedValue({ ...mockProfile }),
+      setPublicForCurrentUserCvProfile: jest.fn().mockResolvedValue({ ...mockProfile }),
       deleteCurrentUserCvProfile: jest.fn().mockResolvedValue(undefined),
       createCurrentUserCvProfile: jest.fn().mockResolvedValue({ ...mockProfile, id: 'new-profile' }),
-      setStatusForCvProfile: jest.fn().mockResolvedValue(undefined),
+      setStatusForCvProfile: jest.fn().mockResolvedValue({ ...mockProfile }),
     };
 
     await TestBed.configureTestingModule({
@@ -117,12 +117,19 @@ describe('HomePage', () => {
 
   // --- Template change ---
   it('should save template changes immediately', async () => {
-    pocketBaseService.getCurrentUserCvProfiles.mockResolvedValue([{ ...mockProfile, template: 'modern' }]);
+    component.profiles.set([{ ...mockProfile }]);
+    pocketBaseService.setTemplateForCurrentUserCvProfile.mockResolvedValue({
+      ...mockProfile,
+      slug: 'modern--profile-1',
+      template: 'modern',
+    });
 
     await component.changeTemplate(mockProfile, 'modern');
 
     expect(component.templateSelections()[mockProfile.id]).toBe('modern');
+    expect(component.profiles().find((profile) => profile.id === mockProfile.id)?.slug).toBe('modern--profile-1');
     expect(pocketBaseService.setTemplateForCurrentUserCvProfile).toHaveBeenCalledWith(mockProfile.id, 'modern', true);
+    expect(pocketBaseService.getCurrentUserCvProfiles).toHaveBeenCalledTimes(1);
   });
 
   it('rejects template change with empty template', async () => {
@@ -210,28 +217,40 @@ describe('HomePage', () => {
 
   // --- Toggle public ---
   it('toggles public state successfully', async () => {
-    pocketBaseService.getCurrentUserCvProfiles.mockResolvedValue([{ ...mockProfile, public: false }]);
-    await component.togglePublic(mockProfile, false);
+    component.profiles.set([{ ...mockProfile }]);
+    pocketBaseService.setPublicForCurrentUserCvProfile.mockResolvedValue({ ...mockProfile, public: false });
+    component.publicSelections.set({ [mockProfile.id]: true });
+
+    await component.togglePublic(mockProfile);
+
     expect(pocketBaseService.setPublicForCurrentUserCvProfile).toHaveBeenCalledWith(mockProfile.id, false);
     expect(component.publicSelections()[mockProfile.id]).toBe(false);
+    expect(component.profiles().find((profile) => profile.id === mockProfile.id)?.public).toBe(false);
+    expect(pocketBaseService.getCurrentUserCvProfiles).toHaveBeenCalledTimes(1);
   });
 
   it('skips toggle public when no template', async () => {
-    await component.togglePublic({ ...mockProfile, template: undefined }, false);
+    await component.togglePublic({ ...mockProfile, template: undefined });
     expect(pocketBaseService.setPublicForCurrentUserCvProfile).not.toHaveBeenCalled();
   });
 
   it('handles toggle public error', async () => {
     pocketBaseService.setPublicForCurrentUserCvProfile.mockRejectedValue(new Error('Toggle failed'));
-    await component.togglePublic(mockProfile, false);
+    await component.togglePublic(mockProfile);
     expect(component.errorMessage()).toBe('Toggle failed');
     expect(component.isSaving()).toBeNull();
   });
 
   // --- Change status ---
   it('changes profile status successfully', async () => {
+    component.profiles.set([{ ...mockProfile }]);
+    pocketBaseService.setStatusForCvProfile.mockResolvedValue({ ...mockProfile, status: 'sent' });
+
     await component.changeStatus(mockProfile, 'sent');
+
     expect(pocketBaseService.setStatusForCvProfile).toHaveBeenCalledWith(mockProfile.id, 'sent');
+    expect(component.profiles().find((profile) => profile.id === mockProfile.id)?.status).toBe('sent');
+    expect(pocketBaseService.getCurrentUserCvProfiles).toHaveBeenCalledTimes(1);
   });
 
   it('handles change status error', async () => {
