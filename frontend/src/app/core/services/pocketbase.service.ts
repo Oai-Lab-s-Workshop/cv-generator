@@ -736,6 +736,18 @@ export class PocketBaseService {
     return { ...token };
   }
 
+  async updateCurrentUserSortOrders(
+    collection: 'jobs' | 'projects' | 'skills' | 'achievements' | 'degrees' | 'hobbies' | 'files',
+    items: { id: string; sortOrder: number }[],
+  ): Promise<void> {
+    const currentUserId = this.requireCurrentUserId();
+    await Promise.all(
+      items.map(({ id, sortOrder }) =>
+        this.pb.collection(collection).update(id, { sortOrder }, { $cancelKey: `reorder-${collection}-${id}` }),
+      ),
+    );
+  }
+
   private getFileFieldUrl(record: RecordModel, filename: string | undefined): string | undefined {
     if (!filename) {
       return undefined;
