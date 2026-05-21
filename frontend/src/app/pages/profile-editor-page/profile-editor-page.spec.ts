@@ -29,6 +29,34 @@ describe('ProfileEditorPage', () => {
     expect(component.editorState()?.profile.jobs).toEqual(['job-2']);
   });
 
+  it('sets professional summary', () => {
+    component.setProfessionalSummary('New summary');
+    expect(component.editorState()?.profile.professionalSummary).toBe('New summary');
+    component.setProfessionalSummary('');
+    expect(component.editorState()?.profile.professionalSummary).toBeUndefined();
+  });
+
+  it('sets link override field', () => {
+    component.setLinkOverrideField('github', 'https://github.com/test');
+    expect(component.editorState()?.profile.linkOverrides?.github).toBe('https://github.com/test');
+    component.setLinkOverrideField('github', '');
+    expect(component.editorState()?.profile.linkOverrides?.github).toBeUndefined();
+  });
+
+  it('sets status', () => {
+    component.setStatus('sent');
+    expect(component.editorState()?.profile.status).toBe('sent');
+  });
+
+  it('gets status option for known and unknown statuses', () => {
+    const opt = component.getStatusOption('sent');
+    expect(opt).toBeDefined();
+    const unsent = component.getStatusOption(undefined);
+    expect(unsent?.value).toBe('unsent');
+    const unknown = component.getStatusOption('nonexistent' as never);
+    expect(unknown).toBeUndefined();
+  });
+
   it('reads and writes template extra values', () => {
     const field = { id: 'hero', label: 'Hero', type: 'text' } as never;
     const sourceField = { id: 'featuredProjects', label: 'Featured projects', type: 'source-list', source: 'projects' } as never;
@@ -118,6 +146,57 @@ describe('ProfileEditorPage', () => {
     await (component as unknown as { loadEditorData: (profileId: string) => Promise<void> }).loadEditorData('profile-1');
     expect(component.editorState()).toBeNull();
     expect(component.errorMessage()).toBe('Load failed');
+  });
+
+  it('keeps no-op state for null editor state branches', () => {
+    component.editorState.set(null);
+
+    component.addRelation('jobs', 'job-1');
+    component.removeRelation('jobs', 'job-1');
+    component.setExtraValue({ id: 'hero' } as never, 'Hero');
+    component.setProfessionalSummary('Summary');
+    component.setLinkOverrideField('github', 'https://github.test/me');
+    component.setStatus('sent');
+    component.addExtraSourceValue({ id: 'featuredProjects' } as never, 'project-1');
+    component.removeExtraSourceValue({ id: 'featuredProjects' } as never, 'project-1');
+
+    expect(component.editorState()).toBeNull();
+  });
+
+  it('covers extra source record sources and fallback descriptions', () => {
+    const current = component.editorState()!;
+
+    const privateApi = component as unknown as { getExtraSourceRecords: (state: unknown, source: string | undefined) => unknown[] };
+    expect(privateApi.getExtraSourceRecords(current, 'jobs')).toHaveLength(2);
+    expect(privateApi.getExtraSourceRecords(current, 'projects')).toHaveLength(2);
+    expect(privateApi.getExtraSourceRecords(current, 'skills')).toHaveLength(2);
+    expect(privateApi.getExtraSourceRecords(current, 'degrees')).toHaveLength(2);
+    expect(privateApi.getExtraSourceRecords(current, 'achievements')).toHaveLength(2);
+    expect(privateApi.getExtraSourceRecords(current, 'hobbies')).toHaveLength(2);
+    expect(privateApi.getExtraSourceRecords(current, undefined)).toEqual([]);
+    expect(component.getLinkedExtraSourceRecords(current, { id: 'featuredProjects', source: 'projects' } as never)).toHaveLength(1);
+    expect(component.getAvailableExtraSourceRecords(current, { id: 'featuredProjects', source: 'projects' } as never)).toHaveLength(1);
+
+    expect(component.getExtraSourceRecordDescription({ id: 'project', name: 'Project', date: '' } as never)).toBe('Sans date');
+    expect(component.getExtraSourceRecordDescription({ id: 'skill', name: 'Skill', type: '', category: '' } as never)).toBe('Sans type');
+    expect(component.getExtraSourceRecordDescription({ id: 'degree', title: 'Degree', school: '' } as never)).toBe('Sans ecole');
+    expect(component.getExtraSourceRecordDescription({ id: 'achievement', title: 'Achievement', description: '' } as never)).toBe('Sans description');
+    expect(component.getExtraSourceRecordDescription({ id: 'hobby', name: 'Hobby' } as never)).toBe('Sans description');
+    expect(component.getPicturePreview({ ...current, profile: { ...current.profile, profilePictureFile: '', coverPictureFile: '' } } as never, 'coverPictureFile')).toBe('fallback-cover.png');
+    expect(component.getSelectedPictureName({ ...current, availablePictures: [{ id: 'picture-1', alt: 'Alt only' }] } as never, 'profilePictureFile')).toBe('Alt only');
+    expect(component.getSelectedPictureName({ ...current, availablePictures: [{ id: 'picture-1' }] } as never, 'profilePictureFile')).toBe('Image selectionnee');
+  });
+
+  it('handles save no-op and save errors', async () => {
+    component.editorState.set(null);
+    await component.save();
+    expect(pocketBaseService.updateCurrentUserCvProfile).not.toHaveBeenCalled();
+
+    component.editorState.set(state());
+    pocketBaseService.updateCurrentUserCvProfile.mockRejectedValueOnce(new Error('Save failed'));
+    await component.save();
+    expect(component.errorMessage()).toBe('Save failed');
+    expect(component.isSaving()).toBe(false);
   });
 
   function state() {

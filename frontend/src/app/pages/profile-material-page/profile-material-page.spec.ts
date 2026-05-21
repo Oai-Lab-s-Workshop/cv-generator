@@ -509,4 +509,493 @@ describe('ProfileMaterialPage', () => {
 
     expect(component.persistedJobs()).toEqual(component.jobs());
   });
+
+  // --- Save error path ---
+  it('handles save failure gracefully', async () => {
+    component.setActiveSection('hobbies');
+    fixture.detectChanges();
+    component.setHobbyFormValue('name', 'FailHobby');
+    fixture.detectChanges();
+
+    pocketBaseService.createCurrentUserHobby.mockRejectedValue(new Error('Server error'));
+    await component.saveHobby();
+    fixture.detectChanges();
+
+    expect(component.errorMessage()).toBe('Server error');
+  });
+
+  it('handles reorder save failure', async () => {
+    pocketBaseService.updateCurrentUserSortOrders.mockRejectedValue(new Error('Reorder failed'));
+    await component.onUpdateOrder('jobs');
+    fixture.detectChanges();
+    expect(component.errorMessage()).toBe('Reorder failed');
+  });
+
+  // --- Personal info ---
+  it('saves personal info successfully', async () => {
+    const authSvc = component['authService'] as unknown as { refreshCurrentUser: jest.Mock };
+    authSvc.refreshCurrentUser = jest.fn().mockResolvedValue(undefined);
+    component.setPersonalInfoField('firstName', 'Jane');
+    component.setPersonalInfoField('lastName', 'Doe');
+    (pocketBaseService as unknown as Record<string, jest.Mock>)['updateCurrentUser'] =
+      jest.fn().mockResolvedValue({ id: 'user-1' });
+    await component.savePersonalInfo();
+    fixture.detectChanges();
+    expect(component.successMessage()).toBeTruthy();
+    expect(authSvc.refreshCurrentUser).toHaveBeenCalled();
+  });
+
+  it('refuses personal info save when name is empty', async () => {
+    component.personalInfoForm.set({ firstName: '', lastName: '' });
+    await component.savePersonalInfo();
+    expect(component.errorMessage()).toBe('Le prenom et le nom sont obligatoires.');
+  });
+
+  it('handles personal info save failure', async () => {
+    const authSvc = component['authService'] as unknown as { refreshCurrentUser: jest.Mock };
+    authSvc.refreshCurrentUser = jest.fn().mockResolvedValue(undefined);
+    component.setPersonalInfoField('firstName', 'Jane');
+    component.setPersonalInfoField('lastName', 'Doe');
+    (pocketBaseService as unknown as Record<string, jest.Mock>)['updateCurrentUser'] =
+      jest.fn().mockRejectedValue(new Error('Update failed'));
+
+    const materialBackup = pocketBaseService.getCurrentUserProfileMaterialData;
+    pocketBaseService.getCurrentUserProfileMaterialData = jest.fn().mockResolvedValue(mockMaterialData);
+
+    await component.savePersonalInfo();
+    expect(component.errorMessage()).toBe('Update failed');
+    pocketBaseService.getCurrentUserProfileMaterialData = materialBackup;
+  });
+
+  it('loads personal info from current user', () => {
+    component.personalInfoForm.set({});
+    component.initPersonalInfoForm();
+    expect(component.personalInfoForm().firstName).toBe('John');
+  });
+
+  // --- Validation helpers ---
+  it('validates project field and URL for non-submitted state', () => {
+    component.setActiveSection('projects');
+    component.projectFormSubmitted.set(false);
+    expect(component.isProjectFieldInvalid('name')).toBe(false);
+    expect(component.isProjectUrlInvalid()).toBe(false);
+  });
+
+  it('validates skill field', () => {
+    component.skillFormSubmitted.set(true);
+    component.skillForm.set({ ...component.skillForm(), name: '' });
+    expect(component.isSkillFieldInvalid('name')).toBe(true);
+    component.skillForm.set({ ...component.skillForm(), name: 'TS' });
+    expect(component.isSkillFieldInvalid('name')).toBe(false);
+  });
+
+  it('validates achievement field', () => {
+    component.achievementFormSubmitted.set(true);
+    expect(component.isAchievementFieldInvalid('title')).toBe(true);
+    component.setAchievementFormValue('title', 'Win');
+    expect(component.isAchievementFieldInvalid('title')).toBe(false);
+  });
+
+  it('validates degree field', () => {
+    component.degreeFormSubmitted.set(true);
+    expect(component.isDegreeFieldInvalid('title')).toBe(true);
+  });
+
+  it('validates hobby field', () => {
+    component.hobbyFormSubmitted.set(true);
+    expect(component.isHobbyFieldInvalid('name')).toBe(true);
+  });
+
+  // --- Skill category methods ---
+  it('creates and selects skill category from query', async () => {
+    pocketBaseService.createCurrentUserSkillCategory.mockResolvedValue({ id: 'cat-new', name: 'Backend' });
+    component.skillCategoryQuery.set('Backend');
+    await component.createAndSelectSkillCategory();
+    expect(component.skillForm().category).toBe('cat-new');
+  });
+
+  it('creates standalone skill category', async () => {
+    pocketBaseService.createCurrentUserSkillCategory.mockResolvedValue({ id: 'cat-standalone', name: 'DevOps' });
+    component.newSkillCategoryName.set('DevOps');
+    await component.createStandaloneSkillCategory();
+    fixture.detectChanges();
+    expect(component.newSkillCategoryName()).toBe('');
+  });
+
+  it('handles skill category creation failure', async () => {
+    pocketBaseService.createCurrentUserSkillCategory.mockRejectedValue(new Error('Duplicate'));
+    component.skillCategoryQuery.set('FailCat');
+    await component.createAndSelectSkillCategory();
+    expect(component.errorMessage()).toBe('Duplicate');
+  });
+
+  it('handles createAndSelectSkillCategory when already exists', async () => {
+    component.skillCategories.set([{ id: 'cat-1', name: 'Frontend' }]);
+    component.skillCategoryQuery.set('Frontend');
+    await component.createAndSelectSkillCategory();
+    expect(component.skillForm().category).toBe('cat-1');
+    expect(pocketBaseService.createCurrentUserSkillCategory).not.toHaveBeenCalled();
+  });
+
+  it('selects and clears skill category', () => {
+    component.selectSkillCategory('cat-1');
+    expect(component.skillForm().category).toBe('cat-1');
+    component.clearSkillCategory();
+    expect(component.skillForm().category).toBe('');
+  });
+
+  it('sets skill category query and new name', () => {
+    component.setSkillCategoryQuery('q');
+    expect(component.skillCategoryQuery()).toBe('q');
+    component.setNewSkillCategoryName('n');
+    expect(component.newSkillCategoryName()).toBe('n');
+  });
+
+  // --- Project achievement methods ---
+  it('toggles project achievement off', () => {
+    component.projectForm.update((f) => ({ ...f, achievements: ['ach-1'] }));
+    component.removeProjectAchievement('ach-1');
+    expect(component.projectForm().achievements).toEqual([]);
+  });
+
+  it('toggles project achievement on via add', () => {
+    component.projectForm.update((f) => ({ ...f, achievements: [] }));
+    component.addProjectAchievement('ach-1');
+    expect(component.projectForm().achievements).toEqual(['ach-1']);
+  });
+
+  it('creates and links project achievement from picker - existing match', async () => {
+    component.achievements.set([{ id: 'ach-1', title: 'Existing' }]);
+    await component.onProjectAchievementCreate('Existing');
+    expect(component.projectForm().achievements).toContain('ach-1');
+    expect(pocketBaseService.createCurrentUserAchievement).not.toHaveBeenCalled();
+  });
+
+  it('creates and links project achievement from picker - error', async () => {
+    pocketBaseService.createCurrentUserAchievement.mockRejectedValue(new Error('Creation failed'));
+    await component.onProjectAchievementCreate('FailAchievement');
+    expect(component.errorMessage()).toBe('Creation failed');
+  });
+
+  it('createAndLinkProjectAchievement with empty title', async () => {
+    component.projectAchievementQuery.set('');
+    await component.createAndLinkProjectAchievement();
+    expect(component.errorMessage()).toBe('Le titre de la realisation est obligatoire.');
+  });
+
+  it('createAndLinkProjectAchievement with existing achievement', async () => {
+    component.achievements.set([{ id: 'ach-1', title: 'Fast' }]);
+    component.projectAchievementQuery.set('Fast');
+    await component.createAndLinkProjectAchievement();
+    expect(component.projectForm().achievements).toContain('ach-1');
+  });
+
+  it('createAndLinkProjectAchievement error path', async () => {
+    pocketBaseService.createCurrentUserAchievement.mockRejectedValue(new Error('Create failed'));
+    component.projectAchievementQuery.set('UniqueNew');
+    await component.createAndLinkProjectAchievement();
+    expect(component.errorMessage()).toBe('Create failed');
+    expect(component.creatingProjectAchievement()).toBe(false);
+  });
+
+  it('sets project achievement query', () => {
+    component.setProjectAchievementQuery('search');
+    expect(component.projectAchievementQuery()).toBe('search');
+  });
+
+  // --- onSkillCategoryCreate existing match ---
+  it('onSkillCategoryCreate with existing category', async () => {
+    component.skillCategories.set([{ id: 'cat-1', name: 'Frontend' }]);
+    await component.onSkillCategoryCreate('Frontend');
+    expect(component.skillForm().category).toBe('cat-1');
+  });
+
+  // --- Save jobs in update mode ---
+  it('updates an existing job via save', async () => {
+    component.editJob(component.jobs()[0]);
+    fixture.detectChanges();
+    await component.saveJob();
+    expect(pocketBaseService.updateCurrentUserJob).toHaveBeenCalled();
+  });
+
+  it('updates an existing achievement', async () => {
+    component.editAchievement(component.achievements()[0]);
+    fixture.detectChanges();
+    await component.saveAchievement();
+    expect(pocketBaseService.updateCurrentUserAchievement).toHaveBeenCalled();
+  });
+
+  it('refuses achievement save without title', async () => {
+    component.setActiveSection('achievements');
+    component.achievementForm.set({ ...component.achievementForm(), title: '' });
+    await component.saveAchievement();
+    expect(pocketBaseService.createCurrentUserAchievement).not.toHaveBeenCalled();
+  });
+
+  // --- Edit degree, hobby, asset ---
+  it('edits a degree and resets form', () => {
+    component.degrees.set([{ id: 'deg-2', title: 'PhD CS', school: 'MIT', year: '2022', level: 'Doctorate' }]);
+    component.editDegree(component.degrees()[0]);
+    expect(component.degreeForm().id).toBe('deg-2');
+    component.resetDegreeForm();
+    expect(component.degreeForm().id).toBeUndefined();
+  });
+
+  it('edits a hobby and resets form', () => {
+    component.hobbies.set([{ id: 'hob-2', name: 'Reading', description: 'Fiction' }]);
+    component.editHobby(component.hobbies()[0]);
+    expect(component.hobbyForm().id).toBe('hob-2');
+    component.resetHobbyForm();
+    expect(component.hobbyForm().id).toBeUndefined();
+  });
+
+  it('edits an asset and resets form', () => {
+    component.editAsset(component.assets()[0]);
+    expect(component.assetForm().id).toBe('file-1');
+    component.resetAssetForm();
+    expect(component.assetForm().id).toBeUndefined();
+    expect(component.selectedAssetFile()).toBeNull();
+  });
+
+  it('sets asset form value', () => {
+    component.setAssetFormValue('name', 'new-asset');
+    expect(component.assetForm().name).toBe('new-asset');
+  });
+
+  it('handles asset file selection', () => {
+    const file = new File([], 'upload.png');
+    const event = { target: { files: [file] } } as unknown as Event;
+    component.onAssetFileSelected(event);
+    expect(component.selectedAssetFile()).toBe(file);
+  });
+
+  it('onAssetFileSelected with no files', () => {
+    const event = { target: { files: null } } as unknown as Event;
+    component.onAssetFileSelected(event);
+    expect(component.selectedAssetFile()).toBeNull();
+  });
+
+  it('saves asset with file (create)', async () => {
+    component.setActiveSection('assets');
+    component.setAssetFormValue('name', 'New Asset');
+    component.selectedAssetFile.set(new File([], 'test.png'));
+    fixture.detectChanges();
+    await component.saveAsset();
+    expect(pocketBaseService.createCurrentUserFile).toHaveBeenCalled();
+  });
+
+  it('saves asset without file in update mode', async () => {
+    component.editAsset(component.assets()[0]);
+    await component.saveAsset();
+    expect(pocketBaseService.updateCurrentUserFile).toHaveBeenCalled();
+  });
+
+  it('refuses asset save without file in create mode', async () => {
+    component.setActiveSection('assets');
+    component.assetFormSubmitted.set(false);
+    component.assetForm.set({ ...component.assetForm(), id: undefined });
+    component.selectedAssetFile.set(null);
+    await component.saveAsset();
+    expect(pocketBaseService.createCurrentUserFile).not.toHaveBeenCalled();
+  });
+
+  // --- Edit project ---
+  it('edits a project', () => {
+    component.editProject(component.projects()[0]);
+    expect(component.projectForm().id).toBe('proj-1');
+    expect(component.projectForm().name).toBe('My Project');
+    expect(component.selectedProjectPicture()).toBeNull();
+    expect(component.projectAchievementQuery()).toBe('');
+  });
+
+  it('handles project picture selection', () => {
+    const file = new File([], 'pic.png');
+    const event = { target: { files: [file] } } as unknown as Event;
+    component.onProjectPictureSelected(event);
+    expect(component.selectedProjectPicture()).toBe(file);
+  });
+
+  // --- Reorder other sections ---
+  it('reorders projects and saves', async () => {
+    component.onReorderProjects([...component.projects()]);
+    expect(component.sectionOrderDirty().projects).toBe(true);
+    await component.onUpdateOrder('projects');
+    expect(component.sectionOrderDirty().projects).toBe(false);
+  });
+
+  it('reorders skills and saves', async () => {
+    component.onReorderSkills([...component.skills()]);
+    expect(component.sectionOrderDirty().skills).toBe(true);
+    await component.onUpdateOrder('skills');
+    expect(component.sectionOrderDirty().skills).toBe(false);
+  });
+
+  it('reorders achievements, degrees, hobbies, assets', () => {
+    component.onReorderAchievements([...component.achievements()]);
+    component.onReorderDegrees([...component.degrees()]);
+    component.onReorderHobbies([...component.hobbies()]);
+    component.onReorderAssets([...component.assets()]);
+    expect(component.sectionOrderDirty().achievements).toBe(true);
+    expect(component.sectionOrderDirty().degrees).toBe(true);
+    expect(component.sectionOrderDirty().hobbies).toBe(true);
+    expect(component.sectionOrderDirty().assets).toBe(true);
+  });
+
+  // --- Set skill level ---
+  it('sets skill level', () => {
+    component.setSkillLevel('5');
+    expect(component.skillForm().level).toBe(5);
+  });
+
+  // --- Project achievement deselection ---
+  it('deselects project achievements from picker', () => {
+    component.projectForm.update((f) => ({ ...f, achievements: ['ach-1'] }));
+    component.onProjectAchievementSelectionChange(['ach-2']);
+    expect(component.projectForm().achievements).toEqual(['ach-2']);
+  });
+
+  // --- isSaving ---
+  it('reports isSaving for active section', () => {
+    component['savingSection'].set('jobs');
+    expect(component.isSaving('jobs')).toBe(true);
+    expect(component.isSaving('skills')).toBe(false);
+  });
+
+  // --- Update persisted snapshot ---
+  it('updates persisted snapshot for all sections', () => {
+    component['updatePersistedSnapshot']('projects');
+    component['updatePersistedSnapshot']('skills');
+    component['updatePersistedSnapshot']('achievements');
+    component['updatePersistedSnapshot']('degrees');
+    component['updatePersistedSnapshot']('hobbies');
+    component['updatePersistedSnapshot']('assets');
+    // If no errors, all branches exercised
+  });
+
+  // --- Computed properties ---
+  it('computes selectedProjectAchievements', () => {
+    component.projectForm.update((f) => ({ ...f, achievements: ['ach-1'] }));
+    component.achievements.set([{ id: 'ach-1', title: 'Won' }, { id: 'ach-2', title: 'Lost' }]);
+    const selected = component.selectedProjectAchievements();
+    expect(selected.length).toBe(1);
+    expect(selected[0].title).toBe('Won');
+  });
+
+  it('computes filteredAvailableProjectAchievements with query', () => {
+    component.achievements.set([{ id: 'ach-1', title: 'Angular project' }, { id: 'ach-2', title: 'React app' }]);
+    component.projectForm.update((f) => ({ ...f, achievements: ['ach-1'] }));
+    component.projectAchievementQuery.set('angular');
+    const filtered = component.filteredAvailableProjectAchievements();
+    // ach-1 should be excluded (already selected)
+    expect(filtered.length).toBe(0);
+  });
+
+  it('computes canCreateProjectAchievement when creating', () => {
+    component.projectAchievementQuery.set('New');
+    component.creatingProjectAchievement.set(true);
+    expect(component.canCreateProjectAchievement()).toBe(false);
+  });
+
+  it('computes selectedSkillCategory when not found', () => {
+    component.skillForm.update((f) => ({ ...f, category: 'unknown' }));
+    expect(component.selectedSkillCategory()).toBeUndefined();
+  });
+
+  it('computes filteredSkillCategories with query excluding selected', () => {
+    component.skillCategories.set([{ id: 'cat-1', name: 'Frontend' }, { id: 'cat-2', name: 'Backend' }]);
+    component.skillForm.update((f) => ({ ...f, category: 'cat-1' }));
+    component.skillCategoryQuery.set('back');
+    const filtered = component.filteredSkillCategories();
+    expect(filtered.length).toBe(1);
+    expect(filtered[0].name).toBe('Backend');
+  });
+
+  it('computes canCreateStandaloneSkillCategory false when empty', () => {
+    component.newSkillCategoryName.set('');
+    expect(component.canCreateStandaloneSkillCategory()).toBe(false);
+  });
+
+  it('computes canCreateSkillCategoryFromQuery', () => {
+    component.skillCategoryQuery.set('NewCat');
+    component.creatingSkillCategory.set(false);
+    expect(component.canCreateSkillCategoryFromQuery()).toBe(true);
+  });
+
+  it('computes picker items', () => {
+    expect(component.projectAchievementPickerItems().length).toBe(1);
+    expect(component.skillCategoryPickerItems().length).toBe(1);
+    expect(component.assetPickerItems().length).toBe(1);
+  });
+
+  it('computes selectedProjectFileIds and selectedSkillCategoryIds empty', () => {
+    component.projectForm.update((f) => ({ ...f, file: '' }));
+    component.skillForm.update((f) => ({ ...f, category: '' }));
+    expect(component.selectedProjectFileIds()).toEqual([]);
+    expect(component.selectedSkillCategoryIds()).toEqual([]);
+  });
+
+  it('computes currentUserName when user is null', () => {
+    const auth = component['authService'] as unknown as { currentUser: ReturnType<typeof signal> };
+    const original = auth.currentUser();
+    auth.currentUser.set(null as never);
+    expect(component.currentUserName()).toBe('Utilisateur authentifie');
+    auth.currentUser.set(original);
+  });
+
+  // --- scrollToSection (no-op in test) ---
+  it('calls scrollToSection without crashing', () => {
+    expect(() => component['scrollToSection']('test-section', 'input[name="test"]')).not.toThrow();
+  });
+
+  // --- isSubsequence edge cases ---
+  it('detects subsequence at end of value', () => {
+    expect(component['isSubsequence']('lar', 'angular')).toBe(true);
+  });
+
+  it('detects non-subsequence with partial match', () => {
+    expect(component['isSubsequence']('abe', 'abc')).toBe(false);
+  });
+
+  // --- matchesFuzzyQuery with subsequence ---
+  it('matches fuzzy query via subsequence', () => {
+    expect(component['matchesFuzzyQuery'](['Frontend Developer'], 'fd')).toBe(true);
+  });
+
+  // --- normalizeHtmlEditorValue undefined input ---
+  it('normalizes undefined HTML editor value', () => {
+    expect(component['normalizeHtmlEditorValue'](undefined)).toBeUndefined();
+  });
+
+  it('normalizes HTML with non-breaking spaces only', () => {
+    expect(component['normalizeHtmlEditorValue']('\u00a0\u00a0')).toBeUndefined();
+  });
+
+  // --- toNullableNumber edge cases ---
+  it('converts non-finite to null', () => {
+    expect(component['toNullableNumber'](Number.POSITIVE_INFINITY)).toBeNull();
+  });
+
+  // --- canCreateSkillCategory edge cases ---
+  it('canCreateSkillCategory false when creating', () => {
+    component.creatingSkillCategory.set(true);
+    expect(component['canCreateSkillCategory']('New')).toBe(false);
+  });
+
+  it('canCreateSkillCategory false when duplicate', () => {
+    component.skillCategories.set([{ id: 'cat-1', name: 'Frontend' }]);
+    expect(component['canCreateSkillCategory']('frontend')).toBe(false);
+  });
+
+  // --- Save section error handling ---
+  it('shows error when saveSection operation fails', async () => {
+    // Override the create method to fail
+    pocketBaseService.createCurrentUserDegree.mockRejectedValue(new Error('DB down'));
+    component.setActiveSection('degrees');
+    component.setDegreeFormValue('title', 'Fail degree');
+    await component.saveDegree();
+    expect(component.errorMessage()).toBe('DB down');
+    expect(component['savingSection']()).toBeNull();
+  });
+
+  // --- Resume normal flow for reorder error (already covered) ---
 });
