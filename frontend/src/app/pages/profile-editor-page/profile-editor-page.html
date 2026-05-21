@@ -9,7 +9,6 @@
       } @else {
         <h1>Gerer votre profil CV</h1>
       }
-      <p class="lede">Cette page compose un CV a partir de vos donnees reutilisables. Les experiences et competences se gerent dans l'espace informations, puis se selectionnent ici.</p>
     </div>
     @if (editorState(); as state) {
       @if (state.profile.template && state.profile.slug) {
@@ -43,6 +42,10 @@
           <p class="eyebrow">Profil CV</p>
           <h2>{{ state.profile.label || state.profile.profileName }}</h2>
         </div>
+        <label class="editor-field editor-field--checkbox">
+          <span>Route publique</span>
+          <input [(ngModel)]="state.profile.public" name="public" type="checkbox" [ngModelOptions]="{ standalone: true }" />
+        </label>
         <div class="status-control">
           <label class="status-control__label">
             <span>Statut</span>
@@ -52,9 +55,6 @@
               }
             </select>
           </label>
-          <span class="status-badge" [class]="getStatusOption(state.profile.status)?.tone || 'gray'">
-            {{ getStatusOption(state.profile.status)?.label || 'Non envoye' }}
-          </span>
         </div>
       </div>
 
@@ -79,11 +79,6 @@
               <option [value]="template.id">{{ template.label }}</option>
             }
           </select>
-        </label>
-
-        <label class="editor-field editor-field--checkbox">
-          <span>Route publique</span>
-          <input [(ngModel)]="state.profile.public" name="public" type="checkbox" [ngModelOptions]="{ standalone: true }" />
         </label>
 
         <label class="editor-field media-picker">
