@@ -1,0 +1,59 @@
+<div class="picker" [class.picker--open]="isOpen()">
+  <div class="picker__trigger" (click)="togglePanel()" tabindex="0" role="combobox" [attr.aria-expanded]="isOpen()">
+    @if (mode === 'multi') {
+      <div class="picker__chips">
+        @for (item of selectedItems(); track item.id) {
+          <span class="picker__chip">
+            {{ item.label }}
+            <button type="button" class="picker__chip-remove" (click)="removeSelected(item.id); $event.stopPropagation()" aria-label="Retirer {{ item.label }}">&times;</button>
+          </span>
+        }
+        @if (!selectedItems().length) {
+          <span class="picker__placeholder">{{ placeholder }}</span>
+        }
+      </div>
+    } @else {
+      <span class="picker__value" [class.picker__value--empty]="!selectedLabel">{{ selectedLabel || placeholder }}</span>
+    }
+    <span class="picker__arrow">&#9662;</span>
+  </div>
+
+  @if (isOpen()) {
+    <div class="picker__panel">
+      <div class="picker__search">
+        <input
+          type="text"
+          class="picker__search-input"
+          [placeholder]="placeholder"
+          [(ngModel)]="searchQuery"
+          (keydown.escape)="close()"
+        />
+        @if (allowCreate && searchQuery().trim()) {
+          <button type="button" class="picker__create-btn" (click)="onCreate()">{{ createLabel }} "{{ searchQuery().trim() }}"</button>
+        }
+      </div>
+      <ul class="picker__list" role="listbox">
+        @for (item of filteredItems(); track item.id) {
+          <li
+            class="picker__item"
+            [class.picker__item--selected]="isSelected(item.id)"
+            role="option"
+            [attr.aria-selected]="isSelected(item.id)"
+            (click)="toggleItem(item.id)"
+          >
+            @if (mode === 'multi') {
+              <span class="picker__check">{{ isSelected(item.id) ? '&#10003;' : '' }}</span>
+            }
+            <span class="picker__item-label">{{ item.label }}</span>
+            @if (item.subtitle) {
+              <span class="picker__item-subtitle">{{ item.subtitle }}</span>
+            }
+          </li>
+        }
+        @if (!filteredItems().length) {
+          <li class="picker__empty">{{ emptyLabel }}</li>
+        }
+      </ul>
+    </div>
+  }
+</div>
