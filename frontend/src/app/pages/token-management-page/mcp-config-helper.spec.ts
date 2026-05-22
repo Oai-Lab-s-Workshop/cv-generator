@@ -64,6 +64,17 @@ describe('McpConfigHelper', () => {
     expect(config).toContain('http://localhost:8080/mcp');
   });
 
+  it('generates Codex HTTP config for the Codex preset', () => {
+    component.customToken.set('rmcp_codex');
+    component.customUrl.set('http://localhost:8080/mcp');
+    component.selectedAgent.set('codex');
+
+    const config = component.getGeneratedConfig();
+
+    expect(config).toContain('"transport": "http"');
+    expect(config).toContain('"Authorization": "Bearer rmcp_codex"');
+  });
+
   it('returns an empty config when the selected agent is unknown', () => {
     component.selectedAgent.set('missing-agent');
 
@@ -78,6 +89,13 @@ describe('McpConfigHelper', () => {
 
     expect(clipboardWriteText).toHaveBeenCalledWith(expect.stringContaining('rmcp_copy'));
     expect(component.isCopied()).toBe(true);
+  });
+
+  it('reports not copied when copied agent differs from the selected agent', () => {
+    component.copiedAgent.set('claude-code');
+    component.selectedAgent.set('opencode');
+
+    expect(component.isCopied()).toBe(false);
   });
 
   it('does not copy when no config can be generated', async () => {

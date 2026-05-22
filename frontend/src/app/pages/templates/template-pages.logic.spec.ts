@@ -193,6 +193,50 @@ describe('CV template page logic', () => {
     }
   });
 
+  it('ignores stale successful template loads', async () => {
+    const ctors = [SupaCVPage, BentoCvPage, ModernCvPage, MinimalCvPage];
+    for (const Ctor of ctors) {
+      const staleLoad = deferred<unknown>();
+      const freshData = { ...(cvData() as object), profile: { ...(cvData() as never as { profile: object }).profile, id: 'profile-2' } };
+      pocketBaseService.getCvDataByProfileId
+        .mockReturnValueOnce(staleLoad.promise)
+        .mockResolvedValueOnce(freshData);
+
+      const component = TestBed.runInInjectionContext(() => new Ctor());
+      const c = component as unknown as { loadCvData: (id: string) => Promise<void>; cvData: () => { profile: { id: string } } | null; ngOnDestroy?: () => void };
+      const stalePromise = c.loadCvData('profile-1');
+
+      await c.loadCvData('profile-2');
+      staleLoad.resolve(cvData());
+      await stalePromise;
+
+      expect(c.cvData()?.profile.id).toBe('profile-2');
+      c.ngOnDestroy?.();
+    }
+  });
+
+  it('ignores stale failed template loads', async () => {
+    const ctors = [SupaCVPage, BentoCvPage, ModernCvPage, MinimalCvPage];
+    for (const Ctor of ctors) {
+      const staleLoad = deferred<unknown>();
+      pocketBaseService.getCvDataByProfileId
+        .mockReturnValueOnce(staleLoad.promise)
+        .mockResolvedValueOnce(cvData());
+
+      const component = TestBed.runInInjectionContext(() => new Ctor());
+      const c = component as unknown as { loadCvData: (id: string) => Promise<void>; errorMessage: () => string | null; cvData: () => unknown; ngOnDestroy?: () => void };
+      const stalePromise = c.loadCvData('profile-1');
+
+      await c.loadCvData('profile-2');
+      staleLoad.reject(new Error('Stale load failed'));
+      await stalePromise;
+
+      expect(c.errorMessage()).toBeNull();
+      expect(c.cvData()).toBeTruthy();
+      c.ngOnDestroy?.();
+    }
+  });
+
   function cvData(): unknown {
     return {
       profile: {
@@ -224,5 +268,16 @@ describe('CV template page logic', () => {
       achievements: [{ id: 'achievement-1', title: 'Award', description: 'Won' }],
       hobbies: [{ id: 'hobby-1', name: 'Music' }],
     } as never;
+  }
+
+  function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void; reject: (reason?: unknown) => void } {
+    let resolve!: (value: T) => void;
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<T>((promiseResolve, promiseReject) => {
+      resolve = promiseResolve;
+      reject = promiseReject;
+    });
+
+    return { promise, resolve, reject };
   }
 });

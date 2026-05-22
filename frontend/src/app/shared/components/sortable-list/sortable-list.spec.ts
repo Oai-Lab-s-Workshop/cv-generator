@@ -8,7 +8,7 @@ import { SortableListDirective } from './sortable-list';
   template: `
     <div [appSortableList]="items" (appSortableListChange)="onReorder($event)">
       @for (item of items; track item; let i = $index) {
-        <div draggable="true" [attr.data-index]="i">{{ item }}</div>
+        <div draggable="true" [attr.data-index]="i"><span>{{ item }}</span></div>
       }
     </div>
   `,
@@ -45,17 +45,78 @@ describe('SortableListDirective', () => {
     const host = fixture.componentInstance;
     const items = fixture.nativeElement.querySelectorAll('[draggable="true"]');
 
-    const makeDragEvent = (type: string): DragEvent => {
-      const event = new Event(type, { bubbles: true }) as unknown as DragEvent;
-      const dt = { effectAllowed: '', dropEffect: '', setData: () => {}, getData: () => '' };
-      Object.defineProperty(event, 'dataTransfer', { value: dt, writable: true });
-      return event;
-    };
-
     items[0].dispatchEvent(makeDragEvent('dragstart'));
     items[2].dispatchEvent(makeDragEvent('dragover'));
     items[2].dispatchEvent(makeDragEvent('drop'));
 
     expect(host.items).toEqual(['B', 'C', 'A']);
   });
+
+  it('should find draggable parent elements from nested targets', () => {
+    const host = fixture.componentInstance;
+    const nested = fixture.nativeElement.querySelectorAll('[draggable="true"] span');
+
+    nested[0].dispatchEvent(makeDragEvent('dragstart'));
+    nested[1].dispatchEvent(makeDragEvent('dragover'));
+    nested[1].dispatchEvent(makeDragEvent('drop'));
+
+    expect(host.items).toEqual(['B', 'A', 'C']);
+  });
+
+  it('should ignore drag events outside sortable items', () => {
+    const host = fixture.nativeElement.firstElementChild;
+    const component = fixture.componentInstance;
+
+    host.dispatchEvent(makeDragEvent('dragstart'));
+    host.dispatchEvent(makeDragEvent('dragover'));
+    host.dispatchEvent(makeDragEvent('drop'));
+
+    expect(component.items).toEqual(['A', 'B', 'C']);
+  });
+
+  it('should not emit when dropping onto the dragged item', () => {
+    const component = fixture.componentInstance;
+    const reorderSpy = jest.spyOn(component, 'onReorder');
+    const items = fixture.nativeElement.querySelectorAll('[draggable="true"]');
+
+    items[1].dispatchEvent(makeDragEvent('dragstart'));
+    items[1].dispatchEvent(makeDragEvent('dragover'));
+    items[1].dispatchEvent(makeDragEvent('drop'));
+
+    expect(reorderSpy).not.toHaveBeenCalled();
+    expect(component.items).toEqual(['A', 'B', 'C']);
+  });
+
+  it('should clear indicator classes on drag end', () => {
+    const items = fixture.nativeElement.querySelectorAll('[draggable="true"]');
+
+    items[0].dispatchEvent(makeDragEvent('dragstart'));
+    items[1].dispatchEvent(makeDragEvent('dragover'));
+    expect(items[0].classList.contains('sortable-item--dragging')).toBe(true);
+    expect(items[1].classList.contains('sortable-item--drop-target')).toBe(true);
+
+    items[0].dispatchEvent(makeDragEvent('dragend'));
+
+    expect(items[0].classList.contains('sortable-item--dragging')).toBe(false);
+    expect(items[1].classList.contains('sortable-item--drop-target')).toBe(false);
+  });
+
+  it('should ignore dragstart when a draggable item has no data index', () => {
+    const component = fixture.componentInstance;
+    const items = fixture.nativeElement.querySelectorAll('[draggable="true"]');
+    items[0].removeAttribute('data-index');
+
+    items[0].dispatchEvent(makeDragEvent('dragstart'));
+    items[1].dispatchEvent(makeDragEvent('dragover'));
+    items[1].dispatchEvent(makeDragEvent('drop'));
+
+    expect(component.items).toEqual(['A', 'B', 'C']);
+  });
+
+  function makeDragEvent(type: string): DragEvent {
+    const event = new Event(type, { bubbles: true }) as unknown as DragEvent;
+    const dataTransfer = { effectAllowed: '', dropEffect: '', setData: jest.fn(), getData: jest.fn() };
+    Object.defineProperty(event, 'dataTransfer', { value: dataTransfer, writable: true });
+    return event;
+  }
 });
