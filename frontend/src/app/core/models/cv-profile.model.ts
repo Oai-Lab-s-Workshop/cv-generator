@@ -1,8 +1,15 @@
 import { MediaFile } from './file.model';
 import { User } from './user.model';
 
+export type CvProfileStatus = 'unsent' | 'sent' | 'rejected' | 'responded';
 export type CvProfileExtraValue = string | number | boolean | string[] | null;
 export type CvProfileExtraByTemplate = Record<string, Record<string, CvProfileExtraValue>>;
+
+export interface CvProfileLinkOverrides {
+  linkedin?: string;
+  github?: string;
+  website?: string;
+}
 
 export interface CvProfile {
   id: string;
@@ -24,6 +31,8 @@ export interface CvProfile {
   profilePictureFile?: string;
   coverPictureFile?: string;
   extra?: CvProfileExtraByTemplate;
+  linkOverrides?: CvProfileLinkOverrides;
+  status?: CvProfileStatus;
   expand?: {
     user?: User;
     profilePictureFile?: MediaFile;

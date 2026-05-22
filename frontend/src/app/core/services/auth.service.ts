@@ -34,4 +34,15 @@ export class AuthService {
   getCurrentUserId(): string | null {
     return this.currentUser()?.id ?? null;
   }
+
+  async refreshCurrentUser(): Promise<void> {
+    const currentId = this.getCurrentUserId();
+    if (!currentId) {
+      return;
+    }
+
+    const user = await this.pb.collection<User>('users').getOne(currentId);
+    this.authRecord.set(user);
+    this.authValid.set(this.pb.authStore.isValid);
+  }
 }

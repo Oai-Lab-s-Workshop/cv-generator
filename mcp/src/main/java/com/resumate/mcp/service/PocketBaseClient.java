@@ -56,7 +56,7 @@ public class PocketBaseClient {
                             new ExtraFieldDescriptor("compactMode", "Compact mode", "boolean", false, "Whether the template should aggressively reduce spacing to fit more content on one A4 page.", null, List.of())
                     )
             ),
-            new TemplateDescriptor("minimal", "Minimal", "Single-column minimalist resume with inline contact details and compact sections.", List.of())
+            new TemplateDescriptor("minimal", "Minimal", "Harvard-style single-column resume with inline contact details, restrained typography, and compact sections.", List.of())
     );
 
     private final PocketBaseProperties properties;
@@ -281,8 +281,9 @@ public class PocketBaseClient {
     private static String slugify(String value) {
         StringBuilder slug = new StringBuilder();
         boolean lastWasDash = false;
+        String normalizedValue = Objects.requireNonNullElse(value, "");
 
-        for (char character : value.toLowerCase().toCharArray()) {
+        for (char character : normalizedValue.toLowerCase().toCharArray()) {
             if (character >= 'a' && character <= 'z' || character >= '0' && character <= '9') {
                 slug.append(character);
                 lastWasDash = false;

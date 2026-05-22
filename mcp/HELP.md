@@ -11,6 +11,22 @@
 
 Incoming MCP requests authenticate with the `API_KEY` header. The API key is a user-generated secret stored hashed in `ai_tokens`.
 
+## Agent purpose
+
+Use this MCP server when a user asks you to create, tailor, adapt, optimize, or customize a CV/resume from their existing Resumate data. The server lets you inspect available templates, load the authenticated user's reusable resume material, and create a new public tailored CV profile for a specific job or opportunity.
+
+Do not invent template IDs or record IDs. Use only template IDs returned by `listTemplates` and user-owned record IDs returned by `listProfileMaterial`. A successful create call returns a shareable frontend URL for the created profile.
+
+## Agent workflow
+
+1. Call `listTemplates` and choose one returned `template.id` for `templateId`.
+2. Call `listProfileMaterial` and select only IDs from the returned user records.
+3. Call `createTailoredCvProfile` with a non-empty `label`, the chosen `templateId`, a role-focused `professionalSummary`, selected ID arrays, and only `templateExtra` fields listed in the selected template's `extraSchema`.
+
+Always include `label` in create calls. The server does not generate it; choose a concise saved-resume label such as `Acme - Senior Backend Engineer`.
+
+If validation fails, correct the missing or invalid field and retry `createTailoredCvProfile` with the fixed value. Do not repeat the same invalid call.
+
 ## Internal PocketBase access
 
 The current MCP server still authenticates to PocketBase as a dedicated internal `users` record with `isMcpServiceAccount=true` so it can read the API key owner's data and create CV profiles on their behalf.

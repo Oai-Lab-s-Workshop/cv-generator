@@ -15,7 +15,6 @@ export class DesktopHomePage {
   readonly config = resolveDesktopRuntimeConfig();
   readonly pocketBaseStatus = signal<ServiceStatus>('checking');
   readonly mcpStatus = signal<ServiceStatus>('checking');
-  readonly isPasswordVisible = signal(false);
   readonly copyMessage = signal<string | null>(null);
   readonly pocketBaseAdminUrl = computed(() => this.config?.pocketbaseAdminUrl ?? `${this.config?.pocketbaseUrl ?? ''}/_/`);
 
