@@ -258,6 +258,208 @@ describe('ProfileEditorPage', () => {
     expect(component.isSaving()).toBe(false);
   });
 
+  it('handles saveProfileFields no-state and error branches', async () => {
+    component.editorState.set(null);
+    await component.saveProfileFields();
+    expect(pocketBaseService.updateCurrentUserCvProfile).not.toHaveBeenCalled();
+    expect(component.isProfileSaving()).toBe(false);
+
+    component.editorState.set(state());
+    pocketBaseService.updateCurrentUserCvProfile.mockRejectedValueOnce(new Error('Save fields failed'));
+    await component.saveProfileFields();
+    expect(component.errorMessage()).toBe('Save fields failed');
+    expect(component.isProfileSaving()).toBe(false);
+  });
+
+  it('clears pending autosave timeout inside saveProfileFields', async () => {
+    jest.useFakeTimers();
+    component.setProfileName('Valid Name');
+
+    pocketBaseService.updateCurrentUserCvProfile.mockResolvedValue({});
+    await component.saveProfileFields();
+
+    jest.advanceTimersByTime(500);
+    await Promise.resolve();
+
+    expect(pocketBaseService.updateCurrentUserCvProfile).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('covers setter wrappers and template-related fallbacks', async () => {
+    jest.spyOn(component, 'saveProfileFields').mockResolvedValue(undefined);
+
+    component.setProfileLabel('New label');
+    expect(component.editorState()?.profile.label).toBe('New label');
+
+    component.setProfileTemplate('modern');
+    expect(component.editorState()?.profile.template).toBe('modern');
+
+    component.setProfileTemplate('');
+    expect(component.editorState()?.profile.template).toBeUndefined();
+
+    component.setProfilePublic(false);
+    expect(component.editorState()?.profile.public).toBe(false);
+
+    component.setProfilePictureFile('picture-2');
+    expect(component.editorState()?.profile.profilePictureFile).toBe('picture-2');
+
+    component.setProfilePictureFile('');
+    expect(component.editorState()?.profile.profilePictureFile).toBeUndefined();
+
+    component.setCoverPictureFile('picture-3');
+    expect(component.editorState()?.profile.coverPictureFile).toBe('picture-3');
+
+    component.setCoverPictureFile('');
+    expect(component.editorState()?.profile.coverPictureFile).toBeUndefined();
+
+    component.setStatusAndSave('rejected');
+    expect(component.editorState()?.profile.status).toBe('rejected');
+    expect(component.saveProfileFields).toHaveBeenCalledTimes(8);
+
+    const current = component.editorState()!;
+    const noTemplateState = { ...current, profile: { ...current.profile, template: '' } } as never;
+
+    expect(component.getSelectedTemplateExtraSchema(noTemplateState)).toEqual([]);
+    expect(component.getExtraValue(noTemplateState, { id: 'hero' } as never)).toBeUndefined();
+
+    component.editorState.set(noTemplateState);
+    component.setExtraValue({ id: 'hero' } as never, 'Should not set');
+    expect(component.getExtraTextValue(component.editorState()!, { id: 'hero' } as never)).toBe('');
+
+    component.editorState.set(null);
+    component.setProfileTemplate('classic');
+    expect(component.editorState()).toBeNull();
+  });
+
+  it('clears pending autosave on destroy', async () => {
+    jest.useFakeTimers();
+    const saveSpy = jest.spyOn(component, 'saveProfileFields').mockResolvedValue(undefined);
+
+    component.scheduleProfileAutosave();
+    component.ngOnDestroy();
+    jest.advanceTimersByTime(500);
+    await Promise.resolve();
+
+    expect(saveSpy).not.toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+
+  it('handles save payload with label, public, and extra fallbacks', async () => {
+    const s = state() as Record<string, unknown>;
+    const profile = s['profile'] as Record<string, unknown>;
+    component.editorState.set({
+      ...(s as object),
+      profile: {
+        ...profile,
+        label: undefined,
+        public: undefined,
+        extra: undefined,
+        jobs: undefined,
+        projects: undefined,
+        skills: undefined,
+        degrees: undefined,
+        achievements: undefined,
+        hobbies: undefined,
+        profilePictureFile: undefined,
+        coverPictureFile: undefined,
+      },
+    } as never);
+
+    await component.save();
+
+    expect(pocketBaseService.updateCurrentUserCvProfile).toHaveBeenCalledWith(
+      'profile-1',
+      expect.objectContaining({
+        label: '',
+        public: true,
+        extra: {},
+        jobs: [],
+        projects: [],
+        skills: [],
+        degrees: [],
+        achievements: [],
+        hobbies: [],
+        profilePictureFile: '',
+        coverPictureFile: '',
+      }),
+    );
+  });
+
+  it('guards against stale loadEditorData success and error', async () => {
+    const defSuccess = deferred();
+    pocketBaseService.getCurrentUserCvProfileEditorData
+      .mockReturnValueOnce(defSuccess.promise);
+
+    const load = (component as unknown as { loadEditorData: (id: string) => Promise<void> }).loadEditorData.bind(component);
+    const firstLoad = load('profile-1');
+
+    await load('profile-1');
+    expect(component.editorState()).not.toBeNull();
+    expect(component.isLoading()).toBe(false);
+
+    defSuccess.resolve(editorData());
+    await firstLoad;
+
+    expect(component.editorState()?.profile.jobs).toEqual(['job-1']);
+
+    const defError = deferred();
+    pocketBaseService.getCurrentUserCvProfileEditorData
+      .mockReturnValueOnce(defError.promise);
+
+    const firstErrorLoad = load('profile-2');
+    await load('profile-2');
+
+    defError.reject(new Error('Stale error'));
+    await firstErrorLoad;
+
+    expect(component.errorMessage()).not.toBe('Stale error');
+    expect(component.isLoading()).toBe(false);
+  });
+
+  it('covers toEditorState defaults, description skill-type branch, and record helper fallbacks', async () => {
+    pocketBaseService.getCurrentUserCvProfileEditorData.mockResolvedValue({
+      profile: { id: 'p1', profileName: 'Minimal', template: 'classic' },
+      availableJobs: [],
+      availableProjects: [],
+      availableSkills: [],
+      availableDegrees: [],
+      availableAchievements: [],
+      availableHobbies: [],
+      availablePictures: [],
+    });
+
+    component.editorState.set(null);
+    await (component as unknown as { loadEditorData: (id: string) => Promise<void> }).loadEditorData('p1');
+
+    const current = component.editorState()!;
+    expect(current.profile.jobs).toEqual([]);
+    expect(current.profile.projects).toEqual([]);
+    expect(current.profile.skills).toEqual([]);
+    expect(current.profile.degrees).toEqual([]);
+    expect(current.profile.achievements).toEqual([]);
+    expect(current.profile.hobbies).toEqual([]);
+    expect(current.profile.extra).toEqual({});
+
+    component.editorState.set(state());
+    const full = component.editorState()!;
+
+    expect(component.getExtraSourceRecordDescription({ id: 'skill', name: 'Skill', type: 'Library' } as never)).toBe('Library');
+    expect(component.getExtraSourceRecordDescription({ id: 'skill', name: 'Skill', type: '' } as never)).toBe('Sans type');
+    expect(component.getExtraSourceRecordTitle({ id: 'degree', title: 'Degree title' } as never)).toBe('Degree title');
+    expect(component.getSkillDescription({ id: 'skill', type: '', expand: { category: { id: 'c1', name: 'Frontend' } } } as never)).toBe('Frontend');
+
+    expect(component.getLinkedJobs({ ...full, profile: { ...full.profile, jobs: undefined as unknown as string[] } } as never)).toEqual([]);
+    const privateApi = component as unknown as { getLinkedRecords: (r: unknown[], ids: unknown) => unknown[] };
+    expect(privateApi.getLinkedRecords(full.availableJobs, undefined)).toEqual([]);
+
+    const notFoundState = { ...full, profile: { ...full.profile, profilePictureFile: 'picture-99' } } as never;
+    expect(component.getPicturePreview(notFoundState, 'profilePictureFile')).toBe('fallback-profile.png');
+    expect(component.getSelectedPictureName(notFoundState, 'profilePictureFile')).toBe('Image selectionnee');
+
+    const noFileState = { ...full, availablePictures: [{ id: 'picture-1', name: 'Pic' }] } as never;
+    expect(component.getPicturePreview(noFileState, 'profilePictureFile')).toBeUndefined();
+  });
+
   function state() {
     return {
       profile: {
@@ -312,5 +514,15 @@ describe('ProfileEditorPage', () => {
 
   function editorData() {
     return state();
+  }
+
+  function deferred<T = unknown>(): { promise: Promise<T>; resolve: (value: T) => void; reject: (reason: unknown) => void } {
+    let resolve!: (value: T) => void;
+    let reject!: (reason: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
   }
 });
