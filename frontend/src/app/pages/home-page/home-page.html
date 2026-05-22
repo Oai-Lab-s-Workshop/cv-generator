@@ -36,7 +36,6 @@
         <p class="eyebrow">Nouveau profil</p>
         <h2>Creer un CV cible</h2>
       </div>
-      <p>Point d'entree principal pour generer une nouvelle version exploitable depuis vos contenus.</p>
     </div>
 
     <div class="cta-panel__form">
@@ -94,31 +93,30 @@
         <div class="profile-table" role="table" aria-label="Profils CV generes">
           <div class="profile-table__head" role="row">
             <span role="columnheader">Profil</span>
-            <span role="columnheader">Route</span>
             <span role="columnheader">Template</span>
+            <span role="columnheader">Statut</span>
             <span role="columnheader">Visibilite</span>
             <span role="columnheader">Actions</span>
           </div>
 
           <div class="profile-table__body">
             @for (profile of profiles(); track profile.id) {
-              <article class="profile-row" role="row">
+              <article
+                class="profile-row"
+                role="row"
+                [attr.tabindex]="isWideTableMode() ? 0 : null"
+                [attr.aria-label]="isWideTableMode() ? 'Editer ' + (profile.label || profile.profileName) : null"
+                (click)="openProfileFromRow(profile, $event)"
+                (keydown)="openProfileFromRowKeyboard(profile, $event)">
                 <div class="profile-cell profile-cell--main" role="cell" data-label="Profil">
                   <h3>{{ profile.label || profile.profileName }}</h3>
                   <p>{{ profile.profileName }}</p>
                 </div>
 
-                <div class="profile-cell profile-cell--route" role="cell" data-label="Route">
-                  @if (profile.template) {
-                    <code>/{{ profile.slug }}</code>
-                  } @else {
-                    <span class="muted-text">Route non generee</span>
-                  }
-                </div>
-
                 <label class="profile-cell profile-cell--template field field--compact" role="cell" data-label="Template">
                   <span class="sr-only">Template</span>
                   <select
+                    class="profile-grid-control"
                     [ngModel]="templateSelections()[profile.id]"
                     [disabled]="isSaving() === profile.id"
                     (ngModelChange)="changeTemplate(profile, $event)"
@@ -129,26 +127,67 @@
                   </select>
                 </label>
 
-                <label class="profile-cell visibility-control" role="cell" data-label="Visibilite">
-                  <input
-                    type="checkbox"
-                    [checked]="publicSelections()[profile.id]"
+                <div class="profile-cell profile-cell--status" role="cell" data-label="Statut">
+                  <div class="status-menu" (mouseleave)="closeStatusMenu($event)">
+                    <button
+                      class="status-menu__trigger profile-grid-control"
+                      type="button"
+                      [disabled]="isSaving() === profile.id"
+                      [attr.aria-expanded]="openStatusMenuFor() === profile.id"
+                      [attr.aria-label]="'Changer le statut: ' + getStatusLabel(profile)"
+                      (click)="toggleStatusMenu(profile.id, $event)">
+                      <span class="status-dot" [class]="'status-dot--' + getStatusTone(profile)"></span>
+                      <span>{{ isSaving() === profile.id ? '...' : getStatusLabel(profile) }}</span>
+                      <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </button>
+
+                    @if (openStatusMenuFor() === profile.id) {
+                      <div class="status-menu__list" role="menu">
+                        @for (statusOption of statusOptions; track statusOption.value) {
+                          <button
+                            class="status-menu__option"
+                            type="button"
+                            role="menuitemradio"
+                            [attr.aria-checked]="(profile.status || 'unsent') === statusOption.value"
+                            [class.status-menu__option--active]="(profile.status || 'unsent') === statusOption.value"
+                            (click)="selectStatus(profile, statusOption.value, $event)">
+                            <span class="status-dot" [class]="'status-dot--' + statusOption.tone"></span>
+                            <span>{{ statusOption.label }}</span>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="profile-cell profile-cell--visibility" role="cell" data-label="Visibilite">
+                  <button
+                    class="visibility-control"
+                    type="button"
                     [disabled]="!profile.template || isSaving() === profile.id"
-                    (change)="togglePublic(profile, $any($event.target).checked)"
-                  />
-                  <span
-                    class="visibility-control__state"
-                    [class.visibility-control__state--live]="getVisibilityTone(profile) === 'live'"
-                    [class.visibility-control__state--private]="getVisibilityTone(profile) === 'private'"
-                    [class.visibility-control__state--missing]="getVisibilityTone(profile) === 'missing'"
+                    [attr.aria-pressed]="profile.template ? (publicSelections()[profile.id] ?? profile.public !== false) : null"
+                    [attr.aria-label]="'Basculer la visibilite: ' + getVisibilityLabel(profile)"
+                    (click)="togglePublic(profile)"
                   >
-                    <span class="visibility-control__dot" aria-hidden="true"></span>
-                    <span>{{ isSaving() === profile.id ? 'Enregistrement...' : getVisibilityLabel(profile) }}</span>
-                  </span>
-                </label>
+                    <span
+                      class="visibility-control__state"
+                      [class.visibility-control__state--live]="getVisibilityTone(profile) === 'live'"
+                      [class.visibility-control__state--private]="getVisibilityTone(profile) === 'private'"
+                      [class.visibility-control__state--missing]="getVisibilityTone(profile) === 'missing'"
+                    >
+                      <span class="visibility-control__dot" aria-hidden="true"></span>
+                      <span>{{ isSaving() === profile.id ? 'Enregistrement...' : getVisibilityLabel(profile) }}</span>
+                    </span>
+                  </button>
+                </div>
 
                 <div class="profile-cell profile-actions" role="cell" data-label="Actions">
-                  <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="action-icon" title="Editer" aria-label="Editer">
+                  @if (profile.template) {
+                    <button class="action-icon" type="button" title="Copier la route" aria-label="Copier la route" (click)="copyRoute(profile)">
+                      <i class="bi bi-clipboard" aria-hidden="true"></i>
+                    </button>
+                  }
+                  <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="action-icon action-icon--edit" title="Editer" aria-label="Editer">
                     <i class="bi bi-pencil-square" aria-hidden="true"></i>
                   </a>
                   @if (profile.template) {

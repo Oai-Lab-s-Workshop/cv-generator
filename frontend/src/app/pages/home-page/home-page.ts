@@ -2,12 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } 
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AiToken } from '../../core/models/ai-token.model';
-import { CvProfile } from '../../core/models/cv-profile.model';
+import { CvProfile, CvProfileStatus } from '../../core/models/cv-profile.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { CV_TEMPLATE_OPTIONS } from '../../core/templates/cv-template-registry';
 import { getErrorMessage } from '../../core/utils/error-message';
 import { Navbar } from '../../shared/components/navbar/navbar';
+import { CV_PROFILE_STATUS_OPTIONS } from '../profile-editor-page/profile-editor-page';
 
 @Component({
   selector: 'app-home-page',
@@ -34,8 +35,10 @@ export class HomePage implements OnInit {
   readonly isDeleting = signal<string | null>(null);
   readonly templateSelections = signal<Record<string, string>>({});
   readonly publicSelections = signal<Record<string, boolean>>({});
+  readonly openStatusMenuFor = signal<string | null>(null);
   readonly currentUser = this.authService.currentUser;
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
+  readonly statusOptions = CV_PROFILE_STATUS_OPTIONS;
   readonly totalProfileCount = computed(() => this.profiles().length);
   readonly publicProfileCount = computed(
     () => this.profiles().filter((profile) => Boolean(profile.template) && profile.public !== false).length,
@@ -111,6 +114,77 @@ export class HomePage implements OnInit {
     return profile.public === false ? 'private' : 'live';
   }
 
+  async copyRoute(profile: CvProfile): Promise<void> {
+    if (!profile.template || !profile.slug || !navigator.clipboard) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(`${window.location.origin}/${profile.slug}`);
+  }
+
+  isWideTableMode(): boolean {
+    return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 801px)').matches;
+  }
+
+  openProfileFromRow(profile: CvProfile, event?: Event): void {
+    if (!this.isWideTableMode()) {
+      return;
+    }
+
+    if (event && this.isInteractiveEvent(event)) {
+      return;
+    }
+
+    void this.router.navigate(['/home/profiles', profile.id, 'edit']);
+  }
+
+  openProfileFromRowKeyboard(profile: CvProfile, event: KeyboardEvent): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    if (this.isInteractiveEvent(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    this.openProfileFromRow(profile, event);
+  }
+
+  toggleStatusMenu(profileId: string, event: Event): void {
+    event.stopPropagation();
+    this.openStatusMenuFor.update((current) => (current === profileId ? null : profileId));
+  }
+
+  async selectStatus(profile: CvProfile, status: CvProfileStatus, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.openStatusMenuFor.set(null);
+    await this.changeStatus(profile, status);
+  }
+
+  closeStatusMenu(event?: Event): void {
+    event?.stopPropagation();
+    this.openStatusMenuFor.set(null);
+  }
+
+  private isInteractiveEvent(event: Event): boolean {
+    return event.target instanceof Element && Boolean(event.target.closest('button, a, select, input, label, textarea'));
+  }
+
+  private replaceProfile(updatedProfile: CvProfile): void {
+    this.profiles.update((profiles) =>
+      profiles.map((profile) => (profile.id === updatedProfile.id ? updatedProfile : profile)),
+    );
+    this.templateSelections.update((current) => ({
+      ...current,
+      [updatedProfile.id]: updatedProfile.template || this.templateOptions[0]?.id || 'classic',
+    }));
+    this.publicSelections.update((current) => ({
+      ...current,
+      [updatedProfile.id]: updatedProfile.public !== false,
+    }));
+  }
+
   async changeTemplate(profile: CvProfile, template: string): Promise<void> {
     this.templateSelections.update((current) => ({ ...current, [profile.id]: template }));
 
@@ -123,12 +197,12 @@ export class HomePage implements OnInit {
     this.errorMessage.set(null);
 
     try {
-      await this.pocketBaseService.setTemplateForCurrentUserCvProfile(
+      const updatedProfile = await this.pocketBaseService.setTemplateForCurrentUserCvProfile(
         profile.id,
         template,
         this.publicSelections()[profile.id] ?? true,
       );
-      await this.loadProfiles();
+      this.replaceProfile(updatedProfile);
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
@@ -185,24 +259,50 @@ export class HomePage implements OnInit {
     }
   }
 
-  async togglePublic(profile: CvProfile, isPublic: boolean): Promise<void> {
-    this.publicSelections.update((current) => ({ ...current, [profile.id]: isPublic }));
-
+  async togglePublic(profile: CvProfile): Promise<void> {
     if (!profile.template) {
       return;
     }
+
+    const isPublic = !(this.publicSelections()[profile.id] ?? profile.public !== false);
+
+    this.publicSelections.update((current) => ({ ...current, [profile.id]: isPublic }));
 
     this.isSaving.set(profile.id);
     this.errorMessage.set(null);
 
     try {
-      await this.pocketBaseService.setPublicForCurrentUserCvProfile(profile.id, isPublic);
-      await this.loadProfiles();
+      const updatedProfile = await this.pocketBaseService.setPublicForCurrentUserCvProfile(profile.id, isPublic);
+      this.replaceProfile(updatedProfile);
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
       this.isSaving.set(null);
     }
+  }
+
+  async changeStatus(profile: CvProfile, status: CvProfileStatus): Promise<void> {
+    this.isSaving.set(profile.id);
+    this.errorMessage.set(null);
+
+    try {
+      const updatedProfile = await this.pocketBaseService.setStatusForCvProfile(profile.id, status);
+      this.replaceProfile(updatedProfile);
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.isSaving.set(null);
+    }
+  }
+
+  getStatusLabel(profile: CvProfile): string {
+    const status = profile.status ?? 'unsent';
+    return CV_PROFILE_STATUS_OPTIONS.find((opt) => opt.value === status)?.label ?? 'Non envoye';
+  }
+
+  getStatusTone(profile: CvProfile): string {
+    const status = profile.status ?? 'unsent';
+    return CV_PROFILE_STATUS_OPTIONS.find((opt) => opt.value === status)?.tone ?? 'gray';
   }
 
 }

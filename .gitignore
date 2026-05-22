@@ -30,4 +30,5 @@ frontend/src/assets/runtime-config.json
 desktop/coverage/
 desktop/test-results.xml
 frontend/coverage/
+coverage/
 frontend/test-results.xml
