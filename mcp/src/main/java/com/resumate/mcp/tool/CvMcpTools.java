@@ -8,18 +8,23 @@ import com.resumate.mcp.service.PocketBaseClient.CreatedProfileRecord;
 import com.resumate.mcp.service.PocketBaseClient.ProfileMaterialBundle;
 import com.resumate.mcp.service.PocketBaseClient.TemplateDescriptor;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 @Component
 public class CvMcpTools {
+
+    private static final String RESUMATE_MCP_PURPOSE = "Resumate MCP creates tailored public CV/resume profiles from the authenticated user's existing data and returns a shareable frontend URL. Do not invent template ids or record ids.";
+
+    private static final String CREATE_PROFILE_WORKFLOW = "Workflow for tailoring requests: call listTemplates, choose one returned template id, call listProfileMaterial, select only returned user-owned record ids, then call createTailoredCvProfile with label, templateId, professionalSummary, selected id arrays, and supported templateExtra fields.";
 
     private final PocketBaseClient pocketBaseClient;
     private final FrontendProperties frontendProperties;
@@ -29,13 +34,13 @@ public class CvMcpTools {
         this.frontendProperties = frontendProperties;
     }
 
-    @Tool(description = "List the CV/resume templates available to the authenticated user. Call this before creating a tailored profile to find out which templates the user is allowed to choose from.")
+    @Tool(description = RESUMATE_MCP_PURPOSE + " Call this before creating a tailored profile. Use one returned template.id exactly as createTailoredCvProfile.templateId, and inspect extraSchema before sending templateExtra.")
     public ListTemplatesResponse listTemplates() {
         currentPrincipal();
         return new ListTemplatesResponse(pocketBaseClient.resolveAvailableTemplates());
     }
 
-    @Tool(description = "Return the MCP API key identity currently authenticated for this session, including the resolved PocketBase user id. Call this to verify which user the current API key maps to before listing profile material.")
+    @Tool(description = "Return the MCP API key identity currently authenticated for this session, including the resolved PocketBase user id. Use this only when you need to verify which user/API key context is active before using the Resumate resume tools.")
     public AuthenticatedPrincipalResponse whoAmI() {
         AiTokenPrincipal principal = currentPrincipal();
         return new AuthenticatedPrincipalResponse(
@@ -46,15 +51,20 @@ public class CvMcpTools {
         );
     }
 
-    @Tool(description = "Load the authenticated user's reusable CV/resume material including identity, skills, jobs, projects, achievements, degrees, and hobbies. Call this before creating a tailored profile to gather the user's existing records.")
+    @Tool(description = RESUMATE_MCP_PURPOSE + " Call this before creating a tailored profile. Only pass ids returned by this tool in skillIds, jobIds, projectIds, achievementIds, degreeIds, and hobbyIds.")
     public ProfileMaterialBundle listProfileMaterial() {
         return pocketBaseClient.loadProfileMaterial(currentPrincipal().userId());
     }
 
-    @Tool(description = "Create a tailored public CV/resume profile for a specific job listing when the user asks to craft, tailor, adapt, or customize their resume for that role. Selects from the user's existing records and an allowed template to produce a shareable profile URL. The label is required and should be chosen by the agent to identify the saved resume clearly, such as company and role; the server stores the explicit label and does not generate it.")
+    @Tool(description = RESUMATE_MCP_PURPOSE + " Use this final step when the user asks to create, craft, tailor, adapt, optimize, or customize a resume for a role. " + CREATE_PROFILE_WORKFLOW + " Always include a non-empty label; the server does not generate it. Choose a concise saved-resume label such as 'Acme - Senior Backend Engineer'. If validation fails, fix the missing or invalid field and retry instead of repeating the same invalid call.")
     public CreateTailoredCvProfileResponse createTailoredCvProfile(CreateTailoredCvProfileRequest request) {
         AiTokenPrincipal principal = currentPrincipal();
+        if (request == null) {
+            throw new IllegalArgumentException("createTailoredCvProfile request is required. Retry createTailoredCvProfile with label, templateId, professionalSummary, selected record id arrays, and any supported templateExtra fields.");
+        }
+
         String label = validateLabel(request.label());
+        String profileName = StringUtils.hasText(request.profileName()) ? request.profileName() : label;
         TemplateDescriptor template = resolveTemplate(request.templateId());
         String templateId = template.id();
         validateOwnedSelections(principal.userId(), request);
@@ -64,7 +74,7 @@ public class CvMcpTools {
                 principal.userId(),
                 new CreateProfilePayload(
                         label,
-                        request.profileName(),
+                        profileName,
                         templateId,
                         request.professionalSummary(),
                         request.skillIds(),
@@ -86,7 +96,7 @@ public class CvMcpTools {
 
     private String validateLabel(String label) {
         if (!StringUtils.hasText(label)) {
-            throw new IllegalArgumentException("label is required.");
+            throw new IllegalArgumentException("label is required. Retry createTailoredCvProfile with a non-empty label, usually '<company> - <role>'.");
         }
 
         return label;
@@ -103,13 +113,13 @@ public class CvMcpTools {
 
     private TemplateDescriptor resolveTemplate(String requestedTemplateId) {
         if (!StringUtils.hasText(requestedTemplateId)) {
-            throw new IllegalArgumentException("templateId is required.");
+            throw new IllegalArgumentException("templateId is required. Call listTemplates, choose one returned template id, then retry createTailoredCvProfile with that value as templateId.");
         }
 
         return pocketBaseClient.resolveAvailableTemplates().stream()
                 .filter(template -> template.id().equals(requestedTemplateId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Requested template is not supported."));
+                .orElseThrow(() -> new IllegalArgumentException("Requested template is not supported. Call listTemplates and retry createTailoredCvProfile with one of the returned template ids."));
     }
 
     private Map<String, Object> validateTemplateExtra(String userId, TemplateDescriptor template, Map<String, Object> templateExtra) {
@@ -126,7 +136,7 @@ public class CvMcpTools {
         for (Map.Entry<String, Object> entry : templateExtra.entrySet()) {
             PocketBaseClient.ExtraFieldDescriptor field = fieldsById.get(entry.getKey());
             if (field == null) {
-                throw new IllegalArgumentException("Unsupported templateExtra field: " + entry.getKey());
+                throw new IllegalArgumentException("Unsupported templateExtra field: " + entry.getKey() + ". Call listTemplates and only include fields listed in the selected template's extraSchema.");
             }
 
             validated.put(field.id(), validateTemplateExtraValue(userId, field, entry.getValue()));
@@ -141,7 +151,7 @@ public class CvMcpTools {
             case "boolean" -> validateBooleanValue(field, value);
             case "select" -> validateSelectValue(field, value);
             case "multi_select" -> validateMultiSelectValue(userId, field, value);
-            default -> throw new IllegalArgumentException("Unsupported templateExtra field type: " + field.type());
+            default -> throw new IllegalArgumentException("Unsupported templateExtra field type: " + field.type() + ". Call listTemplates and retry createTailoredCvProfile using only supported extraSchema field types.");
         };
     }
 
@@ -150,7 +160,7 @@ public class CvMcpTools {
             return stringValue;
         }
 
-        throw new IllegalArgumentException("templateExtra." + field.id() + " must be a string.");
+        throw new IllegalArgumentException("templateExtra." + field.id() + " must be a string. Retry createTailoredCvProfile with templateExtra." + field.id() + " as a string value.");
     }
 
     private Boolean validateBooleanValue(PocketBaseClient.ExtraFieldDescriptor field, Object value) {
@@ -158,7 +168,7 @@ public class CvMcpTools {
             return booleanValue;
         }
 
-        throw new IllegalArgumentException("templateExtra." + field.id() + " must be a boolean.");
+        throw new IllegalArgumentException("templateExtra." + field.id() + " must be a boolean. Retry createTailoredCvProfile with templateExtra." + field.id() + " as true or false.");
     }
 
     private String validateSelectValue(PocketBaseClient.ExtraFieldDescriptor field, Object value) {
@@ -167,12 +177,12 @@ public class CvMcpTools {
             return stringValue;
         }
 
-        throw new IllegalArgumentException("templateExtra." + field.id() + " must be one of the supported options.");
+        throw new IllegalArgumentException("templateExtra." + field.id() + " must be one of the supported options: " + field.options() + ". Retry createTailoredCvProfile with a supported option from the selected template's extraSchema.");
     }
 
     private List<String> validateMultiSelectValue(String userId, PocketBaseClient.ExtraFieldDescriptor field, Object value) {
         if (!(value instanceof List<?> rawValues)) {
-            throw new IllegalArgumentException("templateExtra." + field.id() + " must be a string array.");
+            throw new IllegalArgumentException("templateExtra." + field.id() + " must be a string array. Retry createTailoredCvProfile with templateExtra." + field.id() + " as an array of string ids from listProfileMaterial.");
         }
 
         List<String> ids = rawValues.stream()
@@ -180,7 +190,7 @@ public class CvMcpTools {
                     if (item instanceof String stringValue) {
                         return stringValue;
                     }
-                    throw new IllegalArgumentException("templateExtra." + field.id() + " must be a string array.");
+                    throw new IllegalArgumentException("templateExtra." + field.id() + " must be a string array. Retry createTailoredCvProfile with templateExtra." + field.id() + " as an array of string ids from listProfileMaterial.");
                 })
                 .toList();
 
@@ -220,17 +230,29 @@ public class CvMcpTools {
     }
 
     public record CreateTailoredCvProfileRequest(
+            @ToolParam(description = "Required non-empty saved resume label chosen by the agent, usually '<company> - <role>'.")
             String label,
+            @ToolParam(required = false, description = "Optional display name for the tailored CV profile. Defaults to label when omitted or blank.")
             String profileName,
+            @ToolParam(required = false, description = "Optional source job listing or role description used to tailor the resume.")
             String jobListing,
+            @ToolParam(description = "Required template id. Must exactly match one template.id returned by listTemplates.")
             String templateId,
+            @ToolParam(required = false, description = "Role-focused professional summary for this tailored profile.")
             String professionalSummary,
+            @ToolParam(required = false, description = "Skill record ids selected from listProfileMaterial. Do not invent ids.")
             List<String> skillIds,
+            @ToolParam(required = false, description = "Job record ids selected from listProfileMaterial. Do not invent ids.")
             List<String> jobIds,
+            @ToolParam(required = false, description = "Project record ids selected from listProfileMaterial. Do not invent ids.")
             List<String> projectIds,
+            @ToolParam(required = false, description = "Achievement record ids selected from listProfileMaterial. Do not invent ids.")
             List<String> achievementIds,
+            @ToolParam(required = false, description = "Degree record ids selected from listProfileMaterial. Do not invent ids.")
             List<String> degreeIds,
+            @ToolParam(required = false, description = "Hobby record ids selected from listProfileMaterial. Do not invent ids.")
             List<String> hobbyIds,
+            @ToolParam(required = false, description = "Template-specific values. Only include fields listed in the selected template's extraSchema from listTemplates.")
             Map<String, Object> templateExtra
     ) {
     }
