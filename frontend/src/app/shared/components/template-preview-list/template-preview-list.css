@@ -19,22 +19,25 @@
 
 .template-preview-list__state {
   padding: 1.25rem;
-  border: 1px solid #d7deea;
+  border: 1px solid var(--app-border);
   border-radius: 1rem;
-  background: #fff;
+  background: var(--app-surface);
+  color: var(--app-text);
 }
 
 .template-preview-list__state--error {
-  border-color: #fecaca;
-  background: #fff1f2;
+  border-color: light-dark(#fecaca, rgba(248, 113, 113, 0.28));
+  background: var(--app-danger-bg);
+  color: var(--app-danger);
 }
 
 .template-preview-card {
-  border: 1px solid #d7deea;
+  border: 1px solid var(--app-border);
   border-radius: 1.25rem;
-  background: #fff;
+  background: var(--app-surface);
   overflow: hidden;
-  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--app-shadow);
+  color: var(--app-text);
 }
 
 .template-preview-list--bare .template-preview-card {
@@ -51,7 +54,7 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .template-preview-card__header p,
@@ -66,7 +69,7 @@
 .template-preview-card__header span {
   display: inline-block;
   margin-top: 0.2rem;
-  color: #64748b;
+  color: var(--app-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.75rem;
@@ -76,13 +79,13 @@
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
-  border: 1px solid #c7d2fe;
+  border: 1px solid light-dark(#c7d2fe, rgba(129, 140, 248, 0.35));
   border-radius: 999px;
   width: 2.5rem;
   height: 2.5rem;
   padding: 0;
-  background: #eef2ff;
-  color: #3730a3;
+  background: light-dark(#eef2ff, rgba(79, 70, 229, 0.22));
+  color: light-dark(#3730a3, #c7d2fe);
   cursor: pointer;
   font: inherit;
   font-size: 1.05rem;
@@ -90,7 +93,7 @@
 }
 
 .template-preview-card__a4-button:hover {
-  background: #e0e7ff;
+  background: light-dark(#e0e7ff, rgba(99, 102, 241, 0.28));
 }
 
 .template-preview-card__preview {
@@ -104,9 +107,9 @@
   height: auto;
   max-height: none;
   margin: 1.25rem auto;
-  border: 1px solid #e2e8f0;
+  border: 1px solid light-dark(#e2e8f0, #334155);
   background: #fff;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+  box-shadow: light-dark(0 24px 70px rgba(15, 23, 42, 0.14), 0 24px 70px rgba(0, 0, 0, 0.38));
 }
 
 .template-preview-card__preview--a4.cv-preview-enabled {
