@@ -20,6 +20,10 @@ describe('ProfileEditorPage', () => {
     component.editorState.set(state());
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('adds and removes relation ids without duplicating them', () => {
     component.addRelation('jobs', 'job-2');
     component.addRelation('jobs', 'job-2');
@@ -46,6 +50,61 @@ describe('ProfileEditorPage', () => {
   it('sets status', () => {
     component.setStatus('sent');
     expect(component.editorState()?.profile.status).toBe('sent');
+  });
+
+  it('autosaves profile fields with a focused payload', async () => {
+    component.editorState.update((current) => ({
+      ...current!,
+      profile: {
+        ...current!.profile,
+        label: 'Updated label',
+        profileName: 'Updated name',
+        template: 'modern',
+        public: false,
+        status: 'sent',
+        profilePictureFile: 'picture-2',
+        coverPictureFile: 'picture-3',
+      },
+    }));
+
+    await component.saveProfileFields();
+
+    expect(pocketBaseService.updateCurrentUserCvProfile).toHaveBeenCalledWith('profile-1', {
+      label: 'Updated label',
+      profileName: 'Updated name',
+      public: false,
+      template: 'modern',
+      profilePictureFile: 'picture-2',
+      coverPictureFile: 'picture-3',
+      status: 'sent',
+    });
+    expect(pocketBaseService.getCurrentUserCvProfileEditorData).toHaveBeenCalledWith('profile-1');
+    expect(component.profileSaveMessage()).toBe('Profil CV enregistre.');
+  });
+
+  it('debounces text profile field autosave', async () => {
+    jest.useFakeTimers();
+    jest.spyOn(component, 'saveProfileFields').mockResolvedValue(undefined);
+
+    component.setProfileName('Jane Doe Updated');
+    component.setProfileName('Jane Doe Final');
+    jest.advanceTimersByTime(499);
+
+    expect(component.saveProfileFields).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(1);
+    await Promise.resolve();
+
+    expect(component.saveProfileFields).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects profile autosave when profile name is blank', async () => {
+    component.setProfileName('   ');
+
+    await component.saveProfileFields();
+
+    expect(component.errorMessage()).toBe('Le nom du profil est obligatoire.');
+    expect(pocketBaseService.updateCurrentUserCvProfile).not.toHaveBeenCalled();
   });
 
   it('gets status option for known and unknown statuses', () => {
@@ -216,6 +275,7 @@ describe('ProfileEditorPage', () => {
         profilePictureFile: 'picture-1',
         profilePicture: 'fallback-profile.png',
         coverPicture: 'fallback-cover.png',
+        status: 'unsent',
         extra: { classic: { hero: 'Existing hero', visible: true, featuredProjects: ['project-1'] } },
       },
       availableJobs: [
@@ -242,7 +302,11 @@ describe('ProfileEditorPage', () => {
         { id: 'hobby-1', name: 'Music', description: 'Guitar' },
         { id: 'hobby-2', name: 'Running', description: '' },
       ],
-      availablePictures: [{ id: 'picture-1', name: 'Avatar', file: 'https://files.test/avatar.png' }],
+      availablePictures: [
+        { id: 'picture-1', name: 'Avatar', file: 'https://files.test/avatar.png' },
+        { id: 'picture-2', name: 'Avatar 2', file: 'https://files.test/avatar-2.png' },
+        { id: 'picture-3', name: 'Cover 2', file: 'https://files.test/cover-2.png' },
+      ],
     } as never;
   }
 

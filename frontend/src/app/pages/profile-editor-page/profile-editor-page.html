@@ -42,41 +42,48 @@
           <p class="eyebrow">Profil CV</p>
           <h2>{{ state.profile.label || state.profile.profileName }}</h2>
         </div>
-        <label class="editor-field editor-field--checkbox">
-          <span>Route publique</span>
-          <input [(ngModel)]="state.profile.public" name="public" type="checkbox" [ngModelOptions]="{ standalone: true }" />
-        </label>
-        <div class="status-control">
-          <label class="status-control__label">
-            <span>Statut</span>
-            <select [ngModel]="state.profile.status || 'unsent'" (ngModelChange)="setStatus($event)" name="status">
-              @for (option of statusOptions; track option.value) {
-                <option [value]="option.value">{{ option.label }}</option>
-              }
-            </select>
-          </label>
+        <div class="section-save-state" aria-live="polite">
+          @if (isProfileSaving()) {
+            <span>Enregistrement...</span>
+          } @else if (profileSaveMessage()) {
+            <span>{{ profileSaveMessage() }}</span>
+          }
         </div>
       </div>
 
-      <div class="editor-grid">
-        <label class="editor-field">
+      <div class="profile-editor-grid">
+        <label class="editor-field editor-field--wide">
           <span>Label (admin)</span>
-          <input [(ngModel)]="state.profile.label" name="label" type="text" />
+          <input [ngModel]="state.profile.label" (ngModelChange)="setProfileLabel($event)" name="label" type="text" />
           <small>Identifiant interne pour l'administration.</small>
         </label>
 
-        <label class="editor-field">
+        <label class="editor-field editor-field--wide">
           <span>Nom du profil (CV)</span>
-          <input [(ngModel)]="state.profile.profileName" name="profileName" type="text" />
+          <input [ngModel]="state.profile.profileName" (ngModelChange)="setProfileName($event)" name="profileName" type="text" />
           <small>Nom affiche sur le CV imprime.</small>
         </label>
 
-        <label class="editor-field">
+        <label class="editor-field editor-field--wide">
           <span>Template</span>
-          <select [(ngModel)]="state.profile.template" name="template">
+          <select [ngModel]="state.profile.template || ''" (ngModelChange)="setProfileTemplate($event)" name="template">
             <option value="">Aucun</option>
             @for (template of templateOptions; track template.id) {
               <option [value]="template.id">{{ template.label }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="editor-field editor-field--checkbox profile-toggle-field">
+          <span>Route publique</span>
+          <input [ngModel]="state.profile.public !== false" (ngModelChange)="setProfilePublic($event)" name="public" type="checkbox" [ngModelOptions]="{ standalone: true }" />
+        </label>
+
+        <label class="editor-field">
+          <span>Statut</span>
+          <select [ngModel]="state.profile.status || 'unsent'" (ngModelChange)="setStatusAndSave($event)" name="status">
+            @for (option of statusOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
             }
           </select>
         </label>
@@ -86,7 +93,7 @@
           @if (getPicturePreview(state, 'profilePictureFile'); as preview) {
             <img [src]="preview" [alt]="getSelectedPictureName(state, 'profilePictureFile')" class="editor-image" />
           }
-          <select [(ngModel)]="state.profile.profilePictureFile" name="profilePictureFile">
+          <select [ngModel]="state.profile.profilePictureFile || ''" (ngModelChange)="setProfilePictureFile($event)" name="profilePictureFile">
             <option value="">Aucune image</option>
             @for (picture of state.availablePictures; track picture.id) {
               <option [value]="picture.id">{{ picture.name || picture.alt || picture.file }}</option>
@@ -100,7 +107,7 @@
           @if (getPicturePreview(state, 'coverPictureFile'); as preview) {
             <img [src]="preview" [alt]="getSelectedPictureName(state, 'coverPictureFile')" class="editor-image editor-image--cover" />
           }
-          <select [(ngModel)]="state.profile.coverPictureFile" name="coverPictureFile">
+          <select [ngModel]="state.profile.coverPictureFile || ''" (ngModelChange)="setCoverPictureFile($event)" name="coverPictureFile">
             <option value="">Aucune image</option>
             @for (picture of state.availablePictures; track picture.id) {
               <option [value]="picture.id">{{ picture.name || picture.alt || picture.file }}</option>
@@ -110,12 +117,8 @@
         </label>
       </div>
 
-      <div class="form-actions">
-        <button class="primary-button" type="button" [disabled]="isSaving()" (click)="save()">
-          {{ isSaving() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
-        </button>
+      <div class="form-actions form-actions--subtle">
         <a routerLink="/home" class="text-link">Retour a l'accueil</a>
-
       </div>
     </section>
 
@@ -142,6 +145,12 @@
             (ngModelChange)="setProfessionalSummary($event ?? '')"
           />
         </div>
+      </div>
+
+      <div class="form-actions summary-actions">
+        <button class="primary-button" type="button" [disabled]="isSaving()" (click)="save()">
+          {{ isSaving() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+        </button>
       </div>
     </section>
 

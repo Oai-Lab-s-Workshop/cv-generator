@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
 import { RouterLink } from '@angular/router';
@@ -45,10 +45,11 @@ type PictureField = 'profilePictureFile' | 'coverPictureFile';
   styleUrls: ['../../styles/home-shared.css', './profile-editor-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfileEditorPage implements OnInit {
+export class ProfileEditorPage implements OnInit, OnDestroy {
   private readonly pocketBaseService = inject(PocketBaseService);
   private readonly injector = inject(Injector);
   private requestId = 0;
+  private profileSaveTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   readonly profileId = input.required<string>();
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
@@ -56,8 +57,10 @@ export class ProfileEditorPage implements OnInit {
   readonly editorState = signal<EditorState | null>(null);
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
+  readonly isProfileSaving = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+  readonly profileSaveMessage = signal<string | null>(null);
   readonly summaryEditorModules = {
     toolbar: [
       ['bold', 'italic', 'underline'],
@@ -74,6 +77,13 @@ export class ProfileEditorPage implements OnInit {
       },
       { injector: this.injector },
     );
+  }
+
+  ngOnDestroy(): void {
+    if (this.profileSaveTimeoutId !== null) {
+      clearTimeout(this.profileSaveTimeoutId);
+      this.profileSaveTimeoutId = null;
+    }
   }
 
   async save(): Promise<void> {
@@ -120,6 +130,94 @@ export class ProfileEditorPage implements OnInit {
       this.errorMessage.set(getErrorMessage(error));
     } finally {
       this.isSaving.set(false);
+    }
+  }
+
+  setProfileLabel(value: string): void {
+    this.updateProfileField('label', value);
+    this.scheduleProfileAutosave();
+  }
+
+  setProfileName(value: string): void {
+    this.updateProfileField('profileName', value);
+    this.scheduleProfileAutosave();
+  }
+
+  setProfileTemplate(value: string): void {
+    this.updateProfileField('template', value || undefined);
+    void this.saveProfileFields();
+  }
+
+  setProfilePublic(value: boolean): void {
+    this.updateProfileField('public', value);
+    void this.saveProfileFields();
+  }
+
+  setProfilePictureFile(value: string): void {
+    this.updateProfileField('profilePictureFile', value || undefined);
+    void this.saveProfileFields();
+  }
+
+  setCoverPictureFile(value: string): void {
+    this.updateProfileField('coverPictureFile', value || undefined);
+    void this.saveProfileFields();
+  }
+
+  setStatusAndSave(status: CvProfileStatus): void {
+    this.setStatus(status);
+    void this.saveProfileFields();
+  }
+
+  scheduleProfileAutosave(): void {
+    if (this.profileSaveTimeoutId !== null) {
+      clearTimeout(this.profileSaveTimeoutId);
+    }
+
+    this.profileSaveTimeoutId = setTimeout(() => {
+      this.profileSaveTimeoutId = null;
+      void this.saveProfileFields();
+    }, 500);
+  }
+
+  async saveProfileFields(): Promise<void> {
+    const state = this.editorState();
+
+    if (!state) {
+      return;
+    }
+
+    const profileName = state.profile.profileName.trim();
+    if (!profileName) {
+      this.errorMessage.set('Le nom du profil est obligatoire.');
+      return;
+    }
+
+    if (this.profileSaveTimeoutId !== null) {
+      clearTimeout(this.profileSaveTimeoutId);
+      this.profileSaveTimeoutId = null;
+    }
+
+    this.isProfileSaving.set(true);
+    this.errorMessage.set(null);
+    this.profileSaveMessage.set(null);
+
+    try {
+      await this.pocketBaseService.updateCurrentUserCvProfile(state.profile.id, {
+        label: state.profile.label?.trim() || '',
+        profileName,
+        public: state.profile.public !== false,
+        template: state.profile.template || '',
+        profilePictureFile: state.profile.profilePictureFile || '',
+        coverPictureFile: state.profile.coverPictureFile || '',
+        status: state.profile.status,
+      });
+
+      await this.loadEditorData(state.profile.id);
+      this.profileSaveMessage.set('Profil CV enregistre.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.isProfileSaving.set(false);
     }
   }
 
@@ -254,6 +352,22 @@ export class ProfileEditorPage implements OnInit {
         profile: {
           ...state.profile,
           status,
+        },
+      };
+    });
+  }
+
+  private updateProfileField<K extends keyof CvProfile>(field: K, value: CvProfile[K]): void {
+    this.editorState.update((state) => {
+      if (!state) {
+        return state;
+      }
+
+      return {
+        ...state,
+        profile: {
+          ...state.profile,
+          [field]: value,
         },
       };
     });
