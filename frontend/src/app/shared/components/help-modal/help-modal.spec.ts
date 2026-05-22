@@ -67,4 +67,15 @@ describe('HelpModalComponent', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(emitted).toBe(true);
   });
+
+  it('should ignore escape key when closed', () => {
+    fixture.componentRef.setInput('open', false);
+    fixture.detectChanges();
+
+    let emitted = false;
+    component.close.subscribe(() => (emitted = true));
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(emitted).toBe(false);
+  });
 });
