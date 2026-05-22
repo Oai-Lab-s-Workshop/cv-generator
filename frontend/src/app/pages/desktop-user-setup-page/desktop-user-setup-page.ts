@@ -69,8 +69,8 @@ export class DesktopUserSetupPage {
   );
 
   async createUser(): Promise<void> {
-    if (!this.config?.pocketbaseUrl || !this.config.pocketbaseSuperuserEmail || !this.config.pocketbaseSuperuserPassword) {
-      this.errorMessage.set('Desktop administrator credentials are unavailable.');
+    if (!this.config?.desktopApiToken) {
+      this.errorMessage.set('Desktop API token is unavailable.');
       return;
     }
 
@@ -79,8 +79,7 @@ export class DesktopUserSetupPage {
     this.successMessage.set(null);
 
     try {
-      const token = await this.authenticateSuperuser();
-      await this.createPocketBaseUser(token);
+      await this.createPocketBaseUser();
       this.successMessage.set(`User ${this.email().trim()} created. You can now sign in.`);
       this.password.set('');
     } catch (error: unknown) {
@@ -90,35 +89,7 @@ export class DesktopUserSetupPage {
     }
   }
 
-  private async authenticateSuperuser(): Promise<string> {
-    const payload = {
-      identity: this.config?.pocketbaseSuperuserEmail,
-      password: this.config?.pocketbaseSuperuserPassword,
-    };
-    const endpoints = [
-      `${this.config?.pocketbaseUrl}/api/collections/_superusers/auth-with-password`,
-      `${this.config?.pocketbaseUrl}/api/admins/auth-with-password`,
-    ];
-
-    for (const endpoint of endpoints) {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const data = (await response.json()) as { token?: string };
-        if (data.token) {
-          return data.token;
-        }
-      }
-    }
-
-    throw new Error('Unable to authenticate the local PocketBase administrator.');
-  }
-
-  private async createPocketBaseUser(token: string): Promise<void> {
+  private async createPocketBaseUser(): Promise<void> {
     const body: UserCreateBody = {
       firstName: this.firstName().trim(),
       lastName: this.lastName().trim(),
@@ -134,11 +105,11 @@ export class DesktopUserSetupPage {
     this.assignOptionalField(body, 'github', this.github());
     this.assignOptionalField(body, 'website', this.website());
 
-    const response = await fetch(`${this.config?.pocketbaseUrl}/api/collections/users/records`, {
+    const response = await fetch('/api/desktop/users', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
+        'x-resumate-desktop-api-token': this.config?.desktopApiToken ?? '',
       },
       body: JSON.stringify(body),
     });

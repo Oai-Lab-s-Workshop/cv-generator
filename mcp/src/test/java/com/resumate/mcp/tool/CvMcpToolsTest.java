@@ -136,6 +136,58 @@ class CvMcpToolsTest {
     }
 
     @Test
+    void createTailoredCvProfile_defaultsBlankProfileNameToLabel() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of())
+        ));
+        when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
+                .thenReturn(new CreatedProfileRecord("profileId", "classic--acme-dev-123"));
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                "Acme - Dev", " ", "Job listing text", "classic",
+                "Professional summary",
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
+        );
+
+        cvMcpTools.createTailoredCvProfile(request);
+
+        verify(pocketBaseClient).createTailoredProfile(eq("userId"), org.mockito.ArgumentMatchers.argThat(payload ->
+                payload.profileName().equals("Acme - Dev")
+        ));
+    }
+
+    @Test
+    void createTailoredCvProfile_defaultsNullProfileNameToLabel() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of())
+        ));
+        when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
+                .thenReturn(new CreatedProfileRecord("profileId", "classic--acme-dev-123"));
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                "Acme - Dev", null, "Job listing text", "classic",
+                "Professional summary",
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
+        );
+
+        cvMcpTools.createTailoredCvProfile(request);
+
+        verify(pocketBaseClient).createTailoredProfile(eq("userId"), org.mockito.ArgumentMatchers.argThat(payload ->
+                payload.profileName().equals("Acme - Dev")
+        ));
+    }
+
+    @Test
     void createTailoredCvProfile_throws_whenLabelMissing() {
         AiTokenPrincipal principal = new AiTokenPrincipal(
                 "tokenId", "userId", "label"
@@ -149,7 +201,9 @@ class CvMcpToolsTest {
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("label is required.");
+                .hasMessageContaining("label is required")
+                .hasMessageContaining("Retry createTailoredCvProfile")
+                .hasMessageContaining("'<company> - <role>'");
     }
 
     @Test
@@ -166,7 +220,9 @@ class CvMcpToolsTest {
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("templateId is required.");
+                .hasMessageContaining("templateId is required")
+                .hasMessageContaining("Call listTemplates")
+                .hasMessageContaining("retry createTailoredCvProfile");
     }
 
     @Test
@@ -187,7 +243,9 @@ class CvMcpToolsTest {
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Requested template is not supported.");
+                .hasMessageContaining("Requested template is not supported")
+                .hasMessageContaining("Call listTemplates")
+                .hasMessageContaining("returned template ids");
     }
 
     @Test
@@ -307,7 +365,9 @@ class CvMcpToolsTest {
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unsupported templateExtra field: unknown");
+                .hasMessageContaining("Unsupported templateExtra field: unknown")
+                .hasMessageContaining("listTemplates")
+                .hasMessageContaining("extraSchema");
     }
 
     @Test

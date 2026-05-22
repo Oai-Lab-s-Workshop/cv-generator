@@ -67,9 +67,41 @@ describe('cvAccessGuard', () => {
     await expect(runGuard('valid-slug')).resolves.toBe(true);
   });
 
-  function runGuard(slug: string): Promise<boolean | UrlTree> {
+  it('allows missing slug routes without loading a profile', async () => {
+    const result = await runGuard(null);
+
+    expect(result).toBe(true);
+  });
+
+  it('redirects anonymous users away from private profiles', async () => {
+    pocketBaseService.profile = createProfile({ public: false });
+
+    const result = await runGuard('private-slug');
+
+    expect(router.serializeUrl(result as UrlTree)).toBe('/login?returnUrl=%2Fprivate-slug');
+  });
+
+  it('redirects authenticated non-owners away from private profiles', async () => {
+    authService.authenticated = true;
+    authService.currentUserId = 'another-user';
+    pocketBaseService.profile = createProfile({ public: false, user: 'user-id' });
+
+    const result = await runGuard('private-slug');
+
+    expect(router.serializeUrl(result as UrlTree)).toBe('/home');
+  });
+
+  it('allows private profile owners', async () => {
+    authService.authenticated = true;
+    authService.currentUserId = 'user-id';
+    pocketBaseService.profile = createProfile({ public: false, user: 'user-id' });
+
+    await expect(runGuard('private-slug')).resolves.toBe(true);
+  });
+
+  function runGuard(slug: string | null): Promise<boolean | UrlTree> {
     const route = {
-      paramMap: new Map([['slug', slug]]),
+      paramMap: { get: () => slug },
     } as unknown as ActivatedRouteSnapshot;
     const state = { url: `/${slug}` } as RouterStateSnapshot;
 

@@ -1,8 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 import { dirname, extname, resolve } from 'node:path';
 import Electrobun, { ApplicationMenu, BrowserWindow, type ApplicationMenuItemConfig } from 'electrobun';
 import { Utils } from 'electrobun/bun';
 import { renderConfigScript } from './config';
+import { jsonResponse, validateDesktopApiRequest } from './desktop-api';
 import { resolveDesktopPaths } from './sidecars/paths';
 import { getFreeLocalPort } from './sidecars/ports';
 import { startPocketBase } from './sidecars/pocketbase';
@@ -17,12 +19,31 @@ const LOADING_SERVER_CLEANUP_DELAY_MS = 2_000;
 const RETURN_HOME_ACTION = 'return-home';
 const startupStatus = new StartupStatusStore();
 
+type DesktopUserCreateBody = {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  passwordConfirm?: string;
+  verified?: boolean;
+  emailVisibility?: boolean;
+  phone?: string;
+  linkedin?: string;
+  github?: string;
+  website?: string;
+};
+
+type DesktopServerOptions = Parameters<typeof renderConfigScript>[0] & {
+  createLocalUser: (body: DesktopUserCreateBody) => Promise<void>;
+};
+
 async function main(): Promise<void> {
   startupStatus.start('BOOT-001');
   const paths = resolveDesktopPaths();
   startupStatus.ok('BOOT-001', paths.resourcesRoot);
 
   startupStatus.start('BOOT-010');
+  const desktopApiToken = randomBytes(32).toString('base64url');
   const [loadingPort, pocketbasePort, mcpPort, frontendPort] = await Promise.all([
     getFreeLocalPort(),
     getFreeLocalPort(),
@@ -61,10 +82,10 @@ async function main(): Promise<void> {
       appMode: 'desktop',
       pocketbaseUrl: pocketbase.url,
       pocketbaseAdminUrl: `${pocketbase.url}/_/`,
-      pocketbaseSuperuserEmail: pocketbase.superuserEmail,
-      pocketbaseSuperuserPassword: pocketbase.superuserPassword,
+      desktopApiToken,
       mcpUrl: mcp.url,
       mcpHealthUrl: mcp.healthUrl,
+      createLocalUser: (body) => createLocalPocketBaseUser(pocketbase.url, pocketbase.superuserEmail, pocketbase.superuserPassword, body),
     }, () => win);
     servers.push(frontend.server);
     startupStatus.ok('WEB-010', frontend.url);
@@ -169,23 +190,23 @@ function renderLoadingHtml(): string {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Resumate loading</title>
   <style>
-    :root { color-scheme: dark; --bg: #10111f; --panel: #17182b; --ink: #f5f7ff; --muted: #9aa3bd; --ok: #62d394; --run: #78a8ff; --fail: #ff6b7c; --pending: #4a5068; }
+    :root { color-scheme: light dark; --bg: light-dark(#f8fafc, #10111f); --panel: light-dark(rgba(255, 255, 255, 0.9), #17182b); --ink: light-dark(#172033, #f5f7ff); --muted: light-dark(#64748b, #9aa3bd); --ok: light-dark(#166534, #62d394); --run: light-dark(#0f3d8c, #78a8ff); --fail: light-dark(#b91c1c, #ff6b7c); --pending: light-dark(#e2e8f0, #4a5068); --card: light-dark(rgba(15, 23, 42, 0.05), rgba(255, 255, 255, 0.06)); --line: light-dark(rgba(148, 163, 184, 0.32), rgba(255, 255, 255, 0.08)); }
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: radial-gradient(circle at top left, #2d1b69 0, transparent 34rem), var(--bg); color: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    main { width: min(920px, calc(100vw - 40px)); padding: 36px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 28px; background: rgba(23, 24, 43, 0.86); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38); }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: radial-gradient(circle at top left, light-dark(rgba(146, 81, 247, 0.18), #2d1b69) 0, transparent 34rem), var(--bg); color: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    main { width: min(920px, calc(100vw - 40px)); padding: 36px; border: 1px solid var(--line); border-radius: 28px; background: var(--panel); box-shadow: light-dark(0 24px 80px rgba(15, 23, 42, 0.12), 0 24px 80px rgba(0, 0, 0, 0.38)); }
     h1 { margin: 0 0 10px; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: clamp(34px, 6vw, 64px); letter-spacing: -0.06em; }
     .subtitle { margin: 0 0 28px; color: var(--muted); font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 16px; }
     .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px; }
-    .card { padding: 14px 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.06); }
+    .card { padding: 14px 16px; border-radius: 16px; background: var(--card); }
     .label { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; }
     .value { display: block; margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
-    li { display: grid; grid-template-columns: 94px 88px 1fr; gap: 14px; align-items: start; padding: 13px 14px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; background: rgba(255, 255, 255, 0.035); }
-    code { color: #d8ddff; font-weight: 700; }
-    .status { width: max-content; padding: 3px 9px; border-radius: 999px; background: var(--pending); color: white; font-size: 12px; }
-    .status.running { background: var(--run); color: #081326; }
-    .status.ok { background: var(--ok); color: #06190d; }
-    .status.failed { background: var(--fail); color: #2c0308; }
+    li { display: grid; grid-template-columns: 94px 88px 1fr; gap: 14px; align-items: start; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; background: light-dark(rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.035)); }
+    code { color: light-dark(#1d4ed8, #d8ddff); font-weight: 700; }
+    .status { width: max-content; padding: 3px 9px; border-radius: 999px; background: var(--pending); color: light-dark(#334155, white); font-size: 12px; }
+    .status.running { background: var(--run); color: light-dark(white, #081326); }
+    .status.ok { background: var(--ok); color: light-dark(white, #06190d); }
+    .status.failed { background: var(--fail); color: light-dark(white, #2c0308); }
     .message { display: grid; gap: 4px; }
     .detail { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
     .footer { margin-top: 20px; color: var(--muted); font-size: 12px; }
@@ -274,7 +295,7 @@ function renderAngularHtml(indexPath: string, config: Parameters<typeof renderCo
 function startAngularServer(
   indexPath: string,
   port: number,
-  config: Parameters<typeof renderConfigScript>[0],
+  config: DesktopServerOptions,
   getWindow?: () => BrowserWindow | undefined,
 ): { url: string; server: ReturnType<typeof Bun.serve> } {
   const indexHtml = renderAngularHtml(indexPath, config);
@@ -287,31 +308,50 @@ function startAngularServer(
       const url = new URL(request.url);
       const pathname = decodeURIComponent(url.pathname);
 
+      if (pathname === '/api/desktop/users') {
+        const invalidResponse = validateDesktopApiRequest(request, config.desktopApiToken);
+        if (invalidResponse) {
+          return invalidResponse;
+        }
+
+        try {
+          await config.createLocalUser(await request.json() as DesktopUserCreateBody);
+          return jsonResponse({ success: true }, 201);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return jsonResponse({ error: message }, 400);
+        }
+      }
+
       // Window control API endpoints
       if (getWindow) {
+        if (pathname.startsWith('/api/window/')) {
+          const invalidResponse = validateDesktopApiRequest(request, config.desktopApiToken);
+          if (invalidResponse) {
+            return invalidResponse;
+          }
+        }
+
         switch (pathname) {
           case '/api/window/minimize':
             getWindow()?.minimize();
-            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+            return jsonResponse({ success: true });
           case '/api/window/maximize':
             getWindow()?.maximize();
-            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+            return jsonResponse({ success: true });
           case '/api/window/unmaximize':
             getWindow()?.unmaximize();
-            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+            return jsonResponse({ success: true });
           case '/api/window/close':
             getWindow()?.close();
-            return new Response(JSON.stringify({ success: true }), { headers: { 'content-type': 'application/json' } });
+            return jsonResponse({ success: true });
           case '/api/window/state': {
             const win = getWindow();
-            return new Response(
-              JSON.stringify({
-                minimized: win?.isMinimized() ?? false,
-                maximized: win?.isMaximized() ?? false,
-                fullscreen: win?.isFullScreen() ?? false,
-              }),
-              { headers: { 'content-type': 'application/json' } },
-            );
+            return jsonResponse({
+              minimized: win?.isMinimized() ?? false,
+              maximized: win?.isMaximized() ?? false,
+              fullscreen: win?.isFullScreen() ?? false,
+            });
           }
         }
       }
@@ -330,6 +370,72 @@ function startAngularServer(
   });
 
   return { url: `http://127.0.0.1:${port}/`, server };
+}
+
+async function createLocalPocketBaseUser(
+  baseUrl: string,
+  superuserEmail: string,
+  superuserPassword: string,
+  body: DesktopUserCreateBody,
+): Promise<void> {
+  const firstName = body.firstName?.trim();
+  const lastName = body.lastName?.trim();
+  const email = body.email?.trim();
+  const password = body.password ?? '';
+  const passwordConfirm = body.passwordConfirm ?? '';
+
+  if (!firstName || !lastName || !email || !password || password !== passwordConfirm) {
+    throw new Error('Invalid user creation payload.');
+  }
+
+  const token = await authenticatePocketBaseSuperuser(baseUrl, superuserEmail, superuserPassword);
+  const response = await fetch(`${baseUrl}/api/collections/users/records`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...body,
+      firstName,
+      lastName,
+      email,
+      verified: true,
+      emailVisibility: true,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`User creation failed: ${await response.text()}`);
+  }
+}
+
+async function authenticatePocketBaseSuperuser(baseUrl: string, superuserEmail: string, superuserPassword: string): Promise<string> {
+  const payload = {
+    identity: superuserEmail,
+    password: superuserPassword,
+  };
+  const endpoints = [
+    `${baseUrl}/api/collections/_superusers/auth-with-password`,
+    `${baseUrl}/api/admins/auth-with-password`,
+  ];
+
+  for (const endpoint of endpoints) {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      const data = await response.json() as { token?: string };
+      if (data.token) {
+        return data.token;
+      }
+    }
+  }
+
+  throw new Error('Unable to authenticate the local PocketBase administrator.');
 }
 
 function contentType(filePath: string): string {

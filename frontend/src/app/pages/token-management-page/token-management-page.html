@@ -5,7 +5,6 @@
     <div class="token-header__copy">
       <p class="eyebrow">Administration</p>
       <h1>Cles API MCP</h1>
-      <p class="lede">Connectez un agent MCP aux donnees de {{ currentUserName() }} sans exposer les identifiants PocketBase.</p>
     </div>
   </section>
 
@@ -81,6 +80,8 @@
       <button class="secondary-button token-copy-button" type="button" (click)="copyLatestAiToken()">Copier</button>
     </section>
   }
+
+  <app-mcp-config-helper [activeTokenCount]="activeAiTokenCount()" />
 
   @if (isLoadingAiTokens()) {
     <section class="state-card">

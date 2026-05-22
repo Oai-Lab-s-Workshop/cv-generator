@@ -72,7 +72,7 @@ describe('CvShellPage', () => {
 
     expect(adminBar.textContent).toContain('Accueil');
     expect(adminBar.textContent).toContain('Preview');
-    expect(adminBar.textContent).toContain('Download PDF');
+    expect(adminBar.textContent).toContain('Imprimer');
     expect(adminBar.textContent).toContain('Fermer');
   });
 
@@ -134,5 +134,55 @@ describe('CvShellPage', () => {
     const manageLink = manageLinks.find((link) => link.textContent?.includes('Gerer')) as HTMLAnchorElement;
 
     expect(manageLink.getAttribute('href')).toBe('/home/profiles/profile-1/edit');
+  });
+
+  it('dismisses admin bar', () => {
+    component['closeAdminBar']();
+    component['dismissAdminBar']();
+    expect(component.isAdminBarOpen()).toBe(false);
+    expect(component.isAdminBarDismissed()).toBe(true);
+    expect(component.statusMessage()).toBeNull();
+  });
+
+  it('handles loadProfile error', async () => {
+    pocketBaseService.getCvProfileBySlug.mockRejectedValue(new Error('Not found'));
+
+    fixture = TestBed.createComponent(CvShellPage);
+    component = fixture.componentInstance;
+    fixture.componentRef.setInput('slug', 'missing-slug');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.profile()).toBeNull();
+  });
+
+  it('computes templateLabel for unknown template', () => {
+    component.profile.set({ id: 'p', profileName: 'Test', user: 'u1', template: 'nonexistent' } as never);
+    fixture.detectChanges();
+    expect(component.templateLabel()).toBe('nonexistent');
+  });
+
+  it('computes templateComponent for unknown template as null', () => {
+    component.profile.set({ id: 'p', profileName: 'Test', user: 'u1', template: 'nonexistent' } as never);
+    fixture.detectChanges();
+    expect(component.templateComponent()).toBeNull();
+  });
+
+  it('computes isOwner when profile is null', () => {
+    component.profile.set(null);
+    currentUserId = 'user-1';
+    fixture.detectChanges();
+    expect(component.isOwner()).toBe(false);
+  });
+
+  it('toggles preview mode and shows status', () => {
+    component['togglePreviewMode']();
+    expect(component.isPreviewMode()).toBe(true);
+    expect(component.statusMessage()).toContain('Preview mode enabled');
+
+    component['togglePreviewMode']();
+    expect(component.isPreviewMode()).toBe(false);
+    expect(component.statusMessage()).toContain('Preview mode disabled');
   });
 });

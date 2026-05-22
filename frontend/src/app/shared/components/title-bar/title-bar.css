@@ -4,8 +4,8 @@
   justify-content: space-between;
   height: 2rem;
   padding: 0 0.5rem 0 0.85rem;
-  background: rgba(255, 255, 255, 0.85);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+  background: light-dark(rgba(255, 255, 255, 0.85), rgba(15, 23, 42, 0.86));
+  border-bottom: 1px solid var(--app-border);
   backdrop-filter: blur(12px);
   -webkit-user-select: none;
   user-select: none;
@@ -24,7 +24,7 @@
 .app-name {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #334155;
+  color: var(--app-text);
   letter-spacing: -0.01em;
 }
 
@@ -45,14 +45,14 @@
   border: none;
   border-radius: 0.4rem;
   background: transparent;
-  color: #475569;
+  color: var(--app-muted-strong);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .window-btn:hover {
-  background: rgba(148, 163, 184, 0.25);
-  color: #1e293b;
+  background: light-dark(rgba(148, 163, 184, 0.25), rgba(148, 163, 184, 0.18));
+  color: var(--app-text-strong);
 }
 
 .window-btn.close:hover {

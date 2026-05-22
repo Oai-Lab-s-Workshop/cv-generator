@@ -12,11 +12,11 @@
 .admin-bar__panel {
   width: min(21rem, calc(100vw - 2rem));
   padding: 0.75rem;
-  background: rgba(248, 250, 252, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: light-dark(rgba(248, 250, 252, 0.88), rgba(15, 23, 42, 0.88));
+  border: 1px solid var(--app-border);
   border-radius: 1.15rem;
   backdrop-filter: blur(14px);
-  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.18);
+  box-shadow: light-dark(0 18px 46px rgba(15, 23, 42, 0.18), 0 18px 46px rgba(0, 0, 0, 0.38));
 }
 
 .admin-bar__meta,
@@ -29,7 +29,7 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0 0.25rem 0.65rem;
-  color: #1e293b;
+  color: var(--app-text);
   font-size: 0.82rem;
   font-weight: 600;
 }
@@ -53,11 +53,11 @@
 .speed-dial-action {
   gap: 0.55rem;
   min-height: 2.55rem;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  border: 1px solid var(--app-border);
   border-radius: 0.85rem;
   padding: 0.55rem 0.7rem;
-  background: rgba(239, 246, 255, 0.9);
-  color: #0f3d8c;
+  background: var(--app-surface-muted);
+  color: var(--app-primary);
   font-size: 0.8rem;
   text-align: left;
 }
@@ -72,12 +72,26 @@
 }
 
 .speed-dial-action--link {
-  border-color: rgba(191, 219, 254, 0.9);
+  border-color: light-dark(rgba(191, 219, 254, 0.9), rgba(96, 165, 250, 0.26));
 }
 
 .speed-dial-action--ghost {
-  background: rgba(255, 255, 255, 0.62);
-  color: #475569;
+  background: light-dark(rgba(255, 255, 255, 0.62), rgba(30, 41, 59, 0.62));
+  color: var(--app-muted-strong);
+}
+
+.speed-dial-trigger {
+  width: 3.35rem;
+  height: 3.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--app-primary);
+  color: var(--app-on-primary);
+  box-shadow: light-dark(0 16px 34px rgba(15, 61, 140, 0.32), 0 16px 34px rgba(106, 158, 245, 0.16));
+}
+
+.speed-dial-trigger i {
+  font-size: 1.35rem;
 }
 
 .speed-dial-trigger {
@@ -97,16 +111,16 @@
 .admin-bar__status {
   max-width: min(21rem, calc(100vw - 2rem));
   padding: 0.65rem 0.75rem;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 0.85rem;
-  color: #475569;
+  color: var(--app-muted-strong);
   font-size: 0.8rem;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  box-shadow: light-dark(0 12px 28px rgba(15, 23, 42, 0.12), 0 12px 28px rgba(0, 0, 0, 0.3));
 }
 
 .admin-bar__status--error {
-  color: #b42318;
+  color: var(--app-danger);
 }
 
 .cv-shell-page {
@@ -124,17 +138,17 @@
 .cv-preview-enabled {
   max-width: 100%;
   padding: 2rem 1rem 4rem;
-  background: linear-gradient(180deg, #eef2f8 0%, #f8fafc 100%);
+  background: light-dark(linear-gradient(180deg, #eef2f8 0%, #f8fafc 100%), linear-gradient(180deg, #0f172a 0%, #111827 100%));
 }
 
 .cv-preview-enabled .cv-shell-page__document {
-  box-shadow: 0 20px 70px rgba(15, 23, 42, 0.12);
+  box-shadow: light-dark(0 20px 70px rgba(15, 23, 42, 0.12), 0 20px 70px rgba(0, 0, 0, 0.38));
 }
 
 .state-card {
-  border: 1px solid #f0c7c7;
+  border: 1px solid light-dark(#f0c7c7, rgba(248, 113, 113, 0.28));
   border-radius: 1rem;
-  background: #fff7f7;
+  background: var(--app-danger-bg);
   padding: 1.5rem;
 }
 
@@ -144,7 +158,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #9f3a3a;
+  color: var(--app-danger);
 }
 
 h1 {
