@@ -1,73 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="34" failures="0" errors="0" time="4.311">
-  <testsuite name="HomePage" errors="0" failures="0" skipped="0" timestamp="2026-05-21T21:22:10" time="3.518" tests="34">
-    <testcase classname="HomePage should create" name="HomePage should create" time="0.092">
+<testsuites name="jest tests" tests="34" failures="0" errors="0" time="2.273">
+  <testsuite name="HomePage" errors="0" failures="0" skipped="0" timestamp="2026-05-22T07:19:09" time="1.548" tests="34">
+    <testcase classname="HomePage should create" name="HomePage should create" time="0.076">
     </testcase>
-    <testcase classname="HomePage returns template label for known template" name="HomePage returns template label for known template" time="0.016">
+    <testcase classname="HomePage returns template label for known template" name="HomePage returns template label for known template" time="0.012">
     </testcase>
-    <testcase classname="HomePage returns fallback for unknown template" name="HomePage returns fallback for unknown template" time="0.016">
+    <testcase classname="HomePage returns fallback for unknown template" name="HomePage returns fallback for unknown template" time="0.009">
     </testcase>
-    <testcase classname="HomePage returns template required when undefined" name="HomePage returns template required when undefined" time="0.011">
+    <testcase classname="HomePage returns template required when undefined" name="HomePage returns template required when undefined" time="0.009">
     </testcase>
-    <testcase classname="HomePage returns visibility label for private profile" name="HomePage returns visibility label for private profile" time="0.012">
+    <testcase classname="HomePage returns visibility label for private profile" name="HomePage returns visibility label for private profile" time="0.009">
     </testcase>
-    <testcase classname="HomePage returns visibility label for public profile" name="HomePage returns visibility label for public profile" time="0.012">
+    <testcase classname="HomePage returns visibility label for public profile" name="HomePage returns visibility label for public profile" time="0.008">
     </testcase>
-    <testcase classname="HomePage returns unavailable when no template" name="HomePage returns unavailable when no template" time="0.009">
+    <testcase classname="HomePage returns unavailable when no template" name="HomePage returns unavailable when no template" time="0.007">
     </testcase>
-    <testcase classname="HomePage returns visibility tone for all states" name="HomePage returns visibility tone for all states" time="0.009">
+    <testcase classname="HomePage returns visibility tone for all states" name="HomePage returns visibility tone for all states" time="0.008">
     </testcase>
-    <testcase classname="HomePage returns status label for known and unknown statuses" name="HomePage returns status label for known and unknown statuses" time="0.012">
+    <testcase classname="HomePage returns status label for known and unknown statuses" name="HomePage returns status label for known and unknown statuses" time="0.007">
     </testcase>
-    <testcase classname="HomePage returns status tone for known and unknown statuses" name="HomePage returns status tone for known and unknown statuses" time="0.017">
+    <testcase classname="HomePage returns status tone for known and unknown statuses" name="HomePage returns status tone for known and unknown statuses" time="0.007">
     </testcase>
-    <testcase classname="HomePage should save template changes immediately" name="HomePage should save template changes immediately" time="0.031">
+    <testcase classname="HomePage should save template changes immediately" name="HomePage should save template changes immediately" time="0.007">
     </testcase>
-    <testcase classname="HomePage rejects template change with empty template" name="HomePage rejects template change with empty template" time="0.016">
+    <testcase classname="HomePage rejects template change with empty template" name="HomePage rejects template change with empty template" time="0.007">
     </testcase>
-    <testcase classname="HomePage handles template change error" name="HomePage handles template change error" time="0.035">
+    <testcase classname="HomePage handles template change error" name="HomePage handles template change error" time="0.011">
     </testcase>
-    <testcase classname="HomePage creates a profile and navigates to editor" name="HomePage creates a profile and navigates to editor" time="0.013">
+    <testcase classname="HomePage creates a profile and navigates to editor" name="HomePage creates a profile and navigates to editor" time="0.007">
     </testcase>
-    <testcase classname="HomePage validates required profile creation fields" name="HomePage validates required profile creation fields" time="0.01">
+    <testcase classname="HomePage validates required profile creation fields" name="HomePage validates required profile creation fields" time="0.006">
     </testcase>
-    <testcase classname="HomePage handles profile creation error" name="HomePage handles profile creation error" time="0.01">
+    <testcase classname="HomePage handles profile creation error" name="HomePage handles profile creation error" time="0.007">
     </testcase>
-    <testcase classname="HomePage should delete a profile after confirmation" name="HomePage should delete a profile after confirmation" time="0.016">
+    <testcase classname="HomePage should delete a profile after confirmation" name="HomePage should delete a profile after confirmation" time="0.007">
     </testcase>
-    <testcase classname="HomePage should not delete a profile when confirmation is cancelled" name="HomePage should not delete a profile when confirmation is cancelled" time="0.009">
+    <testcase classname="HomePage should not delete a profile when confirmation is cancelled" name="HomePage should not delete a profile when confirmation is cancelled" time="0.007">
     </testcase>
-    <testcase classname="HomePage handles delete profile error" name="HomePage handles delete profile error" time="0.011">
+    <testcase classname="HomePage handles delete profile error" name="HomePage handles delete profile error" time="0.008">
     </testcase>
-    <testcase classname="HomePage toggles public state successfully" name="HomePage toggles public state successfully" time="0.01">
+    <testcase classname="HomePage toggles public state successfully" name="HomePage toggles public state successfully" time="0.007">
     </testcase>
-    <testcase classname="HomePage skips toggle public when no template" name="HomePage skips toggle public when no template" time="0.01">
+    <testcase classname="HomePage skips toggle public when no template" name="HomePage skips toggle public when no template" time="0.007">
     </testcase>
-    <testcase classname="HomePage handles toggle public error" name="HomePage handles toggle public error" time="0.009">
+    <testcase classname="HomePage handles toggle public error" name="HomePage handles toggle public error" time="0.014">
     </testcase>
-    <testcase classname="HomePage opens the editor from row click on wide screens" name="HomePage opens the editor from row click on wide screens" time="0.015">
+    <testcase classname="HomePage opens the editor from row click on wide screens" name="HomePage opens the editor from row click on wide screens" time="0.007">
     </testcase>
-    <testcase classname="HomePage does not open the editor from row click on narrow screens" name="HomePage does not open the editor from row click on narrow screens" time="0.009">
+    <testcase classname="HomePage does not open the editor from row click on narrow screens" name="HomePage does not open the editor from row click on narrow screens" time="0.006">
     </testcase>
-    <testcase classname="HomePage does not open the editor when row click starts from an interactive control" name="HomePage does not open the editor when row click starts from an interactive control" time="0.014">
+    <testcase classname="HomePage does not open the editor when row click starts from an interactive control" name="HomePage does not open the editor when row click starts from an interactive control" time="0.007">
     </testcase>
-    <testcase classname="HomePage reports whether the profile table is in wide mode" name="HomePage reports whether the profile table is in wide mode" time="0.015">
+    <testcase classname="HomePage reports whether the profile table is in wide mode" name="HomePage reports whether the profile table is in wide mode" time="0.006">
     </testcase>
-    <testcase classname="HomePage changes profile status successfully" name="HomePage changes profile status successfully" time="0.014">
+    <testcase classname="HomePage changes profile status successfully" name="HomePage changes profile status successfully" time="0.006">
     </testcase>
-    <testcase classname="HomePage handles change status error" name="HomePage handles change status error" time="0.019">
+    <testcase classname="HomePage handles change status error" name="HomePage handles change status error" time="0.006">
     </testcase>
-    <testcase classname="HomePage selects a profile status from the compact menu" name="HomePage selects a profile status from the compact menu" time="0.01">
+    <testcase classname="HomePage selects a profile status from the compact menu" name="HomePage selects a profile status from the compact menu" time="0.006">
     </testcase>
-    <testcase classname="HomePage handles loadProfiles error" name="HomePage handles loadProfiles error" time="0.009">
+    <testcase classname="HomePage handles loadProfiles error" name="HomePage handles loadProfiles error" time="0.006">
     </testcase>
-    <testcase classname="HomePage handles loadAiTokens error gracefully" name="HomePage handles loadAiTokens error gracefully" time="0.01">
+    <testcase classname="HomePage handles loadAiTokens error gracefully" name="HomePage handles loadAiTokens error gracefully" time="0.006">
     </testcase>
-    <testcase classname="HomePage computes profile counts" name="HomePage computes profile counts" time="0.01">
+    <testcase classname="HomePage computes profile counts" name="HomePage computes profile counts" time="0.006">
     </testcase>
-    <testcase classname="HomePage computes active AI token count" name="HomePage computes active AI token count" time="0.014">
+    <testcase classname="HomePage computes active AI token count" name="HomePage computes active AI token count" time="0.005">
     </testcase>
-    <testcase classname="HomePage computes currentUserName with null user" name="HomePage computes currentUserName with null user" time="0.011">
+    <testcase classname="HomePage computes currentUserName with null user" name="HomePage computes currentUserName with null user" time="0.006">
     </testcase>
   </testsuite>
 </testsuites>
