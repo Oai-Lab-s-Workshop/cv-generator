@@ -40,6 +40,8 @@
 }
 
 .profile-table {
+  --profile-actions-column: 6.7rem;
+
   overflow: visible;
 }
 
@@ -267,13 +269,24 @@
 @media (min-width: 1081px) {
   .profile-table__head,
   .profile-row {
-    grid-template-columns: minmax(13rem, 1.45fr) minmax(11rem, 1fr) minmax(8rem, 0.75fr) minmax(5.5rem, 0.55fr) minmax(9rem, 0.7fr);
+    grid-template-columns: minmax(13rem, 1.45fr) minmax(11rem, 1fr) minmax(8rem, 0.75fr) minmax(5.5rem, 0.55fr) var(--profile-actions-column);
   }
 }
 
 @media (min-width: 801px) {
   .profile-row {
     cursor: pointer;
+  }
+
+  .profile-actions {
+    width: var(--profile-actions-column);
+    flex-wrap: nowrap;
+    justify-self: end;
+  }
+
+  .profile-table__head span:last-child {
+    justify-self: stretch;
+    text-align: right;
   }
 
   .visibility-control {
@@ -449,7 +462,7 @@
   .profile-table__head,
   .profile-row {
     gap: 0.5rem;
-    grid-template-columns: minmax(10rem, 1.35fr) minmax(9rem, 1fr) minmax(7rem, 0.75fr) minmax(5rem, 0.55fr) minmax(8.75rem, 0.75fr);
+    grid-template-columns: minmax(10rem, 1.35fr) minmax(9rem, 1fr) minmax(7rem, 0.75fr) minmax(5rem, 0.55fr) var(--profile-actions-column);
   }
 
   .profile-table__head,
