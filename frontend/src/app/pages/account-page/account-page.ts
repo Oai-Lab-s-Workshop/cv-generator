@@ -10,7 +10,7 @@ import { getErrorMessage } from '../../core/utils/error-message';
   selector: 'app-account-page',
   imports: [FormsModule, Navbar, RouterLink],
   templateUrl: './account-page.html',
-  styleUrl: './account-page.css',
+  styleUrls: ['../../styles/home-shared.css', './account-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountPage {
