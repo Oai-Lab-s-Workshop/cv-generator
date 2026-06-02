@@ -53,7 +53,7 @@ export class AccountPage {
     }
 
     if (newPw.length < 8) {
-      this.errorMessage.set('Le nouveau mot de passe doit contenir au moins 8 caracteres.');
+      this.errorMessage.set('Le nouveau mot de passe doit contenir au moins 8 caractères.');
       return;
     }
 
@@ -66,7 +66,7 @@ export class AccountPage {
 
     try {
       await this.pocketBaseService.changeCurrentUserPassword(oldPw, newPw, confirmPw);
-      this.successMessage.set('Mot de passe modifie avec succes.');
+      this.successMessage.set('Mot de passe modifié avec succès.');
       this.oldPassword.set('');
       this.newPassword.set('');
       this.confirmPassword.set('');
@@ -116,7 +116,7 @@ export class AccountPage {
       anchor.download = `resumate-data-${new Date().toISOString().split('T')[0]}.json`;
       anchor.click();
       URL.revokeObjectURL(url);
-      this.exportSuccessMessage.set('Vos donnees ont ete exportees avec succes. Le telechargement a commence.');
+      this.exportSuccessMessage.set('Vos données ont été exportées avec succès. Le téléchargement a commencé.');
     } catch (error: unknown) {
       this.exportErrorMessage.set(getErrorMessage(error));
     } finally {
