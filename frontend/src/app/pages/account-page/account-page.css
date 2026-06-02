@@ -1,0 +1,211 @@
+.account-page {
+  composes: home-page from global;
+}
+
+.account-header {
+  composes: home-header from global;
+}
+
+.account-header__copy {
+  composes: home-header__copy from global;
+}
+
+.settings-card {
+  width: min(100%, 76rem);
+  margin-inline: auto;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--home-border);
+  border-radius: 1.15rem;
+  background: var(--home-surface);
+  box-shadow: var(--home-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.settings-card--danger {
+  border-color: light-dark(#fecaca, #450a0a);
+  background: light-dark(#fff1f2, #1a0a0a);
+}
+
+.settings-card__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.settings-card__header > p {
+  color: var(--home-muted);
+  line-height: 1.45;
+  text-align: right;
+  max-width: 20rem;
+}
+
+.settings-card--danger .settings-card__header > p {
+  color: light-dark(#b91c1c, #fca5a5);
+}
+
+.change-password-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 28rem;
+}
+
+.action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.state-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.75rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.state-banner i {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+
+.state-banner--error {
+  border: 1px solid light-dark(#fecaca, #450a0a);
+  background: light-dark(#fff1f2, #1a0a0a);
+  color: light-dark(#7f1d1d, #fca5a5);
+}
+
+.state-banner--success {
+  border: 1px solid light-dark(#bbf7d0, #052e16);
+  background: light-dark(#f0fdf4, #0a1a0a);
+  color: light-dark(#14532d, #86efac);
+}
+
+.field-hint {
+  color: var(--home-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.55rem;
+  padding: 0.98rem 0.9rem;
+  border: 1px solid light-dark(#fecaca, #7f1d1d);
+  border-radius: 0.8rem;
+  background: light-dark(#fff, #1e293b);
+  color: light-dark(#dc2626, #f87171);
+  font: inherit;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.danger-button:hover,
+.danger-button:focus-visible {
+  background: light-dark(#fff1f2, rgba(239, 68, 68, 0.15));
+  border-color: light-dark(#dc2626, #f87171);
+  outline: none;
+}
+
+.danger-button:disabled {
+  opacity: 0.68;
+  cursor: wait;
+}
+
+.danger-button--solid {
+  border: 0;
+  background: light-dark(#dc2626, #ef4444);
+  color: light-dark(#fff, #0f172a);
+  box-shadow: light-dark(0 14px 28px rgba(220, 38, 38, 0.25), 0 14px 28px rgba(239, 68, 68, 0.2));
+}
+
+.danger-button--solid:hover,
+.danger-button--solid:focus-visible {
+  background: light-dark(#b91c1c, #f87171);
+}
+
+.delete-confirm {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.delete-confirm__warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid light-dark(#fecaca, #450a0a);
+  border-radius: 0.75rem;
+  background: light-dark(#fff, #0f172a);
+  color: light-dark(#b91c1c, #fca5a5);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.delete-confirm__warning i {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 0.02rem;
+}
+
+.delete-confirm__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.55rem;
+  padding: 0.98rem 0.9rem;
+  border: 1px solid light-dark(rgba(191, 219, 254, 0.9), rgba(59, 130, 246, 0.35));
+  border-radius: 0.8rem;
+  background: light-dark(rgba(239, 246, 255, 0.92), rgba(30, 58, 138, 0.25));
+  color: var(--home-primary);
+  font: inherit;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.secondary-button:disabled {
+  opacity: 0.68;
+  cursor: wait;
+}
+
+@media (max-width: 800px) {
+  .settings-card__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .settings-card__header > p {
+    text-align: left;
+    max-width: none;
+  }
+
+  .change-password-form {
+    max-width: none;
+  }
+
+  .delete-confirm__actions {
+    flex-direction: column;
+  }
+}

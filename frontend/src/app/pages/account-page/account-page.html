@@ -1,0 +1,168 @@
+<main class="account-page">
+  <app-navbar />
+
+  <section class="account-header">
+    <div class="account-header__copy">
+      <p class="eyebrow">Parametres</p>
+      <h1>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</h1>
+      <p class="lede">Gerez votre compte, votre mot de passe et vos preferences.</p>
+    </div>
+  </section>
+
+  <section class="settings-card" aria-label="Changer le mot de passe">
+    <div class="settings-card__header">
+      <div>
+        <p class="eyebrow">Securite</p>
+        <h2>Changer le mot de passe</h2>
+      </div>
+      <p>Mettez a jour votre mot de passe. Vous devrez utiliser le nouveau mot de passe lors de votre prochaine connexion.</p>
+    </div>
+
+    <form class="change-password-form" (ngSubmit)="changePassword()">
+      @if (errorMessage()) {
+        <div class="state-banner state-banner--error">
+          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      @if (successMessage()) {
+        <div class="state-banner state-banner--success">
+          <i class="bi bi-check-circle" aria-hidden="true"></i>
+          <span>{{ successMessage() }}</span>
+        </div>
+      }
+
+      <label class="field">
+        <span>Mot de passe actuel</span>
+        <input
+          [ngModel]="oldPassword()"
+          (ngModelChange)="oldPassword.set($event)"
+          name="oldPassword"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+      </label>
+
+      <label class="field">
+        <span>Nouveau mot de passe</span>
+        <input
+          [ngModel]="newPassword()"
+          (ngModelChange)="newPassword.set($event)"
+          name="newPassword"
+          type="password"
+          autocomplete="new-password"
+          required
+          minlength="8"
+        />
+        <span class="field-hint">Minimum 8 caracteres</span>
+      </label>
+
+      <label class="field">
+        <span>Confirmer le nouveau mot de passe</span>
+        <input
+          [ngModel]="confirmPassword()"
+          (ngModelChange)="confirmPassword.set($event)"
+          name="confirmPassword"
+          type="password"
+          autocomplete="new-password"
+          required
+        />
+      </label>
+
+      <button class="primary-button" type="submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Modification en cours...' : 'Changer le mot de passe' }}
+      </button>
+    </form>
+  </section>
+
+  <section class="settings-card" aria-label="Exporter les donnees">
+    <div class="settings-card__header">
+      <div>
+        <p class="eyebrow">Vie privee</p>
+        <h2>Exporter mes donnees</h2>
+      </div>
+      <p>Telechargez une copie de toutes vos donnees au format JSON. Conformement au RGPD, vous avez le droit d'acceder a vos donnees personnelles.</p>
+    </div>
+
+    <div class="action-group">
+      @if (exportErrorMessage()) {
+        <div class="state-banner state-banner--error">
+          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+          <span>{{ exportErrorMessage() }}</span>
+        </div>
+      }
+
+      @if (exportSuccessMessage()) {
+        <div class="state-banner state-banner--success">
+          <i class="bi bi-check-circle" aria-hidden="true"></i>
+          <span>{{ exportSuccessMessage() }}</span>
+        </div>
+      }
+
+      <button class="secondary-button" type="button" (click)="exportData()" [disabled]="isExporting()">
+        <i class="bi bi-download" aria-hidden="true"></i>
+        {{ isExporting() ? 'Export en cours...' : 'Exporter mes donnees' }}
+      </button>
+    </div>
+  </section>
+
+  <section class="settings-card settings-card--danger" aria-label="Supprimer le compte">
+    <div class="settings-card__header">
+      <div>
+        <p class="eyebrow">Zone dangereuse</p>
+        <h2>Supprimer mon compte</h2>
+      </div>
+      <p>Cette action est irreversible. Toutes vos donnees, CV, projets, competences et fichiers seront definitivement effaces.</p>
+    </div>
+
+    <div class="action-group">
+      @if (deleteErrorMessage()) {
+        <div class="state-banner state-banner--error">
+          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+          <span>{{ deleteErrorMessage() }}</span>
+        </div>
+      }
+
+      @if (!showDeleteConfirm()) {
+        <button class="danger-button" type="button" (click)="requestDeleteAccount()" [disabled]="isDeleting()">
+          <i class="bi bi-trash" aria-hidden="true"></i>
+          Supprimer mon compte
+        </button>
+      } @else {
+        <div class="delete-confirm">
+          <p class="delete-confirm__warning">
+            <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+            Etes-vous absolument certain ? Cette action est irreversible et supprimera definitivement toutes vos donnees.
+          </p>
+          <div class="delete-confirm__actions">
+            <button class="secondary-button" type="button" (click)="cancelDelete()" [disabled]="isDeleting()">
+              Annuler
+            </button>
+            <button class="danger-button danger-button--solid" type="button" (click)="deleteAccount()" [disabled]="isDeleting()">
+              {{ isDeleting() ? 'Suppression en cours...' : 'Oui, supprimer definitivement' }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="settings-card" aria-label="Politique de confidentialite">
+    <div class="settings-card__header">
+      <div>
+        <p class="eyebrow">Legal</p>
+        <h2>Politique de confidentialite</h2>
+      </div>
+      <p>Consultez notre politique de confidentialite pour comprendre comment vos donnees sont traitees et protegees.</p>
+    </div>
+
+    <div class="action-group">
+      <a class="secondary-button" routerLink="/home/privacy">
+        <i class="bi bi-shield-lock" aria-hidden="true"></i>
+        Voir la politique de confidentialite
+      </a>
+    </div>
+  </section>
+</main>
