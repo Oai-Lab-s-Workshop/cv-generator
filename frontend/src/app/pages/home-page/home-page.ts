@@ -10,6 +10,23 @@ import { getErrorMessage } from '../../core/utils/error-message';
 import { Navbar } from '../../shared/components/navbar/navbar';
 import { CV_PROFILE_STATUS_OPTIONS } from '../profile-editor-page/profile-editor-page';
 
+type SortColumn = 'label' | 'template' | 'status' | 'generated_at';
+type SortDirection = 'asc' | 'desc';
+
+const STATUS_SORT_ORDER: Record<string, number> = {
+  unsent: 0,
+  sent: 1,
+  rejected: 2,
+  responded: 3,
+};
+
+function pbDateValue(value?: string): number {
+  if (!value) return 0;
+  const isoValue = value.includes('T') ? value : value.replace(' ', 'T');
+  const date = new Date(isoValue);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
 @Component({
   selector: 'app-home-page',
   imports: [FormsModule, Navbar, RouterLink],
@@ -47,14 +64,100 @@ export class HomePage implements OnInit {
     () => this.profiles().filter((profile) => Boolean(profile.template) && profile.public === false).length,
   );
   readonly activeAiTokenCount = computed(() => this.aiTokens().filter((token) => token.status === 'active').length);
+  readonly sortColumn = signal<SortColumn>('generated_at');
+  readonly sortDirection = signal<SortDirection>('desc');
+
   readonly currentUserName = computed(() => {
     const user = this.currentUser();
     return user ? `${user.firstName} ${user.lastName}` : 'Utilisateur authentifie';
   });
 
+  readonly unsentProfileCount = computed(
+    () => this.profiles().filter((p) => (p.status || 'unsent') === 'unsent').length,
+  );
+  readonly sentProfileCount = computed(
+    () => this.profiles().filter((p) => p.status === 'sent').length,
+  );
+  readonly respondedProfileCount = computed(
+    () => this.profiles().filter((p) => p.status === 'responded').length,
+  );
+  readonly rejectedProfileCount = computed(
+    () => this.profiles().filter((p) => p.status === 'rejected').length,
+  );
+
+  readonly unsentPercentage = computed(() => this.percentageOf(this.unsentProfileCount()));
+  readonly sentPercentage = computed(() => this.percentageOf(this.sentProfileCount()));
+  readonly respondedPercentage = computed(() => this.percentageOf(this.respondedProfileCount()));
+  readonly rejectedPercentage = computed(() => this.percentageOf(this.rejectedProfileCount()));
+
+  readonly publicPercentage = computed(() => this.percentageOf(this.publicProfileCount()));
+  readonly privatePercentage = computed(() => this.percentageOf(this.privateProfileCount()));
+
+  readonly sortedProfiles = computed(() => {
+    const list = [...this.profiles()];
+    const col = this.sortColumn();
+    const dir = this.sortDirection();
+
+    list.sort((a, b) => {
+      let cmp = 0;
+
+      switch (col) {
+        case 'label':
+          cmp = (a.label || a.profileName || '').localeCompare(b.label || b.profileName || '');
+          break;
+        case 'template':
+          cmp = (a.template || '').localeCompare(b.template || '');
+          break;
+        case 'status': {
+          const aOrder = STATUS_SORT_ORDER[a.status || 'unsent'] ?? 99;
+          const bOrder = STATUS_SORT_ORDER[b.status || 'unsent'] ?? 99;
+          cmp = aOrder - bOrder;
+          break;
+        }
+        case 'generated_at': {
+          const aTime = pbDateValue(a.generated_at);
+          const bTime = pbDateValue(b.generated_at);
+          cmp = aTime - bTime; // ascending: oldest first
+          break;
+        }
+      }
+
+      return dir === 'asc' ? cmp : -cmp;
+    });
+
+    return list;
+  });
+
   ngOnInit(): void {
     void this.loadProfiles();
     void this.loadAiTokens();
+  }
+
+  private percentageOf(count: number): number {
+    const total = this.totalProfileCount();
+    if (total === 0) return 0;
+    return Math.round((count / total) * 100);
+  }
+
+  toggleSort(column: SortColumn): void {
+    if (this.sortColumn() === column) {
+      this.sortDirection.update((dir) => (dir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      this.sortColumn.set(column);
+      this.sortDirection.set(column === 'generated_at' ? 'desc' : 'asc');
+    }
+  }
+
+  getSortIconClass(column: SortColumn): string {
+    if (this.sortColumn() !== column) {
+      return 'bi bi-chevron-expand';
+    }
+    return this.sortDirection() === 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down';
+  }
+
+  getSortAriaSort(column: SortColumn): string {
+    if (this.sortColumn() !== column) return 'none';
+    return this.sortDirection() === 'asc' ? 'ascending' : 'descending';
   }
 
   private async loadProfiles(): Promise<void> {

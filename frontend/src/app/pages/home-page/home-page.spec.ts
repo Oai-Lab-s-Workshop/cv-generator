@@ -70,6 +70,7 @@ describe('HomePage', () => {
     fixture = TestBed.createComponent(HomePage);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {
@@ -361,5 +362,191 @@ describe('HomePage', () => {
     auth.currentUser.set(null as never);
     expect(component.currentUserName()).toBe('Utilisateur authentifie');
     auth.currentUser.set(orig);
+  });
+
+  // --- T8: Sortable table ---
+  describe('T8 — Sortable table columns', () => {
+    const profileA = { ...mockProfile, id: 'a', label: 'Alpha', template: 'classic', status: 'unsent' as const, generated_at: '2026-01-01 00:00:00.000Z' };
+    const profileB = { ...mockProfile, id: 'b', label: 'Beta', template: 'modern', status: 'sent' as const, generated_at: '2026-02-01 00:00:00.000Z' };
+    const profileC = { ...mockProfile, id: 'c', label: 'Gamma', template: 'classic', status: 'responded' as const, generated_at: '2026-03-01 00:00:00.000Z' };
+
+    beforeEach(() => {
+      component.profiles.set([profileA, profileB, profileC]);
+    });
+
+    it('defaults to sort by generated_at descending', () => {
+      expect(component.sortColumn()).toBe('generated_at');
+      expect(component.sortDirection()).toBe('desc');
+      const ids = component.sortedProfiles().map((p) => p.id);
+      expect(ids).toEqual(['c', 'b', 'a']);
+    });
+
+    it('toggles sort direction when clicking the same column', () => {
+      component.toggleSort('label');
+      expect(component.sortColumn()).toBe('label');
+      expect(component.sortDirection()).toBe('asc');
+
+      component.toggleSort('label');
+      expect(component.sortDirection()).toBe('desc');
+    });
+
+    it('switches column and resets to asc when clicking a new column', () => {
+      component.toggleSort('label');
+      component.toggleSort('status');
+      expect(component.sortColumn()).toBe('status');
+      expect(component.sortDirection()).toBe('asc');
+    });
+
+    it('sets desc by default when switching to generated_at', () => {
+      component.toggleSort('label');
+      component.toggleSort('generated_at');
+      expect(component.sortColumn()).toBe('generated_at');
+      expect(component.sortDirection()).toBe('desc');
+    });
+
+    it('sorts by label ascending', () => {
+      component.sortColumn.set('label');
+      component.sortDirection.set('asc');
+      const ids = component.sortedProfiles().map((p) => p.id);
+      expect(ids).toEqual(['a', 'b', 'c']);
+    });
+
+    it('sorts by label descending', () => {
+      component.sortColumn.set('label');
+      component.sortDirection.set('desc');
+      const ids = component.sortedProfiles().map((p) => p.id);
+      expect(ids).toEqual(['c', 'b', 'a']);
+    });
+
+    it('sorts by template ascending', () => {
+      component.sortColumn.set('template');
+      component.sortDirection.set('asc');
+      const ids = component.sortedProfiles().map((p) => p.id);
+      // classic comes before modern alphabetically
+      expect(ids[0]).toBe('a'); // classic
+      expect(ids[1]).toBe('c'); // classic
+      expect(ids[2]).toBe('b'); // modern
+    });
+
+    it('sorts by status using defined order', () => {
+      component.sortColumn.set('status');
+      component.sortDirection.set('asc');
+      const ids = component.sortedProfiles().map((p) => p.id);
+      // unsent (0) < sent (1) < responded (3)
+      expect(ids[0]).toBe('a'); // unsent
+      expect(ids[1]).toBe('b'); // sent
+      expect(ids[2]).toBe('c'); // responded
+    });
+
+    it('sorts by status descending', () => {
+      component.sortColumn.set('status');
+      component.sortDirection.set('desc');
+      const ids = component.sortedProfiles().map((p) => p.id);
+      expect(ids[0]).toBe('c'); // responded
+      expect(ids[1]).toBe('b'); // sent
+      expect(ids[2]).toBe('a'); // unsent
+    });
+
+    it('handles profiles without generated_at by treating them as epoch 0', () => {
+      const noDate = { ...mockProfile, id: 'nodate', label: 'NoDate', generated_at: undefined };
+      component.profiles.set([profileC, noDate]);
+      component.sortColumn.set('generated_at');
+      component.sortDirection.set('desc');
+      const ids = component.sortedProfiles().map((p) => p.id);
+      expect(ids[0]).toBe('c'); // has date
+      expect(ids[1]).toBe('nodate'); // no date, treated as 0
+    });
+
+    it('returns bi-chevron-expand for inactive sort column', () => {
+      component.sortColumn.set('label');
+      expect(component.getSortIconClass('template')).toBe('bi bi-chevron-expand');
+    });
+
+    it('returns bi-sort-up for active ascending column', () => {
+      component.sortColumn.set('label');
+      component.sortDirection.set('asc');
+      expect(component.getSortIconClass('label')).toBe('bi bi-sort-up');
+    });
+
+    it('returns bi-sort-down for active descending column', () => {
+      component.sortColumn.set('label');
+      component.sortDirection.set('desc');
+      expect(component.getSortIconClass('label')).toBe('bi bi-sort-down');
+    });
+
+    it('returns correct aria-sort values', () => {
+      component.sortColumn.set('label');
+      component.sortDirection.set('asc');
+      expect(component.getSortAriaSort('label')).toBe('ascending');
+      expect(component.getSortAriaSort('template')).toBe('none');
+    });
+
+    it('sortedProfiles returns a new array (does not mutate original)', () => {
+      const original = component.profiles();
+      const sorted = component.sortedProfiles();
+      expect(sorted).not.toBe(original);
+      expect(original.map((p) => p.id)).toEqual(['a', 'b', 'c']); // unchanged
+    });
+  });
+
+  // --- T9: KPI status breakdown ---
+  describe('T9 — Status breakdown KPI', () => {
+    beforeEach(() => {
+      component.profiles.set([
+        { ...mockProfile, id: '1', status: 'unsent' },
+        { ...mockProfile, id: '2', status: 'unsent' },
+        { ...mockProfile, id: '3', status: 'sent' },
+        { ...mockProfile, id: '4', status: 'rejected' },
+        { ...mockProfile, id: '5', status: 'responded' },
+        { ...mockProfile, id: '6', status: 'responded' },
+        { ...mockProfile, id: '7', status: 'responded' },
+        { ...mockProfile, id: '8', status: undefined }, // defaults to unsent
+      ]);
+    });
+
+    it('computes status counts correctly', () => {
+      expect(component.unsentProfileCount()).toBe(3); // 2 explicit + 1 undefined
+      expect(component.sentProfileCount()).toBe(1);
+      expect(component.rejectedProfileCount()).toBe(1);
+      expect(component.respondedProfileCount()).toBe(3);
+      expect(component.totalProfileCount()).toBe(8);
+    });
+
+    it('computes status percentages', () => {
+      expect(component.unsentPercentage()).toBe(38); // 3/8 = 37.5 -> 38
+      expect(component.sentPercentage()).toBe(13);   // 1/8 = 12.5 -> 13
+      expect(component.rejectedPercentage()).toBe(13); // 1/8 = 12.5 -> 13
+      expect(component.respondedPercentage()).toBe(38); // 3/8 = 37.5 -> 38
+    });
+
+    it('returns 0% when there are no profiles', () => {
+      component.profiles.set([]);
+      expect(component.unsentPercentage()).toBe(0);
+      expect(component.sentPercentage()).toBe(0);
+      expect(component.rejectedPercentage()).toBe(0);
+      expect(component.respondedPercentage()).toBe(0);
+    });
+
+    it('returns 100% when all profiles have the same status', () => {
+      component.profiles.set([
+        { ...mockProfile, id: '1', status: 'sent' },
+        { ...mockProfile, id: '2', status: 'sent' },
+      ]);
+      expect(component.sentPercentage()).toBe(100);
+      expect(component.sentProfileCount()).toBe(2);
+    });
+
+    it('computes public and private percentages', () => {
+      component.profiles.set([
+        { ...mockProfile, id: '1', template: 'classic', public: true },
+        { ...mockProfile, id: '2', template: 'modern', public: false },
+        { ...mockProfile, id: '3', template: 'classic', public: true },
+        { ...mockProfile, id: '4', template: undefined, public: false },
+      ]);
+      expect(component.publicProfileCount()).toBe(2);
+      expect(component.privateProfileCount()).toBe(1);
+      expect(component.publicPercentage()).toBe(50);  // 2/4 = 50
+      expect(component.privatePercentage()).toBe(25); // 1/4 = 25
+    });
   });
 });
