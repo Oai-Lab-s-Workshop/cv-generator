@@ -603,15 +603,12 @@ export class PocketBaseService {
     return {
       record: this.normalizeAiToken(created),
       rawToken,
-      debug: {
-        currentUserId,
-      },
     };
   }
 
   async revokeCurrentUserAiToken(tokenId: string): Promise<void> {
     await this.pb.send(`/api/custom/ai-tokens/${tokenId}/revoke`, {
-      method: 'PATCH',
+      method: 'POST',
       requestKey: `revoke-${tokenId}`,
     });
   }
