@@ -6,7 +6,7 @@ import { Navbar } from '../../shared/components/navbar/navbar';
   selector: 'app-privacy-page',
   imports: [RouterLink, Navbar],
   templateUrl: './privacy-page.html',
-  styleUrl: './privacy-page.css',
+  styleUrls: ['../../styles/home-shared.css', './privacy-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PrivacyPage {}

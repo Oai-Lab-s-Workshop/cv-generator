@@ -2,7 +2,8 @@
 .material-page,
 .token-management-page,
 .gallery-page,
-.account-page {
+.account-page,
+.privacy-page {
   --home-primary: light-dark(#0f3d8c, #6a9ef5);
   --home-text: light-dark(#172033, #e2e8f0);
   --home-muted: light-dark(#64748b, #94a3b8);
@@ -30,6 +31,7 @@
 .material-hero,
 .gallery-hero,
 .account-header,
+.privacy-header,
 .insight-grid,
 .cta-panel,
 .profiles-panel,
@@ -45,7 +47,8 @@
 .token-header,
 .material-hero,
 .gallery-hero,
-.account-header {
+.account-header,
+.privacy-header {
   display: block;
   margin-bottom: 1rem;
 }
@@ -53,7 +56,8 @@
 .home-header__copy,
 .token-header__copy,
 .gallery-hero__copy,
-.account-header__copy {
+.account-header__copy,
+.privacy-header__copy {
   display: grid;
   gap: 0.35rem;
 }
@@ -309,6 +313,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   border-radius: 0.8rem;
   font: inherit;
   font-weight: 800;
@@ -752,6 +757,7 @@ h3 {
   .material-hero,
   .gallery-hero,
   .account-header,
+  .privacy-header,
   .profiles-panel__header,
   .tokens-panel__header {
     align-items: stretch;
