@@ -366,16 +366,16 @@ describe('HomePage', () => {
 
   // --- T8: Sortable table ---
   describe('T8 — Sortable table columns', () => {
-    const profileA = { ...mockProfile, id: 'a', label: 'Alpha', template: 'classic', status: 'unsent' as const, generated_at: '2026-01-01 00:00:00.000Z' };
-    const profileB = { ...mockProfile, id: 'b', label: 'Beta', template: 'modern', status: 'sent' as const, generated_at: '2026-02-01 00:00:00.000Z' };
-    const profileC = { ...mockProfile, id: 'c', label: 'Gamma', template: 'classic', status: 'responded' as const, generated_at: '2026-03-01 00:00:00.000Z' };
+    const profileA = { ...mockProfile, id: 'a', label: 'Alpha', template: 'classic', status: 'unsent' as const, updated_at: '2026-01-01 00:00:00.000Z' };
+    const profileB = { ...mockProfile, id: 'b', label: 'Beta', template: 'modern', status: 'sent' as const, updated_at: '2026-02-01 00:00:00.000Z' };
+    const profileC = { ...mockProfile, id: 'c', label: 'Gamma', template: 'classic', status: 'responded' as const, updated_at: '2026-03-01 00:00:00.000Z' };
 
     beforeEach(() => {
       component.profiles.set([profileA, profileB, profileC]);
     });
 
-    it('defaults to sort by generated_at descending', () => {
-      expect(component.sortColumn()).toBe('generated_at');
+    it('defaults to sort by updated_at descending', () => {
+      expect(component.sortColumn()).toBe('updated_at');
       expect(component.sortDirection()).toBe('desc');
       const ids = component.sortedProfiles().map((p) => p.id);
       expect(ids).toEqual(['c', 'b', 'a']);
@@ -397,10 +397,10 @@ describe('HomePage', () => {
       expect(component.sortDirection()).toBe('asc');
     });
 
-    it('sets desc by default when switching to generated_at', () => {
+    it('sets desc by default when switching to updated_at', () => {
       component.toggleSort('label');
-      component.toggleSort('generated_at');
-      expect(component.sortColumn()).toBe('generated_at');
+      component.toggleSort('updated_at');
+      expect(component.sortColumn()).toBe('updated_at');
       expect(component.sortDirection()).toBe('desc');
     });
 
@@ -447,10 +447,10 @@ describe('HomePage', () => {
       expect(ids[2]).toBe('a'); // unsent
     });
 
-    it('handles profiles without generated_at by treating them as epoch 0', () => {
-      const noDate = { ...mockProfile, id: 'nodate', label: 'NoDate', generated_at: undefined };
+    it('handles profiles without updated_at by treating them as epoch 0', () => {
+      const noDate = { ...mockProfile, id: 'nodate', label: 'NoDate', updated_at: undefined };
       component.profiles.set([profileC, noDate]);
-      component.sortColumn.set('generated_at');
+      component.sortColumn.set('updated_at');
       component.sortDirection.set('desc');
       const ids = component.sortedProfiles().map((p) => p.id);
       expect(ids[0]).toBe('c'); // has date
@@ -486,6 +486,60 @@ describe('HomePage', () => {
       const sorted = component.sortedProfiles();
       expect(sorted).not.toBe(original);
       expect(original.map((p) => p.id)).toEqual(['a', 'b', 'c']); // unchanged
+    });
+  });
+
+  // --- T10: formatDate ---
+  describe('formatDate', () => {
+    it('returns "-" for undefined value', () => {
+      expect(component.formatDate(undefined)).toBe('-');
+    });
+
+    it('returns "-" for invalid date string', () => {
+      expect(component.formatDate('not-a-date')).toBe('-');
+    });
+
+    it('returns "auj." for today', () => {
+      const today = new Date();
+      const isoString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')} 12:00:00.000Z`;
+      expect(component.formatDate(isoString)).toBe('auj.');
+    });
+
+    it('returns "hier" for yesterday', () => {
+      const yesterday = new Date(Date.now() - 86400000);
+      const isoString = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')} 12:00:00.000Z`;
+      expect(component.formatDate(isoString)).toBe('hier');
+    });
+
+    it('returns "j-3" for 3 days ago', () => {
+      const d = new Date(Date.now() - 3 * 86400000);
+      const isoString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} 12:00:00.000Z`;
+      expect(component.formatDate(isoString)).toBe('j-3');
+    });
+
+    it('returns "2 sem." for 14 days ago', () => {
+      const d = new Date(Date.now() - 14 * 86400000);
+      const isoString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} 12:00:00.000Z`;
+      expect(component.formatDate(isoString)).toBe('2 sem.');
+    });
+
+    it('returns DD/MM for a date within the last year but older than 28 days', () => {
+      const d = new Date(Date.now() - 60 * 86400000);
+      const expected = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' }).format(d);
+      const isoString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} 12:00:00.000Z`;
+      expect(component.formatDate(isoString)).toBe(expected);
+    });
+
+    it('returns MM/YYYY for a date over a year ago', () => {
+      const d = new Date(Date.now() - 400 * 86400000);
+      const expected = new Intl.DateTimeFormat('fr-FR', { month: '2-digit', year: 'numeric' }).format(d);
+      const isoString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} 12:00:00.000Z`;
+      expect(component.formatDate(isoString)).toBe(expected);
+    });
+
+    it('handles ISO date format without T (PocketBase format)', () => {
+      const result = component.formatDate('2026-01-15 10:30:00.000Z');
+      expect(result).toMatch(/^(auj\.|hier|j-\d+|\d+ sem\.|\d{2}\/\d{2}|\d{2}\/\d{4}|-)$/);
     });
   });
 

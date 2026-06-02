@@ -10,7 +10,7 @@ import { getErrorMessage } from '../../core/utils/error-message';
 import { Navbar } from '../../shared/components/navbar/navbar';
 import { CV_PROFILE_STATUS_OPTIONS } from '../profile-editor-page/profile-editor-page';
 
-type SortColumn = 'label' | 'template' | 'status' | 'generated_at';
+type SortColumn = 'label' | 'template' | 'status' | 'updated_at';
 type SortDirection = 'asc' | 'desc';
 
 const STATUS_SORT_ORDER: Record<string, number> = {
@@ -64,7 +64,7 @@ export class HomePage implements OnInit {
     () => this.profiles().filter((profile) => Boolean(profile.template) && profile.public === false).length,
   );
   readonly activeAiTokenCount = computed(() => this.aiTokens().filter((token) => token.status === 'active').length);
-  readonly sortColumn = signal<SortColumn>('generated_at');
+  readonly sortColumn = signal<SortColumn>('updated_at');
   readonly sortDirection = signal<SortDirection>('desc');
 
   readonly currentUserName = computed(() => {
@@ -114,9 +114,9 @@ export class HomePage implements OnInit {
           cmp = aOrder - bOrder;
           break;
         }
-        case 'generated_at': {
-          const aTime = pbDateValue(a.generated_at);
-          const bTime = pbDateValue(b.generated_at);
+        case 'updated_at': {
+          const aTime = pbDateValue(a.updated_at);
+          const bTime = pbDateValue(b.updated_at);
           cmp = aTime - bTime; // ascending: oldest first
           break;
         }
@@ -144,7 +144,7 @@ export class HomePage implements OnInit {
       this.sortDirection.update((dir) => (dir === 'asc' ? 'desc' : 'asc'));
     } else {
       this.sortColumn.set(column);
-      this.sortDirection.set(column === 'generated_at' ? 'desc' : 'asc');
+      this.sortDirection.set(column === 'updated_at' ? 'desc' : 'asc');
     }
   }
 
@@ -158,6 +158,24 @@ export class HomePage implements OnInit {
   getSortAriaSort(column: SortColumn): string {
     if (this.sortColumn() !== column) return 'none';
     return this.sortDirection() === 'asc' ? 'ascending' : 'descending';
+  }
+
+  formatDate(value?: string): string {
+    if (!value) return '-';
+    const isoValue = value.includes('T') ? value : value.replace(' ', 'T');
+    const date = new Date(isoValue);
+    if (Number.isNaN(date.getTime())) return '-';
+
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    const diffMonths = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
+
+    if (diffDays === 0) return 'auj.';
+    if (diffDays === 1) return 'hier';
+    if (diffDays < 7) return `j-${diffDays}`;
+    if (diffDays <= 28) return `${Math.floor(diffDays / 7)} sem.`;
+    if (diffMonths < 12) return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' }).format(date);
+    return new Intl.DateTimeFormat('fr-FR', { month: '2-digit', year: 'numeric' }).format(date);
   }
 
   private async loadProfiles(): Promise<void> {

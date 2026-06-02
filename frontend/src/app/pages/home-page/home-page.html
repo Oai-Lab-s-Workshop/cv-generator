@@ -146,10 +146,10 @@
                 class="sort-header-btn sort-header-btn--icon-only"
                 type="button"
                 aria-label="Trier par date"
-                [attr.aria-sort]="getSortAriaSort('generated_at')"
-                (click)="toggleSort('generated_at')"
+                [attr.aria-sort]="getSortAriaSort('updated_at')"
+                (click)="toggleSort('updated_at')"
               >
-                <i class="sort-header-btn__icon" [class]="getSortIconClass('generated_at')" aria-hidden="true"></i>
+                <i class="sort-header-btn__icon" [class]="getSortIconClass('updated_at')" aria-hidden="true"></i>
               </button>
             </span>
             <span role="columnheader" class="sort-header-cell">
@@ -189,7 +189,7 @@
                 (keydown)="openProfileFromRowKeyboard(profile, $event)">
                 <div class="profile-cell profile-cell--main" role="cell" data-label="Profil">
                   <h3>{{ profile.label || profile.profileName }}</h3>
-                  <p>{{ profile.profileName }}</p>
+                  <p>{{ profile.profileName }} · {{ formatDate(profile.updated_at) }}</p>
                 </div>
 
                 <label class="profile-cell profile-cell--template field field--compact" role="cell" data-label="Template">
