@@ -558,6 +558,17 @@ migrate(
           type: "file",
           maxSelect: 1,
         },
+        {
+          id: "autodate1779050001",
+          name: "generated_at",
+          type: "autodate",
+          hidden: false,
+          onCreate: true,
+          onUpdate: false,
+          presentable: false,
+          required: false,
+          system: false,
+        },
       ]),
     );
 
