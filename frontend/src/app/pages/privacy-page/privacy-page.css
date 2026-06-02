@@ -1,0 +1,45 @@
+.privacy-page {
+  composes: home-page from global;
+}
+
+.privacy-header {
+  composes: home-header from global;
+}
+
+.privacy-header__copy {
+  composes: home-header__copy from global;
+}
+
+.privacy-content {
+  width: min(100%, 76rem);
+  margin-inline: auto;
+  padding: 1.25rem;
+  border: 1px solid var(--home-border);
+  border-radius: 1.15rem;
+  background: var(--home-surface);
+  box-shadow: var(--home-shadow);
+  backdrop-filter: blur(18px);
+  line-height: 1.65;
+}
+
+.privacy-content h2 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.privacy-content h2:first-of-type {
+  margin-top: 0;
+}
+
+.privacy-content p {
+  margin-bottom: 0.75rem;
+}
+
+.privacy-content p:last-child {
+  margin-bottom: 0;
+}
+
+.privacy-content a {
+  color: var(--home-primary);
+  font-weight: 600;
+}

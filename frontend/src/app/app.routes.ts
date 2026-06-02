@@ -53,6 +53,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/template-gallery-page/template-gallery-page').then((module) => module.TemplateGalleryPage),
   },
   {
+    path: 'home/privacy',
+    loadComponent: () => import('./pages/privacy-page/privacy-page').then((module) => module.PrivacyPage),
+  },
+  {
     path: ':slug',
     canActivate: [cvAccessGuard],
     loadComponent: () => import('./pages/cv-shell-page/cv-shell-page').then((module) => module.CvShellPage),

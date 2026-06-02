@@ -1,0 +1,86 @@
+<main class="privacy-page">
+  <app-navbar />
+
+  <section class="privacy-header">
+    <div class="privacy-header__copy">
+      <p class="eyebrow">Legal</p>
+      <h1>Politique de confidentialite</h1>
+      <p class="lede">Comment Resumate traite et protege vos donnees personnelles.</p>
+    </div>
+  </section>
+
+  <article class="privacy-content">
+    <h2>1. Responsable du traitement</h2>
+    <p>
+      Resumate est une application auto-hebergee. Les donnees sont stockees sur votre propre serveur PocketBase.
+      Vous etes le responsable du traitement des donnees personnelles collectees via votre instance Resumate.
+    </p>
+
+    <h2>2. Donnees collectees</h2>
+    <p>
+      Resumate collecte les donnees que vous fournissez volontairement lors de l&apos;utilisation de l&apos;application :
+    </p>
+    <ul>
+      <li>Informations de profil (nom, prenom, coordonnees)</li>
+      <li>CV et profils professionnels</li>
+      <li>Experiences professionnelles (emplois, projets)</li>
+      <li>Formations et diplomes</li>
+      <li>Competences et realisations</li>
+      <li>Fichiers televerses (photos, documents)</li>
+    </ul>
+
+    <h2>3. Cookies et stockage local</h2>
+    <p>
+      Resumate utilise le stockage local du navigateur (localStorage) pour conserver votre token d&apos;authentification
+      PocketBase. Ce token est strictement necessaire au fonctionnement de l&apos;application et ne peut pas etre desactive.
+      Aucun cookie de suivi ou de publicite n&apos;est utilise.
+    </p>
+
+    <h2>4. Base legale du traitement</h2>
+    <p>
+      Le traitement de vos donnees est base sur votre consentement explicite lors de la creation de votre compte
+      et sur l&apos;execution du contrat que vous avez accepte en utilisant Resumate.
+    </p>
+
+    <h2>5. Duree de conservation</h2>
+    <p>
+      Vos donnees sont conservees aussi longtemps que votre compte reste actif. Vous pouvez a tout moment :
+    </p>
+    <ul>
+      <li>Exporter l&apos;integralite de vos donnees au format JSON depuis la page Parametres</li>
+      <li>Supprimer definitivement votre compte et toutes vos donnees depuis la page Parametres</li>
+    </ul>
+
+    <h2>6. Securite</h2>
+    <p>
+      Resumate utilise PocketBase, une base de donnees locale avec authentification integree.
+      Les mots de passe sont hashes avec bcrypt. Les tokens d&apos;API sont hashes avec SHA-256.
+      Les donnees sont stockees sur votre infrastructure et ne sont jamais transmises a des tiers.
+    </p>
+
+    <h2>7. Vos droits</h2>
+    <p>
+      Conformement au Reglement General sur la Protection des Donnees (RGPD), vous disposez des droits suivants :
+    </p>
+    <ul>
+      <li><strong>Droit d&apos;acces</strong> : vous pouvez exporter vos donnees a tout moment</li>
+      <li><strong>Droit de rectification</strong> : vous pouvez modifier vos informations depuis l&apos;application</li>
+      <li><strong>Droit a l&apos;effacement</strong> : vous pouvez supprimer votre compte et toutes vos donnees</li>
+      <li><strong>Droit a la portabilite</strong> : vous pouvez telecharger vos donnees au format JSON</li>
+    </ul>
+
+    <h2>8. Contact</h2>
+    <p>
+      Pour toute question relative a la protection de vos donnees, vous pouvez consulter le
+      <a href="https://github.com/pcsfpsi037/cv-generator" target="_blank" rel="noopener noreferrer">depot GitHub du projet</a>
+      ou contacter l&apos;administrateur de votre instance Resumate.
+    </p>
+
+    <p>
+      <a routerLink="/home/account">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        Retour aux parametres
+      </a>
+    </p>
+  </article>
+</main>
