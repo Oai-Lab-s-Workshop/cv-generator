@@ -33,7 +33,7 @@ export interface CvProfile {
   extra?: CvProfileExtraByTemplate;
   linkOverrides?: CvProfileLinkOverrides;
   status?: CvProfileStatus;
-  generated_at?: string;
+  updated_at?: string;
   expand?: {
     user?: User;
     profilePictureFile?: MediaFile;
