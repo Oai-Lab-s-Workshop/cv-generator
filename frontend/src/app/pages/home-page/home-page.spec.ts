@@ -26,6 +26,7 @@ function mockWideScreen(matches: boolean): void {
 }
 
 describe('HomePage', () => {
+  const fixedNow = new Date('2026-06-03T15:00:00.000Z');
   let component: HomePage;
   let fixture: ComponentFixture<HomePage>;
   let pocketBaseService: {
@@ -491,55 +492,77 @@ describe('HomePage', () => {
 
   // --- T10: formatDate ---
   describe('formatDate', () => {
+    const isoDaysAgo = (days: number): string =>
+      new Date(fixedNow.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+
+    const withFixedNow = (assertion: () => void): void => {
+      jest.useFakeTimers();
+      jest.setSystemTime(fixedNow);
+
+      try {
+        assertion();
+      } finally {
+        jest.useRealTimers();
+      }
+    };
+
     it('returns "-" for undefined value', () => {
-      expect(component.formatDate(undefined)).toBe('-');
+      withFixedNow(() => {
+        expect(component.formatDate(undefined)).toBe('-');
+      });
     });
 
     it('returns "-" for invalid date string', () => {
-      expect(component.formatDate('not-a-date')).toBe('-');
+      withFixedNow(() => {
+        expect(component.formatDate('not-a-date')).toBe('-');
+      });
     });
 
     it('returns "auj." for today', () => {
-      const today = new Date();
-      const isoString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')} 12:00:00.000Z`;
-      expect(component.formatDate(isoString)).toBe('auj.');
+      withFixedNow(() => {
+        expect(component.formatDate(isoDaysAgo(0))).toBe('auj.');
+      });
     });
 
     it('returns "hier" for yesterday', () => {
-      const yesterday = new Date(Date.now() - 86400000);
-      const isoString = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')} 12:00:00.000Z`;
-      expect(component.formatDate(isoString)).toBe('hier');
+      withFixedNow(() => {
+        expect(component.formatDate(isoDaysAgo(1))).toBe('hier');
+      });
     });
 
     it('returns "j-3" for 3 days ago', () => {
-      const d = new Date(Date.now() - 3 * 86400000);
-      const isoString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} 12:00:00.000Z`;
-      expect(component.formatDate(isoString)).toBe('j-3');
+      withFixedNow(() => {
+        expect(component.formatDate(isoDaysAgo(3))).toBe('j-3');
+      });
     });
 
     it('returns "2 sem." for 14 days ago', () => {
-      const d = new Date(Date.now() - 14 * 86400000);
-      const isoString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} 12:00:00.000Z`;
-      expect(component.formatDate(isoString)).toBe('2 sem.');
+      withFixedNow(() => {
+        expect(component.formatDate(isoDaysAgo(14))).toBe('2 sem.');
+      });
     });
 
     it('returns DD/MM for a date within the last year but older than 28 days', () => {
-      const d = new Date(Date.now() - 60 * 86400000);
-      const expected = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' }).format(d);
-      const isoString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} 12:00:00.000Z`;
-      expect(component.formatDate(isoString)).toBe(expected);
+      withFixedNow(() => {
+        const d = new Date(fixedNow.getTime() - 60 * 24 * 60 * 60 * 1000);
+        const expected = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' }).format(d);
+        expect(component.formatDate(d.toISOString())).toBe(expected);
+      });
     });
 
     it('returns MM/YYYY for a date over a year ago', () => {
-      const d = new Date(Date.now() - 400 * 86400000);
-      const expected = new Intl.DateTimeFormat('fr-FR', { month: '2-digit', year: 'numeric' }).format(d);
-      const isoString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} 12:00:00.000Z`;
-      expect(component.formatDate(isoString)).toBe(expected);
+      withFixedNow(() => {
+        const d = new Date(fixedNow.getTime() - 400 * 24 * 60 * 60 * 1000);
+        const expected = new Intl.DateTimeFormat('fr-FR', { month: '2-digit', year: 'numeric' }).format(d);
+        expect(component.formatDate(d.toISOString())).toBe(expected);
+      });
     });
 
     it('handles ISO date format without T (PocketBase format)', () => {
-      const result = component.formatDate('2026-01-15 10:30:00.000Z');
-      expect(result).toMatch(/^(auj\.|hier|j-\d+|\d+ sem\.|\d{2}\/\d{2}|\d{2}\/\d{4}|-)$/);
+      withFixedNow(() => {
+        const result = component.formatDate('2026-01-15 10:30:00.000Z');
+        expect(result).toMatch(/^(auj\.|hier|j-\d+|\d+ sem\.|\d{2}\/\d{2}|\d{2}\/\d{4}|-)$/);
+      });
     });
   });
 
