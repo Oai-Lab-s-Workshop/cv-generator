@@ -1,14 +1,29 @@
 # Resumate
 
-Resumate est un générateur de CV moderne pensé pour les profils qui ont des expériences variées, beaucoup de projets, de compétences ou de réalisations, et qui ne veulent ni repartir de zero pour chaque candidature ni envoyer un CV trop chargé. L'objectif est d'aider a centraliser toutes ses donnees professionnelles dans un seul endroit, puis a selectionner et mettre en avant les experiences, skills et elements de parcours les plus pertinents pour une offre d'emploi donnee.
+Resumate est une application de gestion et de génération de CV ciblés. L'objectif n'est pas de produire un CV unique et figé, mais de centraliser les éléments d'un parcours professionnel dans une base personnelle réutilisable, puis de composer rapidement un profil adapté à une offre, un client, un contexte de mission ou une cible métier.
 
-L'idee n'est pas de produire un CV unique et fige, mais de composer rapidement plusieurs profils cibles a partir d'une base de donnees personnelle reutilisable. On evite ainsi de reecrire le meme contenu a chaque fois, tout en limitant le bruit: un recruteur voit surtout ce qui est utile pour le poste vise, au lieu d'un CV surcharge de donnees pas toujours pertinentes.
+Le produit s'adresse surtout aux profils qui accumulent beaucoup d'expériences, projets, compétences, diplômes, réalisations ou activités, et qui veulent éviter deux problèmes classiques : réécrire le même contenu à chaque candidature, ou envoyer un CV trop dense où les éléments importants sont noyés.
 
-Le projet combine une interface d'administration Angular, un backend PocketBase et un serveur MCP pour permettre a la fois une gestion manuelle des contenus et une generation assistee de profils adaptes a un poste. L'objectif est de proposer une base simple a auto-heberger, extensible et orientee usage reel, aussi bien pour un usage personnel que pour une future offre hebergee.
+Resumate combine aujourd'hui une interface web Angular, un backend PocketBase, un serveur MCP Spring Boot et une couche de packaging desktop en cours de stabilisation. Le projet sert à la fois de base technique de développement, de socle pour une version hébergée managée et de fondation pour une distribution locale via application bundlée.
+
+## État actuel
+
+Resumate est actuellement en bêta fermée.
+
+La version hébergée est disponible à l'adresse suivante :
+
+```text
+https://resumate.oai-lab.dev/
+```
+
+Cette instance n'est pas ouverte au public. Les inscriptions libres ne sont pas disponibles pour le moment et seuls des utilisateurs sélectionnés peuvent disposer d'un compte.
+
+Le dépôt contient encore la base de développement actuelle, notamment la stack Docker, les migrations PocketBase, le frontend, le serveur MCP et les scripts de bootstrap. À terme, après l'intégration du paywall Stripe et la stabilisation de l'offre commerciale, le code source pourra passer en privé ou ce dépôt pourra rester public sous forme d'archive.
 
 ## Sommaire
 
 - [Fonctionnalités](#fonctionnalités)
+- [Modes d'utilisation](#modes-dutilisation)
 - [Architecture](#architecture)
 - [Stack technique](#stack-technique)
 - [Prérequis](#prérequis)
@@ -19,71 +34,163 @@ Le projet combine une interface d'administration Angular, un backend PocketBase 
 - [MCP et intégration IA](#mcp-et-intégration-ia)
 - [Données de démonstration](#données-de-démonstration)
 - [Structure du projet](#structure-du-projet)
-- [Mise en ligne prochaine](#mise-en-ligne-prochaine)
+- [Pricing futur](#pricing-futur)
 - [Roadmap](#roadmap)
-- [Contribution](#contribution)
 - [Licence](#licence)
 
 ## Fonctionnalités
 
-- Gestion de profils CV avec nom, slug public, visibilité et template assigné
+Resumate est construit autour d'une idée simple : séparer les matériaux de carrière du CV final.
+
+- Gestion centralisée des expériences, projets, compétences, diplômes, hobbies et réalisations
+- Création de profils CV à partir d'une sélection de matériaux existants
+- Association d'un template visuel à chaque profil
+- Gestion d'un slug public et d'une visibilité par profil
+- Rendu public d'un CV via une route partageable
 - Prévisualisation de plusieurs templates de CV
-- Édition des relations d'un profil: expériences, projets, compétences, diplômes, hobbies et réalisations
-- Publication de routes publiques pour partager un CV
-- Export PDF via impression navigateur
-- Authentification et administration via PocketBase
-- Gestion de clés API dédiées au serveur MCP
-- Création de profils CV ciblés à partir de données existantes via outils MCP
-- Seed local optionnel pour charger un jeu de données de démonstration
+- Export PDF via l'impression navigateur
+- Authentification et gestion des comptes via PocketBase
+- Gestion de clés API MCP propres à chaque utilisateur
+- Création assistée de profils ciblés par un agent compatible MCP
+- Jeu de données de démonstration pour tester la stack localement
+
+## Modes d'utilisation
+
+### Version hébergée
+
+La version hébergée correspond à l'expérience produit managée : l'utilisateur accède à Resumate depuis le web, sans installer PocketBase, Docker, Java ou le serveur MCP.
+
+Statut actuel : bêta fermée.
+
+- URL : `https://resumate.oai-lab.dev/`
+- Accès : comptes réservés à des utilisateurs sélectionnés
+- Inscriptions publiques : non disponibles pour le moment
+- Objectif : stabiliser le produit, les templates, les flux de génération et les permissions avant une ouverture plus large
+
+Cette version a vocation à devenir l'offre principale pour les utilisateurs qui veulent une solution prête à l'emploi, maintenue et disponible sans gestion d'infrastructure.
+
+### Usage local et self-hosted
+
+Le dépôt permet aujourd'hui de lancer une stack locale avec Docker Compose. Ce mode est utile pour développer, tester, itérer sur les templates et valider les intégrations.
+
+L'objectif self-hosted côté produit n'est pas de promettre une distribution gratuite et ouverte du code source. La direction prévue est plutôt une application locale bundlée, capable d'embarquer les briques nécessaires pour exécuter Resumate sur la machine de l'utilisateur avec un minimum de configuration.
+
+En pratique, la trajectoire locale est :
+
+- stack Docker pour le développement et les tests techniques actuels
+- packaging desktop en cours via Electrobun
+- bundling de PocketBase, du frontend, du serveur MCP et d'un runtime Java adapté
+- données locales conservées dans l'environnement utilisateur, pas dans les ressources applicatives
+
+### Stack de développement
+
+Le mode de développement actuel expose trois services principaux :
+
+- frontend Angular pour l'interface privée et le rendu public des CV
+- PocketBase pour l'authentification, les données métier, les fichiers et les règles d'accès
+- serveur MCP Spring Boot pour les intégrations IA et la création de profils ciblés à partir des données existantes
 
 ## Architecture
 
-- Frontend: Angular 21
-- Backend: PocketBase
-- Base de données: SQLite via PocketBase
-- Serveur MCP: Spring Boot Java
-- Orchestration locale: Docker Compose
+Resumate est organisé autour de quatre couches.
 
-Le frontend sert d'interface d'administration et de rendu public des CV. PocketBase stocke les utilisateurs, profils et données métier. Le service MCP expose des outils pour lister les matériaux d'un utilisateur, récupérer les templates disponibles et créer un profil CV public personnalisé à partir des données existantes.
+### Frontend Angular
+
+Le frontend sert à la fois d'interface d'administration et de moteur de rendu des CV publics.
+
+Il couvre notamment :
+
+- la connexion utilisateur
+- la page d'accueil des profils
+- l'éditeur de profil CV
+- la gestion des matériaux de carrière
+- la galerie de templates
+- la gestion des tokens MCP
+- les pages publiques de CV accessibles par slug
+- les écrans dédiés au futur usage desktop
+
+Les templates disponibles sont déclarés dans `frontend/src/app/core/templates/cv-template-registry.ts`. Les templates actuels incluent `classic`, `bento`, `modern`, `supa` et `minimal`.
+
+### Backend PocketBase
+
+PocketBase fournit le socle backend :
+
+- authentification
+- collections métier
+- relations entre profils, expériences, projets, compétences, diplômes, hobbies et réalisations
+- stockage SQLite
+- migrations et hooks
+- règles d'accès pour les données privées et les CV publics
+
+### Serveur MCP Spring Boot
+
+Le serveur MCP expose des outils utilisables par un agent compatible afin de travailler sur les données CV sans manipuler directement les identifiants PocketBase de l'utilisateur.
+
+Il permet notamment de :
+
+- résoudre l'utilisateur associé à une clé API MCP
+- lister les templates disponibles
+- lister les matériaux réutilisables du profil
+- créer un profil CV ciblé pour une offre ou un rôle donné
+
+### Packaging desktop
+
+Le dossier `desktop/` prépare une application locale basée sur Electrobun.
+
+Cette couche vise à empaqueter :
+
+- le frontend Angular buildé
+- le serveur MCP Java
+- un runtime Java minimal
+- PocketBase
+- les ressources nécessaires à une exécution locale
+
+Ce mode est encore en cours de stabilisation et s'inscrit dans la trajectoire self-hosted via application bundlée.
 
 ## Stack technique
 
 - Angular 21
 - PocketBase
-- Spring Boot
+- SQLite via PocketBase
+- Spring Boot 4
+- Spring AI MCP Server
+- Java 17
 - Docker Compose
+- Electrobun
+- Bun
 - Jest
 - Bootstrap Icons
-- `html2pdf.js`
+- Masonry / ngx-masonry
+- Quill / ngx-quill
 
 ## Prérequis
 
-- Docker et Docker Compose
-- Node.js 22+ si vous souhaitez lancer le frontend hors conteneur
-- Java si vous souhaitez travailler directement sur le service MCP hors Docker
+- Docker et Docker Compose pour lancer la stack complète localement
+- Node.js 22+ ou Bun si vous travaillez directement sur le frontend
+- Java 17+ si vous travaillez directement sur le serveur MCP ou le packaging desktop
 - `make` pour utiliser les commandes de confort du dépôt
 
 ## Démarrage rapide
 
-L'option la plus simple pour lancer la stack complète:
+L'option la plus simple pour lancer la stack complète :
 
 ```bash
 docker compose up -d
 ```
 
-Services disponibles ensuite:
+Services disponibles ensuite :
 
-- Frontend: `${FRONTEND_BASE_URL}` avec `http://localhost:${FRONTEND_PORT:-4200}` par défaut
-- PocketBase Admin: `${PB_URL}/_/` avec `http://localhost:${POCKETBASE_PORT:-8090}/_/` par défaut
-- API PocketBase: `${PB_URL}/api/` avec `http://localhost:${POCKETBASE_PORT:-8090}/api/` par défaut
-- MCP: `${MCP_BASE_URL}/mcp` avec `http://localhost:${MCP_PORT:-8081}/mcp` par défaut
+- Frontend : `${FRONTEND_BASE_URL}` avec `http://localhost:${FRONTEND_PORT:-4200}` par défaut
+- PocketBase Admin : `${PB_URL}/_/` avec `http://localhost:${POCKETBASE_PORT:-8090}/_/` par défaut
+- API PocketBase : `${PB_URL}/api/` avec `http://localhost:${POCKETBASE_PORT:-8090}/api/` par défaut
+- MCP : `${MCP_BASE_URL}/mcp` avec `http://localhost:${MCP_PORT:-8081}/mcp` par défaut
 
 Ces ports correspondent aux valeurs par défaut. Vous pouvez les remplacer dans `.env` avec `FRONTEND_PORT`, `POCKETBASE_PORT` et `MCP_PORT`.
 
-Compte administrateur créé automatiquement au démarrage:
+Compte administrateur créé automatiquement au démarrage :
 
-- Email: `admin@cv-generator.local`
-- Mot de passe: `changeme123!`
+- Email : `admin@cv-generator.local`
+- Mot de passe : `changeme123!`
 
 Vous pouvez remplacer ces valeurs via les variables d'environnement `PB_ADMIN_EMAIL` et `PB_ADMIN_PASSWORD`.
 
@@ -91,7 +198,7 @@ Vous pouvez remplacer ces valeurs via les variables d'environnement `PB_ADMIN_EM
 
 ### 1. Préparer l'environnement
 
-Créez un fichier `.env` à partir de l'exemple si nécessaire:
+Créez un fichier `.env` à partir de l'exemple si nécessaire :
 
 ```bash
 cp .env.example .env
@@ -99,19 +206,19 @@ cp .env.example .env
 
 ### 2. Lancer la stack
 
-Avec Docker Compose:
+Avec Docker Compose :
 
 ```bash
 docker compose up -d
 ```
 
-Ou avec les commandes `make` du projet:
+Ou avec les commandes `make` du projet :
 
 ```bash
 make up
 ```
 
-Pour initialiser aussi le compte de service MCP et redemarrer le service avec les credentials resolus:
+Pour initialiser aussi le compte de service MCP et redémarrer le service avec les credentials résolus :
 
 ```bash
 make bootstrap
@@ -119,15 +226,16 @@ make bootstrap
 
 ### 3. Vérifier les services
 
-- Frontend: `${FRONTEND_BASE_URL}`
-- PocketBase Admin: `${PB_URL}/_/`
-- PocketBase API: `${PB_URL}/api/health`
+- Frontend : `${FRONTEND_BASE_URL}`
+- PocketBase Admin : `${PB_URL}/_/`
+- PocketBase API : `${PB_URL}/api/health`
+- MCP : `${MCP_BASE_URL}/mcp`
 
 Si vous avez modifié les ports exposés dans `.env`, utilisez les ports configurés à la place des valeurs par défaut ci-dessus.
 
 ## Configuration
 
-Variables principales disponibles dans `.env`:
+Variables principales disponibles dans `.env` :
 
 ```env
 PB_ADMIN_EMAIL=admin@cv-generator.local
@@ -147,23 +255,23 @@ POCKETBASE_SERVICE_USER_PASSWORD=
 RESUMATE_AI_TOKEN=
 ```
 
-Description rapide:
+Description rapide :
 
-- `PB_ADMIN_EMAIL`: email du super administrateur PocketBase
-- `PB_ADMIN_PASSWORD`: mot de passe du super administrateur PocketBase
-- `POCKETBASE_PORT`: port hôte exposé pour PocketBase
-- `POCKETBASE_INTERNAL_PORT`: port interne écouté par PocketBase dans Docker
-- `MCP_PORT`: port hôte exposé pour le serveur MCP
-- `MCP_INTERNAL_PORT`: port interne écouté par le serveur MCP dans Docker
-- `FRONTEND_PORT`: port hôte exposé pour le frontend Angular
-- `FRONTEND_INTERNAL_PORT`: port interne écouté par le serveur Angular dans Docker
-- `FRONTEND_BASE_URL`: URL publique du frontend, utilisée notamment par le MCP. Par défaut, elle suit `FRONTEND_PORT`.
-- `PB_URL`: URL PocketBase côté hôte, utilisée par les scripts locaux. Par défaut, elle suit `POCKETBASE_PORT`.
-- `POCKETBASE_BASE_URL`: URL PocketBase côté réseau Docker, utilisée par le MCP et le proxy frontend. Par défaut, elle suit `POCKETBASE_INTERNAL_PORT`.
-- `MCP_BASE_URL`: URL MCP côté hôte. Par défaut, elle suit `MCP_PORT`.
-- `POCKETBASE_SERVICE_USER_EMAIL`: compte de service utilisé par le serveur MCP
-- `POCKETBASE_SERVICE_USER_PASSWORD`: mot de passe du compte de service MCP
-- `RESUMATE_AI_TOKEN`: jeton éventuel utilisé dans certains flux d'intégration
+- `PB_ADMIN_EMAIL` : email du super administrateur PocketBase
+- `PB_ADMIN_PASSWORD` : mot de passe du super administrateur PocketBase
+- `POCKETBASE_PORT` : port hôte exposé pour PocketBase
+- `POCKETBASE_INTERNAL_PORT` : port interne écouté par PocketBase dans Docker
+- `MCP_PORT` : port hôte exposé pour le serveur MCP
+- `MCP_INTERNAL_PORT` : port interne écouté par le serveur MCP dans Docker
+- `FRONTEND_PORT` : port hôte exposé pour le frontend Angular
+- `FRONTEND_INTERNAL_PORT` : port interne écouté par le serveur Angular dans Docker
+- `FRONTEND_BASE_URL` : URL publique du frontend, utilisée notamment par le MCP
+- `PB_URL` : URL PocketBase côté hôte, utilisée par les scripts locaux
+- `POCKETBASE_BASE_URL` : URL PocketBase côté réseau Docker, utilisée par le MCP et le proxy frontend
+- `MCP_BASE_URL` : URL MCP côté hôte
+- `POCKETBASE_SERVICE_USER_EMAIL` : compte de service utilisé par le serveur MCP
+- `POCKETBASE_SERVICE_USER_PASSWORD` : mot de passe du compte de service MCP
+- `RESUMATE_AI_TOKEN` : jeton éventuel utilisé dans certains flux d'intégration
 
 ## Développement
 
@@ -186,72 +294,27 @@ make seed
 make clean-seed
 ```
 
-Comportement principal:
+Comportement principal :
 
-- `make env-init`: cree le fichier `.env` a partir de `.env.example` s'il n'existe pas
-- `make up`: démarre la stack Docker
-- `make wait-pocketbase`: attend que PocketBase reponde sur son endpoint de sante
-- `make bootstrap`: initialise l'environnement, attend PocketBase, crée ou met à jour l'utilisateur de service MCP, puis démarre le service MCP
-- `make bootstrap-with-seed`: exécute le bootstrap complet puis importe les données de démonstration
-- `make seed`: importe les données de démo si les collections cibles sont vides
-- `make clean-seed`: supprime uniquement les données de démonstration
-
-### Philosophie frontend
-
-Le projet cherche a garder des composants partages visuellement propres et reutilisables, plutot que de les limiter a une structure HTML brute sans style.
-
-Dans les templates CV, l'objectif est que la page de template garde la main sur la direction visuelle globale, y compris quand elle compose des composants issus de `shared/components/`.
-
-Pour cela, une page de template peut volontairement utiliser `ViewEncapsulation.None` lorsque le template doit faire descendre son systeme de styles jusqu'aux composants enfants et harmoniser l'ensemble du rendu. Ce choix est surtout utile pour les templates tres diriges visuellement, ou la page agit comme couche de composition et de direction artistique plus que comme simple conteneur.
-
-En pratique:
-
-- les composants partages doivent rester presentables par defaut et suffisamment autonomes pour etre reutilises
-- les pages de template peuvent reprendre la main sur le rendu final quand un template a besoin d'une identite visuelle forte
-- `ViewEncapsulation.None` n'est pas une regle absolue pour toutes les pages, mais un outil assume pour les templates qui doivent styliser finement leur sous-arbre
+- `make env-init` : crée le fichier `.env` à partir de `.env.example` s'il n'existe pas
+- `make up` : démarre la stack Docker
+- `make wait-pocketbase` : attend que PocketBase réponde sur son endpoint de santé
+- `make bootstrap` : initialise l'environnement, attend PocketBase, crée ou met à jour l'utilisateur de service MCP, puis démarre le service MCP
+- `make bootstrap-with-seed` : exécute le bootstrap complet puis importe les données de démonstration
+- `make seed` : importe les données de démonstration si les collections cibles sont vides
+- `make clean-seed` : supprime uniquement les données de démonstration
 
 ### Frontend
 
 Le frontend Angular est situé dans `frontend/`.
 
-Structure principale sous `frontend/src/app/`:
+Structure principale sous `frontend/src/app/` :
 
-- `pages/`: pages de route chargees via `app.routes.ts` (`login`, `home`, `profile-editor`, `template-gallery`, `cv-shell`, templates CV, etc.)
-- `core/`: briques metier partagees entre pages, notamment les `services`, `guards`, `models`, `utils`, donnees de preview et registre des templates
-- `shared/components/`: composants UI reutilisables entre plusieurs templates ou ecrans, par exemple `project-chip`, `education-chip`, `icon-label-data` ou `card-project`
+- `pages/` : pages de route chargées via `app.routes.ts`
+- `core/` : services, guards, modèles, utilitaires, données de preview et registre des templates
+- `shared/components/` : composants UI réutilisables entre plusieurs templates ou écrans
 
-#### Shared Components
-
-Le dossier `shared/components/` contient les blocs de presentation reutilisables qui evitent de dupliquer le markup ou le style dans chaque template CV. Les templates importent directement ces composants standalone selon leurs besoins.
-
-Exemples actuels:
-
-- `ClassicCvPage` reutilise `ProjectChip`, `AchievementChip`, `EducationChip` et `ProfileSummaryChip`
-- `SupaCVPage` reutilise `IconLabelData`, `EducationChip` et `CardProject`
-
-L'idee est de garder dans chaque page de template la composition et la logique propres au rendu, tout en deplacant dans `shared/components/` les elements visuels repetables.
-
-#### Template Registry
-
-Le fichier `frontend/src/app/core/templates/cv-template-registry.ts` est le point central qui declare les templates disponibles:
-
-- chaque entree expose un `id`, un `label` et le composant Angular a rendre
-- `CV_TEMPLATE_OPTIONS` alimente les listes de choix dans `HomePage`, `ProfileEditorPage` et `TemplateGalleryPage`
-- `CV_TEMPLATE_OPTIONS_BY_ID` permet a `CvShellPage` de resoudre dynamiquement le composant a afficher pour un profil donne
-
-Le flux est donc le suivant:
-
-1. un profil CV stocke un identifiant de template comme `classic`, `modern`, `supa` ou `minimal`
-2. les ecrans d'administration lisent le registre pour proposer uniquement les templates connus
-3. la route publique `/:slug` charge `CvShellPage`, qui recupere le profil puis selectionne le composant correspondant depuis le registre
-
-Pour ajouter un nouveau template, il faut en pratique:
-
-1. creer une nouvelle page dans `pages/templates/`
-2. ajouter l'entree correspondante dans `cv-template-registry.ts`
-3. reutiliser des composants `shared/components/` existants si possible, ou y extraire de nouveaux blocs si le template introduit des morceaux partageables
-
-Scripts disponibles:
+Scripts disponibles :
 
 ```bash
 cd frontend
@@ -263,16 +326,52 @@ npm test
 
 Le serveur de développement Angular proxy les requêtes `/api` vers PocketBase afin de conserver un mode de fonctionnement proche de la production.
 
+### Templates CV
+
+Le fichier `frontend/src/app/core/templates/cv-template-registry.ts` est le point central qui déclare les templates disponibles :
+
+- chaque entrée expose un `id`, un `label` et le composant Angular à rendre
+- `CV_TEMPLATE_OPTIONS` alimente les listes de choix dans les écrans d'administration
+- `CV_TEMPLATE_OPTIONS_BY_ID` permet à `CvShellPage` de résoudre dynamiquement le composant à afficher pour un profil donné
+
+Le flux est le suivant :
+
+1. Un profil CV stocke un identifiant de template comme `classic`, `bento`, `modern`, `supa` ou `minimal`.
+2. Les écrans d'administration lisent le registre pour proposer uniquement les templates connus.
+3. La route publique `/:slug` charge `CvShellPage`, qui récupère le profil puis sélectionne le composant correspondant depuis le registre.
+
+Pour ajouter un nouveau template :
+
+1. Créer une nouvelle page dans `pages/templates/`.
+2. Ajouter l'entrée correspondante dans `cv-template-registry.ts`.
+3. Réutiliser des composants `shared/components/` existants si possible.
+
+### Desktop
+
+Le dossier `desktop/` contient le travail de packaging local.
+
+Commandes principales :
+
+```bash
+bun run desktop:prepare
+bun run desktop:dev
+bun run desktop:build
+bun run desktop:build:stable
+bun run test:desktop
+```
+
+La préparation desktop construit le frontend, package le serveur MCP, prépare un runtime Java et récupère PocketBase pour la plateforme cible.
+
 ### Dev Container
 
-Le dépôt inclut une configuration devcontainer/Codespaces orientée Docker. Elle permet de:
+Le dépôt inclut une configuration devcontainer/Codespaces orientée Docker. Elle permet de :
 
 - démarrer automatiquement la stack complète
 - attendre la disponibilité de PocketBase et du frontend
 - exposer les ports définis par `FRONTEND_PORT`, `POCKETBASE_PORT` et `MCP_PORT`
 - conserver les données PocketBase dans un dossier privé au workspace
 
-Si vous devez relancer l'initialisation dans le conteneur:
+Si vous devez relancer l'initialisation dans le conteneur :
 
 ```bash
 bash .devcontainer/setup.sh
@@ -282,11 +381,11 @@ bash .devcontainer/setup.sh
 
 Le dépôt inclut un serveur MCP local qui permet à un agent compatible de travailler sur les données CV d'un utilisateur sans exposer directement ses identifiants PocketBase.
 
-Le service MCP permet notamment de:
+Le service MCP permet notamment de :
 
 - identifier l'utilisateur lié à une clé API MCP
 - lister les templates disponibles
-- récupérer les matériaux réutilisables d'un profil: expériences, projets, compétences, diplômes, hobbies, réalisations
+- récupérer les matériaux réutilisables d'un profil : expériences, projets, compétences, diplômes, hobbies, réalisations
 - créer un profil CV public personnalisé pour une offre donnée
 
 ### Première configuration locale du MCP
@@ -295,7 +394,7 @@ Le service MCP permet notamment de:
 make bootstrap
 ```
 
-Equivalent detaille si vous souhaitez executer les etapes separement:
+Équivalent détaillé si vous souhaitez exécuter les étapes séparément :
 
 ```bash
 make up
@@ -303,7 +402,7 @@ make ensure-mcp-service-user
 make mcp-up
 ```
 
-Ensuite:
+Ensuite :
 
 1. Connectez-vous à l'application avec le compte propriétaire des données CV.
 2. Ouvrez la page de gestion des tokens MCP.
@@ -314,13 +413,13 @@ Le fichier `opencode.json` du projet pointe vers l'endpoint MCP local par défau
 
 ## Données de démonstration
 
-Pour charger un jeu de données de preview:
+Pour charger un jeu de données de preview :
 
 ```bash
 make bootstrap-with-seed
 ```
 
-Ou plus tard:
+Ou plus tard :
 
 ```bash
 make seed
@@ -328,7 +427,7 @@ make seed
 
 Le chargement est volontairement strict et échoue si les collections cibles ne sont pas vides.
 
-Pour supprimer uniquement les données de démonstration:
+Pour supprimer uniquement les données de démonstration :
 
 ```bash
 make clean-seed
@@ -339,6 +438,7 @@ make clean-seed
 ```text
 .
 ├── frontend/                 # Application Angular
+├── desktop/                  # Packaging local Electrobun
 ├── mcp/                      # Serveur MCP Spring Boot
 ├── pb_migrations/            # Migrations PocketBase
 ├── pb_hooks/                 # Hooks PocketBase
@@ -346,35 +446,38 @@ make clean-seed
 ├── scripts/                  # Scripts utilitaires et import seed
 ├── .devcontainer/            # Environnement Codespaces/devcontainer
 ├── docker-compose.yml        # Stack locale principale
-├── docker-compose.devcontainer.yml
 ├── Makefile                  # Commandes de confort
 └── opencode.json             # Configuration MCP locale pour OpenCode
 ```
 
-## Mise en ligne prochaine
+## Pricing futur
 
-Une mise en ligne publique du projet est prévue prochainement.
+Le pricing n'est pas encore public et aucun tarif définitif n'est annoncé à ce stade.
 
-Le positionnement visé est le suivant:
+La direction produit actuelle est la suivante :
 
-- une version gratuite self-hosted, destinée aux développeurs et utilisateurs souhaitant héberger eux-mêmes la solution
-- une version payante hébergée, destinée à ceux qui veulent une solution prête à l'emploi, administrée et accessible sans gestion d'infrastructure
+- une offre hébergée payante, pensée pour les utilisateurs qui veulent Resumate prêt à l'emploi, maintenu et accessible depuis le web
+- une distribution locale via application bundlée, pour exécuter Resumate sur sa propre machine sans assembler manuellement toute la stack
+- une intégration Stripe à venir pour gérer le paywall, les accès et la transition vers l'offre commerciale
 
-À ce stade, le dépôt correspond à la base technique du produit et au mode d'exécution local. Les détails de l'offre hébergée, du déploiement public et du packaging commercial sont encore en cours de finalisation.
+Après cette étape, le code source pourra devenir privé ou ce dépôt pourra rester public uniquement comme archive de la phase initiale du projet.
 
 ## Roadmap
 
-Axes de travail visibles ou probables à court terme:
+Axes de travail prioritaires :
 
-- amélioration continue des templates de CV (ajout du support web pour les templates print-first et print pour les web-first)
-- enrichissement de l'éditeur de profil
-- stabilisation des flux MCP et des permissions associées
-- préparation de la distribution self-hosted
-- préparation de l'offre hébergée payante
-
+- stabiliser la bêta fermée hébergée sur `https://resumate.oai-lab.dev/`
+- améliorer les règles d'accès, la séparation des données utilisateurs et les permissions MCP
+- finaliser les flux de création de profils ciblés via MCP
+- intégrer Stripe et formaliser le paywall
+- stabiliser le packaging local via application bundlée
+- améliorer la qualité visuelle et fonctionnelle des templates CV
+- enrichir l'éditeur de matériaux de carrière et l'éditeur de profils
+- clarifier la stratégie de distribution du code source après la phase bêta
+- préparer une ouverture plus large une fois le produit, le pricing et l'infrastructure stabilisés
 
 ## Licence
 
 Aucune licence explicite n'est actuellement définie dans ce dépôt.
 
-Avant toute réutilisation, distribution ou exploitation commerciale, il est recommandé d'ajouter une licence formelle adaptée au modèle souhaité pour la version self-hosted et la future offre hébergée.
+Avant toute réutilisation, distribution ou exploitation commerciale, il est recommandé d'ajouter une licence formelle adaptée au modèle retenu pour la version hébergée, la distribution locale et l'avenir du dépôt source.
