@@ -6,6 +6,18 @@
   --modern-accent-color: #0f4aa5;
 }
 
+:host {
+  --modern-print-page-width: 210mm;
+  --modern-print-page-height: 297mm;
+  --modern-print-sidebar-width: 64mm;
+  --modern-print-sidebar-padding-block: 11mm;
+  --modern-print-sidebar-padding-inline: 8mm;
+  --modern-print-content-padding-block: 11mm;
+  --modern-print-content-padding-inline: 9mm;
+  --modern-print-section-gap: 7mm;
+  --modern-print-card-gap: 3.5mm;
+}
+
 .modern-cv-page--state {
   min-height: 50vh;
   display: grid;
@@ -32,6 +44,7 @@
   margin: 0;
   font-size: clamp(2rem, 5vw, 3rem);
   line-height: 1;
+  color: #f8fbff;
 }
 
 .sidebar__title {
@@ -117,35 +130,187 @@ a {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .modern-cv-page {
-    display: block;
+    box-sizing: border-box;
+    width: var(--modern-print-page-width);
+    min-height: var(--modern-print-page-height);
+    margin: 0;
+    background: #fff;
+    color: #111;
+    font-size: 3.55mm;
+    line-height: 1.4;
+    grid-template-columns: var(--modern-print-sidebar-width) minmax(0, 1fr);
   }
 
   .sidebar {
-    background: #fff;
-    color: #102030;
+    padding: var(--modern-print-sidebar-padding-block) var(--modern-print-sidebar-padding-inline);
+    background: linear-gradient(180deg, #101a2d 0%, #1b3154 100%);
+    color: #f8fbff;
   }
 
-  .sidebar__template,
+  .content {
+    padding: var(--modern-print-content-padding-block) var(--modern-print-content-padding-inline);
+    background: #fff;
+  }
+
+  .sidebar h1 {
+    font-size: 10.5mm;
+    color: #f8fbff;
+  }
+
+  .sidebar__template {
+    margin-bottom: 3mm;
+    font-size: 2.6mm;
+    color: #9fb6d8;
+  }
+
   .sidebar__title {
-    color: #475467;
+    margin-top: 3mm;
+    color: #d9e7fb;
+  }
+
+  .sidebar__headline {
+    margin-top: 4mm;
+  }
+
+  .sidebar__section,
+  .content__section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .sidebar__section {
+    margin-top: var(--modern-print-section-gap);
+  }
+
+  .content__section + .content__section {
+    margin-top: var(--modern-print-section-gap);
+  }
+
+  .sidebar__section h2,
+  .content__section h2 {
+    margin-bottom: 3.5mm;
+    font-size: 2.7mm;
+  }
+
+  .skill-list {
+    gap: 2.5mm;
+  }
+
+  .skill-list__item {
+    gap: 3mm;
+  }
+
+  .timeline-item,
+  .project-card {
+    padding: 3.5mm 4mm;
+    border-radius: 4mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .timeline-item + .timeline-item {
+    margin-top: var(--modern-print-card-gap);
+  }
+
+  .project-grid {
+    gap: var(--modern-print-card-gap);
   }
 }
 
 :host-context(.cv-preview-enabled) .modern-cv-page {
-  display: block;
-  width: 210mm;
-  min-height: 297mm;
+  box-sizing: border-box;
+  width: var(--modern-print-page-width);
+  min-height: var(--modern-print-page-height);
   margin: 0 auto;
   background: #fff;
+  font-size: 3.55mm;
+  line-height: 1.4;
+  grid-template-columns: var(--modern-print-sidebar-width) minmax(0, 1fr);
 }
 
 :host-context(.cv-preview-enabled) .sidebar {
-  background: #fff;
-  color: #102030;
+  padding: var(--modern-print-sidebar-padding-block) var(--modern-print-sidebar-padding-inline);
+  background: linear-gradient(180deg, #101a2d 0%, #1b3154 100%);
+  color: #f8fbff;
 }
 
-:host-context(.cv-preview-enabled) .sidebar__template,
+:host-context(.cv-preview-enabled) .content {
+  padding: var(--modern-print-content-padding-block) var(--modern-print-content-padding-inline);
+  background: #fff;
+}
+
+:host-context(.cv-preview-enabled) .sidebar h1 {
+  font-size: 10.5mm;
+  color: #f8fbff;
+}
+
+:host-context(.cv-preview-enabled) .sidebar__template {
+  margin-bottom: 3mm;
+  font-size: 2.6mm;
+  color: #9fb6d8;
+}
+
 :host-context(.cv-preview-enabled) .sidebar__title {
-  color: #475467;
+  margin-top: 3mm;
+  color: #d9e7fb;
+}
+
+:host-context(.cv-preview-enabled) .sidebar__headline {
+  margin-top: 4mm;
+}
+
+:host-context(.cv-preview-enabled) .sidebar__section {
+  margin-top: var(--modern-print-section-gap);
+}
+
+:host-context(.cv-preview-enabled) .content__section + .content__section {
+  margin-top: var(--modern-print-section-gap);
+}
+
+:host-context(.cv-preview-enabled) .sidebar__section h2,
+:host-context(.cv-preview-enabled) .content__section h2 {
+  margin-bottom: 3.5mm;
+  font-size: 2.7mm;
+}
+
+:host-context(.cv-preview-enabled) .skill-list {
+  gap: 2.5mm;
+}
+
+:host-context(.cv-preview-enabled) .skill-list__item {
+  gap: 3mm;
+}
+
+:host-context(.cv-preview-enabled) .timeline-item,
+:host-context(.cv-preview-enabled) .project-card {
+  padding: 3.5mm 4mm;
+  border-radius: 4mm;
+  box-shadow: none;
+}
+
+:host-context(.cv-preview-enabled) .timeline-item + .timeline-item {
+  margin-top: var(--modern-print-card-gap);
+}
+
+:host-context(.cv-preview-enabled) .project-grid {
+  gap: var(--modern-print-card-gap);
 }

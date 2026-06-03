@@ -42,12 +42,20 @@ jobs:
             exit 1
           fi
 
-          tests="$(xmllint --xpath 'string(//testsuite/@tests)' test-results.xml)"
-          failures="$(xmllint --xpath 'string(//testsuite/@failures)' test-results.xml)"
-          errors="$(xmllint --xpath 'string(//testsuite/@errors)' test-results.xml)"
-          skipped="$(xmllint --xpath 'string(//testsuite/@skipped)' test-results.xml 2>/dev/null || echo 0)"
+          tests="$(xmllint --xpath 'string(//testsuites/@tests)' test-results.xml 2>/dev/null || xmllint --xpath 'string(//testsuite/@tests)' test-results.xml)"
+          failures="$(xmllint --xpath 'string(//testsuites/@failures)' test-results.xml 2>/dev/null || xmllint --xpath 'string(//testsuite/@failures)' test-results.xml)"
+          errors="$(xmllint --xpath 'string(//testsuites/@errors)' test-results.xml 2>/dev/null || xmllint --xpath 'string(//testsuite/@errors)' test-results.xml 2>/dev/null || echo 0)"
+          skipped="$(xmllint --xpath 'string(//testsuites/@skipped)' test-results.xml 2>/dev/null || xmllint --xpath 'string(//testsuite/@skipped)' test-results.xml 2>/dev/null || echo 0)"
+          tests="${tests:-0}"
+          failures="${failures:-0}"
+          errors="${errors:-0}"
+          skipped="${skipped:-0}"
           passed=$(( tests - failures - errors - skipped ))
-          pass_rate=$(( (passed * 100) / tests ))
+          if [ "${tests}" -eq 0 ]; then
+            pass_rate=0
+          else
+            pass_rate=$(( (passed * 100) / tests ))
+          fi
 
           {
             echo "## 🧪 Desktop Test Results"

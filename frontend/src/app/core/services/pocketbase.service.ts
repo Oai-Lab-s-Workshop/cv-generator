@@ -124,7 +124,6 @@ export class PocketBaseService {
 
     const profiles = await this.pb.collection<CvProfile>('cv_profiles').getFullList({
       filter: `user="${currentUserId}"`,
-      sort: '+label',
       expand: this.cvProfileExpand,
     });
 
@@ -136,7 +135,8 @@ export class PocketBaseService {
     const profile = await this.pb
       .collection<CvProfile>('cv_profiles')
       .getFirstListItem(`id="${profileId}" && user="${currentUserId}"`, {
-        expand: this.cvProfileExpand,
+      sort: '-updated_at',
+      expand: this.cvProfileExpand,
       });
 
     return this.normalizeCvProfile(profile);
@@ -485,6 +485,101 @@ export class PocketBaseService {
     return this.normalizeCvProfile(updated);
   }
 
+  async changeCurrentUserPassword(oldPassword: string, password: string, passwordConfirm: string): Promise<void> {
+    if (!oldPassword) {
+      throw new Error('Le mot de passe actuel est obligatoire.');
+    }
+
+    if (!password) {
+      throw new Error('Le nouveau mot de passe est obligatoire.');
+    }
+
+    if (password.length < 8) {
+      throw new Error('Le nouveau mot de passe doit contenir au moins 8 caracteres.');
+    }
+
+    if (password !== passwordConfirm) {
+      throw new Error('Les mots de passe ne correspondent pas.');
+    }
+
+    const currentUserId = this.requireCurrentUserId();
+    await this.pb.collection('users').update(currentUserId, {
+      oldPassword,
+      password,
+      passwordConfirm,
+    });
+  }
+
+  async deleteCurrentUserAccount(): Promise<void> {
+    const currentUserId = this.requireCurrentUserId();
+
+    const ownedCollections = [
+      'cv_profiles',
+      'jobs',
+      'projects',
+      'skills',
+      'skill_categories',
+      'achievements',
+      'degrees',
+      'hobbies',
+      'files',
+      'ai_tokens',
+    ];
+
+    for (const collection of ownedCollections) {
+      const records = await this.pb.collection(collection).getFullList({
+        filter: `user="${currentUserId}"`,
+        fields: 'id',
+      });
+
+      for (const record of records) {
+        await this.pb.collection(collection).delete(record.id);
+      }
+    }
+
+    await this.pb.collection('users').delete(currentUserId);
+  }
+
+  async exportCurrentUserData(): Promise<Record<string, unknown>> {
+    const currentUserId = this.requireCurrentUserId();
+
+    const collections: { name: string; sort: string }[] = [
+      { name: 'jobs', sort: '+sortOrder,-startDate' },
+      { name: 'projects', sort: '+sortOrder,-date' },
+      { name: 'skills', sort: '+sortOrder,+name' },
+      { name: 'skill_categories', sort: '+name' },
+      { name: 'achievements', sort: '+sortOrder,+title' },
+      { name: 'degrees', sort: '+sortOrder,-year' },
+      { name: 'hobbies', sort: '+sortOrder,+name' },
+      { name: 'files', sort: '+sortOrder,+name' },
+      { name: 'cv_profiles', sort: '+label' },
+      { name: 'ai_tokens', sort: '-created' },
+    ];
+
+    const results: Record<string, unknown> = {
+      exportedAt: new Date().toISOString(),
+      userId: currentUserId,
+    };
+
+    const user = await this.pb.collection('users').getOne(currentUserId);
+    const { password, tokenKey, verified, ...safeUser } = user as Record<string, unknown>;
+    results['user'] = safeUser;
+
+    for (const { name, sort } of collections) {
+      const records = await this.pb.collection(name).getFullList({
+        filter: `user="${currentUserId}"`,
+        sort,
+      });
+
+      results[name] = records.map((record) => {
+        const { collectionId, collectionName, expand, ...safeRecord } = record as Record<string, unknown>;
+        return safeRecord;
+      });
+    }
+
+    return results;
+  }
+
   async createCurrentUserAiToken(input: CreateAiTokenInput): Promise<CreatedAiTokenResult> {
     const currentUserId = this.requireCurrentUserId();
     const rawToken = generateAiTokenSecret();
@@ -508,15 +603,12 @@ export class PocketBaseService {
     return {
       record: this.normalizeAiToken(created),
       rawToken,
-      debug: {
-        currentUserId,
-      },
     };
   }
 
   async revokeCurrentUserAiToken(tokenId: string): Promise<void> {
     await this.pb.send(`/api/custom/ai-tokens/${tokenId}/revoke`, {
-      method: 'PATCH',
+      method: 'POST',
       requestKey: `revoke-${tokenId}`,
     });
   }
