@@ -1,0 +1,15 @@
+@if (visible()) {
+  <aside class="cookie-banner" role="dialog" aria-label="Consentement aux cookies" aria-live="polite">
+    <div class="cookie-banner__content">
+      <p class="cookie-banner__text">
+        <i class="bi bi-shield-check" aria-hidden="true"></i>
+        Resumate utilise le stockage local de votre navigateur pour conserver votre session d&apos;authentification.
+        Aucun cookie de suivi ou publicitaire n&apos;est utilise.
+        <a routerLink="/home/privacy">En savoir plus</a>
+      </p>
+      <button class="cookie-banner__accept" type="button" (click)="acceptCookies()">
+        J&apos;ai compris
+      </button>
+    </div>
+  </aside>
+}

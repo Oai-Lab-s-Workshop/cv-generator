@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
-import { AiToken, CreatedAiTokenResult } from '../../core/models/ai-token.model';
+import { AiToken } from '../../core/models/ai-token.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { TokenManagementPage } from './token-management-page';
@@ -37,7 +37,7 @@ describe('TokenManagementPage', () => {
   let fixture: ComponentFixture<TokenManagementPage>;
   let pocketBaseService: {
     getCurrentUserAiTokens: jest.Mock<Promise<AiToken[]>>;
-    createCurrentUserAiToken: jest.Mock<Promise<CreatedAiTokenResult>>;
+      createCurrentUserAiToken: jest.Mock<Promise<{ rawToken: string; record: AiToken }>>;
     revokeCurrentUserAiToken: jest.Mock<Promise<void>>;
   };
 
@@ -52,7 +52,6 @@ describe('TokenManagementPage', () => {
       createCurrentUserAiToken: jest.fn().mockResolvedValue({
         rawToken: 'rmcp_created',
         record: { ...activeToken, id: 'token-created', token_prefix: 'rmcp_cre' },
-        debug: { currentUserId: 'user-1' },
       }),
       revokeCurrentUserAiToken: jest.fn().mockResolvedValue(undefined),
     };

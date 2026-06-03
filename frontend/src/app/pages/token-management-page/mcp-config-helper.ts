@@ -1,13 +1,18 @@
 import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { resolveMcpUrl, resolvePocketBaseUrl } from '../../core/utils/desktop-runtime-config';
 
 interface AgentPreset {
   id: string;
   name: string;
   description: string;
-  configFormat: 'json' | 'yaml';
+  configFormat: 'json' | 'yaml' | 'flat';
   configTemplate: (url: string, token: string) => string;
 }
+
+/** Default MCP server port used when deriving the URL from the current deployment. */
+const DEFAULT_MCP_PORT = '8081';
+const MCP_ENDPOINT_PATH = '/mcp';
 
 const AGENT_PRESETS: AgentPreset[] = [
   {
@@ -65,6 +70,35 @@ const AGENT_PRESETS: AgentPreset[] = [
   }
 }`,
   },
+  {
+    id: 'claude-desktop',
+    name: 'Claude Desktop',
+    description: 'Config pour Claude Desktop App (format mcp-remote).',
+    configFormat: 'json',
+    configTemplate: (url, token) => `{
+  "mcpServers": {
+    "resumate": {
+      "command": "npx",
+      "args": ["mcp-remote", "${url}"],
+      "env": {
+        "AUTHORIZATION": "Bearer ${token}"
+      }
+    }
+  }
+}`,
+  },
+  {
+    id: 'plain',
+    name: 'Valeurs essentielles',
+    description: 'Liste plate des valeurs de configuration MCP essentielles.',
+    configFormat: 'flat',
+    configTemplate: (url, token) =>
+      `URL du serveur MCP : ${url}\n` +
+      `Transport          : HTTP (Streamable)\n` +
+      `Nom du serveur     : resumate-mcp\n` +
+      `Header Auth        : Authorization: Bearer ${token || '<votre-token>'}\n` +
+      `API Key            : ${token || '<votre-token>'}`,
+  },
 ];
 
 @Component({
@@ -121,6 +155,20 @@ export class McpConfigHelper {
   }
 
   private getDefaultMcpUrl(): string {
-    return window.location.origin.replace(/:\d+$/, '') + ':8080/mcp';
+    const desktopMcpUrl = resolveMcpUrl();
+    if (desktopMcpUrl) {
+      return desktopMcpUrl;
+    }
+
+    // Derive MCP address from the current deployment context.
+    // The MCP server runs on the same host as the frontend / PocketBase,
+    // on the MCP_PORT (default 8081) with the /mcp endpoint path.
+    const pbUrl = resolvePocketBaseUrl();
+    try {
+      const pbParsed = new URL(pbUrl, window.location.origin);
+      return `${pbParsed.protocol}//${pbParsed.hostname}:${DEFAULT_MCP_PORT}${MCP_ENDPOINT_PATH}`;
+    } catch {
+      return `${window.location.protocol}//${window.location.hostname}:${DEFAULT_MCP_PORT}${MCP_ENDPOINT_PATH}`;
+    }
   }
 }
