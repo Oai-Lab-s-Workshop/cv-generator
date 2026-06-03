@@ -94,6 +94,20 @@
   font-size: 1.35rem;
 }
 
+.speed-dial-trigger {
+  width: 3.35rem;
+  height: 3.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: #0f3d8c;
+  color: #fff;
+  box-shadow: 0 16px 34px rgba(15, 61, 140, 0.32);
+}
+
+.speed-dial-trigger i {
+  font-size: 1.35rem;
+}
+
 .admin-bar__status {
   max-width: min(21rem, calc(100vw - 2rem));
   padding: 0.65rem 0.75rem;

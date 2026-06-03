@@ -375,7 +375,34 @@ app-education-chip .copy {
 
 
 @media print {
-    *, *::before, *::after {
-        box-shadow: none !important;
-    }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .resume-root {
+    width: 210mm;
+    height: 297mm;
+    min-height: 297mm;
+    margin: 0;
+    background: #fff;
+    color: #111;
+    overflow: hidden;
+  }
+
+  *, *::before, *::after {
+    box-shadow: none !important;
+  }
 }

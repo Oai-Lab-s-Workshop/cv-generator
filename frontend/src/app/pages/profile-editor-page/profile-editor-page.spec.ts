@@ -21,6 +21,7 @@ describe('ProfileEditorPage', () => {
   });
 
   afterEach(() => {
+    component.ngOnDestroy();
     jest.useRealTimers();
   });
 
@@ -69,7 +70,7 @@ describe('ProfileEditorPage', () => {
 
     await component.saveProfileFields();
 
-    expect(pocketBaseService.updateCurrentUserCvProfile).toHaveBeenCalledWith('profile-1', {
+    expect(pocketBaseService.updateCurrentUserCvProfile).toHaveBeenCalledWith('profile-1', expect.objectContaining({
       label: 'Updated label',
       profileName: 'Updated name',
       public: false,
@@ -77,7 +78,14 @@ describe('ProfileEditorPage', () => {
       profilePictureFile: 'picture-2',
       coverPictureFile: 'picture-3',
       status: 'sent',
-    });
+      jobs: ['job-1'],
+      projects: ['project-1'],
+      skills: ['skill-1'],
+      degrees: ['degree-1'],
+      achievements: ['achievement-1'],
+      hobbies: ['hobby-1'],
+      extra: { classic: { hero: 'Existing hero', visible: true, featuredProjects: ['project-1'] } },
+    }));
     expect(pocketBaseService.getCurrentUserCvProfileEditorData).toHaveBeenCalledWith('profile-1');
     expect(component.profileSaveMessage()).toBe('Profil CV enregistre.');
   });
@@ -90,6 +98,24 @@ describe('ProfileEditorPage', () => {
     component.setProfileName('Jane Doe Final');
     jest.advanceTimersByTime(499);
 
+    expect(component.saveProfileFields).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(1);
+    await Promise.resolve();
+
+    expect(component.saveProfileFields).toHaveBeenCalledTimes(1);
+  });
+
+  it('debounces profile content autosave changes', async () => {
+    jest.useFakeTimers();
+    jest.spyOn(component, 'saveProfileFields').mockResolvedValue(undefined);
+
+    component.setProfessionalSummary('Autosaved summary');
+    component.setLinkOverrideField('github', 'https://github.test/autosave');
+    component.addRelation('projects', 'project-2');
+    component.setExtraValue({ id: 'hero' } as never, 'Autosaved hero');
+
+    jest.advanceTimersByTime(499);
     expect(component.saveProfileFields).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(1);
