@@ -77,22 +77,6 @@
   line-height: 1.55;
 }
 
-.token-debug {
-  display: grid;
-  gap: 0.25rem;
-  border-radius: 0.9rem;
-  background: light-dark(rgba(255, 255, 255, 0.72), rgba(15, 23, 42, 0.72));
-  padding: 0.85rem;
-  font-size: 0.84rem;
-}
-
-.token-debug code {
-  color: light-dark(#1e293b, #cbd5e1);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.86rem;
-  overflow-wrap: anywhere;
-}
-
 .token-copy-button {
   justify-self: start;
 }

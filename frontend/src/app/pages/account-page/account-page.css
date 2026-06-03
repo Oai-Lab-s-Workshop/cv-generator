@@ -1,0 +1,180 @@
+.material-card--danger {
+  border-color: light-dark(#fecaca, #450a0a);
+  background: light-dark(#fff1f2, #1a0a0a);
+}
+
+.account-danger-text {
+  color: light-dark(#b91c1c, #fca5a5);
+}
+
+.password-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 1rem;
+  max-width: 100%;
+}
+
+.password-form__intro,
+.password-form__full,
+.password-form__actions {
+  flex: 1 1 100%;
+}
+
+.password-form__half {
+  display: grid;
+  align-content: start;
+  flex: 1 1 18rem;
+}
+
+.password-form__full input,
+.password-form__half input {
+  min-height: 2.75rem;
+}
+
+.password-form__half small {
+  min-height: 1.1rem;
+}
+
+.password-form__actions .primary-button {
+  width: 100%;
+}
+
+.billing-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.account-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.account-action-row__copy {
+  flex: 1 1 24rem;
+  max-width: 42rem;
+}
+
+.account-action-row__copy .relation-helper {
+  margin-top: 0;
+}
+
+.account-action-row__cta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.55rem;
+  padding: 0.98rem 0.9rem;
+  border: 1px solid light-dark(#fecaca, #7f1d1d);
+  border-radius: 0.8rem;
+  background: light-dark(#fff, #1e293b);
+  color: light-dark(#dc2626, #f87171);
+  font: inherit;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.danger-button:hover,
+.danger-button:focus-visible {
+  background: light-dark(#fff1f2, rgba(239, 68, 68, 0.15));
+  border-color: light-dark(#dc2626, #f87171);
+  outline: none;
+}
+
+.danger-button:disabled {
+  opacity: 0.68;
+  cursor: wait;
+}
+
+.danger-button--solid {
+  border: 0;
+  background: light-dark(#dc2626, #ef4444);
+  color: light-dark(#fff, #0f172a);
+  box-shadow: light-dark(0 14px 28px rgba(220, 38, 38, 0.25), 0 14px 28px rgba(239, 68, 68, 0.2));
+}
+
+.danger-button--solid:hover,
+.danger-button--solid:focus-visible {
+  background: light-dark(#b91c1c, #f87171);
+}
+
+.delete-confirm {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.delete-confirm__warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid light-dark(#fecaca, #450a0a);
+  border-radius: 0.75rem;
+  background: light-dark(#fff, #0f172a);
+  color: light-dark(#b91c1c, #fca5a5);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.delete-confirm__warning i {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 0.02rem;
+}
+
+.delete-confirm__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 800px) {
+  .material-card__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .account-action-row {
+    align-items: stretch;
+  }
+
+  .account-action-row__copy,
+  .account-action-row__cta {
+    max-width: none;
+    flex: 1 1 100%;
+  }
+
+  .delete-confirm__actions {
+    flex-direction: column;
+  }
+
+  .billing-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .danger-button,
+  .account-action-row__cta .secondary-button,
+  .account-action-row__cta a.secondary-button {
+    width: 100%;
+  }
+}

@@ -61,14 +61,13 @@
           <span class="home-navbar__action-label">Bug</span>
         </a>
       }
-      <button class="home-navbar__action home-navbar__action--logout" type="button" aria-label="Se deconnecter" (click)="logout()" [disabled]="isLoggingOut()">
-        @if (isLoggingOut()) {
-          <i class="bi bi-arrow-repeat spinning" aria-hidden="true"></i>
-          <span class="home-navbar__action-label">Deconnexion...</span>
-        } @else {
-          <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
-          <span class="home-navbar__action-label">Sortir</span>
-        }
+      <a class="home-navbar__action" routerLink="/home/account" aria-label="Parametres du compte">
+        <i class="bi bi-gear" aria-hidden="true"></i>
+        <span class="home-navbar__action-label">Compte</span>
+      </a>
+      <button class="home-navbar__action home-navbar__action--logout" type="button" aria-label="Se deconnecter" (click)="logout()">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span class="home-navbar__action-label">Sortir</span>
       </button>
     </div>
   }

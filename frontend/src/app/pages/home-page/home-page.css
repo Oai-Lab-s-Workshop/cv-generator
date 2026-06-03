@@ -1,3 +1,122 @@
+.sort-header-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.sort-header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sort-header-btn:hover {
+  background: light-dark(rgba(15, 61, 140, 0.08), rgba(106, 158, 245, 0.12));
+  color: var(--home-primary);
+}
+
+.sort-header-btn:focus-visible {
+  outline: 2px solid light-dark(#2563eb, #60a5fa);
+  outline-offset: 2px;
+}
+
+.sort-header-btn__icon {
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.sort-header-btn--icon-only {
+  padding: 0.2rem;
+  flex-shrink: 0;
+}
+
+/* ---- Status breakdown ---- */
+.status-breakdown {
+  width: min(100%, 76rem);
+  margin-inline: auto;
+  margin-bottom: 0.9rem;
+}
+
+.status-breakdown__title {
+  margin-bottom: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--home-muted);
+}
+
+.status-breakdown__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.status-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-height: 4.6rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--home-border);
+  border-radius: 0.9rem;
+  background: var(--home-surface);
+  box-shadow: var(--home-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.status-card__body {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.status-card__body strong {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.3rem;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.status-card__body span {
+  color: var(--home-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.status-card__body small {
+  color: var(--home-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 1080px) {
+  .status-breakdown__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .status-breakdown__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .profile-actions {
   display: flex;
   flex-wrap: wrap;
