@@ -80,7 +80,7 @@ describe('AccountPage', () => {
 
       await component.changePassword();
 
-      expect(component.errorMessage()).toBe('Le nouveau mot de passe doit contenir au moins 8 caracteres.');
+      expect(component.errorMessage()).toBe('Le nouveau mot de passe doit contenir au moins 8 caractères.');
       expect(pocketBaseService.changeCurrentUserPassword).not.toHaveBeenCalled();
     });
 
@@ -107,7 +107,7 @@ describe('AccountPage', () => {
         'newpassword',
         'newpassword',
       );
-      expect(component.successMessage()).toBe('Mot de passe modifie avec succes.');
+      expect(component.successMessage()).toBe('Mot de passe modifié avec succès.');
       expect(component.oldPassword()).toBe('');
       expect(component.newPassword()).toBe('');
     });
@@ -134,7 +134,7 @@ describe('AccountPage', () => {
       await component.exportData();
 
       expect(pocketBaseService.exportCurrentUserData).toHaveBeenCalled();
-      expect(component.exportSuccessMessage()).toContain('exportees avec succes');
+      expect(component.exportSuccessMessage()).toContain('exportées avec succès');
     });
 
     it('shows error when export fails', async () => {
