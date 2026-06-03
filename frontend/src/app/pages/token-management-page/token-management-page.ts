@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AiToken, CreatedAiTokenResult } from '../../core/models/ai-token.model';
+import { AiToken } from '../../core/models/ai-token.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
@@ -25,7 +25,6 @@ export class TokenManagementPage implements OnInit {
   readonly newAiTokenLabel = signal('Assistant principal');
   readonly newAiTokenExpiresAt = signal('');
   readonly latestCreatedAiToken = signal<string | null>(null);
-  readonly latestCreatedTokenDebug = signal<CreatedAiTokenResult | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly activeAiTokenMutationId = signal<string | null>(null);
   readonly currentUser = this.authService.currentUser;
@@ -87,7 +86,6 @@ export class TokenManagementPage implements OnInit {
     this.isCreatingAiToken.set(true);
     this.errorMessage.set(null);
     this.latestCreatedAiToken.set(null);
-    this.latestCreatedTokenDebug.set(null);
 
     try {
       const createdToken = await this.pocketBaseService.createCurrentUserAiToken({
@@ -96,7 +94,6 @@ export class TokenManagementPage implements OnInit {
       });
 
       this.latestCreatedAiToken.set(createdToken.rawToken);
-      this.latestCreatedTokenDebug.set(createdToken);
       this.resetAiTokenForm();
       await this.loadAiTokens();
     } catch (error: unknown) {

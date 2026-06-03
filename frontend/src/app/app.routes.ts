@@ -39,6 +39,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/profile-material-page/profile-material-page').then((module) => module.ProfileMaterialPage),
   },
   {
+    path: 'home/account',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/account-page/account-page').then((module) => module.AccountPage),
+  },
+  {
     path: 'home/tokens',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/token-management-page/token-management-page').then((module) => module.TokenManagementPage),
@@ -46,6 +51,10 @@ export const routes: Routes = [
   {
     path: 'home/templates',
     loadComponent: () => import('./pages/template-gallery-page/template-gallery-page').then((module) => module.TemplateGalleryPage),
+  },
+  {
+    path: 'home/privacy',
+    loadComponent: () => import('./pages/privacy-page/privacy-page').then((module) => module.PrivacyPage),
   },
   {
     path: ':slug',

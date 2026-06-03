@@ -1,0 +1,205 @@
+<main class="account-page">
+  <app-navbar />
+
+  <section class="account-header">
+    <div class="account-header__copy">
+      <p class="eyebrow">Paramètres</p>
+      <h1>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</h1>
+      <p class="lede">Gérez votre compte, votre mot de passe et vos préférences.</p>
+    </div>
+  </section>
+
+  <section class="material-card material-card--single" aria-labelledby="security-title">
+    <div class="material-card__header">
+      <div>
+        <p class="eyebrow">Securite</p>
+          <h2 id="security-title">Changer le mot de passe</h2>
+      </div>
+    </div>
+
+    <form class="password-form" (ngSubmit)="changePassword()">
+      <p class="relation-helper password-form__intro">Mettez à jour votre mot de passe. Vous devrez utiliser le nouveau mot de passe lors de votre prochaine connexion.</p>
+
+      @if (errorMessage()) {
+        <section class="state-card state-card--error password-form__full">
+          <p>{{ errorMessage() }}</p>
+        </section>
+      }
+
+      @if (successMessage()) {
+        <section class="state-card state-card--success password-form__full">
+          <p>{{ successMessage() }}</p>
+        </section>
+      }
+
+      <label class="editor-field password-form__full">
+        <span>Mot de passe actuel</span>
+        <input
+          [ngModel]="oldPassword()"
+          (ngModelChange)="oldPassword.set($event)"
+          name="oldPassword"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+      </label>
+
+      <label class="editor-field password-form__half">
+        <span>Nouveau mot de passe</span>
+        <input
+          [ngModel]="newPassword()"
+          (ngModelChange)="newPassword.set($event)"
+          name="newPassword"
+          type="password"
+          autocomplete="new-password"
+          required
+          minlength="8"
+        />
+        <small>Minimum 8 caractères</small>
+      </label>
+
+      <label class="editor-field password-form__half">
+        <span>Confirmer le nouveau mot de passe</span>
+        <input
+          [ngModel]="confirmPassword()"
+          (ngModelChange)="confirmPassword.set($event)"
+          name="confirmPassword"
+          type="password"
+          autocomplete="new-password"
+          required
+        />
+      </label>
+
+      <div class="password-form__actions">
+        <button class="primary-button" type="submit" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Modification en cours...' : 'Changer le mot de passe' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="material-card material-card--single" aria-labelledby="privacy-title">
+    <div class="material-card__header">
+      <div>
+        <p class="eyebrow">Vie privee</p>
+          <h2 id="privacy-title">Exporter mes données</h2>
+      </div>
+    </div>
+
+    <div class="account-action-row">
+      <div class="account-action-row__copy">
+        <p class="relation-helper">Téléchargez une copie de toutes vos données au format JSON. Conformément au RGPD, vous avez le droit d'accéder à vos données personnelles.</p>
+      </div>
+
+      <div class="account-action-row__cta">
+        <button class="secondary-button" type="button" (click)="exportData()" [disabled]="isExporting()">
+          <i class="bi bi-download" aria-hidden="true"></i>
+          {{ isExporting() ? 'Export en cours...' : 'Exporter mes données' }}
+        </button>
+      </div>
+    </div>
+
+    @if (exportErrorMessage()) {
+      <section class="state-card state-card--error">
+        <p>{{ exportErrorMessage() }}</p>
+      </section>
+    }
+
+    @if (exportSuccessMessage()) {
+      <section class="state-card state-card--success">
+        <p>{{ exportSuccessMessage() }}</p>
+      </section>
+    }
+  </section>
+
+  <section class="material-card material-card--single" aria-labelledby="legal-title">
+    <div class="material-card__header">
+      <div>
+        <p class="eyebrow">Legal</p>
+          <h2 id="legal-title">Politique de confidentialité</h2>
+      </div>
+    </div>
+
+    <div class="account-action-row">
+      <div class="account-action-row__copy">
+        <p class="relation-helper">Consultez notre politique de confidentialité pour comprendre comment vos données sont traitées et protégées.</p>
+      </div>
+
+      <div class="account-action-row__cta">
+        <a class="secondary-button" routerLink="/home/privacy">
+          <i class="bi bi-shield-lock" aria-hidden="true"></i>
+          Voir la politique de confidentialité
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!--
+  <section class="material-card material-card--single" aria-labelledby="billing-title">
+    <div class="material-card__header">
+      <div>
+        <p class="eyebrow">Facturation</p>
+        <h2 id="billing-title">Abonnement et paiements</h2>
+      </div>
+    </div>
+
+    <p class="relation-helper">Consultez votre plan actuel et l'historique de vos paiements.</p>
+
+    <div class="billing-summary">
+      <article class="insight-card">
+        <p class="insight-card__label">Plan actuel</p>
+        <strong>Gratuit</strong>
+        <span>Accès complet</span>
+      </article>
+      <article class="insight-card">
+        <p class="insight-card__label">Dernier paiement</p>
+        <strong>Aucun</strong>
+        <span>Aucun paiement effectué</span>
+      </article>
+    </div>
+  </section>
+  -->
+
+  <!--
+  <section class="material-card material-card--danger" aria-labelledby="danger-title">
+    <div class="material-card__header">
+      <div>
+        <p class="eyebrow">Zone dangereuse</p>
+        <h2 id="danger-title">Supprimer mon compte</h2>
+      </div>
+    </div>
+
+    <p class="relation-helper account-danger-text">Cette action est irréversible. Toutes vos données, CV, projets, compétences et fichiers seront définitivement effacés.</p>
+
+    @if (deleteErrorMessage()) {
+      <section class="state-card state-card--error">
+        <p>{{ deleteErrorMessage() }}</p>
+      </section>
+    }
+
+    @if (!showDeleteConfirm()) {
+      <div class="form-actions">
+        <button class="danger-button" type="button" (click)="requestDeleteAccount()" [disabled]="isDeleting()">
+          <i class="bi bi-trash" aria-hidden="true"></i>
+          Supprimer mon compte
+        </button>
+      </div>
+    } @else {
+      <div class="delete-confirm">
+        <p class="delete-confirm__warning">
+          <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+          Êtes-vous absolument certain ? Cette action est irréversible et supprimera définitivement toutes vos données.
+        </p>
+        <div class="delete-confirm__actions">
+          <button class="secondary-button" type="button" (click)="cancelDelete()" [disabled]="isDeleting()">
+            Annuler
+          </button>
+          <button class="danger-button danger-button--solid" type="button" (click)="deleteAccount()" [disabled]="isDeleting()">
+            {{ isDeleting() ? 'Suppression en cours...' : 'Oui, supprimer definitivement' }}
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+  -->
+</main>

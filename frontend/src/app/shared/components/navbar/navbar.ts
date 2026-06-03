@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-navbar',
@@ -12,17 +13,22 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class Navbar {
   private readonly authService = inject(AuthService);
+  private readonly toastService = inject(ToastService);
 
   readonly isAuthenticated = this.authService.isAuthenticated ?? computed(() => Boolean(this.authService.currentUser()));
   readonly bugReportUrl = signal(environment.bugReportUrl);
+  readonly isLoggingOut = signal(false);
 
   constructor() {
     void this.loadRuntimeConfig();
   }
 
   logout(): void {
+    this.isLoggingOut.set(true);
     this.authService.logout();
-    window.location.assign('/login');
+    window.setTimeout(() => {
+      window.location.assign('/login');
+    }, 300);
   }
 
   private async loadRuntimeConfig(): Promise<void> {

@@ -32,10 +32,28 @@
   padding: 1rem 1.15rem;
 }
 
-.profile-summary-chip__body p {
+.profile-summary-chip__content {
   margin: 0;
   color: rgb(125, 122, 117);
   font-family: ui-sans-serif, -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   font-size: 14px;
   line-height: 21px;
+}
+
+.profile-summary-chip__content :first-child {
+  margin-top: 0;
+}
+
+.profile-summary-chip__content :last-child {
+  margin-bottom: 0;
+}
+
+.profile-summary-chip__content p {
+  margin: 0 0 0.5rem;
+}
+
+.profile-summary-chip__content ul,
+.profile-summary-chip__content ol {
+  margin: 0 0 0.5rem;
+  padding-left: 1.2rem;
 }

@@ -37,7 +37,7 @@
       </section>
     }
 
-    <section class="material-card">
+    <section class="material-card material-card--single">
       <div class="material-card__header">
         <div>
           <p class="eyebrow">Profil CV</p>
@@ -52,70 +52,79 @@
         </div>
       </div>
 
-      <div class="profile-editor-grid">
-        <label class="editor-field editor-field--wide">
-          <span>Label (admin)</span>
-          <input [ngModel]="state.profile.label" (ngModelChange)="setProfileLabel($event)" name="label" type="text" />
-          <small>Identifiant interne pour l'administration.</small>
-        </label>
+      <div class="profile-sections">
+        <section class="form-section">
+          <span class="form-section__label">Identite</span>
+          <label class="editor-field editor-field--wide">
+            <span>Label (admin)</span>
+            <input [ngModel]="state.profile.label" (ngModelChange)="setProfileLabel($event)" name="label" type="text" />
+            <small>Identifiant interne pour l'administration.</small>
+          </label>
+          <label class="editor-field editor-field--wide">
+            <span>Nom du profil (CV)</span>
+            <input [ngModel]="state.profile.profileName" (ngModelChange)="setProfileName($event)" name="profileName" type="text" />
+            <small>Nom affiche sur le CV imprime.</small>
+          </label>
+        </section>
 
-        <label class="editor-field editor-field--wide">
-          <span>Nom du profil (CV)</span>
-          <input [ngModel]="state.profile.profileName" (ngModelChange)="setProfileName($event)" name="profileName" type="text" />
-          <small>Nom affiche sur le CV imprime.</small>
-        </label>
+        <section class="form-section">
+          <span class="form-section__label">Affichage</span>
+          <label class="editor-field editor-field--wide">
+            <span>Template</span>
+            <select [ngModel]="state.profile.template || ''" (ngModelChange)="setProfileTemplate($event)" name="template">
+              <option value="">Aucun</option>
+              @for (template of templateOptions; track template.id) {
+                <option [value]="template.id">{{ template.label }}</option>
+              }
+            </select>
+          </label>
+          <label class="editor-field editor-field--checkbox profile-toggle-field">
+            <span>Route publique</span>
+            <input [ngModel]="state.profile.public !== false" (ngModelChange)="setProfilePublic($event)" name="public" type="checkbox" [ngModelOptions]="{ standalone: true }" />
+          </label>
+          <label class="editor-field">
+            <span>Statut</span>
+            <div class="status-control">
+              <span class="status-dot status-dot--{{ getStatusOption(state.profile.status)?.tone || 'gray' }}"></span>
+              <select [ngModel]="state.profile.status || 'unsent'" (ngModelChange)="setStatusAndSave($event)" name="status">
+                @for (option of statusOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+          </label>
+        </section>
 
-        <label class="editor-field editor-field--wide">
-          <span>Template</span>
-          <select [ngModel]="state.profile.template || ''" (ngModelChange)="setProfileTemplate($event)" name="template">
-            <option value="">Aucun</option>
-            @for (template of templateOptions; track template.id) {
-              <option [value]="template.id">{{ template.label }}</option>
+        <section class="form-section">
+          <span class="form-section__label">Medias</span>
+          <label class="editor-field media-picker">
+            <span>Photo de profil</span>
+            @if (getPicturePreview(state, 'profilePictureFile'); as preview) {
+              <img [src]="preview" [alt]="getSelectedPictureName(state, 'profilePictureFile')" class="editor-image" />
             }
-          </select>
-        </label>
+            <select [ngModel]="state.profile.profilePictureFile || ''" (ngModelChange)="setProfilePictureFile($event)" name="profilePictureFile">
+              <option value="">Aucune image</option>
+              @for (picture of state.availablePictures; track picture.id) {
+                <option [value]="picture.id">{{ picture.name || picture.alt || picture.file }}</option>
+              }
+            </select>
+            <small>Choisissez une image existante depuis vos informations.</small>
+          </label>
 
-        <label class="editor-field editor-field--checkbox profile-toggle-field">
-          <span>Route publique</span>
-          <input [ngModel]="state.profile.public !== false" (ngModelChange)="setProfilePublic($event)" name="public" type="checkbox" [ngModelOptions]="{ standalone: true }" />
-        </label>
-
-        <label class="editor-field">
-          <span>Statut</span>
-          <select [ngModel]="state.profile.status || 'unsent'" (ngModelChange)="setStatusAndSave($event)" name="status">
-            @for (option of statusOptions; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
+          <label class="editor-field media-picker media-picker--cover">
+            <span>Image de couverture</span>
+            @if (getPicturePreview(state, 'coverPictureFile'); as preview) {
+              <img [src]="preview" [alt]="getSelectedPictureName(state, 'coverPictureFile')" class="editor-image editor-image--cover" />
             }
-          </select>
-        </label>
-
-        <label class="editor-field media-picker">
-          <span>Photo de profil</span>
-          @if (getPicturePreview(state, 'profilePictureFile'); as preview) {
-            <img [src]="preview" [alt]="getSelectedPictureName(state, 'profilePictureFile')" class="editor-image" />
-          }
-          <select [ngModel]="state.profile.profilePictureFile || ''" (ngModelChange)="setProfilePictureFile($event)" name="profilePictureFile">
-            <option value="">Aucune image</option>
-            @for (picture of state.availablePictures; track picture.id) {
-              <option [value]="picture.id">{{ picture.name || picture.alt || picture.file }}</option>
-            }
-          </select>
-          <small>Choisissez une image existante depuis vos informations.</small>
-        </label>
-
-        <label class="editor-field media-picker media-picker--cover">
-          <span>Image de couverture</span>
-          @if (getPicturePreview(state, 'coverPictureFile'); as preview) {
-            <img [src]="preview" [alt]="getSelectedPictureName(state, 'coverPictureFile')" class="editor-image editor-image--cover" />
-          }
-          <select [ngModel]="state.profile.coverPictureFile || ''" (ngModelChange)="setCoverPictureFile($event)" name="coverPictureFile">
-            <option value="">Aucune image</option>
-            @for (picture of state.availablePictures; track picture.id) {
-              <option [value]="picture.id">{{ picture.name || picture.alt || picture.file }}</option>
-            }
-          </select>
-          <small>Les images se gerent dans <a routerLink="/home/profile-material">mes informations</a>.</small>
-        </label>
+            <select [ngModel]="state.profile.coverPictureFile || ''" (ngModelChange)="setCoverPictureFile($event)" name="coverPictureFile">
+              <option value="">Aucune image</option>
+              @for (picture of state.availablePictures; track picture.id) {
+                <option [value]="picture.id">{{ picture.name || picture.alt || picture.file }}</option>
+              }
+            </select>
+            <small>Les images se gerent dans <a routerLink="/home/profile-material">mes informations</a>.</small>
+          </label>
+        </section>
       </div>
 
       <div class="form-actions form-actions--subtle">
@@ -123,7 +132,7 @@
       </div>
     </section>
 
-    <section class="material-card">
+    <section class="material-card material-card--single">
       <div class="material-card__header">
         <div>
           <p class="eyebrow">Contenu</p>
@@ -147,15 +156,9 @@
           />
         </div>
       </div>
-
-      <div class="form-actions summary-actions">
-        <button class="primary-button" type="button" [disabled]="isSaving()" (click)="save()">
-          {{ isSaving() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
-        </button>
-      </div>
     </section>
 
-    <section class="material-card">
+    <section class="material-card material-card--single">
       <div class="material-card__header">
         <div>
           <p class="eyebrow">Personnalisation</p>
@@ -181,7 +184,7 @@
     </section>
 
     @if (getSelectedTemplateExtraSchema(state).length > 0) {
-      <section class="material-card">
+      <section class="material-card material-card--single">
         <div class="material-card__header">
           <div>
             <p class="eyebrow">Template</p>
@@ -242,40 +245,44 @@
                   <span>{{ field.label }}</span>
                   <small>{{ field.description }}</small>
 
-                  <div class="relation-grid relation-grid--compact">
-                    <section class="relation-column">
-                      <h3>Lies au template</h3>
+                  <div class="editor-grid">
+                    <div class="form-section">
+                      <span class="form-section__label">Lies au template</span>
                       @if (getLinkedExtraSourceRecords(state, field).length === 0) {
-                        <p class="relation-empty">Aucun element lie.</p>
+                        <p class="empty-copy">Aucun element lie.</p>
                       } @else {
                         @for (record of getLinkedExtraSourceRecords(state, field); track record.id) {
-                          <article class="relation-card">
+                          <article class="material-row">
                             <div>
-                              <h4>{{ getExtraSourceRecordTitle(record) }}</h4>
+                              <h3>{{ getExtraSourceRecordTitle(record) }}</h3>
                               <p>{{ getExtraSourceRecordDescription(record) }}</p>
                             </div>
-                            <button type="button" class="relation-action relation-action--remove" (click)="removeExtraSourceValue(field, record.id)">Retirer</button>
+                            <div class="material-row__actions">
+                              <button type="button" class="row-action row-action--remove" (click)="removeExtraSourceValue(field, record.id)">Retirer</button>
+                            </div>
                           </article>
                         }
                       }
-                    </section>
+                    </div>
 
-                    <section class="relation-column">
-                      <h3>Disponibles</h3>
+                    <div class="form-section">
+                      <span class="form-section__label">Disponibles</span>
                       @if (getAvailableExtraSourceRecords(state, field).length === 0) {
-                        <p class="relation-empty">Aucun element disponible.</p>
+                        <p class="empty-copy">Aucun element disponible.</p>
                       } @else {
                         @for (record of getAvailableExtraSourceRecords(state, field); track record.id) {
-                          <article class="relation-card">
+                          <article class="material-row">
                             <div>
-                              <h4>{{ getExtraSourceRecordTitle(record) }}</h4>
+                              <h3>{{ getExtraSourceRecordTitle(record) }}</h3>
                               <p>{{ getExtraSourceRecordDescription(record) }}</p>
                             </div>
-                            <button type="button" class="relation-action" (click)="addExtraSourceValue(field, record.id)">Ajouter</button>
+                            <div class="material-row__actions">
+                              <button type="button" class="row-action" (click)="addExtraSourceValue(field, record.id)">Ajouter</button>
+                            </div>
                           </article>
                         }
                       }
-                    </section>
+                    </div>
                   </div>
                 </div>
               }
@@ -294,40 +301,42 @@
         </div>
       </div>
 
-      <div class="relation-grid">
-        <section class="relation-column">
-          <h3>Lies au profil</h3>
-          @if (getLinkedJobs(state).length === 0) {
-            <p class="relation-empty">Aucun job lie. Ajoutez vos experiences dans <a routerLink="/home/profile-material">mes informations</a>, puis revenez les selectionner ici.</p>
-          } @else {
-            @for (job of getLinkedJobs(state); track job.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ job.company }}</h4>
-                  <p>{{ job.position }}</p>
-                </div>
-                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('jobs', job.id)">Retirer</button>
-              </article>
-            }
+      <div class="material-list">
+        <h3>Lies au profil</h3>
+        @if (getLinkedJobs(state).length === 0) {
+          <p class="empty-copy">Aucun job lie. Ajoutez vos experiences dans <a routerLink="/home/profile-material">mes informations</a>, puis revenez les selectionner ici.</p>
+        } @else {
+          @for (job of getLinkedJobs(state); track job.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ job.company }}</h3>
+                <p>{{ job.position }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action row-action--remove" (click)="removeRelation('jobs', job.id)">Retirer</button>
+              </div>
+            </article>
           }
-        </section>
+        }
+      </div>
 
-        <section class="relation-column">
-          <h3>Disponibles</h3>
-          @if (getAvailableJobs(state).length === 0) {
-            <p class="relation-empty">Aucun job disponible. <a routerLink="/home/profile-material">Gerer mes experiences</a>.</p>
-          } @else {
-            @for (job of getAvailableJobs(state); track job.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ job.company }}</h4>
-                  <p>{{ job.position }}</p>
-                </div>
-                <button type="button" class="relation-action" (click)="addRelation('jobs', job.id)">Ajouter</button>
-              </article>
-            }
+      <div class="material-list material-list--right">
+        <h3>Disponibles</h3>
+        @if (getAvailableJobs(state).length === 0) {
+          <p class="empty-copy">Aucun job disponible. <a routerLink="/home/profile-material">Gerer mes experiences</a>.</p>
+        } @else {
+          @for (job of getAvailableJobs(state); track job.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ job.company }}</h3>
+                <p>{{ job.position }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action" (click)="addRelation('jobs', job.id)">Ajouter</button>
+              </div>
+            </article>
           }
-        </section>
+        }
       </div>
     </section>
 
@@ -339,40 +348,42 @@
         </div>
       </div>
 
-      <div class="relation-grid">
-        <section class="relation-column">
-          <h3>Lies au profil</h3>
-          @if (getLinkedProjects(state).length === 0) {
-            <p class="relation-empty">Aucun projet lie.</p>
-          } @else {
-            @for (project of getLinkedProjects(state); track project.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ project.name }}</h4>
-                  <p>{{ project.date || 'Sans date' }}</p>
-                </div>
-                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('projects', project.id)">Retirer</button>
-              </article>
-            }
+      <div class="material-list">
+        <h3>Lies au profil</h3>
+        @if (getLinkedProjects(state).length === 0) {
+          <p class="empty-copy">Aucun projet lie.</p>
+        } @else {
+          @for (project of getLinkedProjects(state); track project.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ project.name }}</h3>
+                <p>{{ project.date || 'Sans date' }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action row-action--remove" (click)="removeRelation('projects', project.id)">Retirer</button>
+              </div>
+            </article>
           }
-        </section>
+        }
+      </div>
 
-        <section class="relation-column">
-          <h3>Disponibles</h3>
-          @if (getAvailableProjects(state).length === 0) {
-            <p class="relation-empty">Aucun projet disponible.</p>
-          } @else {
-            @for (project of getAvailableProjects(state); track project.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ project.name }}</h4>
-                  <p>{{ project.date || 'Sans date' }}</p>
-                </div>
-                <button type="button" class="relation-action" (click)="addRelation('projects', project.id)">Ajouter</button>
-              </article>
-            }
+      <div class="material-list material-list--right">
+        <h3>Disponibles</h3>
+        @if (getAvailableProjects(state).length === 0) {
+          <p class="empty-copy">Aucun projet disponible.</p>
+        } @else {
+          @for (project of getAvailableProjects(state); track project.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ project.name }}</h3>
+                <p>{{ project.date || 'Sans date' }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action" (click)="addRelation('projects', project.id)">Ajouter</button>
+              </div>
+            </article>
           }
-        </section>
+        }
       </div>
     </section>
 
@@ -385,40 +396,42 @@
         </div>
       </div>
 
-      <div class="relation-grid">
-        <section class="relation-column">
-          <h3>Lies au profil</h3>
-          @if (getLinkedSkills(state).length === 0) {
-            <p class="relation-empty">Aucune competence liee. Ajoutez vos competences dans <a routerLink="/home/profile-material">mes informations</a>, puis revenez les selectionner ici.</p>
-          } @else {
-            @for (skill of getLinkedSkills(state); track skill.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ skill.name }}</h4>
-                  <p>{{ getSkillDescription(skill) }}</p>
-                </div>
-                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('skills', skill.id)">Retirer</button>
-              </article>
-            }
+      <div class="material-list">
+        <h3>Lies au profil</h3>
+        @if (getLinkedSkills(state).length === 0) {
+          <p class="empty-copy">Aucune competence liee. Ajoutez vos competences dans <a routerLink="/home/profile-material">mes informations</a>, puis revenez les selectionner ici.</p>
+        } @else {
+          @for (skill of getLinkedSkills(state); track skill.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ skill.name }}</h3>
+                <p>{{ getSkillDescription(skill) }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action row-action--remove" (click)="removeRelation('skills', skill.id)">Retirer</button>
+              </div>
+            </article>
           }
-        </section>
+        }
+      </div>
 
-        <section class="relation-column">
-          <h3>Disponibles</h3>
-          @if (getAvailableSkills(state).length === 0) {
-            <p class="relation-empty">Aucune competence disponible. <a routerLink="/home/profile-material">Gerer mes competences</a>.</p>
-          } @else {
-            @for (skill of getAvailableSkills(state); track skill.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ skill.name }}</h4>
-                  <p>{{ getSkillDescription(skill) }}</p>
-                </div>
-                <button type="button" class="relation-action" (click)="addRelation('skills', skill.id)">Ajouter</button>
-              </article>
-            }
+      <div class="material-list material-list--right">
+        <h3>Disponibles</h3>
+        @if (getAvailableSkills(state).length === 0) {
+          <p class="empty-copy">Aucune competence disponible. <a routerLink="/home/profile-material">Gerer mes competences</a>.</p>
+        } @else {
+          @for (skill of getAvailableSkills(state); track skill.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ skill.name }}</h3>
+                <p>{{ getSkillDescription(skill) }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action" (click)="addRelation('skills', skill.id)">Ajouter</button>
+              </div>
+            </article>
           }
-        </section>
+        }
       </div>
     </section>
 
@@ -430,40 +443,42 @@
         </div>
       </div>
 
-      <div class="relation-grid">
-        <section class="relation-column">
-          <h3>Lies au profil</h3>
-          @if (getLinkedDegrees(state).length === 0) {
-            <p class="relation-empty">Aucun diplome lie.</p>
-          } @else {
-            @for (degree of getLinkedDegrees(state); track degree.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ degree.title }}</h4>
-                  <p>{{ degree.school || 'Sans ecole' }}</p>
-                </div>
-                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('degrees', degree.id)">Retirer</button>
-              </article>
-            }
+      <div class="material-list">
+        <h3>Lies au profil</h3>
+        @if (getLinkedDegrees(state).length === 0) {
+          <p class="empty-copy">Aucun diplome lie.</p>
+        } @else {
+          @for (degree of getLinkedDegrees(state); track degree.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ degree.title }}</h3>
+                <p>{{ degree.school || 'Sans ecole' }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action row-action--remove" (click)="removeRelation('degrees', degree.id)">Retirer</button>
+              </div>
+            </article>
           }
-        </section>
+        }
+      </div>
 
-        <section class="relation-column">
-          <h3>Disponibles</h3>
-          @if (getAvailableDegrees(state).length === 0) {
-            <p class="relation-empty">Aucun diplome disponible.</p>
-          } @else {
-            @for (degree of getAvailableDegrees(state); track degree.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ degree.title }}</h4>
-                  <p>{{ degree.school || 'Sans ecole' }}</p>
-                </div>
-                <button type="button" class="relation-action" (click)="addRelation('degrees', degree.id)">Ajouter</button>
-              </article>
-            }
+      <div class="material-list material-list--right">
+        <h3>Disponibles</h3>
+        @if (getAvailableDegrees(state).length === 0) {
+          <p class="empty-copy">Aucun diplome disponible.</p>
+        } @else {
+          @for (degree of getAvailableDegrees(state); track degree.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ degree.title }}</h3>
+                <p>{{ degree.school || 'Sans ecole' }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action" (click)="addRelation('degrees', degree.id)">Ajouter</button>
+              </div>
+            </article>
           }
-        </section>
+        }
       </div>
     </section>
 
@@ -475,40 +490,42 @@
         </div>
       </div>
 
-      <div class="relation-grid">
-        <section class="relation-column">
-          <h3>Lies au profil</h3>
-          @if (getLinkedAchievements(state).length === 0) {
-            <p class="relation-empty">Aucune realisation liee.</p>
-          } @else {
-            @for (achievement of getLinkedAchievements(state); track achievement.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ achievement.title }}</h4>
-                  <p>{{ achievement.description || 'Sans description' }}</p>
-                </div>
-                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('achievements', achievement.id)">Retirer</button>
-              </article>
-            }
+      <div class="material-list">
+        <h3>Lies au profil</h3>
+        @if (getLinkedAchievements(state).length === 0) {
+          <p class="empty-copy">Aucune realisation liee.</p>
+        } @else {
+          @for (achievement of getLinkedAchievements(state); track achievement.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ achievement.title }}</h3>
+                <p>{{ achievement.description || 'Sans description' }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action row-action--remove" (click)="removeRelation('achievements', achievement.id)">Retirer</button>
+              </div>
+            </article>
           }
-        </section>
+        }
+      </div>
 
-        <section class="relation-column">
-          <h3>Disponibles</h3>
-          @if (getAvailableAchievements(state).length === 0) {
-            <p class="relation-empty">Aucune realisation disponible.</p>
-          } @else {
-            @for (achievement of getAvailableAchievements(state); track achievement.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ achievement.title }}</h4>
-                  <p>{{ achievement.description || 'Sans description' }}</p>
-                </div>
-                <button type="button" class="relation-action" (click)="addRelation('achievements', achievement.id)">Ajouter</button>
-              </article>
-            }
+      <div class="material-list material-list--right">
+        <h3>Disponibles</h3>
+        @if (getAvailableAchievements(state).length === 0) {
+          <p class="empty-copy">Aucune realisation disponible.</p>
+        } @else {
+          @for (achievement of getAvailableAchievements(state); track achievement.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ achievement.title }}</h3>
+                <p>{{ achievement.description || 'Sans description' }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action" (click)="addRelation('achievements', achievement.id)">Ajouter</button>
+              </div>
+            </article>
           }
-        </section>
+        }
       </div>
     </section>
 
@@ -520,41 +537,52 @@
         </div>
       </div>
 
-      <div class="relation-grid">
-        <section class="relation-column">
-          <h3>Lies au profil</h3>
-          @if (getLinkedHobbies(state).length === 0) {
-            <p class="relation-empty">Aucun loisir lie.</p>
-          } @else {
-            @for (hobby of getLinkedHobbies(state); track hobby.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ hobby.name }}</h4>
-                  <p>{{ hobby.description || 'Sans description' }}</p>
-                </div>
-                <button type="button" class="relation-action relation-action--remove" (click)="removeRelation('hobbies', hobby.id)">Retirer</button>
-              </article>
-            }
+      <div class="material-list">
+        <h3>Lies au profil</h3>
+        @if (getLinkedHobbies(state).length === 0) {
+          <p class="empty-copy">Aucun loisir lie.</p>
+        } @else {
+          @for (hobby of getLinkedHobbies(state); track hobby.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ hobby.name }}</h3>
+                <p>{{ hobby.description || 'Sans description' }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action row-action--remove" (click)="removeRelation('hobbies', hobby.id)">Retirer</button>
+              </div>
+            </article>
           }
-        </section>
+        }
+      </div>
 
-        <section class="relation-column">
-          <h3>Disponibles</h3>
-          @if (getAvailableHobbies(state).length === 0) {
-            <p class="relation-empty">Aucun loisir disponible.</p>
-          } @else {
-            @for (hobby of getAvailableHobbies(state); track hobby.id) {
-              <article class="relation-card">
-                <div>
-                  <h4>{{ hobby.name }}</h4>
-                  <p>{{ hobby.description || 'Sans description' }}</p>
-                </div>
-                <button type="button" class="relation-action" (click)="addRelation('hobbies', hobby.id)">Ajouter</button>
-              </article>
-            }
+      <div class="material-list material-list--right">
+        <h3>Disponibles</h3>
+        @if (getAvailableHobbies(state).length === 0) {
+          <p class="empty-copy">Aucun loisir disponible.</p>
+        } @else {
+          @for (hobby of getAvailableHobbies(state); track hobby.id) {
+            <article class="material-row">
+              <div>
+                <h3>{{ hobby.name }}</h3>
+                <p>{{ hobby.description || 'Sans description' }}</p>
+              </div>
+              <div class="material-row__actions">
+                <button type="button" class="row-action" (click)="addRelation('hobbies', hobby.id)">Ajouter</button>
+              </div>
+            </article>
           }
-        </section>
+        }
       </div>
     </section>
+
+    <div class="form-actions--page">
+      @if (isSaving()) {
+        <span class="section-save-state">Enregistrement...</span>
+      }
+      <button class="primary-button" type="button" [disabled]="isSaving()" (click)="save()">
+        {{ isSaving() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+      </button>
+    </div>
   }
 </main>
