@@ -72,3 +72,12 @@
     </div>
   }
 </nav>
+
+@if (isLoggingOut()) {
+  <div class="logout-overlay" aria-live="assertive" aria-label="Deconnexion en cours">
+    <div class="logout-overlay__spinner">
+      <i class="bi bi-arrow-repeat spinning-large" aria-hidden="true"></i>
+      <span>Deconnexion en cours...</span>
+    </div>
+  </div>
+}

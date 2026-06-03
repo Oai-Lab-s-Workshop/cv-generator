@@ -9,14 +9,6 @@
   padding: 0 30px;
 }
 
-.login-auth-pane {
-  grid-area: auth;
-  display: grid;
-  place-items: center;
-  padding: 2rem 1rem;
-  height: 100vh;
-}
-
 .login-preview-pane {
   grid-area: preview;
   min-height: 0;
@@ -59,6 +51,7 @@
 }
 
 .login-card {
+  grid-area: auth;
   width: min(100%, 28rem);
   padding: 2rem;
   border: 1px solid var(--app-border);
@@ -69,6 +62,7 @@
   z-index: 1;
   height: fit-content;
   margin: auto;
+  align-self: center;
 }
 
 .eyebrow {
@@ -157,6 +151,7 @@ button:disabled {
 @media (max-width: 920px) {
   .login-page {
     grid-template-columns: 1fr;
+    grid-template-areas: 'auth';
   }
   .login-preview-pane {
     min-height: 0;
@@ -206,7 +201,7 @@ button:disabled {
 }
 
 @media (max-width: 560px) {
-  .login-auth-pane,
+  .login-card,
   .login-preview-pane {
     padding: 1rem;
   }
