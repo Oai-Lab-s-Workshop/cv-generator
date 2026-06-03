@@ -1,0 +1,20 @@
+.privacy-section__body {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.privacy-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--home-text);
+  line-height: 1.6;
+}
+
+.privacy-list li + li {
+  margin-top: 0.45rem;
+}
+
+.privacy-section__body a {
+  color: var(--home-primary);
+  font-weight: 700;
+}

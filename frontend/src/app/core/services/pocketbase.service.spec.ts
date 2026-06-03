@@ -194,7 +194,6 @@ describe('PocketBaseService', () => {
     await expect(service.getCurrentUserAiTokens()).resolves.toEqual([{ id: 'token-1', label: 'Token' }]);
     await expect(service.createCurrentUserAiToken({ label: ' API ', expiresAt: '' })).resolves.toMatchObject({
       rawToken: 'resm_mock_secret_value',
-      debug: { currentUserId: 'user-1' },
     });
     expect(collections['ai_tokens']['create']).toHaveBeenCalledWith(expect.objectContaining({
       token_hash: 'hash:resm_mock_secret_value',
@@ -204,7 +203,7 @@ describe('PocketBaseService', () => {
     }));
     await expect(service.createCurrentUserAiToken({ label: ' ' })).rejects.toThrow('Le label de la cle API est obligatoire.');
     await service.revokeCurrentUserAiToken('token-1');
-    expect(pb.send).toHaveBeenCalledWith('/api/custom/ai-tokens/token-1/revoke', { method: 'PATCH', requestKey: 'revoke-token-1' });
+    expect(pb.send).toHaveBeenCalledWith('/api/custom/ai-tokens/token-1/revoke', { method: 'POST', requestKey: 'revoke-token-1' });
     await expect(service.updateCurrentUser({ firstName: 'Jane' })).resolves.toMatchObject({ id: 'user-1', firstName: 'Jane' });
   });
 

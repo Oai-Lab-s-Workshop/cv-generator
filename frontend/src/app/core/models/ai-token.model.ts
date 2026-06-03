@@ -18,12 +18,7 @@ export interface CreateAiTokenInput {
   expiresAt?: string | null;
 }
 
-export interface CreateAiTokenDebugInfo {
-  currentUserId: string;
-}
-
 export interface CreatedAiTokenResult {
   record: AiToken;
   rawToken: string;
-  debug: CreateAiTokenDebugInfo;
 }

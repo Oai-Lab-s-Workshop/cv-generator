@@ -210,6 +210,15 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         profilePictureFile: state.profile.profilePictureFile || '',
         coverPictureFile: state.profile.coverPictureFile || '',
         status: state.profile.status,
+        professionalSummary: state.profile.professionalSummary,
+        jobs: state.profile.jobs ?? [],
+        projects: state.profile.projects ?? [],
+        skills: state.profile.skills ?? [],
+        degrees: state.profile.degrees ?? [],
+        achievements: state.profile.achievements ?? [],
+        hobbies: state.profile.hobbies ?? [],
+        extra: state.profile.extra ?? {},
+        linkOverrides: state.profile.linkOverrides,
       });
 
       await this.loadEditorData(state.profile.id);
@@ -222,6 +231,8 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
   }
 
   addRelation(type: RelationType, recordId: string): void {
+    let changed = false;
+
     this.editorState.update((state) => {
       if (!state) {
         return state;
@@ -232,6 +243,8 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         return state;
       }
 
+      changed = true;
+
       return {
         ...state,
         profile: {
@@ -240,22 +253,35 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         },
       };
     });
+
+    if (changed) {
+      this.scheduleProfileAutosave();
+    }
   }
 
   removeRelation(type: RelationType, recordId: string): void {
+    let changed = false;
+
     this.editorState.update((state) => {
       if (!state) {
         return state;
       }
 
+      const nextIds = (state.profile[type] ?? []).filter((id) => id !== recordId);
+      changed = nextIds.length !== (state.profile[type] ?? []).length;
+
       return {
         ...state,
         profile: {
           ...state.profile,
-          [type]: (state.profile[type] ?? []).filter((id) => id !== recordId),
+          [type]: nextIds,
         },
       };
     });
+
+    if (changed) {
+      this.scheduleProfileAutosave();
+    }
   }
 
   getSelectedTemplateExtraSchema(state: EditorState): CvTemplateExtraField[] {
@@ -283,12 +309,17 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
   }
 
   setExtraValue(field: CvTemplateExtraField, value: CvProfileExtraValue): void {
+    let changed = false;
+
     this.editorState.update((state) => {
       const templateId = state?.profile.template;
 
       if (!state || !templateId) {
         return state;
       }
+
+      const currentValue = state.profile.extra?.[templateId]?.[field.id];
+      changed = JSON.stringify(currentValue) !== JSON.stringify(value);
 
       return {
         ...state,
@@ -304,6 +335,10 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         },
       };
     });
+
+    if (changed) {
+      this.scheduleProfileAutosave();
+    }
   }
 
   setProfessionalSummary(value: string): void {
@@ -320,6 +355,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         },
       };
     });
+    this.scheduleProfileAutosave();
   }
 
   setLinkOverrideField(field: keyof CvProfileLinkOverrides, value: string): void {
@@ -339,6 +375,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         },
       };
     });
+    this.scheduleProfileAutosave();
   }
 
   setStatus(status: CvProfileStatus): void {

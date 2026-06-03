@@ -20,6 +20,7 @@ describe('app routes', () => {
     expect(route('home/profile-material')?.canActivate).toEqual([authGuard]);
     expect(route('home/tokens')?.canActivate).toEqual([authGuard]);
     expect(route('home/templates')?.canActivate).toBeUndefined();
+    expect(route('home/privacy')?.canActivate).toBeUndefined();
     expect(route(':slug')?.canActivate).toEqual([cvAccessGuard]);
     expect(route('**')).toMatchObject({ pathMatch: 'full' });
   });

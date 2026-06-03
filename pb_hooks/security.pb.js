@@ -200,7 +200,7 @@ onRecordUpdateRequest((e) => {
   return e.next();
 }, 'achievements');
 
-routerAdd('PATCH', '/api/custom/ai-tokens/{id}/revoke', (e) => {
+const revokeAiTokenHandler = (e) => {
   const id = e.request.pathValue('id');
   const auth = e.auth;
   if (!auth) {
@@ -241,4 +241,7 @@ routerAdd('PATCH', '/api/custom/ai-tokens/{id}/revoke', (e) => {
 
   console.log('[ai-tokens] API key revoked successfully:', id);
   return e.json(200, { id: record.id, status: 'revoked' });
-});
+};
+
+routerAdd('POST', '/api/custom/ai-tokens/{id}/revoke', revokeAiTokenHandler);
+routerAdd('PATCH', '/api/custom/ai-tokens/{id}/revoke', revokeAiTokenHandler);

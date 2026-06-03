@@ -3,12 +3,16 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, RouteConfigLoadEnd, RouteConfigLoadStart, Router, RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
 
+import { ToastComponent } from './shared/components/toast/toast';
+
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, ToastComponent],
   template: `
     <router-outlet></router-outlet>
+
+    <app-toast></app-toast>
 
     @if (loadingCode()) {
       <aside class="route-loader" aria-live="polite" aria-label="Chargement">
