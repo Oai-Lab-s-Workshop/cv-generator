@@ -69,14 +69,6 @@
         <p>Elle n'est plus affichable apres cette session.</p>
       </div>
       <code class="token-secret">{{ latestCreatedAiToken() }}</code>
-      @if (latestCreatedTokenDebug(); as debug) {
-        <div class="token-debug">
-          <p>Diagnostic creation: user frontend = <code>{{ debug.debug.currentUserId }}</code></p>
-          <p>Diagnostic creation: record id = <code>{{ debug.record.id }}</code></p>
-          <p>Diagnostic creation: owner stocke = <code>{{ debug.record.user }}</code></p>
-          <p>Diagnostic creation: prefixe = <code>{{ debug.record.token_prefix }}</code></p>
-        </div>
-      }
       <button class="secondary-button token-copy-button" type="button" (click)="copyLatestAiToken()">Copier</button>
     </section>
   }

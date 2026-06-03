@@ -37,7 +37,7 @@ describe('McpConfigHelper', () => {
     const agentButtons = fixture.nativeElement.querySelectorAll('.mcp-helper__agent');
 
     expect(select).toBeTruthy();
-    expect(select?.options.length).toBe(3);
+    expect(select?.options.length).toBe(5);
     expect(agentButtons.length).toBe(0);
   });
 
@@ -50,6 +50,19 @@ describe('McpConfigHelper', () => {
     expect(component.selectedAgent()).toBe('opencode');
     expect(component.getGeneratedConfig()).toContain('"auth"');
     expect(fixture.nativeElement.textContent).toContain('Configuration OpenCode');
+  });
+
+  it('generates plain essential values for the plain preset', () => {
+    component.customToken.set('rmcp_plain');
+    component.customUrl.set('http://localhost:8081/mcp');
+    component.selectedAgent.set('plain');
+
+    const config = component.getGeneratedConfig();
+
+    expect(config).toContain('URL du serveur MCP : http://localhost:8081/mcp');
+    expect(config).toContain('Transport          : HTTP (Streamable)');
+    expect(config).toContain('Nom du serveur     : resumate-mcp');
+    expect(config).toContain('API Key            : rmcp_plain');
   });
 
   it('generates config for the selected agent', () => {

@@ -223,6 +223,12 @@ a {
   color: #fff;
 }
 
+.app-card-secondary {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
 .secondary-action {
   border: 1px solid var(--app-border-strong);
   background: var(--app-surface-strong);
