@@ -281,6 +281,9 @@ describe('PocketBaseService', () => {
     } as never;
     const profile = await service.getCurrentUserCvProfileById('p1');
     expect(profile.id).toBe('p1');
+    expect(collections['cv_profiles']['getFirstListItem']).toHaveBeenCalledWith('id="p1" && user="user-1"', {
+      expand: 'user,profilePictureFile,coverPictureFile',
+    });
   });
 
   it('sets link overrides for CV profile', async () => {
@@ -298,6 +301,10 @@ describe('PocketBaseService', () => {
       update: jest.fn().mockResolvedValue({ id: 'p1', user: 'user-1', profileName: 'P', status: 'sent' }),
     } as never;
     const profile = await service.setStatusForCvProfile('p1', 'sent');
+    expect(collections['cv_profiles']['getFirstListItem']).toHaveBeenCalledWith('id="p1" && user="user-1"', {
+      expand: 'user,profilePictureFile,coverPictureFile',
+    });
+    expect(collections['cv_profiles']['update']).toHaveBeenCalledWith('p1', { status: 'sent' });
     expect((profile as unknown as Record<string, unknown>)['status']).toBe('sent');
   });
 
