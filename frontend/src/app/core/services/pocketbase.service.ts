@@ -135,8 +135,7 @@ export class PocketBaseService {
     const profile = await this.pb
       .collection<CvProfile>('cv_profiles')
       .getFirstListItem(`id="${profileId}" && user="${currentUserId}"`, {
-      sort: '-updated_at',
-      expand: this.cvProfileExpand,
+        expand: this.cvProfileExpand,
       });
 
     return this.normalizeCvProfile(profile);
