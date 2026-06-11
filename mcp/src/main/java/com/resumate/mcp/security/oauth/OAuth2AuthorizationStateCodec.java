@@ -35,6 +35,14 @@ public final class OAuth2AuthorizationStateCodec {
     }
 
     public static OAuth2Authorization fromState(Map<String, Object> state, RegisteredClient registeredClient) {
+        return fromState(state, registeredClient, Map.of());
+    }
+
+    public static OAuth2Authorization fromState(
+            Map<String, Object> state,
+            RegisteredClient registeredClient,
+            Map<String, String> tokenValues
+    ) {
         OAuth2Authorization.Builder builder = OAuth2Authorization.withRegisteredClient(registeredClient)
                 .id(requiredString(state, "id"))
                 .principalName(requiredString(state, "principalName"))
@@ -45,7 +53,7 @@ public final class OAuth2AuthorizationStateCodec {
         Map<String, Object> authorizationCode = objectMap(state.get("authorizationCode"));
         if (!authorizationCode.isEmpty()) {
             builder.token(new OAuth2AuthorizationCode(
-                    requiredString(authorizationCode, "value"),
+                    tokenValue("authorizationCode", tokenValues),
                     instant(authorizationCode.get("issuedAt")),
                     instant(authorizationCode.get("expiresAt"))
             ), (metadata) -> metadata.putAll(objectMap(authorizationCode.get("metadata"))));
@@ -55,7 +63,7 @@ public final class OAuth2AuthorizationStateCodec {
         if (!accessToken.isEmpty()) {
             builder.token(new OAuth2AccessToken(
                     OAuth2AccessToken.TokenType.BEARER,
-                    requiredString(accessToken, "value"),
+                    tokenValue("accessToken", tokenValues),
                     instant(accessToken.get("issuedAt")),
                     instant(accessToken.get("expiresAt")),
                     stringSet(accessToken.get("scopes"))
@@ -65,7 +73,7 @@ public final class OAuth2AuthorizationStateCodec {
         Map<String, Object> refreshToken = objectMap(state.get("refreshToken"));
         if (!refreshToken.isEmpty()) {
             builder.token(new OAuth2RefreshToken(
-                    requiredString(refreshToken, "value"),
+                    tokenValue("refreshToken", tokenValues),
                     instant(refreshToken.get("issuedAt")),
                     instant(refreshToken.get("expiresAt"))
             ), (metadata) -> metadata.putAll(objectMap(refreshToken.get("metadata"))));
@@ -79,7 +87,6 @@ public final class OAuth2AuthorizationStateCodec {
             return;
         }
         Map<String, Object> tokenState = new LinkedHashMap<>();
-        tokenState.put("value", token.getToken().getTokenValue());
         tokenState.put("issuedAt", string(token.getToken().getIssuedAt()));
         tokenState.put("expiresAt", string(token.getToken().getExpiresAt()));
         if (token.getToken() instanceof OAuth2AccessToken accessToken) {
@@ -91,6 +98,14 @@ public final class OAuth2AuthorizationStateCodec {
 
     private static String string(Instant instant) {
         return instant == null ? null : instant.toString();
+    }
+
+    private static String tokenValue(String tokenKey, Map<String, String> tokenValues) {
+        String value = tokenValues.get(tokenKey);
+        if (value != null && !value.isBlank()) {
+            return value;
+        }
+        return "redacted-" + tokenKey;
     }
 
     private static Instant instant(Object value) {

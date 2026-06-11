@@ -45,9 +45,21 @@ class OAuth2AuthorizationJsonRoundTripTest {
 
         Map<String, Object> state = OAuth2AuthorizationStateCodec.toState(authorization);
         String storedJson = pocketBaseJsonMapper.writeValueAsString(state);
+        assertThat(storedJson).doesNotContain("auth-code-value");
+        assertThat(storedJson).doesNotContain("access-token-value");
+        assertThat(storedJson).doesNotContain("refresh-token-value");
+
         Map<String, Object> pocketBaseState = pocketBaseJsonMapper.readValue(storedJson, new TypeReference<>() {
         });
-        OAuth2Authorization restored = OAuth2AuthorizationStateCodec.fromState(pocketBaseState, registeredClient());
+        OAuth2Authorization restored = OAuth2AuthorizationStateCodec.fromState(
+                pocketBaseState,
+                registeredClient(),
+                Map.of(
+                        "authorizationCode", "auth-code-value",
+                        "accessToken", "access-token-value",
+                        "refreshToken", "refresh-token-value"
+                )
+        );
 
         assertThat(restored.getId()).isEqualTo(authorization.getId());
         assertThat(restored.getRegisteredClientId()).isEqualTo("registered-client-id");
