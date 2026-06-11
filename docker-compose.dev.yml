@@ -9,8 +9,8 @@ services:
       TZ: UTC
       PB_HOST: 0.0.0.0
       PB_PORT: ${POCKETBASE_INTERNAL_PORT:-8090}
-      PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL:-admin@cv-generator.local}
-      PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD:-changeme123!}
+      PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL:?PB_ADMIN_EMAIL is required}
+      PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD:?PB_ADMIN_PASSWORD is required}
     volumes:
       - ./pb_data:/pb_data
       - ./pb_migrations:/pb_migrations
