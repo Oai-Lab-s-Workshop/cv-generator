@@ -101,6 +101,17 @@ public class PocketBaseClient {
         return response.items().stream().findFirst();
     }
 
+    public Optional<OAuthClientRecord> findOAuthClientByRecordId(String recordId) {
+        try {
+            return Optional.ofNullable(getRecordById("oauth_clients", recordId, OAuthClientRecord.class));
+        } catch (RestClientResponseException ex) {
+            if (ex.getStatusCode().is4xxClientError()) {
+                return Optional.empty();
+            }
+            throw ex;
+        }
+    }
+
     public OAuthClientRecord updateOAuthClient(String recordId, OAuthClientPayload payload) {
         OAuthClientRecord updated = patchCollectionRecord("oauth_clients", recordId, oauthClientBody(payload), OAuthClientRecord.class);
         return Objects.requireNonNull(updated, "PocketBase oauth_clients update payload is required.");
@@ -125,6 +136,30 @@ public class PocketBaseClient {
 
     public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByRefreshToken(String rawRefreshToken) {
         return findOAuthAuthorizationByHash("refresh_token_hash", sha256Hex(rawRefreshToken));
+    }
+
+    public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByAccessTokenJti(String accessTokenJti) {
+        return findOAuthAuthorizationByField("access_token_jti", accessTokenJti);
+    }
+
+    public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByStateId(String authorizationId) {
+        return findOAuthAuthorizationByField("state.id", authorizationId);
+    }
+
+    public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByClientAndUser(String clientId, String userId) {
+        RecordListResponse<OAuthAuthorizationRecord> response = getCollectionRecords(
+                "oauth_authorizations",
+                String.format(
+                        "client_id=\"%s\" && user=\"%s\"",
+                        escapeFilterValue(clientId),
+                        escapeFilterValue(userId)
+                ),
+                1,
+                new ParameterizedTypeReference<>() {
+                }
+        );
+
+        return response.items().stream().findFirst();
     }
 
     public OAuthAuthorizationRecord updateOAuthAuthorization(String recordId, OAuthAuthorizationPayload payload) {
@@ -298,11 +333,15 @@ public class PocketBaseClient {
     }
 
     private OwnedRecord getRecordById(String collectionName, String recordId) {
+        return getRecordById(collectionName, recordId, OwnedRecord.class);
+    }
+
+    private <T> T getRecordById(String collectionName, String recordId, Class<T> responseType) {
         return restClient.get()
                 .uri("/api/collections/{collectionName}/records/{recordId}", collectionName, recordId)
                 .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
                 .retrieve()
-                .body(OwnedRecord.class);
+                .body(responseType);
     }
 
     private <T> T postCollectionRecord(String collectionName, Map<String, Object> body, Class<T> responseType) {
@@ -334,9 +373,13 @@ public class PocketBaseClient {
     }
 
     private Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByHash(String fieldName, String hash) {
+        return findOAuthAuthorizationByField(fieldName, hash);
+    }
+
+    private Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByField(String fieldName, String value) {
         RecordListResponse<OAuthAuthorizationRecord> response = getCollectionRecords(
                 "oauth_authorizations",
-                String.format("%s=\"%s\"", fieldName, hash),
+                String.format("%s=\"%s\"", fieldName, escapeFilterValue(value)),
                 1,
                 new ParameterizedTypeReference<>() {
                 }
