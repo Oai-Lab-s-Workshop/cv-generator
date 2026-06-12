@@ -2,6 +2,7 @@ package com.resumate.mcp.tool;
 
 import com.resumate.mcp.config.FrontendProperties;
 import com.resumate.mcp.security.AiTokenPrincipal;
+import com.resumate.mcp.security.McpPrincipal;
 import com.resumate.mcp.service.PocketBaseClient;
 import com.resumate.mcp.service.PocketBaseClient.CreateProfilePayload;
 import com.resumate.mcp.service.PocketBaseClient.CreatedProfileRecord;
@@ -42,12 +43,14 @@ public class CvMcpTools {
 
     @Tool(description = "Return the MCP API key identity currently authenticated for this session, including the resolved PocketBase user id. Use this only when you need to verify which user/API key context is active before using the Resumate resume tools.")
     public AuthenticatedPrincipalResponse whoAmI() {
-        AiTokenPrincipal principal = currentPrincipal();
+        McpPrincipal principal = currentPrincipal();
+        AiTokenPrincipal aiTokenPrincipal = principal instanceof AiTokenPrincipal apiKeyPrincipal ? apiKeyPrincipal : null;
         return new AuthenticatedPrincipalResponse(
-                principal.tokenId(),
+                aiTokenPrincipal == null ? null : aiTokenPrincipal.tokenId(),
                 principal.userId(),
                 principal.label(),
-                principal.tokenPrefix()
+                aiTokenPrincipal == null ? null : aiTokenPrincipal.tokenPrefix(),
+                principal.authSource()
         );
     }
 
@@ -58,7 +61,7 @@ public class CvMcpTools {
 
     @Tool(description = RESUMATE_MCP_PURPOSE + " Use this final step when the user asks to create, craft, tailor, adapt, optimize, or customize a resume for a role. " + CREATE_PROFILE_WORKFLOW + " Always include a non-empty label; the server does not generate it. Choose a concise saved-resume label such as 'Acme - Senior Backend Engineer'. If validation fails, fix the missing or invalid field and retry instead of repeating the same invalid call.")
     public CreateTailoredCvProfileResponse createTailoredCvProfile(CreateTailoredCvProfileRequest request) {
-        AiTokenPrincipal principal = currentPrincipal();
+        McpPrincipal principal = currentPrincipal();
         if (request == null) {
             throw new IllegalArgumentException("createTailoredCvProfile request is required. Retry createTailoredCvProfile with label, templateId, professionalSummary, selected record id arrays, and any supported templateExtra fields.");
         }
@@ -201,10 +204,10 @@ public class CvMcpTools {
         return ids;
     }
 
-    private AiTokenPrincipal currentPrincipal() {
+    private McpPrincipal currentPrincipal() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof AiTokenPrincipal principal)) {
-            throw new IllegalStateException("Authenticated API key principal is required.");
+        if (authentication == null || !(authentication.getPrincipal() instanceof McpPrincipal principal)) {
+            throw new IllegalStateException("Authenticated MCP principal is required.");
         }
 
         return principal;
@@ -225,7 +228,8 @@ public class CvMcpTools {
             String tokenId,
             String userId,
             String label,
-            String tokenPrefix
+            String tokenPrefix,
+            String authSource
     ) {
     }
 
