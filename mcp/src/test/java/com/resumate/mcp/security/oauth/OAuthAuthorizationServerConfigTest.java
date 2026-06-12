@@ -25,6 +25,10 @@ class OAuthAuthorizationServerConfigTest {
         AuthorizationServerSettings settings = config.authorizationServerSettings(properties("https://mcp.example.test/", TEST_JWK));
 
         assertThat(settings.getIssuer()).isEqualTo("https://mcp.example.test");
+        assertThat(settings.getAuthorizationEndpoint()).isEqualTo("/oauth/authorize");
+        assertThat(settings.getTokenEndpoint()).isEqualTo("/oauth/token");
+        assertThat(settings.getClientRegistrationEndpoint()).isEqualTo("/oauth/register");
+        assertThat(settings.getJwkSetEndpoint()).isEqualTo("/oauth/jwks");
     }
 
     @Test

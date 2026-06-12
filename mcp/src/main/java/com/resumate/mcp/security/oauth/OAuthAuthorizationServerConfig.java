@@ -54,7 +54,10 @@ public class OAuthAuthorizationServerConfig {
 
         return http
                 .securityMatcher(endpointsMatcher)
-                .authorizeHttpRequests((requests) -> requests.anyRequest().authenticated())
+                .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("/.well-known/oauth-authorization-server").permitAll()
+                        .anyRequest().authenticated()
+                )
                 .csrf((csrf) -> csrf.ignoringRequestMatchers(endpointsMatcher))
                 .with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
                         .registeredClientRepository(registeredClientRepository)
@@ -62,6 +65,11 @@ public class OAuthAuthorizationServerConfig {
                         .authorizationConsentService(authorizationConsentService)
                         .authorizationServerSettings(authorizationServerSettings)
                         .tokenGenerator(tokenGenerator)
+                        .authorizationServerMetadataEndpoint((metadata) -> metadata.authorizationServerMetadataCustomizer(
+                                (builder) -> builder.clientRegistrationEndpoint(
+                                        authorizationServerSettings.getIssuer() + authorizationServerSettings.getClientRegistrationEndpoint()
+                                )
+                        ))
                 )
                 .build();
     }
@@ -70,6 +78,10 @@ public class OAuthAuthorizationServerConfig {
     AuthorizationServerSettings authorizationServerSettings(OAuthProperties properties) {
         return AuthorizationServerSettings.builder()
                 .issuer(normalizedIssuer(properties.publicBaseUrl()))
+                .authorizationEndpoint("/oauth/authorize")
+                .tokenEndpoint("/oauth/token")
+                .clientRegistrationEndpoint("/oauth/register")
+                .jwkSetEndpoint("/oauth/jwks")
                 .build();
     }
 
