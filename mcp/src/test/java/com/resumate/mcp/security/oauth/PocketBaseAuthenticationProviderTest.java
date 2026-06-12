@@ -2,20 +2,33 @@ package com.resumate.mcp.security.oauth;
 
 import com.resumate.mcp.service.PocketBaseClient;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class PocketBaseAuthenticationProviderTest {
 
     private final PocketBaseClient pocketBaseClient = mock(PocketBaseClient.class);
-    private final PocketBaseAuthenticationProvider provider = new PocketBaseAuthenticationProvider(pocketBaseClient);
+    private final OAuthLoginAbuseProtection abuseProtection = new OAuthLoginAbuseProtection(Clock.fixed(
+            Instant.parse("2026-06-12T18:00:00Z"),
+            ZoneOffset.UTC
+    ));
+    private final PocketBaseAuthenticationProvider provider = new PocketBaseAuthenticationProvider(pocketBaseClient, abuseProtection);
 
     @Test
     void authenticate_returnsPrincipalWithPocketBaseUserId() {
@@ -31,9 +44,10 @@ class PocketBaseAuthenticationProviderTest {
                         null
                 )));
 
-        var authentication = provider.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
+        var authentication = provider.authenticate(authentication(
                 "user@example.com",
-                "secret-password"
+                "secret-password",
+                "203.0.113.10"
         ));
 
         assertThat(authentication.isAuthenticated()).isTrue();
@@ -53,23 +67,96 @@ class PocketBaseAuthenticationProviderTest {
         when(pocketBaseClient.authenticateUser("unknown@example.com", "wrong-password"))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> provider.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
+        BadCredentialsException wrongPassword = (BadCredentialsException) catchThrowableOfType(
+                () -> provider.authenticate(authentication(
                 "user@example.com",
-                "wrong-password"
+                "wrong-password",
+                "203.0.113.10"
+        )), BadCredentialsException.class);
+
+        BadCredentialsException unknownUser = (BadCredentialsException) catchThrowableOfType(
+                () -> provider.authenticate(authentication(
+                "unknown@example.com",
+                "wrong-password",
+                "203.0.113.11"
+        )), BadCredentialsException.class);
+
+        assertThat(wrongPassword).hasMessage(PocketBaseAuthenticationProvider.GENERIC_LOGIN_FAILURE);
+        assertThat(unknownUser).hasMessage(PocketBaseAuthenticationProvider.GENERIC_LOGIN_FAILURE);
+        assertThat(wrongPassword.getClass()).isEqualTo(unknownUser.getClass());
+    }
+
+    @Test
+    void authenticate_throttlesAfterRepeatedFailuresForIdentity() {
+        when(pocketBaseClient.authenticateUser("USER@example.com", "wrong-password"))
+                .thenReturn(Optional.empty());
+
+        for (int i = 0; i < OAuthLoginAbuseProtection.MAX_FAILED_ATTEMPTS; i++) {
+            assertThatThrownBy(() -> provider.authenticate(authentication(
+                    "USER@example.com ",
+                    "wrong-password",
+                    "203.0.113.10"
+            )))
+                    .isInstanceOf(BadCredentialsException.class)
+                    .hasMessage(PocketBaseAuthenticationProvider.GENERIC_LOGIN_FAILURE);
+        }
+
+        assertThatThrownBy(() -> provider.authenticate(authentication(
+                "user@example.com",
+                "wrong-password",
+                "203.0.113.20"
         )))
                 .isInstanceOf(BadCredentialsException.class)
                 .hasMessage(PocketBaseAuthenticationProvider.GENERIC_LOGIN_FAILURE);
 
-        assertThatThrownBy(() -> provider.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
-                "unknown@example.com",
-                "wrong-password"
+        verify(pocketBaseClient, times(OAuthLoginAbuseProtection.MAX_FAILED_ATTEMPTS))
+                .authenticateUser("USER@example.com", "wrong-password");
+        verifyNoMoreInteractions(pocketBaseClient);
+    }
+
+    @Test
+    void authenticate_throttlesAfterRepeatedFailuresForIp() {
+        when(pocketBaseClient.authenticateUser("user-0@example.com", "wrong-password")).thenReturn(Optional.empty());
+        when(pocketBaseClient.authenticateUser("user-1@example.com", "wrong-password")).thenReturn(Optional.empty());
+        when(pocketBaseClient.authenticateUser("user-2@example.com", "wrong-password")).thenReturn(Optional.empty());
+        when(pocketBaseClient.authenticateUser("user-3@example.com", "wrong-password")).thenReturn(Optional.empty());
+        when(pocketBaseClient.authenticateUser("user-4@example.com", "wrong-password")).thenReturn(Optional.empty());
+
+        for (int i = 0; i < OAuthLoginAbuseProtection.MAX_FAILED_ATTEMPTS; i++) {
+            String identity = "user-" + i + "@example.com";
+            assertThatThrownBy(() -> provider.authenticate(authentication(
+                    identity,
+                    "wrong-password",
+                    "203.0.113.10"
+            )))
+                    .isInstanceOf(BadCredentialsException.class)
+                    .hasMessage(PocketBaseAuthenticationProvider.GENERIC_LOGIN_FAILURE);
+        }
+
+        assertThatThrownBy(() -> provider.authenticate(authentication(
+                "other@example.com",
+                "wrong-password",
+                "203.0.113.10"
         )))
                 .isInstanceOf(BadCredentialsException.class)
                 .hasMessage(PocketBaseAuthenticationProvider.GENERIC_LOGIN_FAILURE);
+
+        for (int i = 0; i < OAuthLoginAbuseProtection.MAX_FAILED_ATTEMPTS; i++) {
+            verify(pocketBaseClient).authenticateUser("user-" + i + "@example.com", "wrong-password");
+        }
+        verifyNoMoreInteractions(pocketBaseClient);
     }
 
     @Test
     void supportsUsernamePasswordAuthentication() {
         assertThat(provider.supports(UsernamePasswordAuthenticationToken.class)).isTrue();
+    }
+
+    private static UsernamePasswordAuthenticationToken authentication(String identity, String password, String remoteAddress) {
+        UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.unauthenticated(identity, password);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr(remoteAddress);
+        authentication.setDetails(new WebAuthenticationDetails(request));
+        return authentication;
     }
 }

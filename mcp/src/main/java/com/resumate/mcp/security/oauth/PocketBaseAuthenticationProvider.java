@@ -6,6 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -17,21 +18,31 @@ public class PocketBaseAuthenticationProvider implements AuthenticationProvider 
     static final String GENERIC_LOGIN_FAILURE = "Invalid email or password.";
 
     private final PocketBaseClient pocketBaseClient;
+    private final OAuthLoginAbuseProtection abuseProtection;
 
-    public PocketBaseAuthenticationProvider(PocketBaseClient pocketBaseClient) {
+    public PocketBaseAuthenticationProvider(PocketBaseClient pocketBaseClient, OAuthLoginAbuseProtection abuseProtection) {
         this.pocketBaseClient = pocketBaseClient;
+        this.abuseProtection = abuseProtection;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String identity = authentication.getName();
         String password = authentication.getCredentials() == null ? null : authentication.getCredentials().toString();
+        String remoteAddress = remoteAddress(authentication);
         if (!StringUtils.hasText(identity) || !StringUtils.hasText(password)) {
+            abuseProtection.recordFailure(remoteAddress, identity, "missing_credentials");
+            throw genericFailure();
+        }
+        String loginIdentity = identity.trim();
+        if (!abuseProtection.isAllowed(remoteAddress, loginIdentity)) {
+            abuseProtection.recordThrottled(remoteAddress, loginIdentity);
             throw genericFailure();
         }
 
-        return pocketBaseClient.authenticateUser(identity, password)
+        return pocketBaseClient.authenticateUser(loginIdentity, password)
                 .map((user) -> {
+                    abuseProtection.recordSuccess(remoteAddress, loginIdentity, user.id());
                     PocketBaseOAuthPrincipal principal = new PocketBaseOAuthPrincipal(
                             user.id(),
                             user.email(),
@@ -39,7 +50,10 @@ public class PocketBaseAuthenticationProvider implements AuthenticationProvider 
                     );
                     return new UsernamePasswordAuthenticationToken(principal, null, List.of());
                 })
-                .orElseThrow(PocketBaseAuthenticationProvider::genericFailure);
+                .orElseThrow(() -> {
+                    abuseProtection.recordFailure(remoteAddress, loginIdentity, "invalid_credentials");
+                    return genericFailure();
+                });
     }
 
     @Override
@@ -49,6 +63,13 @@ public class PocketBaseAuthenticationProvider implements AuthenticationProvider 
 
     private static BadCredentialsException genericFailure() {
         return new BadCredentialsException(GENERIC_LOGIN_FAILURE);
+    }
+
+    private static String remoteAddress(Authentication authentication) {
+        if (authentication.getDetails() instanceof WebAuthenticationDetails details) {
+            return details.getRemoteAddress();
+        }
+        return "unknown";
     }
 
     private static String displayName(PocketBaseClient.UserRecord user) {
