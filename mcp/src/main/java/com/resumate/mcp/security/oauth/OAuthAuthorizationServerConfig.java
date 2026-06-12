@@ -29,16 +29,18 @@ import org.springframework.security.oauth2.server.authorization.settings.OAuth2T
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 
-import java.net.URI;
 import java.text.ParseException;
 import java.time.Duration;
+import java.util.List;
 
 @Configuration
 public class OAuthAuthorizationServerConfig {
@@ -155,7 +157,7 @@ public class OAuthAuthorizationServerConfig {
     @Bean
     AuthorizationServerSettings authorizationServerSettings(OAuthProperties properties) {
         return AuthorizationServerSettings.builder()
-                .issuer(normalizedIssuer(properties.publicBaseUrl()))
+                .issuer(OAuthEndpointUrls.normalizedIssuer(properties.publicBaseUrl()))
                 .authorizationEndpoint("/oauth/authorize")
                 .tokenEndpoint("/oauth/token")
                 .clientRegistrationEndpoint("/oauth/register")
@@ -185,8 +187,12 @@ public class OAuthAuthorizationServerConfig {
     }
 
     @Bean
-    OAuth2TokenGenerator<? extends OAuth2Token> oauthTokenGenerator(JWKSource<SecurityContext> jwkSource) {
+    OAuth2TokenGenerator<? extends OAuth2Token> oauthTokenGenerator(
+            JWKSource<SecurityContext> jwkSource,
+            AuthorizationServerSettings authorizationServerSettings
+    ) {
         JwtGenerator jwtGenerator = new JwtGenerator(new NimbusJwtEncoder(jwkSource));
+        jwtGenerator.setJwtCustomizer(oauthJwtCustomizer(authorizationServerSettings));
         return new DelegatingOAuth2TokenGenerator(
                 jwtGenerator,
                 new OAuth2AccessTokenGenerator(),
@@ -194,21 +200,17 @@ public class OAuthAuthorizationServerConfig {
         );
     }
 
-    private static String normalizedIssuer(String publicBaseUrl) {
-        if (!StringUtils.hasText(publicBaseUrl)) {
-            throw new IllegalStateException("MCP_PUBLIC_BASE_URL is required for OAuth authorization server startup.");
-        }
-
-        URI uri = URI.create(publicBaseUrl.trim());
-        if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) {
-            throw new IllegalStateException("MCP_PUBLIC_BASE_URL must be an absolute HTTPS URL.");
-        }
-        if (StringUtils.hasText(uri.getQuery()) || StringUtils.hasText(uri.getFragment())) {
-            throw new IllegalStateException("MCP_PUBLIC_BASE_URL must not include query parameters or fragments.");
-        }
-
-        String issuer = uri.toString();
-        return issuer.endsWith("/") ? issuer.substring(0, issuer.length() - 1) : issuer;
+    private static OAuth2TokenCustomizer<JwtEncodingContext> oauthJwtCustomizer(AuthorizationServerSettings authorizationServerSettings) {
+        return (context) -> {
+            if (!"access_token".equals(context.getTokenType().getValue())) {
+                return;
+            }
+            String issuer = authorizationServerSettings.getIssuer();
+            context.getClaims()
+                    .audience(List.of(issuer + "/mcp"))
+                    .claim("client_id", context.getRegisteredClient().getClientId())
+                    .claim("client_name", context.getRegisteredClient().getClientName());
+        };
     }
 
     private static RSAKey parsePrivateRsaJwk(String jwk) {
