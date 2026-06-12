@@ -84,6 +84,30 @@ public class PocketBaseClient {
         return response.items().stream().findFirst();
     }
 
+    public Optional<UserRecord> authenticateUser(String identity, String password) {
+        try {
+            AuthResponse response = restClient.post()
+                    .uri("/api/collections/users/auth-with-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of(
+                            "identity", identity,
+                            "password", password
+                    ))
+                    .retrieve()
+                    .body(AuthResponse.class);
+
+            if (response == null || response.record() == null || !StringUtils.hasText(response.record().id())) {
+                return Optional.empty();
+            }
+            return Optional.of(response.record());
+        } catch (RestClientResponseException ex) {
+            if (ex.getStatusCode().is4xxClientError()) {
+                return Optional.empty();
+            }
+            throw ex;
+        }
+    }
+
     public OAuthClientRecord createOAuthClient(OAuthClientPayload payload) {
         OAuthClientRecord created = postCollectionRecord("oauth_clients", oauthClientBody(payload), OAuthClientRecord.class);
         return Objects.requireNonNull(created, "PocketBase oauth_clients create payload is required.");
@@ -590,7 +614,7 @@ public class PocketBaseClient {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record AuthResponse(String token) {
+    public record AuthResponse(String token, UserRecord record) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

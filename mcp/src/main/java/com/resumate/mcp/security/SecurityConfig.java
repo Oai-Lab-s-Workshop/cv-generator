@@ -27,7 +27,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(3)
+    @Order(4)
     SecurityFilterChain localEndpointsSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)

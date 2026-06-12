@@ -12,13 +12,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
@@ -100,5 +104,60 @@ class OAuthMetadataIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.client_name").value("claude.ai"))
                 .andExpect(jsonPath("$.redirect_uris[0]").value("https://claude.ai/api/mcp/auth_callback"));
+    }
+
+    @Test
+    void loginPage_isPublicServerRenderedHtmlWithCsrfToken() throws Exception {
+        mockMvc.perform(get("/login"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Sign in")))
+                .andExpect(content().string(containsString("name=\"_csrf\"")))
+                .andExpect(content().string(containsString("name=\"username\"")))
+                .andExpect(content().string(containsString("action=\"/login\"")));
+    }
+
+    @Test
+    void consentPage_requiresAuthentication() throws Exception {
+        mockMvc.perform(get("/oauth/consent")
+                        .param("client_id", "client-id")
+                        .param("scope", "mcp")
+                        .param("state", "state-value"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void consentPage_rendersMcpPermissionForAuthenticatedUser() throws Exception {
+        when(pocketBaseClient.findOAuthClientByClientId("client-id"))
+                .thenReturn(Optional.of(oauthClientRecord()));
+        when(pocketBaseClient.findOAuthClientByRecordId("pb-client-record"))
+                .thenReturn(Optional.of(oauthClientRecord()));
+        when(pocketBaseClient.findOAuthAuthorizationByClientAndUser("client-id", "pb-user-id"))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/oauth/consent")
+                        .param("client_id", "client-id")
+                        .param("scope", "mcp")
+                        .param("state", "state-value")
+                        .with(user("pb-user-id")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Authorize access")))
+                .andExpect(content().string(containsString("Read your profile material")))
+                .andExpect(content().string(containsString("name=\"scope\" value=\"mcp\"")))
+                .andExpect(content().string(containsString("name=\"_csrf\"")));
+    }
+
+    private static PocketBaseClient.OAuthClientRecord oauthClientRecord() {
+        return new PocketBaseClient.OAuthClientRecord(
+                "pb-client-record",
+                "client-id",
+                null,
+                "claude.ai",
+                List.of("https://claude.ai/api/mcp/auth_callback"),
+                List.of("authorization_code", "refresh_token"),
+                List.of("mcp"),
+                Map.of(),
+                null
+        );
     }
 }

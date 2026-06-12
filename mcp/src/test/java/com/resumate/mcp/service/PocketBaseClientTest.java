@@ -118,6 +118,43 @@ class PocketBaseClientTest {
     }
 
     @Test
+    void authenticateUser_returnsUserRecord() throws InterruptedException {
+        enqueueJsonResponse("""
+                {
+                  "token": "user-token",
+                  "record": {
+                    "id": "userId",
+                    "email": "user@example.com",
+                    "firstName": "Alex",
+                    "lastName": "Morgan"
+                  }
+                }
+                """);
+
+        Optional<PocketBaseClient.UserRecord> result = client.authenticateUser("user@example.com", "secret-password");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().id()).isEqualTo("userId");
+        assertThat(result.get().email()).isEqualTo("user@example.com");
+
+        RecordedRequest authRequest = mockWebServer.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/api/collections/users/auth-with-password");
+        assertThat(authRequest.getBody().readUtf8()).contains("user@example.com", "secret-password");
+    }
+
+    @Test
+    void authenticateUser_returnsEmptyForPocketBaseCredentialFailure() {
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(400)
+                .setBody("{\"message\":\"Failed to authenticate.\"}")
+                .setHeader("Content-Type", "application/json"));
+
+        Optional<PocketBaseClient.UserRecord> result = client.authenticateUser("unknown@example.com", "wrong-password");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void loadProfileMaterial_returnsBundle() {
         enqueueAuthResponse();
         enqueueJsonResponse("""

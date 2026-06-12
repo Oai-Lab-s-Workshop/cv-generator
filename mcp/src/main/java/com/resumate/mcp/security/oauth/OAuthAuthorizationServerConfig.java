@@ -14,8 +14,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
@@ -43,6 +45,41 @@ public class OAuthAuthorizationServerConfig {
 
     @Bean
     @Order(2)
+    SecurityFilterChain oauthAuthorizeSecurityFilterChain(
+            HttpSecurity http,
+            RegisteredClientRepository registeredClientRepository,
+            OAuth2AuthorizationService authorizationService,
+            OAuth2AuthorizationConsentService authorizationConsentService,
+            AuthorizationServerSettings authorizationServerSettings,
+            OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator
+    ) throws Exception {
+        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
+
+        return http
+                .securityMatcher("/oauth/authorize", "/oauth/consent", "/login")
+                .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("/login").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement((sessions) -> sessions.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .formLogin((formLogin) -> formLogin
+                        .loginPage("/login")
+                        .failureUrl("/login?error")
+                        .permitAll()
+                )
+                .with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
+                        .registeredClientRepository(registeredClientRepository)
+                        .authorizationService(authorizationService)
+                        .authorizationConsentService(authorizationConsentService)
+                        .authorizationServerSettings(authorizationServerSettings)
+                        .tokenGenerator(tokenGenerator)
+                        .authorizationEndpoint((authorizationEndpoint) -> authorizationEndpoint.consentPage("/oauth/consent"))
+                )
+                .build();
+    }
+
+    @Bean
+    @Order(3)
     SecurityFilterChain authorizationServerSecurityFilterChain(
             HttpSecurity http,
             RegisteredClientRepository registeredClientRepository,
@@ -71,6 +108,7 @@ public class OAuthAuthorizationServerConfig {
                         .requestMatchers("/oauth/register").permitAll()
                         .anyRequest().authenticated()
                 )
+                .formLogin(AbstractHttpConfigurer::disable)
                 .csrf((csrf) -> csrf.ignoringRequestMatchers(endpointsMatcher))
                 .with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
                         .registeredClientRepository(registeredClientRepository)
