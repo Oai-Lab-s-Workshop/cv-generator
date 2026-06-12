@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.server.authorization.settings.OAuth2T
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 
 import java.time.Duration;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -66,7 +67,8 @@ class OAuthAuthorizationServerConfigTest {
                 "https://mcp.example.test",
                 TEST_JWK,
                 null,
-                Duration.ofDays(30)
+                Duration.ofDays(30),
+                List.of("https://claude.ai/*")
         ));
 
         assertThat(settings.getAccessTokenFormat()).isEqualTo(OAuth2TokenFormat.SELF_CONTAINED);
@@ -76,6 +78,6 @@ class OAuthAuthorizationServerConfigTest {
     }
 
     private static OAuthProperties properties(String publicBaseUrl, String jwk) {
-        return new OAuthProperties(publicBaseUrl, jwk, Duration.ofHours(1), Duration.ofDays(90));
+        return new OAuthProperties(publicBaseUrl, jwk, Duration.ofHours(1), Duration.ofDays(90), List.of("https://claude.ai/*"));
     }
 }

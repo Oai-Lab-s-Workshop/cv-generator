@@ -101,6 +101,21 @@ public class PocketBaseClient {
         return response.items().stream().findFirst();
     }
 
+    public Optional<OAuthClientRecord> findOAuthClientByClientNameAndRedirectUris(String clientName, List<String> redirectUris) {
+        RecordListResponse<OAuthClientRecord> response = getCollectionRecords(
+                "oauth_clients",
+                String.format("client_name=\"%s\"", escapeFilterValue(clientName)),
+                100,
+                new ParameterizedTypeReference<>() {
+                }
+        );
+
+        List<String> expectedRedirectUris = defaultList(redirectUris);
+        return response.items().stream()
+                .filter((record) -> defaultList(record.redirectUris()).equals(expectedRedirectUris))
+                .findFirst();
+    }
+
     public Optional<OAuthClientRecord> findOAuthClientByRecordId(String recordId) {
         try {
             return Optional.ofNullable(getRecordById("oauth_clients", recordId, OAuthClientRecord.class));

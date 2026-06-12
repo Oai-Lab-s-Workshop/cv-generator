@@ -8,6 +8,8 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.resumate.mcp.config.OAuthProperties;
+import com.resumate.mcp.service.PocketBaseClient;
+import org.springframework.security.oauth2.server.authorization.authentication.OAuth2ClientRegistrationAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -47,15 +49,26 @@ public class OAuthAuthorizationServerConfig {
             OAuth2AuthorizationService authorizationService,
             OAuth2AuthorizationConsentService authorizationConsentService,
             AuthorizationServerSettings authorizationServerSettings,
-            OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator
+            OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
+            PocketBaseClient pocketBaseClient,
+            OAuthProperties properties,
+            TokenSettings tokenSettings
     ) throws Exception {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
         RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
+        OAuth2ClientRegistrationAuthenticationProvider clientRegistrationAuthenticationProvider = clientRegistrationAuthenticationProvider(
+                registeredClientRepository,
+                authorizationService,
+                pocketBaseClient,
+                properties,
+                tokenSettings
+        );
 
         return http
                 .securityMatcher(endpointsMatcher)
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/.well-known/oauth-authorization-server").permitAll()
+                        .requestMatchers("/oauth/register").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf((csrf) -> csrf.ignoringRequestMatchers(endpointsMatcher))
@@ -70,8 +83,35 @@ public class OAuthAuthorizationServerConfig {
                                         authorizationServerSettings.getIssuer() + authorizationServerSettings.getClientRegistrationEndpoint()
                                 )
                         ))
+                        .clientRegistrationEndpoint((clientRegistration) -> clientRegistration
+                                .openRegistrationAllowed(true)
+                                .authenticationProviders((providers) -> {
+                                    providers.clear();
+                                    providers.add(clientRegistrationAuthenticationProvider);
+                                })
+                        )
                 )
                 .build();
+    }
+
+    private OAuth2ClientRegistrationAuthenticationProvider clientRegistrationAuthenticationProvider(
+            RegisteredClientRepository registeredClientRepository,
+            OAuth2AuthorizationService authorizationService,
+            PocketBaseClient pocketBaseClient,
+            OAuthProperties properties,
+            TokenSettings tokenSettings
+    ) {
+        OAuth2ClientRegistrationAuthenticationProvider provider = new OAuth2ClientRegistrationAuthenticationProvider(
+                registeredClientRepository,
+                authorizationService
+        );
+        provider.setOpenRegistrationAllowed(true);
+        provider.setRegisteredClientConverter(new AllowedRedirectUriRegisteredClientConverter(
+                pocketBaseClient,
+                properties,
+                tokenSettings
+        ));
+        return provider;
     }
 
     @Bean
