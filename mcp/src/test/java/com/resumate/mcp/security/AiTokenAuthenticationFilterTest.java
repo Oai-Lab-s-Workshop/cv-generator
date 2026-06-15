@@ -124,6 +124,34 @@ class AiTokenAuthenticationFilterTest {
     }
 
     @Test
+    void sendsUnauthorized_whenBearerSignatureIsInvalid() throws ServletException, IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer bad-signature-token");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        when(jwtDecoder.decode("bad-signature-token")).thenThrow(new JwtException("Invalid signature"));
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+        assertThat(response.getErrorMessage()).isEqualTo("Invalid bearer token.");
+        verify(filterChain, never()).doFilter(any(), any());
+    }
+
+    @Test
+    void sendsUnauthorized_whenBearerTokenIsExpired() throws ServletException, IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer expired-token");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        when(jwtDecoder.decode("expired-token")).thenThrow(new JwtException("Jwt expired"));
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+        assertThat(response.getErrorMessage()).isEqualTo("Invalid bearer token.");
+        verify(filterChain, never()).doFilter(any(), any());
+    }
+
+    @Test
     void setsAuthenticationAndContinuesFilterChain_onValidApiKey() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("API_KEY", "valid-token");
