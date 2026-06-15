@@ -69,7 +69,7 @@ public class PocketBaseRegisteredClientRepository implements RegisteredClientRep
         RegisteredClient.Builder builder = RegisteredClient.withId(record.id())
                 .clientId(record.clientId())
                 .clientName(record.clientName())
-                .clientSettings(ClientSettings.builder().requireProofKey(true).build())
+                .clientSettings(ClientSettings.builder().requireProofKey(true).requireAuthorizationConsent(true).build())
                 .tokenSettings(TokenSettings.withSettings(deserializeSettings(record.tokenSettings())).build());
 
         if (record.clientSecretHash() != null && !record.clientSecretHash().isBlank()) {
@@ -102,13 +102,13 @@ public class PocketBaseRegisteredClientRepository implements RegisteredClientRep
     }
 
     private static Map<String, Object> deserializeSettings(Map<String, Object> settings) {
+        Map<String, Object> deserialized = new LinkedHashMap<>(TokenSettings.builder().build().getSettings());
         if (settings == null || settings.isEmpty()) {
-            return TokenSettings.builder().build().getSettings();
+            return deserialized;
         }
 
-        Map<String, Object> deserialized = new LinkedHashMap<>();
         settings.forEach((key, value) -> {
-            if (value instanceof String stringValue && stringValue.startsWith("PT")) {
+            if (value instanceof String stringValue && stringValue.startsWith("P")) {
                 deserialized.put(key, Duration.parse(stringValue));
             } else {
                 deserialized.put(key, value);

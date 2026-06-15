@@ -66,7 +66,7 @@ public class AllowedRedirectUriRegisteredClientConverter implements Converter<OA
                     uris.clear();
                     uris.addAll(redirectUris);
                 })
-                .clientSettings(ClientSettings.builder().requireProofKey(true).build())
+                .clientSettings(ClientSettings.builder().requireProofKey(true).requireAuthorizationConsent(true).build())
                 .tokenSettings(tokenSettings);
 
         pocketBaseClient.findOAuthClientByClientNameAndRedirectUris(clientName(clientRegistration), redirectUris)

@@ -43,6 +43,7 @@ class AllowedRedirectUriRegisteredClientConverterTest {
                 AuthorizationGrantType.REFRESH_TOKEN
         );
         assertThat(registeredClient.getClientSettings().isRequireProofKey()).isTrue();
+        assertThat(registeredClient.getClientSettings().isRequireAuthorizationConsent()).isTrue();
         assertThat(registeredClient.getTokenSettings()).isEqualTo(tokenSettings);
     }
 

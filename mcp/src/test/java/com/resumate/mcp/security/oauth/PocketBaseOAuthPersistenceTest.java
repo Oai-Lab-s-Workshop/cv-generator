@@ -63,6 +63,7 @@ class PocketBaseOAuthPersistenceTest {
         assertThat(restored.getClientAuthenticationMethods()).containsExactly(ClientAuthenticationMethod.NONE);
         assertThat(restored.getAuthorizationGrantTypes()).contains(AuthorizationGrantType.AUTHORIZATION_CODE, AuthorizationGrantType.REFRESH_TOKEN);
         assertThat(restored.getClientSettings().isRequireProofKey()).isTrue();
+        assertThat(restored.getClientSettings().isRequireAuthorizationConsent()).isTrue();
         assertThat(restored.getTokenSettings().getAccessTokenTimeToLive()).isEqualTo(Duration.ofHours(1));
     }
 
