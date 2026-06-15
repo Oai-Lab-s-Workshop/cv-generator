@@ -25,6 +25,8 @@ import java.util.Optional;
 @Service
 public class PocketBaseOAuth2AuthorizationService implements OAuth2AuthorizationService {
 
+    private static final OAuth2TokenType STATE_TOKEN_TYPE = new OAuth2TokenType("state");
+
     private final PocketBaseClient pocketBaseClient;
     private final RegisteredClientRepository registeredClientRepository;
     private final ObjectMapper objectMapper = JsonMapper.builder().build();
@@ -77,9 +79,17 @@ public class PocketBaseOAuth2AuthorizationService implements OAuth2Authorization
                 return toAuthorization(record.get(), Map.of("authorizationCode", token));
             }
         }
+        if (STATE_TOKEN_TYPE.equals(tokenType)) {
+            return pocketBaseClient.findOAuthAuthorizationByConsentState(token)
+                    .map((authorizationRecord) -> toAuthorization(authorizationRecord, Map.of()))
+                    .orElse(null);
+        }
         if (tokenType == null || OAuth2TokenType.REFRESH_TOKEN.equals(tokenType)) {
             record = pocketBaseClient.findOAuthAuthorizationByRefreshToken(token);
             if (record.isPresent()) {
+                if (!isActive(record.get())) {
+                    return null;
+                }
                 return toAuthorization(record.get(), Map.of("refreshToken", token));
             }
         }
@@ -150,6 +160,10 @@ public class PocketBaseOAuth2AuthorizationService implements OAuth2Authorization
         }
         Object jti = accessToken.getClaims().get("jti");
         return jti == null ? null : jti.toString();
+    }
+
+    private static boolean isActive(PocketBaseClient.OAuthAuthorizationRecord record) {
+        return record.status() == null || "active".equalsIgnoreCase(record.status());
     }
 
     private String accessTokenJti(String token) {

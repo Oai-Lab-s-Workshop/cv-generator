@@ -181,6 +181,10 @@ public class PocketBaseClient {
         return findOAuthAuthorizationByField("access_token_jti", accessTokenJti);
     }
 
+    public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByConsentState(String consentState) {
+        return findOAuthAuthorizationByField("state.attributes.state", consentState);
+    }
+
     public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByStateId(String authorizationId) {
         return findOAuthAuthorizationByField("state.id", authorizationId);
     }

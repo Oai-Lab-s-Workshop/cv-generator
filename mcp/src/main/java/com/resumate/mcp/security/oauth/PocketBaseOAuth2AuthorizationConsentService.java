@@ -111,8 +111,12 @@ public class PocketBaseOAuth2AuthorizationConsentService implements OAuth2Author
             String principalName,
             PocketBaseClient.OAuthAuthorizationRecord record
     ) {
+        List<String> scopes = scopes(record);
+        if (scopes.isEmpty()) {
+            return null;
+        }
         OAuth2AuthorizationConsent.Builder builder = OAuth2AuthorizationConsent.withId(registeredClientId, principalName);
-        scopes(record).forEach(builder::scope);
+        scopes.forEach(builder::scope);
         return builder.build();
     }
 

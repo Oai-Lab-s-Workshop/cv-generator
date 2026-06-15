@@ -100,6 +100,19 @@ class PocketBaseOAuthPersistenceTest {
     }
 
     @Test
+    void authorizationService_rejectsInactiveRefreshGrant() {
+        RegisteredClientRepository registeredClientRepository = mock(RegisteredClientRepository.class);
+        PocketBaseOAuth2AuthorizationService service = new PocketBaseOAuth2AuthorizationService(pocketBaseClient, registeredClientRepository);
+
+        when(pocketBaseClient.findOAuthAuthorizationByRefreshToken("refresh-token-value"))
+                .thenReturn(Optional.of(authorizationRecord(Map.of(), "revoked")));
+
+        OAuth2Authorization restored = service.findByToken("refresh-token-value", OAuth2TokenType.REFRESH_TOKEN);
+
+        assertThat(restored).isNull();
+    }
+
+    @Test
     void authorizationConsentService_savesAndLoadsConsentThroughAuthorizationRecord() {
         RegisteredClientRepository registeredClientRepository = mock(RegisteredClientRepository.class);
         when(registeredClientRepository.findById("pb-client-record")).thenReturn(registeredClient);
@@ -175,6 +188,10 @@ class PocketBaseOAuthPersistenceTest {
     }
 
     private static PocketBaseClient.OAuthAuthorizationRecord authorizationRecord(Map<String, Object> state) {
+        return authorizationRecord(state, "active");
+    }
+
+    private static PocketBaseClient.OAuthAuthorizationRecord authorizationRecord(Map<String, Object> state, String status) {
         return new PocketBaseClient.OAuthAuthorizationRecord(
                 "pb-auth-record",
                 "pb-user-123",
@@ -184,7 +201,7 @@ class PocketBaseOAuthPersistenceTest {
                 "hashed-refresh",
                 "access-jti-123",
                 ISSUED_AT.plusSeconds(90 * 24 * 3600).toString(),
-                "active",
+                status,
                 state,
                 Map.of("scopes", List.of("mcp"))
         );

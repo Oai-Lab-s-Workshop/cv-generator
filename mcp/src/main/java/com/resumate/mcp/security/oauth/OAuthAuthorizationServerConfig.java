@@ -9,6 +9,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.resumate.mcp.config.OAuthProperties;
 import com.resumate.mcp.service.PocketBaseClient;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2ClientRegistrationAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,11 +19,22 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2Token;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.authentication.OAuth2ClientAuthenticationToken;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
@@ -31,16 +43,21 @@ import org.springframework.security.oauth2.server.authorization.token.Delegating
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 
 import java.text.ParseException;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 public class OAuthAuthorizationServerConfig {
@@ -118,6 +135,10 @@ public class OAuthAuthorizationServerConfig {
                         .authorizationConsentService(authorizationConsentService)
                         .authorizationServerSettings(authorizationServerSettings)
                         .tokenGenerator(tokenGenerator)
+                        .clientAuthentication((clientAuthentication) -> clientAuthentication
+                                .authenticationConverters((converters) -> converters.add(0, new PublicRefreshClientAuthenticationConverter()))
+                                .authenticationProviders((providers) -> providers.add(0, new PublicRefreshClientAuthenticationProvider(registeredClientRepository)))
+                        )
                         .authorizationServerMetadataEndpoint((metadata) -> metadata.authorizationServerMetadataCustomizer(
                                 (builder) -> builder.clientRegistrationEndpoint(
                                         authorizationServerSettings.getIssuer() + authorizationServerSettings.getClientRegistrationEndpoint()
@@ -196,8 +217,85 @@ public class OAuthAuthorizationServerConfig {
         return new DelegatingOAuth2TokenGenerator(
                 jwtGenerator,
                 new OAuth2AccessTokenGenerator(),
-                new OAuth2RefreshTokenGenerator()
+                new PublicClientRefreshTokenGenerator()
         );
+    }
+
+    private static final class PublicClientRefreshTokenGenerator implements OAuth2TokenGenerator<OAuth2RefreshToken> {
+
+        private final StringKeyGenerator refreshTokenGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder().withoutPadding(), 96);
+
+        @Override
+        public OAuth2RefreshToken generate(OAuth2TokenContext context) {
+            if (!OAuth2TokenType.REFRESH_TOKEN.equals(context.getTokenType())) {
+                return null;
+            }
+            if (!context.getRegisteredClient().getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN)) {
+                return null;
+            }
+            AuthorizationGrantType grantType = context.getAuthorizationGrantType();
+            if (!AuthorizationGrantType.AUTHORIZATION_CODE.equals(grantType) && !AuthorizationGrantType.REFRESH_TOKEN.equals(grantType)) {
+                return null;
+            }
+
+            Instant issuedAt = Instant.now();
+            Instant expiresAt = issuedAt.plus(context.getRegisteredClient().getTokenSettings().getRefreshTokenTimeToLive());
+            return new OAuth2RefreshToken(refreshTokenGenerator.generateKey(), issuedAt, expiresAt);
+        }
+    }
+
+    private static final class PublicRefreshClientAuthenticationProvider implements AuthenticationProvider {
+
+        private final RegisteredClientRepository registeredClientRepository;
+
+        private PublicRefreshClientAuthenticationProvider(RegisteredClientRepository registeredClientRepository) {
+            this.registeredClientRepository = registeredClientRepository;
+        }
+
+        @Override
+        public Authentication authenticate(Authentication authentication) {
+            OAuth2ClientAuthenticationToken clientAuthentication = (OAuth2ClientAuthenticationToken) authentication;
+            if (!ClientAuthenticationMethod.NONE.equals(clientAuthentication.getClientAuthenticationMethod())) {
+                return null;
+            }
+            if (!AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(clientAuthentication.getAdditionalParameters().get("grant_type"))) {
+                return null;
+            }
+
+            String clientId = clientAuthentication.getPrincipal().toString();
+            var registeredClient = registeredClientRepository.findByClientId(clientId);
+            if (registeredClient == null
+                    || !registeredClient.getClientAuthenticationMethods().contains(ClientAuthenticationMethod.NONE)
+                    || !registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN)) {
+                throw new OAuth2AuthenticationException(new OAuth2Error("invalid_client", "Public refresh client is not allowed.", null));
+            }
+
+            return new OAuth2ClientAuthenticationToken(registeredClient, ClientAuthenticationMethod.NONE, null);
+        }
+
+        @Override
+        public boolean supports(Class<?> authentication) {
+            return OAuth2ClientAuthenticationToken.class.isAssignableFrom(authentication);
+        }
+    }
+
+    private static final class PublicRefreshClientAuthenticationConverter implements AuthenticationConverter {
+
+        @Override
+        public Authentication convert(HttpServletRequest request) {
+            if (!AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(request.getParameter("grant_type"))) {
+                return null;
+            }
+            String clientId = request.getParameter("client_id");
+            if (!StringUtils.hasText(clientId)) {
+                return null;
+            }
+
+            Map<String, Object> additionalParameters = new LinkedHashMap<>();
+            additionalParameters.put("grant_type", request.getParameter("grant_type"));
+            additionalParameters.put("refresh_token", request.getParameter("refresh_token"));
+            return new OAuth2ClientAuthenticationToken(clientId, ClientAuthenticationMethod.NONE, null, additionalParameters);
+        }
     }
 
     private static OAuth2TokenCustomizer<JwtEncodingContext> oauthJwtCustomizer(AuthorizationServerSettings authorizationServerSettings) {
