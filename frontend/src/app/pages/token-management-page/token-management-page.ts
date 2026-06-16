@@ -5,6 +5,7 @@ import { AiToken } from '../../core/models/ai-token.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
+import { loadRuntimeConfig, resolveMcpEndpointUrl, resolveOAuthDiscoveryUrl } from '../../core/utils/desktop-runtime-config';
 import { Navbar } from '../../shared/components/navbar/navbar';
 import { McpConfigHelper } from './mcp-config-helper';
 
@@ -27,6 +28,9 @@ export class TokenManagementPage implements OnInit {
   readonly latestCreatedAiToken = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly activeAiTokenMutationId = signal<string | null>(null);
+  readonly selectedAuthMethod = signal<'oauth' | 'api-key'>('oauth');
+  readonly oauthMcpEndpointUrl = signal(resolveMcpEndpointUrl());
+  readonly oauthDiscoveryUrl = signal(resolveOAuthDiscoveryUrl());
   readonly currentUser = this.authService.currentUser;
   readonly currentUserName = computed(() => {
     const user = this.currentUser();
@@ -49,6 +53,7 @@ export class TokenManagementPage implements OnInit {
   });
 
   ngOnInit(): void {
+    void this.loadMcpRuntimeUrls();
     void this.loadAiTokens();
   }
 
@@ -61,6 +66,16 @@ export class TokenManagementPage implements OnInit {
       case 'expired':
         return 'Expiree';
     }
+  }
+
+  selectAuthMethod(method: 'oauth' | 'api-key'): void {
+    this.selectedAuthMethod.set(method);
+  }
+
+  private async loadMcpRuntimeUrls(): Promise<void> {
+    await loadRuntimeConfig();
+    this.oauthMcpEndpointUrl.set(resolveMcpEndpointUrl());
+    this.oauthDiscoveryUrl.set(resolveOAuthDiscoveryUrl());
   }
 
   private async loadAiTokens(): Promise<void> {
