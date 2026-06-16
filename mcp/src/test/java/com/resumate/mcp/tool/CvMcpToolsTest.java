@@ -2,6 +2,7 @@ package com.resumate.mcp.tool;
 
 import com.resumate.mcp.config.FrontendProperties;
 import com.resumate.mcp.security.AiTokenPrincipal;
+import com.resumate.mcp.security.McpPrincipal;
 import com.resumate.mcp.service.PocketBaseClient;
 import com.resumate.mcp.service.PocketBaseClient.CreatedProfileRecord;
 import com.resumate.mcp.service.PocketBaseClient.CreateProfilePayload;
@@ -42,7 +43,7 @@ class CvMcpToolsTest {
         SecurityContextHolder.clearContext();
     }
 
-    private void setAuthentication(AiTokenPrincipal principal) {
+    private void setAuthentication(McpPrincipal principal) {
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(principal, null, java.util.Collections.emptyList());
         SecurityContextHolder.getContext().setAuthentication(auth);
@@ -99,6 +100,32 @@ class CvMcpToolsTest {
         assertThat(response.userId()).isEqualTo("userId");
         assertThat(response.label()).isEqualTo("label");
         assertThat(response.tokenPrefix()).isEqualTo("resm_demoPrefix");
+        assertThat(response.authSource()).isEqualTo("API_KEY");
+    }
+
+    @Test
+    void listProfileMaterial_acceptsAnyMcpPrincipal() {
+        setAuthentication(new TestMcpPrincipal("oauth-user", "claude.ai", "OAUTH"));
+        ProfileMaterialBundle expected = mock(ProfileMaterialBundle.class);
+        when(pocketBaseClient.loadProfileMaterial("oauth-user")).thenReturn(expected);
+
+        ProfileMaterialBundle result = cvMcpTools.listProfileMaterial();
+
+        assertThat(result).isSameAs(expected);
+        verify(pocketBaseClient).loadProfileMaterial("oauth-user");
+    }
+
+    @Test
+    void whoAmI_returnsSharedPrincipalDetailsForNonApiKeyPrincipal() {
+        setAuthentication(new TestMcpPrincipal("oauth-user", "claude.ai", "OAUTH"));
+
+        CvMcpTools.AuthenticatedPrincipalResponse response = cvMcpTools.whoAmI();
+
+        assertThat(response.tokenId()).isNull();
+        assertThat(response.userId()).isEqualTo("oauth-user");
+        assertThat(response.label()).isEqualTo("claude.ai");
+        assertThat(response.tokenPrefix()).isNull();
+        assertThat(response.authSource()).isEqualTo("OAUTH");
     }
 
     @Test
@@ -259,7 +286,7 @@ class CvMcpToolsTest {
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Authenticated API key principal is required.");
+                .hasMessage("Authenticated MCP principal is required.");
     }
 
     @Test
@@ -394,6 +421,13 @@ class CvMcpToolsTest {
         cvMcpTools.createTailoredCvProfile(request);
 
         verify(pocketBaseClient).validateOwnedRecordIds("projects", "userId", List.of("proj1"));
+    }
+
+    private record TestMcpPrincipal(String userId, String label, String authSource) implements McpPrincipal {
+        @Override
+        public String getName() {
+            return label;
+        }
     }
 
 }

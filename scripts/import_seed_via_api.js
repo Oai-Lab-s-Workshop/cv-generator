@@ -1,10 +1,18 @@
 const fs = require('fs');
 const path = require('path');
 
+function requiredEnv(name) {
+  const value = process.env[name];
+  if (!value || value.trim() === '') {
+    throw new Error(`${name} is required. Set it in your environment or local .env before importing seed data.`);
+  }
+  return value;
+}
+
 const PB_URL = process.env.PB_URL || `http://localhost:${process.env.POCKETBASE_PORT || '8090'}`;
-const PB_ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL || 'admin@cv-generator.local';
-const PB_ADMIN_PASSWORD = process.env.PB_ADMIN_PASSWORD || 'changeme123!';
-const DEFAULT_USER_PASSWORD = process.env.SEED_USER_PASSWORD || 'changeme123!';
+const PB_ADMIN_EMAIL = requiredEnv('PB_ADMIN_EMAIL');
+const PB_ADMIN_PASSWORD = requiredEnv('PB_ADMIN_PASSWORD');
+const DEFAULT_USER_PASSWORD = requiredEnv('SEED_USER_PASSWORD');
 const ALLOW_NONEMPTY = process.env.ALLOW_NONEMPTY === '1';
 
 const seedPath = path.join(__dirname, '..', 'pb_data', 'seed.json');

@@ -84,6 +84,141 @@ public class PocketBaseClient {
         return response.items().stream().findFirst();
     }
 
+    public Optional<UserRecord> authenticateUser(String identity, String password) {
+        try {
+            AuthResponse response = restClient.post()
+                    .uri("/api/collections/users/auth-with-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of(
+                            "identity", identity,
+                            "password", password
+                    ))
+                    .retrieve()
+                    .body(AuthResponse.class);
+
+            if (response == null || response.record() == null || !StringUtils.hasText(response.record().id())) {
+                return Optional.empty();
+            }
+            return Optional.of(response.record());
+        } catch (RestClientResponseException ex) {
+            if (ex.getStatusCode().is4xxClientError()) {
+                return Optional.empty();
+            }
+            throw ex;
+        }
+    }
+
+    public OAuthClientRecord createOAuthClient(OAuthClientPayload payload) {
+        OAuthClientRecord created = postCollectionRecord("oauth_clients", oauthClientBody(payload), OAuthClientRecord.class);
+        return Objects.requireNonNull(created, "PocketBase oauth_clients create payload is required.");
+    }
+
+    public Optional<OAuthClientRecord> findOAuthClientByClientId(String clientId) {
+        RecordListResponse<OAuthClientRecord> response = getCollectionRecords(
+                "oauth_clients",
+                String.format("client_id=\"%s\"", escapeFilterValue(clientId)),
+                1,
+                new ParameterizedTypeReference<>() {
+                }
+        );
+
+        return response.items().stream().findFirst();
+    }
+
+    public Optional<OAuthClientRecord> findOAuthClientByClientNameAndRedirectUris(String clientName, List<String> redirectUris) {
+        RecordListResponse<OAuthClientRecord> response = getCollectionRecords(
+                "oauth_clients",
+                String.format("client_name=\"%s\"", escapeFilterValue(clientName)),
+                100,
+                new ParameterizedTypeReference<>() {
+                }
+        );
+
+        List<String> expectedRedirectUris = defaultList(redirectUris);
+        return response.items().stream()
+                .filter((record) -> defaultList(record.redirectUris()).equals(expectedRedirectUris))
+                .findFirst();
+    }
+
+    public Optional<OAuthClientRecord> findOAuthClientByRecordId(String recordId) {
+        try {
+            return Optional.ofNullable(getRecordById("oauth_clients", recordId, OAuthClientRecord.class));
+        } catch (RestClientResponseException ex) {
+            if (ex.getStatusCode().is4xxClientError()) {
+                return Optional.empty();
+            }
+            throw ex;
+        }
+    }
+
+    public OAuthClientRecord updateOAuthClient(String recordId, OAuthClientPayload payload) {
+        OAuthClientRecord updated = patchCollectionRecord("oauth_clients", recordId, oauthClientBody(payload), OAuthClientRecord.class);
+        return Objects.requireNonNull(updated, "PocketBase oauth_clients update payload is required.");
+    }
+
+    public void deleteOAuthClient(String recordId) {
+        deleteCollectionRecord("oauth_clients", recordId);
+    }
+
+    public OAuthAuthorizationRecord createOAuthAuthorization(OAuthAuthorizationPayload payload) {
+        OAuthAuthorizationRecord created = postCollectionRecord(
+                "oauth_authorizations",
+                oauthAuthorizationBody(payload),
+                OAuthAuthorizationRecord.class
+        );
+        return Objects.requireNonNull(created, "PocketBase oauth_authorizations create payload is required.");
+    }
+
+    public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByAuthCode(String rawAuthCode) {
+        return findOAuthAuthorizationByHash("auth_code_hash", sha256Hex(rawAuthCode));
+    }
+
+    public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByRefreshToken(String rawRefreshToken) {
+        return findOAuthAuthorizationByHash("refresh_token_hash", sha256Hex(rawRefreshToken));
+    }
+
+    public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByAccessTokenJti(String accessTokenJti) {
+        return findOAuthAuthorizationByField("access_token_jti", accessTokenJti);
+    }
+
+    public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByConsentState(String consentState) {
+        return findOAuthAuthorizationByField("state.attributes.state", consentState);
+    }
+
+    public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByStateId(String authorizationId) {
+        return findOAuthAuthorizationByField("state.id", authorizationId);
+    }
+
+    public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByClientAndUser(String clientId, String userId) {
+        RecordListResponse<OAuthAuthorizationRecord> response = getCollectionRecords(
+                "oauth_authorizations",
+                String.format(
+                        "client_id=\"%s\" && user=\"%s\"",
+                        escapeFilterValue(clientId),
+                        escapeFilterValue(userId)
+                ),
+                1,
+                new ParameterizedTypeReference<>() {
+                }
+        );
+
+        return response.items().stream().findFirst();
+    }
+
+    public OAuthAuthorizationRecord updateOAuthAuthorization(String recordId, OAuthAuthorizationPayload payload) {
+        OAuthAuthorizationRecord updated = patchCollectionRecord(
+                "oauth_authorizations",
+                recordId,
+                oauthAuthorizationBody(payload),
+                OAuthAuthorizationRecord.class
+        );
+        return Objects.requireNonNull(updated, "PocketBase oauth_authorizations update payload is required.");
+    }
+
+    public void deleteOAuthAuthorization(String recordId) {
+        deleteCollectionRecord("oauth_authorizations", recordId);
+    }
+
     public ProfileMaterialBundle loadProfileMaterial(String userId) {
         UserRecord user = restClient.get()
                 .uri("/api/collections/users/records/{userId}", userId)
@@ -241,11 +376,99 @@ public class PocketBaseClient {
     }
 
     private OwnedRecord getRecordById(String collectionName, String recordId) {
+        return getRecordById(collectionName, recordId, OwnedRecord.class);
+    }
+
+    private <T> T getRecordById(String collectionName, String recordId, Class<T> responseType) {
         return restClient.get()
                 .uri("/api/collections/{collectionName}/records/{recordId}", collectionName, recordId)
                 .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
                 .retrieve()
-                .body(OwnedRecord.class);
+                .body(responseType);
+    }
+
+    private <T> T postCollectionRecord(String collectionName, Map<String, Object> body, Class<T> responseType) {
+        return restClient.post()
+                .uri("/api/collections/{collectionName}/records", collectionName)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
+                .body(body)
+                .retrieve()
+                .body(responseType);
+    }
+
+    private <T> T patchCollectionRecord(String collectionName, String recordId, Map<String, Object> body, Class<T> responseType) {
+        return restClient.patch()
+                .uri("/api/collections/{collectionName}/records/{recordId}", collectionName, recordId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
+                .body(body)
+                .retrieve()
+                .body(responseType);
+    }
+
+    private void deleteCollectionRecord(String collectionName, String recordId) {
+        restClient.delete()
+                .uri("/api/collections/{collectionName}/records/{recordId}", collectionName, recordId)
+                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    private Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByHash(String fieldName, String hash) {
+        return findOAuthAuthorizationByField(fieldName, hash);
+    }
+
+    private Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByField(String fieldName, String value) {
+        RecordListResponse<OAuthAuthorizationRecord> response = getCollectionRecords(
+                "oauth_authorizations",
+                String.format("%s=\"%s\"", fieldName, escapeFilterValue(value)),
+                1,
+                new ParameterizedTypeReference<>() {
+                }
+        );
+
+        return response.items().stream().findFirst();
+    }
+
+    private Map<String, Object> oauthClientBody(OAuthClientPayload payload) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("client_id", payload.clientId());
+        if (StringUtils.hasText(payload.rawClientSecret())) {
+            body.put("client_secret_hash", sha256Hex(payload.rawClientSecret()));
+        }
+        body.put("client_name", payload.clientName());
+        body.put("redirect_uris", defaultList(payload.redirectUris()));
+        body.put("grant_types", defaultList(payload.grantTypes()));
+        body.put("scopes", defaultList(payload.scopes()));
+        body.put("token_settings", payload.tokenSettings() == null ? Map.of() : payload.tokenSettings());
+        if (payload.expiresAt() != null) {
+            body.put("expires_at", payload.expiresAt());
+        }
+        return body;
+    }
+
+    private Map<String, Object> oauthAuthorizationBody(OAuthAuthorizationPayload payload) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("user", payload.user());
+        body.put("client_id", payload.clientId());
+        body.put("scopes", defaultList(payload.scopes()));
+        if (StringUtils.hasText(payload.rawAuthCode())) {
+            body.put("auth_code_hash", sha256Hex(payload.rawAuthCode()));
+        }
+        if (StringUtils.hasText(payload.rawRefreshToken())) {
+            body.put("refresh_token_hash", sha256Hex(payload.rawRefreshToken()));
+        }
+        if (StringUtils.hasText(payload.accessTokenJti())) {
+            body.put("access_token_jti", payload.accessTokenJti());
+        }
+        if (payload.expiresAt() != null) {
+            body.put("expires_at", payload.expiresAt());
+        }
+        body.put("status", StringUtils.hasText(payload.status()) ? payload.status() : "active");
+        body.put("state", payload.state() == null ? Map.of() : payload.state());
+        body.put("consent", payload.consent() == null ? Map.of() : payload.consent());
+        return body;
     }
 
     private String serviceUserToken() {
@@ -316,6 +539,10 @@ public class PocketBaseClient {
         }
     }
 
+    private static String escapeFilterValue(String value) {
+        return Objects.requireNonNullElse(value, "").replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
     private static String trimTrailingSlash(String value) {
         if (!StringUtils.hasText(value)) {
             return "";
@@ -364,8 +591,34 @@ public class PocketBaseClient {
     ) {
     }
 
+    public record OAuthClientPayload(
+            String clientId,
+            String rawClientSecret,
+            String clientName,
+            List<String> redirectUris,
+            List<String> grantTypes,
+            List<String> scopes,
+            Map<String, Object> tokenSettings,
+            String expiresAt
+    ) {
+    }
+
+    public record OAuthAuthorizationPayload(
+            String user,
+            String clientId,
+            List<String> scopes,
+            String rawAuthCode,
+            String rawRefreshToken,
+            String accessTokenJti,
+            String expiresAt,
+            String status,
+            Map<String, Object> state,
+            Map<String, Object> consent
+    ) {
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record AuthResponse(String token) {
+    public record AuthResponse(String token, UserRecord record) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -381,6 +634,36 @@ public class PocketBaseClient {
             String expiresAt,
             @JsonProperty("token_hash") String tokenHash,
             @JsonProperty("token_prefix") String tokenPrefix
+    ) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record OAuthClientRecord(
+            String id,
+            @JsonProperty("client_id") String clientId,
+            @JsonProperty("client_secret_hash") String clientSecretHash,
+            @JsonProperty("client_name") String clientName,
+            @JsonProperty("redirect_uris") List<String> redirectUris,
+            @JsonProperty("grant_types") List<String> grantTypes,
+            List<String> scopes,
+            @JsonProperty("token_settings") Map<String, Object> tokenSettings,
+            @JsonProperty("expires_at") String expiresAt
+    ) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record OAuthAuthorizationRecord(
+            String id,
+            String user,
+            @JsonProperty("client_id") String clientId,
+            List<String> scopes,
+            @JsonProperty("auth_code_hash") String authCodeHash,
+            @JsonProperty("refresh_token_hash") String refreshTokenHash,
+            @JsonProperty("access_token_jti") String accessTokenJti,
+            @JsonProperty("expires_at") String expiresAt,
+            String status,
+            Map<String, Object> state,
+            Map<String, Object> consent
     ) {
     }
 
