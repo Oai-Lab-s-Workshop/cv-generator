@@ -30,6 +30,8 @@ describe('McpConfigHelper', () => {
   it('creates and renders active token count', () => {
     expect(component).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('2 tokens actifs');
+    expect(fixture.nativeElement.textContent).toContain('Configuration manuelle');
+    expect(fixture.nativeElement.textContent).toContain('cle API');
   });
 
   it('uses a select for agent choice', () => {
@@ -62,7 +64,8 @@ describe('McpConfigHelper', () => {
     expect(config).toContain('URL du serveur MCP : http://localhost:8081/mcp');
     expect(config).toContain('Transport          : HTTP (Streamable)');
     expect(config).toContain('Nom du serveur     : resumate-mcp');
-    expect(config).toContain('API Key            : rmcp_plain');
+    expect(config).toContain('Methode auth       : Cle API manuelle');
+    expect(config).toContain('Cle API            : rmcp_plain');
   });
 
   it('generates config for the selected agent', () => {
