@@ -118,6 +118,43 @@ class PocketBaseClientTest {
     }
 
     @Test
+    void authenticateUser_returnsUserRecord() throws InterruptedException {
+        enqueueJsonResponse("""
+                {
+                  "token": "user-token",
+                  "record": {
+                    "id": "userId",
+                    "email": "user@example.com",
+                    "firstName": "Alex",
+                    "lastName": "Morgan"
+                  }
+                }
+                """);
+
+        Optional<PocketBaseClient.UserRecord> result = client.authenticateUser("user@example.com", "secret-password");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().id()).isEqualTo("userId");
+        assertThat(result.get().email()).isEqualTo("user@example.com");
+
+        RecordedRequest authRequest = mockWebServer.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/api/collections/users/auth-with-password");
+        assertThat(authRequest.getBody().readUtf8()).contains("user@example.com", "secret-password");
+    }
+
+    @Test
+    void authenticateUser_returnsEmptyForPocketBaseCredentialFailure() {
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(400)
+                .setBody("{\"message\":\"Failed to authenticate.\"}")
+                .setHeader("Content-Type", "application/json"));
+
+        Optional<PocketBaseClient.UserRecord> result = client.authenticateUser("unknown@example.com", "wrong-password");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void loadProfileMaterial_returnsBundle() {
         enqueueAuthResponse();
         enqueueJsonResponse("""
@@ -286,6 +323,189 @@ class PocketBaseClientTest {
         assertThat(patchRequest.getMethod()).isEqualTo("PATCH");
         assertThat(patchRequest.getPath()).isEqualTo("/api/collections/ai_tokens/records/token123");
         assertThat(patchRequest.getBody().readUtf8()).contains("lastUsedAt");
+    }
+
+    @Test
+    void createOAuthClient_hashesClientSecretAndSendsPayload() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("""
+                {
+                    "id": "clientRecordId",
+                    "client_id": "claude-ai",
+                    "client_secret_hash": "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+                    "client_name": "claude.ai",
+                    "redirect_uris": ["https://claude.ai/api/mcp/auth_callback"],
+                    "grant_types": ["authorization_code", "refresh_token"],
+                    "scopes": ["mcp"],
+                    "token_settings": {"accessTokenTtlSeconds": 3600}
+                }
+                """);
+
+        PocketBaseClient.OAuthClientRecord result = client.createOAuthClient(new PocketBaseClient.OAuthClientPayload(
+                "claude-ai",
+                "secret",
+                "claude.ai",
+                List.of("https://claude.ai/api/mcp/auth_callback"),
+                List.of("authorization_code", "refresh_token"),
+                List.of("mcp"),
+                Map.of("accessTokenTtlSeconds", 3600),
+                null
+        ));
+
+        assertThat(result.id()).isEqualTo("clientRecordId");
+        assertThat(result.clientId()).isEqualTo("claude-ai");
+        assertThat(result.clientSecretHash()).isEqualTo("2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b");
+
+        mockWebServer.takeRequest();
+        RecordedRequest createRequest = mockWebServer.takeRequest();
+        String body = createRequest.getBody().readUtf8();
+        assertThat(createRequest.getMethod()).isEqualTo("POST");
+        assertThat(createRequest.getPath()).isEqualTo("/api/collections/oauth_clients/records");
+        assertThat(body).contains("\"client_id\":\"claude-ai\"");
+        assertThat(body).contains("\"client_secret_hash\":\"2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b\"");
+        assertThat(body).doesNotContain(":\"secret\"");
+    }
+
+    @Test
+    void findOAuthClientByClientId_queriesClientCollection() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("""
+                {"items": [{"id": "clientRecordId", "client_id": "claude-ai", "client_name": "claude.ai"}]}
+                """);
+
+        Optional<PocketBaseClient.OAuthClientRecord> result = client.findOAuthClientByClientId("claude-ai");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().id()).isEqualTo("clientRecordId");
+
+        mockWebServer.takeRequest();
+        RecordedRequest listRequest = mockWebServer.takeRequest();
+        assertThat(listRequest.getPath()).contains("/api/collections/oauth_clients/records");
+        assertThat(listRequest.getPath()).contains("client_id%3D%22claude-ai%22");
+    }
+
+    @Test
+    void updateAndDeleteOAuthClient_useExpectedCollectionRoutes() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("{" +
+                "\"id\":\"clientRecordId\"," +
+                "\"client_id\":\"claude-ai\"," +
+                "\"client_name\":\"Claude AI\"" +
+                "}");
+        enqueueAuthResponse();
+        mockWebServer.enqueue(new MockResponse().setResponseCode(204));
+
+        client.updateOAuthClient("clientRecordId", new PocketBaseClient.OAuthClientPayload(
+                "claude-ai", null, "Claude AI", List.of(), List.of(), List.of(), Map.of(), null
+        ));
+        client.deleteOAuthClient("clientRecordId");
+
+        mockWebServer.takeRequest();
+        RecordedRequest updateRequest = mockWebServer.takeRequest();
+        mockWebServer.takeRequest();
+        RecordedRequest deleteRequest = mockWebServer.takeRequest();
+        assertThat(updateRequest.getMethod()).isEqualTo("PATCH");
+        assertThat(updateRequest.getPath()).isEqualTo("/api/collections/oauth_clients/records/clientRecordId");
+        assertThat(deleteRequest.getMethod()).isEqualTo("DELETE");
+        assertThat(deleteRequest.getPath()).isEqualTo("/api/collections/oauth_clients/records/clientRecordId");
+    }
+
+    @Test
+    void createOAuthAuthorization_hashesCodeAndRefreshToken() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("""
+                {
+                    "id": "authRecordId",
+                    "user": "userId",
+                    "client_id": "claude-ai",
+                    "scopes": ["mcp"],
+                    "auth_code_hash": "0b127c6413fd5bda549721cd7742193000cc14ded4a3128e95984b780171f0c5",
+                    "refresh_token_hash": "0eb17643d4e9261163783a420859c92c7d212fa9624106a12b510afbec266120",
+                    "access_token_jti": "jti-123",
+                    "status": "active",
+                    "state": {"id": "sas-auth-id"},
+                    "consent": {"scope": "mcp"}
+                }
+                """);
+
+        PocketBaseClient.OAuthAuthorizationRecord result = client.createOAuthAuthorization(new PocketBaseClient.OAuthAuthorizationPayload(
+                "userId",
+                "claude-ai",
+                List.of("mcp"),
+                "auth-code",
+                "refresh-token",
+                "jti-123",
+                null,
+                "active",
+                Map.of("id", "sas-auth-id"),
+                Map.of("scope", "mcp")
+        ));
+
+        assertThat(result.id()).isEqualTo("authRecordId");
+        assertThat(result.authCodeHash()).isEqualTo("0b127c6413fd5bda549721cd7742193000cc14ded4a3128e95984b780171f0c5");
+        assertThat(result.refreshTokenHash()).isEqualTo("0eb17643d4e9261163783a420859c92c7d212fa9624106a12b510afbec266120");
+
+        mockWebServer.takeRequest();
+        RecordedRequest createRequest = mockWebServer.takeRequest();
+        String body = createRequest.getBody().readUtf8();
+        assertThat(createRequest.getMethod()).isEqualTo("POST");
+        assertThat(createRequest.getPath()).isEqualTo("/api/collections/oauth_authorizations/records");
+        assertThat(body).contains("\"auth_code_hash\":\"0b127c6413fd5bda549721cd7742193000cc14ded4a3128e95984b780171f0c5\"");
+        assertThat(body).contains("\"refresh_token_hash\":\"0eb17643d4e9261163783a420859c92c7d212fa9624106a12b510afbec266120\"");
+        assertThat(body).doesNotContain("auth-code");
+        assertThat(body).doesNotContain("refresh-token");
+    }
+
+    @Test
+    void findOAuthAuthorizationByTokens_queriesHashedFields() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("{" +
+                "\"items\":[{\"id\":\"authByCode\",\"auth_code_hash\":\"0b127c6413fd5bda549721cd7742193000cc14ded4a3128e95984b780171f0c5\"}]" +
+                "}");
+        enqueueAuthResponse();
+        enqueueJsonResponse("{" +
+                "\"items\":[{\"id\":\"authByRefresh\",\"refresh_token_hash\":\"0eb17643d4e9261163783a420859c92c7d212fa9624106a12b510afbec266120\"}]" +
+                "}");
+
+        Optional<PocketBaseClient.OAuthAuthorizationRecord> byCode = client.findOAuthAuthorizationByAuthCode("auth-code");
+        Optional<PocketBaseClient.OAuthAuthorizationRecord> byRefresh = client.findOAuthAuthorizationByRefreshToken("refresh-token");
+
+        assertThat(byCode).isPresent();
+        assertThat(byRefresh).isPresent();
+
+        mockWebServer.takeRequest();
+        RecordedRequest codeRequest = mockWebServer.takeRequest();
+        mockWebServer.takeRequest();
+        RecordedRequest refreshRequest = mockWebServer.takeRequest();
+        assertThat(codeRequest.getPath()).contains("auth_code_hash%3D%220b127c6413fd5bda549721cd7742193000cc14ded4a3128e95984b780171f0c5%22");
+        assertThat(refreshRequest.getPath()).contains("refresh_token_hash%3D%220eb17643d4e9261163783a420859c92c7d212fa9624106a12b510afbec266120%22");
+    }
+
+    @Test
+    void updateAndDeleteOAuthAuthorization_useExpectedCollectionRoutes() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("{" +
+                "\"id\":\"authRecordId\"," +
+                "\"user\":\"userId\"," +
+                "\"client_id\":\"claude-ai\"," +
+                "\"status\":\"revoked\"" +
+                "}");
+        enqueueAuthResponse();
+        mockWebServer.enqueue(new MockResponse().setResponseCode(204));
+
+        client.updateOAuthAuthorization("authRecordId", new PocketBaseClient.OAuthAuthorizationPayload(
+                "userId", "claude-ai", List.of("mcp"), null, null, null, null, "revoked", Map.of("id", "sas-auth-id"), Map.of()
+        ));
+        client.deleteOAuthAuthorization("authRecordId");
+
+        mockWebServer.takeRequest();
+        RecordedRequest updateRequest = mockWebServer.takeRequest();
+        mockWebServer.takeRequest();
+        RecordedRequest deleteRequest = mockWebServer.takeRequest();
+        assertThat(updateRequest.getMethod()).isEqualTo("PATCH");
+        assertThat(updateRequest.getPath()).isEqualTo("/api/collections/oauth_authorizations/records/authRecordId");
+        assertThat(deleteRequest.getMethod()).isEqualTo("DELETE");
+        assertThat(deleteRequest.getPath()).isEqualTo("/api/collections/oauth_authorizations/records/authRecordId");
     }
 
     @Test

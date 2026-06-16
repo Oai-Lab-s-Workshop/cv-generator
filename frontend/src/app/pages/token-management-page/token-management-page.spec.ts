@@ -4,6 +4,7 @@ import { signal } from '@angular/core';
 import { AiToken } from '../../core/models/ai-token.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
+import { environment } from '../../../environments/environment';
 import { TokenManagementPage } from './token-management-page';
 
 const activeToken: AiToken = {
@@ -37,11 +38,19 @@ describe('TokenManagementPage', () => {
   let fixture: ComponentFixture<TokenManagementPage>;
   let pocketBaseService: {
     getCurrentUserAiTokens: jest.Mock<Promise<AiToken[]>>;
-      createCurrentUserAiToken: jest.Mock<Promise<{ rawToken: string; record: AiToken }>>;
+    createCurrentUserAiToken: jest.Mock<Promise<{ rawToken: string; record: AiToken }>>;
     revokeCurrentUserAiToken: jest.Mock<Promise<void>>;
   };
+  const originalMcpPublicBaseUrl = environment.mcpPublicBaseUrl;
+  const originalFetch = window.fetch;
 
   beforeEach(async () => {
+    environment.mcpPublicBaseUrl = 'https://mcp.example.test';
+    Object.defineProperty(window, 'fetch', {
+      configurable: true,
+      value: jest.fn().mockRejectedValue(new Error('No runtime config in unit tests')),
+    });
+
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: { writeText: jest.fn().mockResolvedValue(undefined) },
@@ -77,6 +86,16 @@ describe('TokenManagementPage', () => {
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    environment.mcpPublicBaseUrl = originalMcpPublicBaseUrl;
+    (window as unknown as Record<string, unknown>)['__RESUMATE_RUNTIME_CONFIG__'] = undefined;
+    Object.defineProperty(window, 'fetch', {
+      configurable: true,
+      value: originalFetch,
+    });
+    jest.restoreAllMocks();
+  });
+
   it('creates and loads AI tokens', () => {
     expect(component).toBeTruthy();
     expect(pocketBaseService.getCurrentUserAiTokens).toHaveBeenCalled();
@@ -96,10 +115,38 @@ describe('TokenManagementPage', () => {
   });
 
   it('renders the compact MCP config helper inside the token page', () => {
+    component.selectAuthMethod('api-key');
+    fixture.detectChanges();
     const helper = fixture.nativeElement.querySelector('app-mcp-config-helper');
 
     expect(helper).toBeTruthy();
-    expect(fixture.nativeElement.textContent).toContain('Config rapide MCP');
+    expect(fixture.nativeElement.textContent).toContain('Configuration manuelle');
+  });
+
+  it('renders OAuth as the default authentication method', () => {
+    const text = fixture.nativeElement.textContent;
+
+    expect(text).toContain('Acces MCP');
+    expect(text).toContain('OAuth');
+    expect(text).toContain('Connexion guidee');
+    expect(text).toContain('https://mcp.example.test/mcp');
+    expect(text).toContain('https://mcp.example.test/.well-known/oauth-protected-resource');
+    expect(text).toContain('Aucun client OAuth connecte');
+    expect(text).not.toContain('Autoriser un client manuel');
+  });
+
+  it('switches to the API key authentication method', () => {
+    const apiKeyTab = fixture.nativeElement.querySelector('#api-key-tab') as HTMLButtonElement;
+
+    apiKeyTab.click();
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+
+    expect(component.selectedAuthMethod()).toBe('api-key');
+    expect(text).toContain('Autoriser un client manuel');
+    expect(text).toContain('Configuration manuelle');
+    expect(text).toContain('Cles API existantes');
+    expect(text).not.toContain('Connexion guidee');
   });
 
   it('creates a token, shows the one-time secret and refreshes tokens', async () => {
@@ -107,6 +154,7 @@ describe('TokenManagementPage', () => {
     component.newAiTokenLabel.set('New assistant');
 
     await component.createAiToken();
+    component.selectAuthMethod('api-key');
     fixture.detectChanges();
 
     expect(pocketBaseService.createCurrentUserAiToken).toHaveBeenCalledWith({ label: 'New assistant', expiresAt: null });

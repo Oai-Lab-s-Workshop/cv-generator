@@ -7,7 +7,7 @@ RUN npm ci
 
 COPY frontend/ ./
 COPY pb_data/seed.json /app/pb_data/seed.json
-RUN mkdir -p src/assets && echo '{"bugReportUrl":""}' > src/assets/runtime-config.json
+RUN mkdir -p src/assets && echo '{"bugReportUrl":"","mcpPublicBaseUrl":""}' > src/assets/runtime-config.json
 
 RUN npx ng build --configuration production 2>&1
 
