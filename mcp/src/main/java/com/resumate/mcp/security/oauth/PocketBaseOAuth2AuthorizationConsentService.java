@@ -39,39 +39,45 @@ public class PocketBaseOAuth2AuthorizationConsentService implements OAuth2Author
                         .toList()
         );
 
-        pocketBaseClient.findOAuthAuthorizationByClientAndUser(
-                        registeredClient.getClientId(),
-                        authorizationConsent.getPrincipalName()
-                )
-                .ifPresentOrElse(
-                        (record) -> pocketBaseClient.updateOAuthAuthorization(
-                                record.id(),
-                                new PocketBaseClient.OAuthAuthorizationPayload(
-                                        record.user(),
-                                        record.clientId(),
+        OAuthAuthorizationSaveRetry.save(
+                "consent for client " + registeredClient.getClientId()
+                        + " / user " + authorizationConsent.getPrincipalName(),
+                () -> pocketBaseClient.findOAuthConsentByClientAndUser(
+                                registeredClient.getClientId(),
+                                authorizationConsent.getPrincipalName()
+                        )
+                        .ifPresentOrElse(
+                                (record) -> pocketBaseClient.updateOAuthAuthorization(
+                                        record.id(),
+                                        new PocketBaseClient.OAuthAuthorizationPayload(
+                                                PocketBaseClient.OAUTH_RECORD_TYPE_CONSENT,
+                                                record.user(),
+                                                record.clientId(),
+                                                scopes,
+                                                null,
+                                                null,
+                                                record.accessTokenJti(),
+                                                record.expiresAt(),
+                                                record.status(),
+                                                record.state(),
+                                                consent
+                                        )
+                                ),
+                                () -> pocketBaseClient.createOAuthAuthorization(new PocketBaseClient.OAuthAuthorizationPayload(
+                                        PocketBaseClient.OAUTH_RECORD_TYPE_CONSENT,
+                                        authorizationConsent.getPrincipalName(),
+                                        registeredClient.getClientId(),
                                         scopes,
                                         null,
                                         null,
-                                        record.accessTokenJti(),
-                                        record.expiresAt(),
-                                        record.status(),
-                                        record.state(),
+                                        null,
+                                        null,
+                                        "active",
+                                        Map.of(),
                                         consent
-                                )
-                        ),
-                        () -> pocketBaseClient.createOAuthAuthorization(new PocketBaseClient.OAuthAuthorizationPayload(
-                                authorizationConsent.getPrincipalName(),
-                                registeredClient.getClientId(),
-                                scopes,
-                                null,
-                                null,
-                                null,
-                                null,
-                                "active",
-                                Map.of(),
-                                consent
-                        ))
-                );
+                                ))
+                        )
+        );
     }
 
     @Override
@@ -79,7 +85,7 @@ public class PocketBaseOAuth2AuthorizationConsentService implements OAuth2Author
         Objects.requireNonNull(authorizationConsent, "authorizationConsent is required");
 
         RegisteredClient registeredClient = requiredClient(authorizationConsent.getRegisteredClientId());
-        pocketBaseClient.findOAuthAuthorizationByClientAndUser(
+        pocketBaseClient.findOAuthConsentByClientAndUser(
                         registeredClient.getClientId(),
                         authorizationConsent.getPrincipalName()
                 )
@@ -93,7 +99,7 @@ public class PocketBaseOAuth2AuthorizationConsentService implements OAuth2Author
             return null;
         }
 
-        return pocketBaseClient.findOAuthAuthorizationByClientAndUser(registeredClient.getClientId(), principalName)
+        return pocketBaseClient.findOAuthConsentByClientAndUser(registeredClient.getClientId(), principalName)
                 .map((record) -> toConsent(registeredClientId, principalName, record))
                 .orElse(null);
     }

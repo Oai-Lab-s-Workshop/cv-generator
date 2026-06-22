@@ -88,10 +88,11 @@ class OAuthAuthorizationFlowIntegrationTest {
                 )));
         when(pocketBaseClient.findOAuthClientByClientId(CLIENT_ID)).thenReturn(Optional.of(oauthClientRecord()));
         when(pocketBaseClient.findOAuthClientByRecordId(CLIENT_RECORD_ID)).thenReturn(Optional.of(oauthClientRecord()));
-        when(pocketBaseClient.findOAuthAuthorizationByClientAndUser(eq(CLIENT_ID), eq(USER_ID)))
+        when(pocketBaseClient.findOAuthConsentByClientAndUser(eq(CLIENT_ID), eq(USER_ID)))
                 .thenAnswer((invocation) -> authorizations.values().stream()
                         .filter((stored) -> CLIENT_ID.equals(stored.payload.clientId()))
                         .filter((stored) -> USER_ID.equals(stored.payload.user()))
+                        .filter((stored) -> PocketBaseClient.OAUTH_RECORD_TYPE_CONSENT.equals(stored.payload.recordType()))
                         .findFirst()
                         .map(StoredAuthorization::toRecord));
         when(pocketBaseClient.findOAuthAuthorizationByStateId(anyString()))

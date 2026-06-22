@@ -27,6 +27,8 @@ import java.util.Optional;
 public class PocketBaseClient {
 
     private static final Logger logger = LoggerFactory.getLogger(PocketBaseClient.class);
+    public static final String OAUTH_RECORD_TYPE_AUTHORIZATION = "authorization";
+    public static final String OAUTH_RECORD_TYPE_CONSENT = "consent";
 
     private static final List<TemplateDescriptor> TEMPLATE_DESCRIPTORS = List.of(
             new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of()),
@@ -178,24 +180,33 @@ public class PocketBaseClient {
     }
 
     public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByAccessTokenJti(String accessTokenJti) {
-        return findOAuthAuthorizationByField("access_token_jti", accessTokenJti);
+        return findOAuthAuthorizationByField("access_token_jti", accessTokenJti, OAUTH_RECORD_TYPE_AUTHORIZATION);
     }
 
     public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByConsentState(String consentState) {
-        return findOAuthAuthorizationByField("state.attributes.state", consentState);
+        return findOAuthAuthorizationByField("state.attributes.state", consentState, OAUTH_RECORD_TYPE_AUTHORIZATION);
     }
 
     public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByStateId(String authorizationId) {
-        return findOAuthAuthorizationByField("state.id", authorizationId);
+        return findOAuthAuthorizationByField("state.id", authorizationId, OAUTH_RECORD_TYPE_AUTHORIZATION);
     }
 
     public Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByClientAndUser(String clientId, String userId) {
+        return findOAuthAuthorizationByClientAndUser(clientId, userId, OAUTH_RECORD_TYPE_AUTHORIZATION);
+    }
+
+    public Optional<OAuthAuthorizationRecord> findOAuthConsentByClientAndUser(String clientId, String userId) {
+        return findOAuthAuthorizationByClientAndUser(clientId, userId, OAUTH_RECORD_TYPE_CONSENT);
+    }
+
+    private Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByClientAndUser(String clientId, String userId, String recordType) {
         RecordListResponse<OAuthAuthorizationRecord> response = getCollectionRecords(
                 "oauth_authorizations",
                 String.format(
-                        "client_id=\"%s\" && user=\"%s\"",
+                        "client_id=\"%s\" && user=\"%s\" && record_type=\"%s\"",
                         escapeFilterValue(clientId),
-                        escapeFilterValue(userId)
+                        escapeFilterValue(userId),
+                        escapeFilterValue(recordType)
                 ),
                 1,
                 new ParameterizedTypeReference<>() {
@@ -416,13 +427,18 @@ public class PocketBaseClient {
     }
 
     private Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByHash(String fieldName, String hash) {
-        return findOAuthAuthorizationByField(fieldName, hash);
+        return findOAuthAuthorizationByField(fieldName, hash, OAUTH_RECORD_TYPE_AUTHORIZATION);
     }
 
-    private Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByField(String fieldName, String value) {
+    private Optional<OAuthAuthorizationRecord> findOAuthAuthorizationByField(String fieldName, String value, String recordType) {
         RecordListResponse<OAuthAuthorizationRecord> response = getCollectionRecords(
                 "oauth_authorizations",
-                String.format("%s=\"%s\"", fieldName, escapeFilterValue(value)),
+                String.format(
+                        "%s=\"%s\" && record_type=\"%s\"",
+                        fieldName,
+                        escapeFilterValue(value),
+                        escapeFilterValue(recordType)
+                ),
                 1,
                 new ParameterizedTypeReference<>() {
                 }
@@ -450,6 +466,7 @@ public class PocketBaseClient {
 
     private Map<String, Object> oauthAuthorizationBody(OAuthAuthorizationPayload payload) {
         Map<String, Object> body = new LinkedHashMap<>();
+        body.put("record_type", StringUtils.hasText(payload.recordType()) ? payload.recordType() : OAUTH_RECORD_TYPE_AUTHORIZATION);
         body.put("user", payload.user());
         body.put("client_id", payload.clientId());
         body.put("scopes", defaultList(payload.scopes()));
@@ -467,8 +484,14 @@ public class PocketBaseClient {
         }
         body.put("status", StringUtils.hasText(payload.status()) ? payload.status() : "active");
         body.put("state", payload.state() == null ? Map.of() : payload.state());
+        body.put("state_id", stateId(payload.state()));
         body.put("consent", payload.consent() == null ? Map.of() : payload.consent());
         return body;
+    }
+
+    private static String stateId(Map<String, Object> state) {
+        Object stateId = state == null ? null : state.get("id");
+        return stateId == null ? "" : stateId.toString();
     }
 
     private String serviceUserToken() {
@@ -604,6 +627,7 @@ public class PocketBaseClient {
     }
 
     public record OAuthAuthorizationPayload(
+            String recordType,
             String user,
             String clientId,
             List<String> scopes,
@@ -615,6 +639,20 @@ public class PocketBaseClient {
             Map<String, Object> state,
             Map<String, Object> consent
     ) {
+        public OAuthAuthorizationPayload(
+                String user,
+                String clientId,
+                List<String> scopes,
+                String rawAuthCode,
+                String rawRefreshToken,
+                String accessTokenJti,
+                String expiresAt,
+                String status,
+                Map<String, Object> state,
+                Map<String, Object> consent
+        ) {
+            this(OAUTH_RECORD_TYPE_AUTHORIZATION, user, clientId, scopes, rawAuthCode, rawRefreshToken, accessTokenJti, expiresAt, status, state, consent);
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -654,6 +692,7 @@ public class PocketBaseClient {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record OAuthAuthorizationRecord(
             String id,
+            @JsonProperty("record_type") String recordType,
             String user,
             @JsonProperty("client_id") String clientId,
             List<String> scopes,
@@ -665,6 +704,21 @@ public class PocketBaseClient {
             Map<String, Object> state,
             Map<String, Object> consent
     ) {
+        public OAuthAuthorizationRecord(
+                String id,
+                String user,
+                String clientId,
+                List<String> scopes,
+                String authCodeHash,
+                String refreshTokenHash,
+                String accessTokenJti,
+                String expiresAt,
+                String status,
+                Map<String, Object> state,
+                Map<String, Object> consent
+        ) {
+            this(id, OAUTH_RECORD_TYPE_AUTHORIZATION, user, clientId, scopes, authCodeHash, refreshTokenHash, accessTokenJti, expiresAt, status, state, consent);
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

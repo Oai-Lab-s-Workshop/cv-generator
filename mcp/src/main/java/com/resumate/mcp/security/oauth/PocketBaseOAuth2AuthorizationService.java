@@ -29,7 +29,7 @@ public class PocketBaseOAuth2AuthorizationService implements OAuth2Authorization
 
     private final PocketBaseClient pocketBaseClient;
     private final RegisteredClientRepository registeredClientRepository;
-    private final ObjectMapper objectMapper = JsonMapper.builder().build();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     public PocketBaseOAuth2AuthorizationService(
             PocketBaseClient pocketBaseClient,
@@ -44,11 +44,15 @@ public class PocketBaseOAuth2AuthorizationService implements OAuth2Authorization
         Objects.requireNonNull(authorization, "authorization is required");
 
         PocketBaseClient.OAuthAuthorizationPayload payload = toPayload(authorization);
-        pocketBaseClient.findOAuthAuthorizationByStateId(authorization.getId())
-                .ifPresentOrElse(
-                        (record) -> pocketBaseClient.updateOAuthAuthorization(record.id(), payload),
-                        () -> pocketBaseClient.createOAuthAuthorization(payload)
-                );
+        String stateId = authorization.getId();
+        OAuthAuthorizationSaveRetry.save(
+                "authorization " + stateId,
+                () -> pocketBaseClient.findOAuthAuthorizationByStateId(stateId)
+                        .ifPresentOrElse(
+                                (record) -> pocketBaseClient.updateOAuthAuthorization(record.id(), payload),
+                                () -> pocketBaseClient.createOAuthAuthorization(payload)
+                        )
+        );
     }
 
     @Override
@@ -114,6 +118,7 @@ public class PocketBaseOAuth2AuthorizationService implements OAuth2Authorization
         OAuth2Authorization.Token<OAuth2AccessToken> accessToken = authorization.getAccessToken();
 
         return new PocketBaseClient.OAuthAuthorizationPayload(
+                PocketBaseClient.OAUTH_RECORD_TYPE_AUTHORIZATION,
                 authorization.getPrincipalName(),
                 clientId,
                 List.copyOf(authorization.getAuthorizedScopes()),
@@ -173,7 +178,7 @@ public class PocketBaseOAuth2AuthorizationService implements OAuth2Authorization
                 return null;
             }
             String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
-            Map<String, Object> payload = objectMapper.readValue(payloadJson, new TypeReference<LinkedHashMap<String, Object>>() {
+            Map<String, Object> payload = OBJECT_MAPPER.readValue(payloadJson, new TypeReference<LinkedHashMap<String, Object>>() {
             });
             Object jti = payload.get("jti");
             return jti == null ? null : jti.toString();

@@ -60,7 +60,7 @@ public class OAuthLoginPagesController {
                     <h1>Sign in</h1>
                     <p class="muted">Use your existing CV app account to connect claude.ai.</p>
                     %s
-                    <form method="post" action="/login">
+                    <form method="post" action="">
                       %s
                       <label>Email<input name="username" type="email" autocomplete="username" required autofocus></label>
                       <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
