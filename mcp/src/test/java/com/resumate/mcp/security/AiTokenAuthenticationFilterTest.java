@@ -200,6 +200,41 @@ class AiTokenAuthenticationFilterTest {
     }
 
     @Test
+    void setsAuthentication_whenBearerTokenStartsWithResmPrefix() throws ServletException, IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer resm_valid-key");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        AiTokenPrincipal principal = new AiTokenPrincipal("tokenId", "userId", "label");
+        when(authenticationService.authenticate("resm_valid-key")).thenReturn(principal);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(response.getStatus()).isNotEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(authenticationService).authenticate("resm_valid-key");
+        verify(jwtDecoder, never()).decode(any());
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void sendsUnauthorizedWithWwwAuthenticate_whenBearerResmTokenIsInvalid() throws ServletException, IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer resm_bad-key");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        when(authenticationService.authenticate("resm_bad-key"))
+                .thenThrow(new IllegalArgumentException("Invalid API key."));
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+        assertThat(response.getHeader("WWW-Authenticate"))
+                .isEqualTo("Bearer error=\"invalid_token\", resource_metadata=\"https://mcp.example.test/.well-known/oauth-protected-resource\"");
+        verify(jwtDecoder, never()).decode(any());
+        verify(filterChain, never()).doFilter(any(), any());
+    }
+
+    @Test
     void apiKeyWins_whenBothApiKeyAndBearerAreProvided() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("API_KEY", "valid-token");

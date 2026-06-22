@@ -172,7 +172,6 @@ class PocketBaseClientTest {
 
         String collectionResponse = "{\"items\": [{\"id\": \"test-id\", \"name\": \"test\"}]}";
         for (int i = 0; i < 6; i++) {
-            enqueueAuthResponse();
             enqueueJsonResponse(collectionResponse);
         }
 
@@ -186,7 +185,6 @@ class PocketBaseClientTest {
     void validateOwnedRecordIds_passes_whenAllIdsBelongToUser() {
         enqueueAuthResponse();
         enqueueJsonResponse("{\"id\":\"skill1\",\"user\":\"userId\"}");
-        enqueueAuthResponse();
         enqueueJsonResponse("{\"id\":\"skill2\",\"user\":\"userId\"}");
 
         client.validateOwnedRecordIds("skills", "userId", List.of("skill1", "skill2"));
@@ -196,7 +194,6 @@ class PocketBaseClientTest {
     void validateOwnedRecordIds_throws_whenIdsDontMatch() {
         enqueueAuthResponse();
         enqueueJsonResponse("{\"id\":\"skill1\",\"user\":\"userId\"}");
-        enqueueAuthResponse();
         enqueueJsonResponse("{\"id\":\"skill2\",\"user\":\"other-user\"}");
 
         assertThatThrownBy(() -> client.validateOwnedRecordIds("skills", "userId", List.of("skill1", "skill2")))
@@ -392,7 +389,6 @@ class PocketBaseClientTest {
                 "\"client_id\":\"claude-ai\"," +
                 "\"client_name\":\"Claude AI\"" +
                 "}");
-        enqueueAuthResponse();
         mockWebServer.enqueue(new MockResponse().setResponseCode(204));
 
         client.updateOAuthClient("clientRecordId", new PocketBaseClient.OAuthClientPayload(
@@ -402,7 +398,6 @@ class PocketBaseClientTest {
 
         mockWebServer.takeRequest();
         RecordedRequest updateRequest = mockWebServer.takeRequest();
-        mockWebServer.takeRequest();
         RecordedRequest deleteRequest = mockWebServer.takeRequest();
         assertThat(updateRequest.getMethod()).isEqualTo("PATCH");
         assertThat(updateRequest.getPath()).isEqualTo("/api/collections/oauth_clients/records/clientRecordId");
@@ -462,7 +457,6 @@ class PocketBaseClientTest {
         enqueueJsonResponse("{" +
                 "\"items\":[{\"id\":\"authByCode\",\"auth_code_hash\":\"0b127c6413fd5bda549721cd7742193000cc14ded4a3128e95984b780171f0c5\"}]" +
                 "}");
-        enqueueAuthResponse();
         enqueueJsonResponse("{" +
                 "\"items\":[{\"id\":\"authByRefresh\",\"refresh_token_hash\":\"0eb17643d4e9261163783a420859c92c7d212fa9624106a12b510afbec266120\"}]" +
                 "}");
@@ -475,7 +469,6 @@ class PocketBaseClientTest {
 
         mockWebServer.takeRequest();
         RecordedRequest codeRequest = mockWebServer.takeRequest();
-        mockWebServer.takeRequest();
         RecordedRequest refreshRequest = mockWebServer.takeRequest();
         assertThat(codeRequest.getPath()).contains("auth_code_hash%3D%220b127c6413fd5bda549721cd7742193000cc14ded4a3128e95984b780171f0c5%22");
         assertThat(refreshRequest.getPath()).contains("refresh_token_hash%3D%220eb17643d4e9261163783a420859c92c7d212fa9624106a12b510afbec266120%22");
@@ -490,7 +483,6 @@ class PocketBaseClientTest {
                 "\"client_id\":\"claude-ai\"," +
                 "\"status\":\"revoked\"" +
                 "}");
-        enqueueAuthResponse();
         mockWebServer.enqueue(new MockResponse().setResponseCode(204));
 
         client.updateOAuthAuthorization("authRecordId", new PocketBaseClient.OAuthAuthorizationPayload(
@@ -500,7 +492,6 @@ class PocketBaseClientTest {
 
         mockWebServer.takeRequest();
         RecordedRequest updateRequest = mockWebServer.takeRequest();
-        mockWebServer.takeRequest();
         RecordedRequest deleteRequest = mockWebServer.takeRequest();
         assertThat(updateRequest.getMethod()).isEqualTo("PATCH");
         assertThat(updateRequest.getPath()).isEqualTo("/api/collections/oauth_authorizations/records/authRecordId");
