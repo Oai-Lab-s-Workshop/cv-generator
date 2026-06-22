@@ -3,6 +3,7 @@ package com.resumate.mcp.security.oauth;
 import com.resumate.mcp.service.PocketBaseClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -16,17 +17,29 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -121,7 +134,7 @@ class PocketBaseOAuthPersistenceTest {
                 .scope("mcp")
                 .build();
 
-        when(pocketBaseClient.findOAuthAuthorizationByClientAndUser("claude-ai", "pb-user-123"))
+        when(pocketBaseClient.findOAuthConsentByClientAndUser("claude-ai", "pb-user-123"))
                 .thenReturn(Optional.of(authorizationRecord(Map.of())));
 
         service.save(consent);
@@ -134,6 +147,64 @@ class PocketBaseOAuthPersistenceTest {
         assertThat(restored.getRegisteredClientId()).isEqualTo("pb-client-record");
         assertThat(restored.getPrincipalName()).isEqualTo("pb-user-123");
         assertThat(restored.getScopes()).containsExactly("mcp");
+    }
+
+    @Test
+    void authorizationService_save_persistsSingleRecordUnderConcurrentSaves() throws Exception {
+        RegisteredClientRepository registeredClientRepository = mock(RegisteredClientRepository.class);
+        when(registeredClientRepository.findById("pb-client-record")).thenReturn(registeredClient);
+        PocketBaseOAuth2AuthorizationService service = new PocketBaseOAuth2AuthorizationService(pocketBaseClient, registeredClientRepository);
+        OAuth2Authorization authorization = authorization();
+
+        AtomicReference<PocketBaseClient.OAuthAuthorizationRecord> persisted = new AtomicReference<>();
+        AtomicInteger successfulCreates = new AtomicInteger();
+
+        // Mirrors the unique state_id index: only the first create wins; concurrent creates are rejected with 409.
+        when(pocketBaseClient.findOAuthAuthorizationByStateId(authorization.getId()))
+                .thenAnswer((invocation) -> Optional.ofNullable(persisted.get()));
+        when(pocketBaseClient.createOAuthAuthorization(any())).thenAnswer((invocation) -> {
+            PocketBaseClient.OAuthAuthorizationPayload payload = invocation.getArgument(0);
+            PocketBaseClient.OAuthAuthorizationRecord record = authorizationRecord(payload.state());
+            if (!persisted.compareAndSet(null, record)) {
+                throw new RestClientResponseException("Conflict", HttpStatus.CONFLICT, "Conflict", null, null, null);
+            }
+            successfulCreates.incrementAndGet();
+            return record;
+        });
+        when(pocketBaseClient.updateOAuthAuthorization(any(), any())).thenAnswer((invocation) -> persisted.get());
+
+        int threadCount = 10;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch ready = new CountDownLatch(threadCount);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Throwable> failures = Collections.synchronizedList(new ArrayList<>());
+        List<Future<?>> futures = new ArrayList<>();
+
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                futures.add(executor.submit(() -> {
+                    ready.countDown();
+                    try {
+                        start.await();
+                        service.save(authorization);
+                    } catch (Throwable throwable) {
+                        failures.add(throwable);
+                    }
+                }));
+            }
+
+            assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+            for (Future<?> future : futures) {
+                future.get(5, TimeUnit.SECONDS);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+
+        assertThat(failures).isEmpty();
+        assertThat(successfulCreates.get()).isEqualTo(1);
+        verify(pocketBaseClient, times(threadCount - 1)).updateOAuthAuthorization(eq("pb-auth-record"), any());
     }
 
     private static RegisteredClient registeredClient() {

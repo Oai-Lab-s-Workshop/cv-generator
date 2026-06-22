@@ -1,6 +1,8 @@
 package com.resumate.mcp.security.oauth;
 
 import com.resumate.mcp.service.PocketBaseClient;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -20,6 +22,13 @@ public class PocketBaseRegisteredClientRepository implements RegisteredClientRep
 
     private final PocketBaseClient pocketBaseClient;
 
+    private final Cache<String, RegisteredClient> cacheById = Caffeine.newBuilder()
+            .expireAfterWrite(Duration.ofSeconds(30))
+            .build();
+    private final Cache<String, RegisteredClient> cacheByClientId = Caffeine.newBuilder()
+            .expireAfterWrite(Duration.ofSeconds(30))
+            .build();
+
     public PocketBaseRegisteredClientRepository(PocketBaseClient pocketBaseClient) {
         this.pocketBaseClient = pocketBaseClient;
     }
@@ -34,20 +43,23 @@ public class PocketBaseRegisteredClientRepository implements RegisteredClientRep
                         (record) -> pocketBaseClient.updateOAuthClient(record.id(), payload),
                         () -> pocketBaseClient.createOAuthClient(payload)
                 );
+
+        cacheById.invalidate(registeredClient.getId());
+        cacheByClientId.invalidate(registeredClient.getClientId());
     }
 
     @Override
     public RegisteredClient findById(String id) {
-        return pocketBaseClient.findOAuthClientByRecordId(id)
+        return cacheById.get(id, key -> pocketBaseClient.findOAuthClientByRecordId(key)
                 .map(this::toRegisteredClient)
-                .orElse(null);
+                .orElse(null));
     }
 
     @Override
     public RegisteredClient findByClientId(String clientId) {
-        return pocketBaseClient.findOAuthClientByClientId(clientId)
+        return cacheByClientId.get(clientId, key -> pocketBaseClient.findOAuthClientByClientId(key)
                 .map(this::toRegisteredClient)
-                .orElse(null);
+                .orElse(null));
     }
 
     private PocketBaseClient.OAuthClientPayload toPayload(RegisteredClient registeredClient) {

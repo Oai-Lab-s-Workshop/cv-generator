@@ -113,7 +113,7 @@ class OAuthMetadataIntegrationTest {
                 .andExpect(content().string(containsString("Sign in")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")))
                 .andExpect(content().string(containsString("name=\"username\"")))
-                .andExpect(content().string(containsString("action=\"/login\"")));
+                .andExpect(content().string(containsString("action=\"\"")));
     }
 
     @Test
@@ -132,7 +132,7 @@ class OAuthMetadataIntegrationTest {
                 .thenReturn(Optional.of(oauthClientRecord()));
         when(pocketBaseClient.findOAuthClientByRecordId("pb-client-record"))
                 .thenReturn(Optional.of(oauthClientRecord()));
-        when(pocketBaseClient.findOAuthAuthorizationByClientAndUser("client-id", "pb-user-id"))
+        when(pocketBaseClient.findOAuthConsentByClientAndUser("client-id", "pb-user-id"))
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(get("/oauth/consent")
