@@ -3,6 +3,7 @@ package com.resumate.mcp.service;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.resumate.mcp.config.PocketBaseProperties;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -63,12 +64,25 @@ public class PocketBaseClient {
 
     private final PocketBaseProperties properties;
     private final RestClient restClient;
+    private volatile String cachedServiceUserToken;
+    private volatile Instant cachedServiceUserTokenExpiresAt;
 
     public PocketBaseClient(PocketBaseProperties properties, RestClient.Builder restClientBuilder) {
         this.properties = properties;
         this.restClient = restClientBuilder
                 .baseUrl(trimTrailingSlash(properties.baseUrl()))
                 .build();
+    }
+
+    @PostConstruct
+    void validateConfiguration() {
+        String baseUrl = properties.baseUrl();
+        if (StringUtils.hasText(baseUrl) && baseUrl.startsWith("http://")) {
+            String lower = baseUrl.toLowerCase();
+            if (!lower.contains("localhost") && !lower.contains("127.0.0.1") && !lower.contains("[::1]")) {
+                logger.warn("POCKETBASE_BASE_URL uses HTTP for a non-local address ({}). Use HTTPS for non-local deployments.", baseUrl);
+            }
+        }
     }
 
     public Optional<AiTokenRecord> findAiTokenByRawToken(String rawToken) {
@@ -321,12 +335,16 @@ public class PocketBaseClient {
     }
 
     public void markAiTokenUsed(String tokenId) {
+        markAiTokenUsed(tokenId, Instant.now());
+    }
+
+    public void markAiTokenUsed(String tokenId, Instant lastUsedAt) {
         try {
             restClient.patch()
                     .uri("/api/collections/ai_tokens/records/{tokenId}", tokenId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
-                    .body(Map.of("lastUsedAt", Instant.now().toString()))
+                    .body(Map.of("lastUsedAt", lastUsedAt.toString()))
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientResponseException ex) {
@@ -499,21 +517,37 @@ public class PocketBaseClient {
             throw new IllegalStateException("PocketBase MCP service-user credentials are not configured.");
         }
 
-        AuthResponse response = restClient.post()
-                .uri("/api/collections/users/auth-with-password")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of(
-                        "identity", properties.serviceUserEmail(),
-                        "password", properties.serviceUserPassword()
-                ))
-                .retrieve()
-                .body(AuthResponse.class);
-
-        if (response == null || !StringUtils.hasText(response.token())) {
-            throw new IllegalStateException("PocketBase MCP service-user authentication failed.");
+        String token = cachedServiceUserToken;
+        Instant expiresAt = cachedServiceUserTokenExpiresAt;
+        if (StringUtils.hasText(token) && expiresAt != null && expiresAt.isAfter(Instant.now().plusSeconds(30))) {
+            return token;
         }
 
-        return response.token();
+        synchronized (this) {
+            token = cachedServiceUserToken;
+            expiresAt = cachedServiceUserTokenExpiresAt;
+            if (StringUtils.hasText(token) && expiresAt != null && expiresAt.isAfter(Instant.now().plusSeconds(30))) {
+                return token;
+            }
+
+            AuthResponse response = restClient.post()
+                    .uri("/api/collections/users/auth-with-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of(
+                            "identity", properties.serviceUserEmail(),
+                            "password", properties.serviceUserPassword()
+                    ))
+                    .retrieve()
+                    .body(AuthResponse.class);
+
+            if (response == null || !StringUtils.hasText(response.token())) {
+                throw new IllegalStateException("PocketBase MCP service-user authentication failed.");
+            }
+
+            cachedServiceUserToken = response.token();
+            cachedServiceUserTokenExpiresAt = Instant.now().plusSeconds(300);
+            return response.token();
+        }
     }
 
     private static String bearer(String token) {

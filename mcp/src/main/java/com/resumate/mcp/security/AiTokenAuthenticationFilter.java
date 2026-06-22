@@ -25,6 +25,7 @@ public class AiTokenAuthenticationFilter extends OncePerRequestFilter {
     private static final String API_KEY_HEADER = "API_KEY";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String API_KEY_PREFIX = "resm_";
 
     private final AiTokenAuthenticationService authenticationService;
     private final JwtDecoder jwtDecoder;
@@ -77,12 +78,7 @@ public class AiTokenAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             AiTokenPrincipal principal = authenticationService.authenticate(apiKey.trim());
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    principal,
-                    null,
-                    AuthorityUtils.NO_AUTHORITIES
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            setAiTokenAuthentication(principal);
             filterChain.doFilter(request, response);
         } catch (IllegalArgumentException ex) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
@@ -97,6 +93,11 @@ public class AiTokenAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws IOException, ServletException {
+        if (bearerToken.startsWith(API_KEY_PREFIX)) {
+            authenticateApiKeyFromBearer(bearerToken, request, response, filterChain);
+            return;
+        }
+
         try {
             Jwt jwt = jwtDecoder.decode(bearerToken);
             String audience = OAuthEndpointUrls.mcpAudience(oauthProperties.publicBaseUrl());
@@ -122,6 +123,33 @@ public class AiTokenAuthenticationFilter extends OncePerRequestFilter {
         } finally {
             SecurityContextHolder.clearContext();
         }
+    }
+
+    private void authenticateApiKeyFromBearer(
+            String bearerToken,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws IOException, ServletException {
+        try {
+            AiTokenPrincipal principal = authenticationService.authenticate(bearerToken.trim());
+            setAiTokenAuthentication(principal);
+            filterChain.doFilter(request, response);
+        } catch (IllegalArgumentException ex) {
+            response.setHeader("WWW-Authenticate", "Bearer error=\"invalid_token\", resource_metadata=\"" + protectedResourceMetadataUrl() + "\"");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    private void setAiTokenAuthentication(AiTokenPrincipal principal) {
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private String bearerToken(HttpServletRequest request) {
