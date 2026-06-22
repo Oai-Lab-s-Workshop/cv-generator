@@ -48,6 +48,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationConverter;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 
@@ -108,7 +109,8 @@ public class OAuthAuthorizationServerConfig {
             OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
             PocketBaseClient pocketBaseClient,
             OAuthProperties properties,
-            TokenSettings tokenSettings
+            TokenSettings tokenSettings,
+            ClientRegistrationRateLimitFilter clientRegistrationRateLimitFilter
     ) throws Exception {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
         RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
@@ -129,6 +131,7 @@ public class OAuthAuthorizationServerConfig {
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .csrf((csrf) -> csrf.ignoringRequestMatchers(endpointsMatcher))
+                .addFilterBefore(clientRegistrationRateLimitFilter, CsrfFilter.class)
                 .with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
                         .registeredClientRepository(registeredClientRepository)
                         .authorizationService(authorizationService)

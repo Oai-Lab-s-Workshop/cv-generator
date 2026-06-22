@@ -18,9 +18,9 @@ public class PocketBaseAuthenticationProvider implements AuthenticationProvider 
     static final String GENERIC_LOGIN_FAILURE = "Invalid email or password.";
 
     private final PocketBaseClient pocketBaseClient;
-    private final OAuthLoginAbuseProtection abuseProtection;
+    private final OAuthLoginAbuseProtectionService abuseProtection;
 
-    public PocketBaseAuthenticationProvider(PocketBaseClient pocketBaseClient, OAuthLoginAbuseProtection abuseProtection) {
+    public PocketBaseAuthenticationProvider(PocketBaseClient pocketBaseClient, OAuthLoginAbuseProtectionService abuseProtection) {
         this.pocketBaseClient = pocketBaseClient;
         this.abuseProtection = abuseProtection;
     }
@@ -31,18 +31,18 @@ public class PocketBaseAuthenticationProvider implements AuthenticationProvider 
         String password = authentication.getCredentials() == null ? null : authentication.getCredentials().toString();
         String remoteAddress = remoteAddress(authentication);
         if (!StringUtils.hasText(identity) || !StringUtils.hasText(password)) {
-            abuseProtection.recordFailure(remoteAddress, identity, "missing_credentials");
+            abuseProtection.recordLoginFailure(remoteAddress, identity, "missing_credentials");
             throw genericFailure();
         }
         String loginIdentity = identity.trim();
-        if (!abuseProtection.isAllowed(remoteAddress, loginIdentity)) {
-            abuseProtection.recordThrottled(remoteAddress, loginIdentity);
+        if (!abuseProtection.isLoginAllowed(remoteAddress, loginIdentity)) {
+            abuseProtection.recordLoginThrottled(remoteAddress, loginIdentity);
             throw genericFailure();
         }
 
         return pocketBaseClient.authenticateUser(loginIdentity, password)
                 .map((user) -> {
-                    abuseProtection.recordSuccess(remoteAddress, loginIdentity, user.id());
+                    abuseProtection.recordLoginSuccess(remoteAddress, loginIdentity, user.id());
                     PocketBaseOAuthPrincipal principal = new PocketBaseOAuthPrincipal(
                             user.id(),
                             user.email(),
@@ -51,7 +51,7 @@ public class PocketBaseAuthenticationProvider implements AuthenticationProvider 
                     return new UsernamePasswordAuthenticationToken(principal, null, List.of());
                 })
                 .orElseThrow(() -> {
-                    abuseProtection.recordFailure(remoteAddress, loginIdentity, "invalid_credentials");
+                    abuseProtection.recordLoginFailure(remoteAddress, loginIdentity, "invalid_credentials");
                     return genericFailure();
                 });
     }
