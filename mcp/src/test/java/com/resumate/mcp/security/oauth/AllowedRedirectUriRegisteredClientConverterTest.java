@@ -82,6 +82,84 @@ class AllowedRedirectUriRegisteredClientConverterTest {
         assertThat(registeredClient.getClientId()).isEqualTo("existing-client-id");
     }
 
+    @Test
+    void constructor_rejectsBareWildcardPattern() {
+        assertThatThrownBy(() -> converter(List.of("https://claude.ai/*", "*")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("matches any domain");
+    }
+
+    @Test
+    void constructor_rejectsHttpsWildcardHost() {
+        assertThatThrownBy(() -> converter(List.of("https://*")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("matches any hostname");
+    }
+
+    @Test
+    void constructor_rejectsHttpWildcardHost() {
+        assertThatThrownBy(() -> converter(List.of("http://*")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("matches any hostname");
+    }
+
+    @Test
+    void constructor_rejectsWildcardHostWithPath() {
+        assertThatThrownBy(() -> converter(List.of("https://*/callback")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("matches any hostname");
+    }
+
+    @Test
+    void constructor_allowsExplicitHostWildcardPath() {
+        // Should not throw — the hostname is explicit
+        converter(List.of("https://claude.ai/*", "https://app.example.com/callback"));
+    }
+
+    @Test
+    void constructor_allowsSubdomainWildcard() {
+        // Should not throw — subdomain wildcards are allowed
+        converter(List.of("https://*.example.com/callback"));
+    }
+
+    @Test
+    void convert_allowsSubdomainWildcardRedirect() {
+        RegisteredClient registeredClient = converter(List.of("https://*.example.com/callback"))
+                .convert(registration("https://app.example.com/callback"));
+
+        assertThat(registeredClient.getRedirectUris()).containsExactly("https://app.example.com/callback");
+    }
+
+    @Test
+    void convert_rejectsHostBoundaryBypassForSubdomainWildcard() {
+        AllowedRedirectUriRegisteredClientConverter converter = converter(List.of("https://*.example.com/callback"));
+
+        assertThatThrownBy(() -> converter.convert(registration("https://evil.test/.example.com/callback")))
+                .isInstanceOf(OAuth2AuthenticationException.class);
+    }
+
+    @Test
+    void convert_rejectsUnexpectedPort() {
+        AllowedRedirectUriRegisteredClientConverter converter = converter(List.of("https://app.example.com/callback"));
+
+        assertThatThrownBy(() -> converter.convert(registration("https://app.example.com:8443/callback")))
+                .isInstanceOf(OAuth2AuthenticationException.class);
+    }
+
+    @Test
+    void constructor_rejectsHttpPattern() {
+        assertThatThrownBy(() -> converter(List.of("http://app.example.com/callback")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("must use https");
+    }
+
+    @Test
+    void constructor_rejectsPatternWithQuery() {
+        assertThatThrownBy(() -> converter(List.of("https://app.example.com/callback?next=*")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("must not include query");
+    }
+
     private AllowedRedirectUriRegisteredClientConverter converter(List<String> patterns) {
         return new AllowedRedirectUriRegisteredClientConverter(
                 pocketBaseClient,

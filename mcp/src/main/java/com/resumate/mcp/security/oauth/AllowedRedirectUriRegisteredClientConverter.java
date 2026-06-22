@@ -2,6 +2,8 @@ package com.resumate.mcp.security.oauth;
 
 import com.resumate.mcp.config.OAuthProperties;
 import com.resumate.mcp.service.PocketBaseClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -14,16 +16,19 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.util.StringUtils;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 public class AllowedRedirectUriRegisteredClientConverter implements Converter<OAuth2ClientRegistration, RegisteredClient> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AllowedRedirectUriRegisteredClientConverter.class);
+
     private final OAuth2ClientRegistrationRegisteredClientConverter delegate = new OAuth2ClientRegistrationRegisteredClientConverter();
     private final PocketBaseClient pocketBaseClient;
-    private final List<Pattern> allowedRedirectUriPatterns;
+    private final List<AllowedRedirectUriPattern> allowedRedirectUriPatterns;
     private final TokenSettings tokenSettings;
 
     public AllowedRedirectUriRegisteredClientConverter(
@@ -32,8 +37,15 @@ public class AllowedRedirectUriRegisteredClientConverter implements Converter<OA
             TokenSettings tokenSettings
     ) {
         this.pocketBaseClient = pocketBaseClient;
-        this.allowedRedirectUriPatterns = allowedPatterns(oauthProperties.allowedRedirectUriPatterns());
         this.tokenSettings = tokenSettings;
+
+        List<String> configuredPatterns = resolveConfiguredPatterns(oauthProperties.allowedRedirectUriPatterns());
+        validatePatterns(configuredPatterns);
+        this.allowedRedirectUriPatterns = configuredPatterns.stream()
+                .filter(StringUtils::hasText)
+                .map(AllowedRedirectUriPattern::parse)
+                .toList();
+        LOGGER.info("OAuth redirect URI allowed patterns: {}", configuredPatterns);
     }
 
     @Override
@@ -76,7 +88,7 @@ public class AllowedRedirectUriRegisteredClientConverter implements Converter<OA
     }
 
     private boolean isAllowedRedirectUri(String redirectUri) {
-        return allowedRedirectUriPatterns.stream().anyMatch((pattern) -> pattern.matcher(redirectUri).matches());
+        return allowedRedirectUriPatterns.stream().anyMatch((pattern) -> pattern.matches(redirectUri));
     }
 
     private static String clientName(OAuth2ClientRegistration clientRegistration) {
@@ -93,16 +105,107 @@ public class AllowedRedirectUriRegisteredClientConverter implements Converter<OA
                 .toList();
     }
 
-    private static List<Pattern> allowedPatterns(List<String> patterns) {
-        List<String> configuredPatterns = patterns == null || patterns.isEmpty() ? List.of("https://claude.ai/*") : patterns;
-        return configuredPatterns.stream()
-                .filter(StringUtils::hasText)
-                .map(AllowedRedirectUriRegisteredClientConverter::wildcardPattern)
-                .toList();
+    private static List<String> resolveConfiguredPatterns(List<String> patterns) {
+        return patterns == null || patterns.isEmpty() ? List.of("https://claude.ai/*") : patterns;
     }
 
-    private static Pattern wildcardPattern(String pattern) {
-        String regex = "\\Q" + pattern.trim().replace("*", "\\E.*\\Q") + "\\E";
-        return Pattern.compile(regex);
+    private static void validatePatterns(List<String> patterns) {
+        for (String pattern : patterns) {
+            if (!StringUtils.hasText(pattern)) {
+                continue;
+            }
+            String trimmed = pattern.trim();
+
+            if ("*".equals(trimmed)) {
+                throw new IllegalArgumentException(
+                        "OAuth redirect URI pattern '*' matches any domain and is not allowed.");
+            }
+
+            String withoutScheme = trimmed;
+            if (withoutScheme.startsWith("https://")) {
+                withoutScheme = withoutScheme.substring("https://".length());
+            } else if (withoutScheme.startsWith("http://")) {
+                withoutScheme = withoutScheme.substring("http://".length());
+            }
+
+            if (withoutScheme.equals("*") || withoutScheme.startsWith("*/")) {
+                throw new IllegalArgumentException(
+                        "OAuth redirect URI pattern '" + trimmed + "' matches any hostname and is not allowed.");
+            }
+
+            AllowedRedirectUriPattern.parse(trimmed);
+        }
+    }
+
+    private record AllowedRedirectUriPattern(String scheme, String host, int port, boolean subdomainWildcard, String pathPattern) {
+
+        private static AllowedRedirectUriPattern parse(String value) {
+            String trimmed = value.trim();
+            try {
+                URI uri = new URI(trimmed);
+                if (!StringUtils.hasText(uri.getScheme()) || !StringUtils.hasText(uri.getRawAuthority())) {
+                    throw invalid(trimmed, "must include an absolute scheme and hostname");
+                }
+                if (!"https".equalsIgnoreCase(uri.getScheme())) {
+                    throw invalid(trimmed, "must use https");
+                }
+                if (StringUtils.hasText(uri.getRawQuery()) || StringUtils.hasText(uri.getRawFragment())) {
+                    throw invalid(trimmed, "must not include query parameters or fragments");
+                }
+
+                String authority = uri.getRawAuthority();
+                boolean wildcard = authority.startsWith("*.");
+                String host = wildcard ? authority.substring(2) : uri.getHost();
+                if (!StringUtils.hasText(host) || host.contains("*") || host.contains("/") || host.contains(":")) {
+                    throw invalid(trimmed, "contains an unsafe hostname wildcard");
+                }
+
+                String rawPath = StringUtils.hasText(uri.getRawPath()) ? uri.getRawPath() : "/";
+                return new AllowedRedirectUriPattern(uri.getScheme().toLowerCase(), host.toLowerCase(), uri.getPort(), wildcard, rawPath);
+            } catch (URISyntaxException ex) {
+                throw invalid(trimmed, "is not a valid URI");
+            }
+        }
+
+        private boolean matches(String redirectUri) {
+            try {
+                URI uri = new URI(redirectUri.trim());
+                if (!scheme.equalsIgnoreCase(uri.getScheme()) || !StringUtils.hasText(uri.getHost())) {
+                    return false;
+                }
+                if (StringUtils.hasText(uri.getRawQuery()) || StringUtils.hasText(uri.getRawFragment())) {
+                    return false;
+                }
+                String actualHost = uri.getHost().toLowerCase();
+                if (uri.getPort() != port) {
+                    return false;
+                }
+                if (subdomainWildcard) {
+                    if (!actualHost.endsWith("." + host) || actualHost.equals(host)) {
+                        return false;
+                    }
+                } else if (!actualHost.equals(host)) {
+                    return false;
+                }
+                String actualPath = StringUtils.hasText(uri.getRawPath()) ? uri.getRawPath() : "/";
+                return matchesPath(actualPath);
+            } catch (URISyntaxException ex) {
+                return false;
+            }
+        }
+
+        private boolean matchesPath(String actualPath) {
+            if ("*".equals(pathPattern) || "/*".equals(pathPattern)) {
+                return actualPath.startsWith("/");
+            }
+            if (pathPattern.endsWith("*")) {
+                return actualPath.startsWith(pathPattern.substring(0, pathPattern.length() - 1));
+            }
+            return actualPath.equals(pathPattern);
+        }
+
+        private static IllegalArgumentException invalid(String value, String reason) {
+            return new IllegalArgumentException("OAuth redirect URI pattern '" + value + "' " + reason + ".");
+        }
     }
 }
