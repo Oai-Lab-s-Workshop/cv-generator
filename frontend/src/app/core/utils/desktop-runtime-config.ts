@@ -16,6 +16,13 @@ interface RuntimeConfig {
 const DEFAULT_MCP_PORT = '8081';
 const MCP_ENDPOINT_PATH = '/mcp';
 const OAUTH_DISCOVERY_PATH = '/.well-known/oauth-protected-resource';
+const RUNTIME_CONFIG_CACHE_KEY = 'resumate:runtime-config';
+const RUNTIME_CONFIG_CACHE_TTL_MS = 300_000; // 5 minutes
+
+interface CachedRuntimeConfig {
+  data: RuntimeConfig;
+  timestamp: number;
+}
 
 declare global {
   interface Window {
@@ -40,9 +47,38 @@ export function resolveMcpUrl(): string | undefined {
   return window.__RESUMATE_DESKTOP_CONFIG__?.mcpUrl;
 }
 
+function getSessionStorage(): Storage | null {
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      return sessionStorage;
+    }
+  } catch {
+    // sessionStorage may throw in privacy modes or restricted environments
+  }
+  return null;
+}
+
 export async function loadRuntimeConfig(): Promise<void> {
   if (typeof fetch !== 'function') {
     return;
+  }
+
+  const storage = getSessionStorage();
+
+  // Check sessionStorage cache first
+  if (storage) {
+    try {
+      const cached = storage.getItem(RUNTIME_CONFIG_CACHE_KEY);
+      if (cached) {
+        const parsed: CachedRuntimeConfig = JSON.parse(cached);
+        if (parsed.data && parsed.timestamp && Date.now() - parsed.timestamp < RUNTIME_CONFIG_CACHE_TTL_MS) {
+          window.__RESUMATE_RUNTIME_CONFIG__ = parsed.data;
+          return;
+        }
+      }
+    } catch {
+      // Corrupted cache or read error; fall through to fetch
+    }
   }
 
   try {
@@ -52,9 +88,22 @@ export async function loadRuntimeConfig(): Promise<void> {
     }
 
     const config = (await response.json()) as Record<string, unknown>;
-    window.__RESUMATE_RUNTIME_CONFIG__ = {
+    const runtimeConfig: RuntimeConfig = {
       mcpPublicBaseUrl: typeof config['mcpPublicBaseUrl'] === 'string' ? config['mcpPublicBaseUrl'].trim() : undefined,
     };
+    window.__RESUMATE_RUNTIME_CONFIG__ = runtimeConfig;
+
+    // Cache the fetched config in sessionStorage
+    if (storage) {
+      try {
+        storage.setItem(
+          RUNTIME_CONFIG_CACHE_KEY,
+          JSON.stringify({ data: runtimeConfig, timestamp: Date.now() }),
+        );
+      } catch {
+        // Storage full or write error; config remains set on window
+      }
+    }
   } catch {
     // Runtime config is optional; static environment defaults remain valid.
   }
