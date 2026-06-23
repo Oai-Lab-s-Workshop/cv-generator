@@ -38,9 +38,9 @@ function importUsersAuthCollection(app) {
         name: "users",
         type: "auth",
         system: false,
-        listRule: "",
-        viewRule: "",
-        createRule: "",
+        listRule: "@request.auth.id != '' && id = @request.auth.id",
+        viewRule: "@request.auth.id != '' && id = @request.auth.id",
+        createRule: null,
         updateRule: null,
         deleteRule: null,
         fields: [

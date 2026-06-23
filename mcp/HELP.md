@@ -6,6 +6,28 @@
 - `POCKETBASE_SERVICE_USER_EMAIL`: dedicated PocketBase user email for the MCP service
 - `POCKETBASE_SERVICE_USER_PASSWORD`: password for that service user
 - `FRONTEND_BASE_URL`: public frontend origin used when returning profile URLs
+- `MCP_PUBLIC_BASE_URL`: public HTTPS origin for OAuth issuer and metadata, for example `https://mcp.example.com`
+- `MCP_OAUTH_JWK`: private RSA JWK JSON used to sign OAuth JWT access tokens
+
+Optional OAuth variables:
+
+- `MCP_OAUTH_ACCESS_TOKEN_TTL`: OAuth access-token lifetime, default `1h`
+- `MCP_OAUTH_REFRESH_TOKEN_TTL`: OAuth refresh-token lifetime, default `90d`
+- `MCP_OAUTH_ALLOWED_REDIRECT_URI_PATTERNS`: comma-separated dynamic-client redirect allow-list, default `https://claude.ai/*`
+
+## OAuth key generation
+
+Generate a private RSA JWK for `MCP_OAUTH_JWK` and keep it in deployment secrets. Do not commit the generated value.
+
+```bash
+node - <<'NODE'
+const { generateKeyPairSync } = require('node:crypto');
+const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+console.log(JSON.stringify(privateKey.export({ format: 'jwk' })));
+NODE
+```
+
+For Docker Compose, put the single-line JSON output in `.env` as `MCP_OAUTH_JWK='{"kty":"RSA",...}'` and set `MCP_PUBLIC_BASE_URL` to the externally reachable HTTPS URL of this MCP server.
 
 ## API key auth
 

@@ -6,6 +6,7 @@ import com.resumate.mcp.config.McpToolConfiguration;
 import com.resumate.mcp.security.AiTokenAuthenticationFilter;
 import com.resumate.mcp.security.AiTokenAuthenticationService;
 import com.resumate.mcp.service.PocketBaseClient;
+import com.resumate.mcp.support.OAuthTestPropertiesInitializer;
 import com.resumate.mcp.tool.CvMcpTools;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
@@ -23,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@ContextConfiguration(initializers = OAuthTestPropertiesInitializer.class)
 class McpServerIntegrationTest {
 
     @MockitoBean

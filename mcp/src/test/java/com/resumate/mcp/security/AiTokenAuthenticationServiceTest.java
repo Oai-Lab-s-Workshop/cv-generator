@@ -16,7 +16,8 @@ import static org.mockito.Mockito.when;
 class AiTokenAuthenticationServiceTest {
 
     private final PocketBaseClient pocketBaseClient = mock(PocketBaseClient.class);
-    private final AiTokenAuthenticationService service = new AiTokenAuthenticationService(pocketBaseClient);
+    private final AiTokenUsageRecorder usageRecorder = mock(AiTokenUsageRecorder.class);
+    private final AiTokenAuthenticationService service = new AiTokenAuthenticationService(pocketBaseClient, usageRecorder);
 
     @Test
     void authenticate_returnsPrincipal_whenTokenIsValid() {
@@ -33,7 +34,7 @@ class AiTokenAuthenticationServiceTest {
         assertThat(result.userId()).isEqualTo("userId");
         assertThat(result.label()).isEqualTo("my-label");
         assertThat(result.tokenPrefix()).isEqualTo("prefix");
-        verify(pocketBaseClient).markAiTokenUsed("tokenId");
+        verify(usageRecorder).recordUsed("tokenId");
     }
 
     @Test
@@ -85,7 +86,7 @@ class AiTokenAuthenticationServiceTest {
         AiTokenPrincipal result = service.authenticate("no-expiry");
 
         assertThat(result.tokenId()).isEqualTo("tokenId");
-        verify(pocketBaseClient).markAiTokenUsed("tokenId");
+        verify(usageRecorder).recordUsed("tokenId");
     }
 
     @Test
@@ -100,7 +101,7 @@ class AiTokenAuthenticationServiceTest {
         AiTokenPrincipal result = service.authenticate("future-token");
 
         assertThat(result.tokenId()).isEqualTo("tokenId");
-        verify(pocketBaseClient).markAiTokenUsed("tokenId");
+        verify(usageRecorder).recordUsed("tokenId");
     }
 
     @Test

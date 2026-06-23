@@ -9,8 +9,8 @@ services:
       TZ: UTC
       PB_HOST: 0.0.0.0
       PB_PORT: ${POCKETBASE_INTERNAL_PORT:-8090}
-      PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL:-admin@cv-generator.local}
-      PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD:-changeme123!}
+      PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL:?PB_ADMIN_EMAIL is required}
+      PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD:?PB_ADMIN_PASSWORD is required}
     volumes:
       - ./pb_data:/pb_data
       - ./pb_migrations:/pb_migrations
@@ -36,6 +36,11 @@ services:
       POCKETBASE_BASE_URL: ${POCKETBASE_BASE_URL:-http://pocketbase:${POCKETBASE_INTERNAL_PORT:-8090}}
       POCKETBASE_SERVICE_USER_EMAIL: ${POCKETBASE_SERVICE_USER_EMAIL:-}
       POCKETBASE_SERVICE_USER_PASSWORD: ${POCKETBASE_SERVICE_USER_PASSWORD:-}
+      MCP_PUBLIC_BASE_URL: ${MCP_PUBLIC_BASE_URL:?MCP_PUBLIC_BASE_URL is required}
+      MCP_OAUTH_JWK: ${MCP_OAUTH_JWK:?MCP_OAUTH_JWK is required}
+      MCP_OAUTH_ACCESS_TOKEN_TTL: ${MCP_OAUTH_ACCESS_TOKEN_TTL:-1h}
+      MCP_OAUTH_REFRESH_TOKEN_TTL: ${MCP_OAUTH_REFRESH_TOKEN_TTL:-90d}
+      MCP_OAUTH_ALLOWED_REDIRECT_URI_PATTERNS: ${MCP_OAUTH_ALLOWED_REDIRECT_URI_PATTERNS:-https://claude.ai/*}
     depends_on:
       pocketbase:
         condition: service_healthy
@@ -50,6 +55,8 @@ services:
     environment:
       CHOKIDAR_USEPOLLING: "true"
       FRONTEND_INTERNAL_PORT: ${FRONTEND_INTERNAL_PORT:-4200}
+      MCP_PUBLIC_BASE_URL: ${MCP_PUBLIC_BASE_URL:-}
+      MCP_BASE_URL: ${MCP_BASE_URL:-http://localhost:${MCP_PORT:-8081}}
       POCKETBASE_INTERNAL_PORT: ${POCKETBASE_INTERNAL_PORT:-8090}
       POCKETBASE_BASE_URL: ${POCKETBASE_BASE_URL:-http://pocketbase:${POCKETBASE_INTERNAL_PORT:-8090}}
       BUG_REPORT_URL: ${BUG_REPORT_URL:-}
@@ -62,7 +69,7 @@ services:
       - >
         mkdir -p src/assets
         && node -e "require('fs').writeFileSync('src/assets/runtime-config.json',
-        JSON.stringify({ bugReportUrl: process.env.BUG_REPORT_URL || '' }))"
+        JSON.stringify({ bugReportUrl: process.env.BUG_REPORT_URL || '', mcpPublicBaseUrl: process.env.MCP_PUBLIC_BASE_URL || process.env.MCP_BASE_URL || '' }))"
         && npm install
         && npm start -- --port "${FRONTEND_INTERNAL_PORT:-4200}"
     depends_on:

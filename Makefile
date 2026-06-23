@@ -89,6 +89,10 @@ ensure-mcp-service-user: env-init wait-pocketbase
 seed: env-init wait-pocketbase
 	source "$(HELPERS)"; \
 	load_env_file; \
+	if [ -z "$${RESUMATE_DEMO_USER_PASSWORD:-}" ]; then \
+	  RESUMATE_DEMO_USER_PASSWORD="$$(random_secret 16)"; \
+	  write_env_value RESUMATE_DEMO_USER_PASSWORD "$$RESUMATE_DEMO_USER_PASSWORD"; \
+	fi; \
 	PB_URL="$$PB_URL" \
 	PB_ADMIN_EMAIL="$$PB_ADMIN_EMAIL" \
 	PB_ADMIN_PASSWORD="$$PB_ADMIN_PASSWORD" \
