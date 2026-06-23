@@ -8,11 +8,8 @@ MCP_PORT_DEFAULT=8081
 MCP_INTERNAL_PORT_DEFAULT=8081
 FRONTEND_PORT_DEFAULT=4200
 FRONTEND_INTERNAL_PORT_DEFAULT=4200
-PB_ADMIN_EMAIL_DEFAULT=admin@cv-generator.local
-PB_ADMIN_PASSWORD_DEFAULT=changeme123!
 POCKETBASE_SERVICE_USER_EMAIL_DEFAULT=mcp-service@cv-generator.local
 RESUMATE_DEMO_USER_EMAIL_DEFAULT=ai-demo@cv-generator.local
-RESUMATE_DEMO_USER_PASSWORD_DEFAULT=changeme123!
 
 ensure_env_file() {
   if [ ! -f "$ENV_FILE" ]; then
@@ -34,12 +31,9 @@ load_env_file() {
   : "${PB_URL:=http://localhost:$POCKETBASE_PORT}"
   : "${POCKETBASE_BASE_URL:=http://pocketbase:$POCKETBASE_INTERNAL_PORT}"
   : "${MCP_BASE_URL:=http://localhost:$MCP_PORT}"
-  : "${PB_ADMIN_EMAIL:=$PB_ADMIN_EMAIL_DEFAULT}"
-  : "${PB_ADMIN_PASSWORD:=$PB_ADMIN_PASSWORD_DEFAULT}"
   : "${FRONTEND_BASE_URL:=http://localhost:$FRONTEND_PORT}"
   : "${POCKETBASE_SERVICE_USER_EMAIL:=$POCKETBASE_SERVICE_USER_EMAIL_DEFAULT}"
   : "${RESUMATE_DEMO_USER_EMAIL:=$RESUMATE_DEMO_USER_EMAIL_DEFAULT}"
-  : "${RESUMATE_DEMO_USER_PASSWORD:=$RESUMATE_DEMO_USER_PASSWORD_DEFAULT}"
   export POCKETBASE_PORT POCKETBASE_INTERNAL_PORT MCP_PORT MCP_INTERNAL_PORT FRONTEND_PORT FRONTEND_INTERNAL_PORT
   export PB_URL POCKETBASE_BASE_URL MCP_BASE_URL FRONTEND_BASE_URL
   export PB_ADMIN_EMAIL PB_ADMIN_PASSWORD POCKETBASE_SERVICE_USER_EMAIL RESUMATE_DEMO_USER_EMAIL RESUMATE_DEMO_USER_PASSWORD
@@ -63,6 +57,10 @@ write_env_value() {
 pb_admin_token() {
   local response
   local token
+  if [ -z "${PB_ADMIN_EMAIL:-}" ] || [ -z "${PB_ADMIN_PASSWORD:-}" ]; then
+    echo 'PB_ADMIN_EMAIL and PB_ADMIN_PASSWORD must be set in .env.' >&2
+    return 1
+  fi
   response="$(curl -fsS -X POST "$PB_URL/api/collections/_superusers/auth-with-password" \
     -H 'Content-Type: application/json' \
     --data "$(jq -cn --arg identity "$PB_ADMIN_EMAIL" --arg password "$PB_ADMIN_PASSWORD" '{identity: $identity, password: $password}')")"

@@ -1,8 +1,8 @@
 <section class="mcp-helper" aria-label="Configuration rapide MCP">
   <div class="mcp-helper__header">
     <div>
-      <p class="eyebrow">Config rapide MCP</p>
-      <h2>Brancher un agent avec une cle existante</h2>
+      <p class="eyebrow">Configuration manuelle</p>
+      <h2>Brancher un client avec une cle API</h2>
     </div>
     <p>{{ activeTokenCount() }} token{{ activeTokenCount() !== 1 ? 's' : '' }} actif{{ activeTokenCount() !== 1 ? 's' : '' }}</p>
   </div>
@@ -22,6 +22,7 @@
       <label class="field mcp-helper__field">
         <span>Token MCP</span>
         <input [ngModel]="customToken()" (ngModelChange)="customToken.set($event)" type="text" placeholder="rmcp_..." />
+        <small>Utilise uniquement la methode cle API. Les clients OAuth n'ont pas besoin de coller ce secret.</small>
       </label>
 
       <label class="field mcp-helper__field">

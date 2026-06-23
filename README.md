@@ -175,6 +175,8 @@ Ce mode est encore en cours de stabilisation et s'inscrit dans la trajectoire se
 L'option la plus simple pour lancer la stack complète :
 
 ```bash
+cp .env.example .env
+# Editez .env et renseignez PB_ADMIN_EMAIL/PB_ADMIN_PASSWORD avec des valeurs locales fortes.
 docker compose up -d
 ```
 
@@ -187,12 +189,7 @@ Services disponibles ensuite :
 
 Ces ports correspondent aux valeurs par défaut. Vous pouvez les remplacer dans `.env` avec `FRONTEND_PORT`, `POCKETBASE_PORT` et `MCP_PORT`.
 
-Compte administrateur créé automatiquement au démarrage :
-
-- Email : `admin@cv-generator.local`
-- Mot de passe : `changeme123!`
-
-Vous pouvez remplacer ces valeurs via les variables d'environnement `PB_ADMIN_EMAIL` et `PB_ADMIN_PASSWORD`.
+Le compte administrateur PocketBase doit être configuré explicitement via `PB_ADMIN_EMAIL` et `PB_ADMIN_PASSWORD`. Le dépôt ne fournit plus de mot de passe exécutable par défaut.
 
 ## Installation locale
 
@@ -238,8 +235,8 @@ Si vous avez modifié les ports exposés dans `.env`, utilisez les ports configu
 Variables principales disponibles dans `.env` :
 
 ```env
-PB_ADMIN_EMAIL=admin@cv-generator.local
-PB_ADMIN_PASSWORD=changeme123!
+PB_ADMIN_EMAIL=
+PB_ADMIN_PASSWORD=
 POCKETBASE_PORT=8090
 POCKETBASE_INTERNAL_PORT=8090
 MCP_PORT=8081
@@ -253,6 +250,7 @@ MCP_BASE_URL=http://localhost:${MCP_PORT:-8081}
 POCKETBASE_SERVICE_USER_EMAIL=
 POCKETBASE_SERVICE_USER_PASSWORD=
 RESUMATE_AI_TOKEN=
+SEED_USER_PASSWORD=
 ```
 
 Description rapide :

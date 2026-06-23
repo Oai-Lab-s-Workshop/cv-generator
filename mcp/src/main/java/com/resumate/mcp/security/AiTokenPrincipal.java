@@ -1,13 +1,13 @@
 package com.resumate.mcp.security;
 
-import java.security.Principal;
-
 public record AiTokenPrincipal(
         String tokenId,
         String userId,
         String label,
         String tokenPrefix
-) implements Principal {
+) implements McpPrincipal {
+
+    private static final String AUTH_SOURCE = "API_KEY";
 
     public AiTokenPrincipal(String tokenId, String userId, String label) {
         this(tokenId, userId, label, null);
@@ -16,5 +16,10 @@ public record AiTokenPrincipal(
     @Override
     public String getName() {
         return label == null || label.isBlank() ? tokenId : label;
+    }
+
+    @Override
+    public String authSource() {
+        return AUTH_SOURCE;
     }
 }
