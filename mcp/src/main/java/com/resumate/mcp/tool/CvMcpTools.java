@@ -216,6 +216,9 @@ public class CvMcpTools {
     private String frontendBaseUrl() {
         String baseUrl = frontendProperties.baseUrl();
         String normalizedBaseUrl = Objects.requireNonNullElse(baseUrl, "");
+        if (!normalizedBaseUrl.isBlank() && !normalizedBaseUrl.contains("://")) {
+            normalizedBaseUrl = "https://" + normalizedBaseUrl;
+        }
         return normalizedBaseUrl.endsWith("/")
                 ? normalizedBaseUrl.substring(0, normalizedBaseUrl.length() - 1)
                 : normalizedBaseUrl;

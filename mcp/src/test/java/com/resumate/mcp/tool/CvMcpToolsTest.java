@@ -345,6 +345,34 @@ class CvMcpToolsTest {
     }
 
     @Test
+    void frontendUrl_prependsHttps_whenNoProtocol() {
+        FrontendProperties hostOnlyProps = new FrontendProperties("resumate.app");
+        CvMcpTools tools = new CvMcpTools(pocketBaseClient, hostOnlyProps);
+
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of())
+        ));
+
+        CreatedProfileRecord createdRecord = new CreatedProfileRecord("id", "my-slug");
+        when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
+                .thenReturn(createdRecord);
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                "Acme - CV", "CV", "Job", "classic", "Summary",
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
+        );
+
+        CvMcpTools.CreateTailoredCvProfileResponse response = tools.createTailoredCvProfile(request);
+
+        assertThat(response.frontendUrl()).isEqualTo("https://resumate.app/my-slug");
+    }
+
+    @Test
     void createTailoredCvProfile_storesTemplateExtraUnderTemplateId() {
         AiTokenPrincipal principal = new AiTokenPrincipal(
                 "tokenId", "userId", "label"
