@@ -51,16 +51,17 @@ const AGENT_PRESETS: AgentPreset[] = [
   {
     id: 'opencode',
     name: 'OpenCode',
-    description: 'Configuration HTTP bearer token par cle API pour OpenCode.',
+    description: 'Configuration par cle API pour OpenCode (header API_KEY).',
     configFormat: 'json',
     configTemplate: (url, token) => `{
   "mcp": {
     "resumate": {
-      "transport": "http",
+      "type": "remote",
       "url": "${url}",
-      "auth": {
-        "type": "bearer",
-        "token": "${token}"
+      "oauth": false,
+      "enabled": true,
+      "headers": {
+        "API_KEY": "${token}"
       }
     }
   }
