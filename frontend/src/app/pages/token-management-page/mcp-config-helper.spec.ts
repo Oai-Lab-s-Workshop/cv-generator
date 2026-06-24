@@ -50,7 +50,7 @@ describe('McpConfigHelper', () => {
     fixture.detectChanges();
 
     expect(component.selectedAgent()).toBe('opencode');
-    expect(component.getGeneratedConfig()).toContain('"auth"');
+    expect(component.getGeneratedConfig()).toContain('"API_KEY"');
     expect(fixture.nativeElement.textContent).toContain('Configuration OpenCode');
   });
 
@@ -76,7 +76,7 @@ describe('McpConfigHelper', () => {
     const config = component.getGeneratedConfig();
 
     expect(config).toContain('"resumate"');
-    expect(config).toContain('"token": "rmcp_test"');
+    expect(config).toContain('"API_KEY": "rmcp_test"');
     expect(config).toContain('http://localhost:8080/mcp');
   });
 
