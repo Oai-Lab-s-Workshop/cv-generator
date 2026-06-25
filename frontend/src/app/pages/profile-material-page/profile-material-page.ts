@@ -148,11 +148,13 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   readonly selectedProjectPicture = signal<File | null>(null);
   readonly selectedAssetFile = signal<File | null>(null);
-  readonly responsibilitiesEditorModules = {
+  readonly editorModules = {
     toolbar: [
-      ['bold', 'italic', 'underline'],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ header: [1, 2, 3, false] }],
       [{ list: 'ordered' }, { list: 'bullet' }],
-      [{ indent: '-1' }, { indent: '+1' }],
+      [{ align: [] }],
+      ['blockquote'],
       ['link'],
       ['clean'],
     ],
@@ -567,7 +569,7 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
     const form = this.projectForm();
     const input: SaveCurrentUserProjectInput = {
       name: form.name.trim(),
-      description: this.optionalText(form.description),
+      description: this.normalizeHtmlEditorValue(form.description),
       url: this.optionalText(form.url),
       date: this.optionalText(form.date),
       type: form.type || undefined,
@@ -616,7 +618,7 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
     const form = this.achievementForm();
     const input: SaveCurrentUserAchievementInput = {
       title: form.title.trim(),
-      description: this.optionalText(form.description),
+      description: this.normalizeHtmlEditorValue(form.description),
       sortOrder: form.sortOrder ?? undefined,
     };
 
@@ -706,7 +708,7 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
     const form = this.hobbyForm();
     const input: SaveCurrentUserHobbyInput = {
       name: form.name.trim(),
-      description: this.optionalText(form.description),
+      description: this.normalizeHtmlEditorValue(form.description),
       sortOrder: form.sortOrder ?? undefined,
     };
 

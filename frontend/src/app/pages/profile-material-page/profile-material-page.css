@@ -192,7 +192,7 @@ h1 {
 }
 
 
-.responsibilities-editor {
+.quill-material-editor {
   display: grid;
   grid-template-rows: auto minmax(9rem, auto);
   width: 100%;
@@ -200,57 +200,57 @@ h1 {
   font-weight: 500;
 }
 
-:host ::ng-deep .responsibilities-editor .ql-toolbar,
-:host ::ng-deep .responsibilities-editor .ql-container {
+:host ::ng-deep .quill-material-editor .ql-toolbar,
+:host ::ng-deep .quill-material-editor .ql-container {
   border-color: light-dark(#cbd5e1, #475569);
   background: light-dark(#fff, #0f172a);
   color: var(--home-text);
   font: inherit;
 }
 
-:host ::ng-deep .responsibilities-editor .ql-toolbar {
+:host ::ng-deep .quill-material-editor .ql-toolbar {
   border-radius: 0.8rem 0.8rem 0 0;
 }
 
-:host ::ng-deep .responsibilities-editor .ql-container {
+:host ::ng-deep .quill-material-editor .ql-container {
   height: auto;
   min-height: 9rem;
   border-radius: 0 0 0.8rem 0.8rem;
   font-size: 1rem;
 }
 
-:host ::ng-deep .responsibilities-editor .ql-editor {
+:host ::ng-deep .quill-material-editor .ql-editor {
   height: auto;
   min-height: 9rem;
   caret-color: var(--home-primary);
   line-height: 1.55;
 }
 
-:host ::ng-deep .responsibilities-editor .ql-editor.ql-blank::before {
+:host ::ng-deep .quill-material-editor .ql-editor.ql-blank::before {
   color: var(--home-muted);
   font-style: normal;
 }
 
-:host ::ng-deep .responsibilities-editor .ql-snow .ql-stroke {
+:host ::ng-deep .quill-material-editor .ql-snow .ql-stroke {
   stroke: var(--home-text);
 }
 
-:host ::ng-deep .responsibilities-editor .ql-snow .ql-fill {
+:host ::ng-deep .quill-material-editor .ql-snow .ql-fill {
   fill: var(--home-text);
 }
 
-:host ::ng-deep .responsibilities-editor .ql-picker,
-:host ::ng-deep .responsibilities-editor .ql-picker-options {
+:host ::ng-deep .quill-material-editor .ql-picker,
+:host ::ng-deep .quill-material-editor .ql-picker-options {
   color: var(--home-text);
 }
 
-:host ::ng-deep .responsibilities-editor:focus-within .ql-toolbar,
-:host ::ng-deep .responsibilities-editor:focus-within .ql-container {
+:host ::ng-deep .quill-material-editor:focus-within .ql-toolbar,
+:host ::ng-deep .quill-material-editor:focus-within .ql-container {
   border-color: light-dark(#2563eb, #60a5fa);
   box-shadow: light-dark(0 0 0 3px rgba(37, 99, 235, 0.14), 0 0 0 3px rgba(96, 165, 250, 0.2));
 }
 
-:host ::ng-deep .responsibilities-editor:focus-within .ql-toolbar {
+:host ::ng-deep .quill-material-editor:focus-within .ql-toolbar {
   border-bottom-color: light-dark(#cbd5e1, #475569);
 }
 
