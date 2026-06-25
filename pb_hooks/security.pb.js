@@ -245,3 +245,32 @@ const revokeAiTokenHandler = (e) => {
 
 routerAdd('POST', '/api/custom/ai-tokens/{id}/revoke', revokeAiTokenHandler);
 routerAdd('PATCH', '/api/custom/ai-tokens/{id}/revoke', revokeAiTokenHandler);
+
+onRecordsListRequest((e) => {
+  try {
+    const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+    const twoWeeksAgo = new Date(Date.now() - twoWeeksMs);
+
+    for (const record of e.records ?? []) {
+      if (record.getString('status') !== 'sent') continue;
+
+      const updatedAt = record.getDateTime('updated_at');
+      if (!updatedAt) continue;
+
+      const updatedAtDate = new Date(updatedAt);
+      if (Number.isNaN(updatedAtDate.getTime()) || updatedAtDate >= twoWeeksAgo) continue;
+
+      record.set('status', 'unanswered');
+      try {
+        $app.save(record);
+        console.log('[cv_profiles] Auto-transitioned to unanswered:', record.id);
+      } catch (err) {
+        console.error('[cv_profiles] Auto-transition failed for', record.id, ':', err?.message || err);
+      }
+    }
+  } catch (err) {
+    console.error('[cv_profiles] Auto-transition hook error:', err?.message || err);
+  }
+
+  return e.next();
+}, 'cv_profiles');

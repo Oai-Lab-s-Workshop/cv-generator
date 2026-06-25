@@ -1,7 +1,7 @@
 import { MediaFile } from './file.model';
 import { User } from './user.model';
 
-export type CvProfileStatus = 'unsent' | 'sent' | 'rejected' | 'responded';
+export type CvProfileStatus = 'unsent' | 'sent' | 'rejected' | 'responded' | 'unanswered';
 export type CvProfileExtraValue = string | number | boolean | string[] | null;
 export type CvProfileExtraByTemplate = Record<string, Record<string, CvProfileExtraValue>>;
 

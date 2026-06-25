@@ -16,8 +16,9 @@ type SortDirection = 'asc' | 'desc';
 const STATUS_SORT_ORDER: Record<string, number> = {
   unsent: 0,
   sent: 1,
-  rejected: 2,
-  responded: 3,
+  unanswered: 2,
+  rejected: 3,
+  responded: 4,
 };
 
 function pbDateValue(value?: string): number {
@@ -56,6 +57,7 @@ export class HomePage implements OnInit {
   readonly currentUser = this.authService.currentUser;
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
   readonly statusOptions = CV_PROFILE_STATUS_OPTIONS;
+  readonly selectableStatusOptions = CV_PROFILE_STATUS_OPTIONS.filter((o) => o.value !== 'unanswered');
   readonly totalProfileCount = computed(() => this.profiles().length);
   readonly publicProfileCount = computed(
     () => this.profiles().filter((profile) => Boolean(profile.template) && profile.public !== false).length,
@@ -84,11 +86,15 @@ export class HomePage implements OnInit {
   readonly rejectedProfileCount = computed(
     () => this.profiles().filter((p) => p.status === 'rejected').length,
   );
+  readonly unansweredProfileCount = computed(
+    () => this.profiles().filter((p) => p.status === 'unanswered').length,
+  );
 
   readonly unsentPercentage = computed(() => this.percentageOf(this.unsentProfileCount()));
   readonly sentPercentage = computed(() => this.percentageOf(this.sentProfileCount()));
   readonly respondedPercentage = computed(() => this.percentageOf(this.respondedProfileCount()));
   readonly rejectedPercentage = computed(() => this.percentageOf(this.rejectedProfileCount()));
+  readonly unansweredPercentage = computed(() => this.percentageOf(this.unansweredProfileCount()));
 
   readonly publicPercentage = computed(() => this.percentageOf(this.publicProfileCount()));
   readonly privatePercentage = computed(() => this.percentageOf(this.privateProfileCount()));
