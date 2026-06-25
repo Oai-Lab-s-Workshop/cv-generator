@@ -62,7 +62,7 @@
 
 .status-breakdown__grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.6rem;
 }
 
@@ -309,6 +309,11 @@
 .status-dot--green {
   background: light-dark(#22c55e, #4ade80);
   box-shadow: light-dark(0 0 0 3px rgba(34, 197, 94, 0.16), 0 0 0 3px rgba(74, 222, 128, 0.2));
+}
+
+.status-dot--yellow {
+  background: light-dark(#eab308, #facc15);
+  box-shadow: light-dark(0 0 0 3px rgba(234, 179, 8, 0.16), 0 0 0 3px rgba(250, 204, 21, 0.2));
 }
 
 .visibility-control {
