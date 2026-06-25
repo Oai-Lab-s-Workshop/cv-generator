@@ -67,6 +67,15 @@
           <small>{{ isLoading() ? '...' : respondedPercentage() + '%' }}</small>
         </div>
       </article>
+
+      <article class="status-card status-card--yellow">
+        <span class="status-dot status-dot--yellow" aria-hidden="true"></span>
+        <div class="status-card__body">
+          <strong>{{ isLoading() ? '...' : unansweredProfileCount() }}</strong>
+          <span>Sans reponse</span>
+          <small>{{ isLoading() ? '...' : unansweredPercentage() + '%' }}</small>
+        </div>
+      </article>
     </div>
   </section>
 
@@ -222,7 +231,7 @@
 
                     @if (openStatusMenuFor() === profile.id) {
                       <div class="status-menu__list" role="menu">
-                        @for (statusOption of statusOptions; track statusOption.value) {
+                        @for (statusOption of selectableStatusOptions; track statusOption.value) {
                           <button
                             class="status-menu__option"
                             type="button"
