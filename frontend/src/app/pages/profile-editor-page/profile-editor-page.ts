@@ -23,6 +23,8 @@ export const CV_PROFILE_STATUS_OPTIONS: { value: CvProfileStatus; label: string;
   { value: 'unanswered', label: 'Sans reponse', tone: 'yellow' },
 ];
 
+export const CV_PROFILE_SELECTABLE_STATUS_OPTIONS = CV_PROFILE_STATUS_OPTIONS.filter((o) => o.value !== 'unanswered');
+
 type RelationType = 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies';
 type ExtraSourceRecord = Job | Project | Skill | Degree | Achievement | Hobby;
 
@@ -53,8 +55,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
 
   readonly profileId = input.required<string>();
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
-  readonly statusOptions = CV_PROFILE_STATUS_OPTIONS;
-  readonly selectableStatusOptions = CV_PROFILE_STATUS_OPTIONS.filter((o) => o.value !== 'unanswered');
+  readonly statusOptions = CV_PROFILE_SELECTABLE_STATUS_OPTIONS;
   readonly editorState = signal<EditorState | null>(null);
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
@@ -80,7 +81,9 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     );
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    // No cleanup needed — autosave removed
+  }
 
   async save(): Promise<void> {
     const state = this.editorState();
@@ -120,7 +123,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         status: state.profile.status,
       });
 
-      await this.loadEditorData(state.profile.id, false);
+      await this.loadEditorData(state.profile.id);
       this.successMessage.set('Profil enregistre.');
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
@@ -139,48 +142,27 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
 
   setProfileTemplate(value: string): void {
     this.updateProfileField('template', value || undefined);
-    void this.saveProfileField('template', value || undefined);
+    void this.saveProfileFields();
   }
 
   setProfilePublic(value: boolean): void {
     this.updateProfileField('public', value);
-    void this.saveProfileField('public', value);
+    void this.saveProfileFields();
   }
 
   setProfilePictureFile(value: string): void {
     this.updateProfileField('profilePictureFile', value || undefined);
-    void this.saveProfileField('profilePictureFile', value || undefined);
+    void this.saveProfileFields();
   }
 
   setCoverPictureFile(value: string): void {
     this.updateProfileField('coverPictureFile', value || undefined);
-    void this.saveProfileField('coverPictureFile', value || undefined);
+    void this.saveProfileFields();
   }
 
   setStatusAndSave(status: CvProfileStatus): void {
     this.setStatus(status);
-    void this.saveProfileField('status', status);
-  }
-
-  async saveProfileField<K extends keyof CvProfile>(field: K, value: CvProfile[K]): Promise<void> {
-    const state = this.editorState();
-
-    if (!state) {
-      return;
-    }
-
-    this.isProfileSaving.set(true);
-    this.errorMessage.set(null);
-    this.profileSaveMessage.set(null);
-
-    try {
-      await this.pocketBaseService.updateCurrentUserCvProfile(state.profile.id, { [field]: value } as Partial<Pick<CvProfile, K>>);
-      this.profileSaveMessage.set('Profil CV enregistre.');
-    } catch (error: unknown) {
-      this.errorMessage.set(getErrorMessage(error));
-    } finally {
-      this.isProfileSaving.set(false);
-    }
+    void this.saveProfileFields();
   }
 
   async saveProfileFields(): Promise<void> {
@@ -220,6 +202,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         linkOverrides: state.profile.linkOverrides,
       });
 
+      await this.loadEditorData(state.profile.id, false);
       this.profileSaveMessage.set('Profil CV enregistre.');
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
@@ -253,11 +236,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     });
 
     if (changed) {
-      const updatedState = this.editorState();
-
-      if (updatedState) {
-        void this.saveProfileField(type as unknown as keyof CvProfile, updatedState.profile[type] ?? []);
-      }
+      void this.saveProfileFields();
     }
   }
 
@@ -282,11 +261,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     });
 
     if (changed) {
-      const updatedState = this.editorState();
-
-      if (updatedState) {
-        void this.saveProfileField(type as keyof CvProfile, updatedState.profile[type] ?? []);
-      }
+      void this.saveProfileFields();
     }
   }
 
@@ -315,17 +290,12 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
   }
 
   setExtraValue(field: CvTemplateExtraField, value: CvProfileExtraValue): void {
-    let changed = false;
-
     this.editorState.update((state) => {
       const templateId = state?.profile.template;
 
       if (!state || !templateId) {
         return state;
       }
-
-      const currentValue = state.profile.extra?.[templateId]?.[field.id];
-      changed = JSON.stringify(currentValue) !== JSON.stringify(value);
 
       return {
         ...state,
@@ -341,7 +311,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         },
       };
     });
-
   }
 
   setProfessionalSummary(value: string): void {
@@ -564,11 +533,9 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
 
   private async loadEditorData(profileId: string, showLoading = true): Promise<void> {
     const currentRequestId = ++this.requestId;
-
     if (showLoading) {
       this.isLoading.set(true);
     }
-
     this.errorMessage.set(null);
     this.successMessage.set(null);
 

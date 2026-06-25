@@ -555,24 +555,6 @@ describe('ProfileMaterialPage', () => {
     expect(authSvc.refreshCurrentUser).toHaveBeenCalled();
   });
 
-  it('debounces personal info autosave on input changes', async () => {
-    jest.useFakeTimers();
-    const authSvc = component['authService'] as unknown as { refreshCurrentUser: jest.Mock };
-
-    component.setPersonalInfoField('firstName', 'Janet');
-    component.setPersonalInfoField('lastName', 'Doe Final');
-
-    jest.advanceTimersByTime(499);
-    expect(pocketBaseService.updateCurrentUser).not.toHaveBeenCalled();
-
-    jest.advanceTimersByTime(1);
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(pocketBaseService.updateCurrentUser).toHaveBeenCalledWith(expect.objectContaining({ firstName: 'Janet', lastName: 'Doe Final' }));
-    expect(authSvc.refreshCurrentUser).toHaveBeenCalled();
-  });
-
   it('refuses personal info save when name is empty', async () => {
     component.personalInfoForm.set({ firstName: '', lastName: '' });
     await component.savePersonalInfo();
@@ -744,37 +726,6 @@ describe('ProfileMaterialPage', () => {
     fixture.detectChanges();
     await component.saveJob();
     expect(pocketBaseService.updateCurrentUserJob).toHaveBeenCalled();
-  });
-
-  it('debounces existing record autosave without resetting edit mode', async () => {
-    jest.useFakeTimers();
-
-    component.editJob(component.jobs()[0]);
-    component.setJobFormValue('company', 'Acme Updated');
-
-    jest.advanceTimersByTime(499);
-    expect(pocketBaseService.updateCurrentUserJob).not.toHaveBeenCalled();
-
-    jest.advanceTimersByTime(1);
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(pocketBaseService.updateCurrentUserJob).toHaveBeenCalledWith('job-1', expect.objectContaining({ company: 'Acme Updated' }));
-    expect(component.jobForm().id).toBe('job-1');
-    expect(component.jobForm().company).toBe('Acme Updated');
-  });
-
-  it('does not autosave new unsaved material records', async () => {
-    jest.useFakeTimers();
-
-    component.resetJobForm();
-    component.setJobFormValue('company', 'Draft Company');
-
-    jest.advanceTimersByTime(500);
-    await Promise.resolve();
-
-    expect(pocketBaseService.createCurrentUserJob).not.toHaveBeenCalled();
-    expect(pocketBaseService.updateCurrentUserJob).not.toHaveBeenCalled();
   });
 
   it('updates an existing achievement', async () => {
