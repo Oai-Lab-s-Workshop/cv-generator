@@ -453,6 +453,128 @@ class CvMcpToolsTest {
         verify(pocketBaseClient).validateOwnedRecordIds("projects", "userId", List.of("proj1"));
     }
 
+    
+    @Test
+    void createTailoredCvProfile_rejectsWhenEmpty() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "desc", List.of())
+        ));
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                "Empty Profile", "Empty", null, "classic",
+                null,
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
+        , null);
+
+        assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Cannot create an empty CV profile")
+                .hasMessageContaining("skillIds")
+                .hasMessageContaining("jobIds")
+                .hasMessageContaining("professionalSummary");
+    }
+
+    @Test
+    void createTailoredCvProfile_allowsWhenOnlySummaryProvided() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "desc", List.of())
+        ));
+        when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
+                .thenReturn(new CreatedProfileRecord("id", "slug"));
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                "Label", "Name", null, "classic",
+                "A professional summary",
+                null, null, null, null, null, null, Map.of()
+        , null);
+
+        CvMcpTools.CreateTailoredCvProfileResponse response = cvMcpTools.createTailoredCvProfile(request);
+        assertThat(response.profileId()).isEqualTo("id");
+    }
+
+    @Test
+    void createTailoredCvProfile_allowsWhenOnlySkillsProvided() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "desc", List.of())
+        ));
+        when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
+                .thenReturn(new CreatedProfileRecord("id", "slug"));
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                "Label", "Name", null, "classic",
+                null,
+                List.of("skill1"), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
+        , null);
+
+        CvMcpTools.CreateTailoredCvProfileResponse response = cvMcpTools.createTailoredCvProfile(request);
+        assertThat(response.profileId()).isEqualTo("id");
+    }
+
+    @Test
+    void createTailoredCvProfile_allowsWhenOnlyJobsProvided() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "desc", List.of())
+        ));
+        when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
+                .thenReturn(new CreatedProfileRecord("id", "slug"));
+
+        CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
+                "Label", "Name", null, "classic",
+                null,
+                List.of(), List.of("job1"), List.of(), List.of(), List.of(), List.of(), Map.of()
+        , null);
+
+        CvMcpTools.CreateTailoredCvProfileResponse response = cvMcpTools.createTailoredCvProfile(request);
+        assertThat(response.profileId()).isEqualTo("id");
+    }
+
+    @Test
+    void updateCvProfile_doesNotRejectWhenEmpty_guardOnlyAppliesToCreate() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.findProfileBySlugOrId("my-slug"))
+                .thenReturn(new PocketBaseClient.CvProfileRecord("profileId", "my-slug", "userId", "classic", Map.of()));
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "desc", List.of())
+        ));
+        when(pocketBaseClient.updateCvProfile(eq("profileId"), any()))
+                .thenReturn(new PocketBaseClient.UpdatedProfileRecord("profileId", "my-slug"));
+
+        CvMcpTools.UpdateCvProfileRequest request = new CvMcpTools.UpdateCvProfileRequest(
+                "my-slug",
+                null, null, null, null,
+                null,
+                null, null, null, null, null, null,
+                null, null
+        );
+
+        CvMcpTools.UpdateCvProfileResponse response = cvMcpTools.updateCvProfile(request);
+        assertThat(response.profileId()).isEqualTo("profileId");
+        assertThat(response.slug()).isEqualTo("my-slug");
+    }
     private record TestMcpPrincipal(String userId, String label, String authSource) implements McpPrincipal {
         @Override
         public String getName() {
