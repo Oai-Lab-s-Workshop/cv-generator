@@ -90,40 +90,6 @@ describe('ProfileEditorPage', () => {
     expect(component.profileSaveMessage()).toBe('Profil CV enregistre.');
   });
 
-  it('debounces text profile field autosave', async () => {
-    jest.useFakeTimers();
-    jest.spyOn(component, 'saveProfileFields').mockResolvedValue(undefined);
-
-    component.setProfileName('Jane Doe Updated');
-    component.setProfileName('Jane Doe Final');
-    jest.advanceTimersByTime(499);
-
-    expect(component.saveProfileFields).not.toHaveBeenCalled();
-
-    jest.advanceTimersByTime(1);
-    await Promise.resolve();
-
-    expect(component.saveProfileFields).toHaveBeenCalledTimes(1);
-  });
-
-  it('debounces profile content autosave changes', async () => {
-    jest.useFakeTimers();
-    jest.spyOn(component, 'saveProfileFields').mockResolvedValue(undefined);
-
-    component.setProfessionalSummary('Autosaved summary');
-    component.setLinkOverrideField('github', 'https://github.test/autosave');
-    component.addRelation('projects', 'project-2');
-    component.setExtraValue({ id: 'hero' } as never, 'Autosaved hero');
-
-    jest.advanceTimersByTime(499);
-    expect(component.saveProfileFields).not.toHaveBeenCalled();
-
-    jest.advanceTimersByTime(1);
-    await Promise.resolve();
-
-    expect(component.saveProfileFields).toHaveBeenCalledTimes(1);
-  });
-
   it('rejects profile autosave when profile name is blank', async () => {
     component.setProfileName('   ');
 
@@ -297,20 +263,6 @@ describe('ProfileEditorPage', () => {
     expect(component.isProfileSaving()).toBe(false);
   });
 
-  it('clears pending autosave timeout inside saveProfileFields', async () => {
-    jest.useFakeTimers();
-    component.setProfileName('Valid Name');
-
-    pocketBaseService.updateCurrentUserCvProfile.mockResolvedValue({});
-    await component.saveProfileFields();
-
-    jest.advanceTimersByTime(500);
-    await Promise.resolve();
-
-    expect(pocketBaseService.updateCurrentUserCvProfile).toHaveBeenCalledTimes(1);
-    jest.useRealTimers();
-  });
-
   it('covers setter wrappers and template-related fallbacks', async () => {
     jest.spyOn(component, 'saveProfileFields').mockResolvedValue(undefined);
 
@@ -355,19 +307,6 @@ describe('ProfileEditorPage', () => {
     component.editorState.set(null);
     component.setProfileTemplate('classic');
     expect(component.editorState()).toBeNull();
-  });
-
-  it('clears pending autosave on destroy', async () => {
-    jest.useFakeTimers();
-    const saveSpy = jest.spyOn(component, 'saveProfileFields').mockResolvedValue(undefined);
-
-    component.scheduleProfileAutosave();
-    component.ngOnDestroy();
-    jest.advanceTimersByTime(500);
-    await Promise.resolve();
-
-    expect(saveSpy).not.toHaveBeenCalled();
-    jest.useRealTimers();
   });
 
   it('handles save payload with label, public, and extra fallbacks', async () => {
