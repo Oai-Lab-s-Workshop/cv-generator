@@ -34,11 +34,40 @@
     <div class="mcp-helper__output">
       <div class="mcp-helper__output-header">
         <span>Configuration {{ getSelectedPreset()?.name }}</span>
-        <button type="button" class="secondary-button" [class.mcp-helper__copy--copied]="isCopied()" (click)="copyConfig()">
-          {{ isCopied() ? 'Copie!' : 'Copier la config' }}
-        </button>
+        @if (getSelectedPreset()?.id === 'custom-client') {
+          <button type="button" class="secondary-button" [class.mcp-helper__copy--copied]="isCopied()" (click)="copyAllFields()">
+            {{ isCopied() ? 'Copié!' : 'Tout copier' }}
+          </button>
+        } @else {
+          <button type="button" class="secondary-button" [class.mcp-helper__copy--copied]="isCopied()" (click)="copyConfig()">
+            {{ isCopied() ? 'Copié!' : 'Copier la config' }}
+          </button>
+        }
       </div>
-      <pre><code>{{ getGeneratedConfig() }}</code></pre>
+      @if (getSelectedPreset()?.id === 'custom-client') {
+        <div class="mcp-helper__kv-list">
+          @for (field of customClientConfig(); track field.key) {
+            <div class="mcp-helper__kv-item">
+              <span class="mcp-helper__kv-key">{{ field.key }}</span>
+              <div class="mcp-helper__kv-value">
+                <code>{{ field.value }}</code>
+                @if (field.copyable) {
+                  <button
+                    type="button"
+                    class="mcp-helper__kv-copy"
+                    [class.mcp-helper__kv-copy--copied]="isFieldCopied(field.key)"
+                    (click)="copyFieldValue(field.value, field.key)"
+                  >
+                    {{ isFieldCopied(field.key) ? '✓' : 'Copier' }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <pre><code>{{ getGeneratedConfig() }}</code></pre>
+      }
     </div>
   </div>
 </section>
