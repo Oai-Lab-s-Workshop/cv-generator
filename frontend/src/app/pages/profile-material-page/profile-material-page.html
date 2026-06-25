@@ -164,11 +164,11 @@
         </div>
         <app-form-field label="Responsabilites" class="editor-field--full" fieldId="job-responsibilities" helperText="Detaillez vos missions, resultats, contexte...">
           <quill-editor
-            class="responsibilities-editor"
+            class="quill-material-editor"
             format="html"
             theme="snow"
             placeholder="Detaillez vos missions, resultats, contexte..."
-            [modules]="responsibilitiesEditorModules"
+            [modules]="editorModules"
             [sanitize]="true"
             [ngModel]="jobForm().responsibilities"
             (ngModelChange)="setJobFormValue('responsibilities', $event ?? '')"
@@ -256,7 +256,16 @@
             <input type="file" accept="image/*" (change)="onProjectPictureSelected($event)" id="project-picture" />
           </app-form-field>
           <app-form-field label="Description" class="editor-field--full" fieldId="project-description">
-            <textarea [value]="projectForm().description" (input)="setProjectFormValue('description', $any($event.target).value)" id="project-description" rows="4"></textarea>
+            <quill-editor
+              class="quill-material-editor"
+              format="html"
+              theme="snow"
+              placeholder="Decrivez votre projet..."
+              [modules]="editorModules"
+              [sanitize]="true"
+              [ngModel]="projectForm().description"
+              (ngModelChange)="setProjectFormValue('description', $event ?? '')"
+            />
           </app-form-field>
         </div>
         <app-form-field label="Realisations liees" class="editor-field--full" fieldId="project-achievements">
@@ -426,8 +435,17 @@
           </div>
           <div class="form-section">
             <span class="form-section__label">Details</span>
-            <app-form-field label="Description" fieldId="achievement-description">
-              <textarea [value]="achievementForm().description" (input)="setAchievementFormValue('description', $any($event.target).value)" id="achievement-description" rows="4"></textarea>
+            <app-form-field label="Description" class="editor-field--full" fieldId="achievement-description">
+              <quill-editor
+                class="quill-material-editor"
+                format="html"
+                theme="snow"
+                placeholder="Decrivez votre realisation..."
+                [modules]="editorModules"
+                [sanitize]="true"
+                [ngModel]="achievementForm().description"
+                (ngModelChange)="setAchievementFormValue('description', $event ?? '')"
+              />
             </app-form-field>
           </div>
         </div>
@@ -526,8 +544,17 @@
           </div>
           <div class="form-section">
             <span class="form-section__label">Details</span>
-            <app-form-field label="Description" fieldId="hobby-description">
-              <textarea [value]="hobbyForm().description" (input)="setHobbyFormValue('description', $any($event.target).value)" id="hobby-description" rows="4"></textarea>
+            <app-form-field label="Description" class="editor-field--full" fieldId="hobby-description">
+              <quill-editor
+                class="quill-material-editor"
+                format="html"
+                theme="snow"
+                placeholder="Decrivez votre loisir..."
+                [modules]="editorModules"
+                [sanitize]="true"
+                [ngModel]="hobbyForm().description"
+                (ngModelChange)="setHobbyFormValue('description', $event ?? '')"
+              />
             </app-form-field>
           </div>
         </div>
