@@ -20,6 +20,7 @@ export const CV_PROFILE_STATUS_OPTIONS: { value: CvProfileStatus; label: string;
   { value: 'sent', label: 'Envoye', tone: 'blue' },
   { value: 'rejected', label: 'Rejete', tone: 'red' },
   { value: 'responded', label: 'Repondu', tone: 'green' },
+  { value: 'unanswered', label: 'Sans reponse', tone: 'yellow' },
 ];
 
 type RelationType = 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies';
@@ -49,11 +50,11 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
   private readonly pocketBaseService = inject(PocketBaseService);
   private readonly injector = inject(Injector);
   private requestId = 0;
-  private profileSaveTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   readonly profileId = input.required<string>();
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
   readonly statusOptions = CV_PROFILE_STATUS_OPTIONS;
+  readonly selectableStatusOptions = CV_PROFILE_STATUS_OPTIONS.filter((o) => o.value !== 'unanswered');
   readonly editorState = signal<EditorState | null>(null);
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
@@ -79,12 +80,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     );
   }
 
-  ngOnDestroy(): void {
-    if (this.profileSaveTimeoutId !== null) {
-      clearTimeout(this.profileSaveTimeoutId);
-      this.profileSaveTimeoutId = null;
-    }
-  }
+  ngOnDestroy(): void {}
 
   async save(): Promise<void> {
     const state = this.editorState();
@@ -124,7 +120,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         status: state.profile.status,
       });
 
-      await this.loadEditorData(state.profile.id);
+      await this.loadEditorData(state.profile.id, false);
       this.successMessage.set('Profil enregistre.');
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
@@ -135,48 +131,56 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
 
   setProfileLabel(value: string): void {
     this.updateProfileField('label', value);
-    this.scheduleProfileAutosave();
   }
 
   setProfileName(value: string): void {
     this.updateProfileField('profileName', value);
-    this.scheduleProfileAutosave();
   }
 
   setProfileTemplate(value: string): void {
     this.updateProfileField('template', value || undefined);
-    void this.saveProfileFields();
+    void this.saveProfileField('template', value || undefined);
   }
 
   setProfilePublic(value: boolean): void {
     this.updateProfileField('public', value);
-    void this.saveProfileFields();
+    void this.saveProfileField('public', value);
   }
 
   setProfilePictureFile(value: string): void {
     this.updateProfileField('profilePictureFile', value || undefined);
-    void this.saveProfileFields();
+    void this.saveProfileField('profilePictureFile', value || undefined);
   }
 
   setCoverPictureFile(value: string): void {
     this.updateProfileField('coverPictureFile', value || undefined);
-    void this.saveProfileFields();
+    void this.saveProfileField('coverPictureFile', value || undefined);
   }
 
   setStatusAndSave(status: CvProfileStatus): void {
     this.setStatus(status);
-    void this.saveProfileFields();
+    void this.saveProfileField('status', status);
   }
 
-  scheduleProfileAutosave(): void {
-    if (this.profileSaveTimeoutId !== null) {
-      clearTimeout(this.profileSaveTimeoutId);
+  async saveProfileField<K extends keyof CvProfile>(field: K, value: CvProfile[K]): Promise<void> {
+    const state = this.editorState();
+
+    if (!state) {
+      return;
     }
 
-    this.profileSaveTimeoutId = setTimeout(() => {
-      this.profileSaveTimeoutId = null;
-      void this.saveProfileFields();
-    }, 500);
+    this.isProfileSaving.set(true);
+    this.errorMessage.set(null);
+    this.profileSaveMessage.set(null);
+
+    try {
+      await this.pocketBaseService.updateCurrentUserCvProfile(state.profile.id, { [field]: value } as Partial<Pick<CvProfile, K>>);
+      this.profileSaveMessage.set('Profil CV enregistre.');
+    } catch (error: unknown) {
+      this.errorMessage.set(getErrorMessage(error));
+    } finally {
+      this.isProfileSaving.set(false);
+    }
   }
 
   async saveProfileFields(): Promise<void> {
@@ -190,11 +194,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     if (!profileName) {
       this.errorMessage.set('Le nom du profil est obligatoire.');
       return;
-    }
-
-    if (this.profileSaveTimeoutId !== null) {
-      clearTimeout(this.profileSaveTimeoutId);
-      this.profileSaveTimeoutId = null;
     }
 
     this.isProfileSaving.set(true);
@@ -221,7 +220,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         linkOverrides: state.profile.linkOverrides,
       });
 
-      await this.loadEditorData(state.profile.id);
       this.profileSaveMessage.set('Profil CV enregistre.');
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
@@ -255,7 +253,11 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     });
 
     if (changed) {
-      this.scheduleProfileAutosave();
+      const updatedState = this.editorState();
+
+      if (updatedState) {
+        void this.saveProfileField(type as unknown as keyof CvProfile, updatedState.profile[type] ?? []);
+      }
     }
   }
 
@@ -280,7 +282,11 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     });
 
     if (changed) {
-      this.scheduleProfileAutosave();
+      const updatedState = this.editorState();
+
+      if (updatedState) {
+        void this.saveProfileField(type as keyof CvProfile, updatedState.profile[type] ?? []);
+      }
     }
   }
 
@@ -336,9 +342,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
       };
     });
 
-    if (changed) {
-      this.scheduleProfileAutosave();
-    }
   }
 
   setProfessionalSummary(value: string): void {
@@ -355,7 +358,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         },
       };
     });
-    this.scheduleProfileAutosave();
   }
 
   setLinkOverrideField(field: keyof CvProfileLinkOverrides, value: string): void {
@@ -375,7 +377,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         },
       };
     });
-    this.scheduleProfileAutosave();
   }
 
   setStatus(status: CvProfileStatus): void {
@@ -561,9 +562,13 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     return selectedPicture?.name || selectedPicture?.alt || 'Image selectionnee';
   }
 
-  private async loadEditorData(profileId: string): Promise<void> {
+  private async loadEditorData(profileId: string, showLoading = true): Promise<void> {
     const currentRequestId = ++this.requestId;
-    this.isLoading.set(true);
+
+    if (showLoading) {
+      this.isLoading.set(true);
+    }
+
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
@@ -583,7 +588,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
       this.editorState.set(null);
       this.errorMessage.set(getErrorMessage(error));
     } finally {
-      if (currentRequestId === this.requestId) {
+      if (currentRequestId === this.requestId && showLoading) {
         this.isLoading.set(false);
       }
     }
