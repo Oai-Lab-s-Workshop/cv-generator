@@ -160,6 +160,11 @@ export class HomePage implements OnInit {
     return this.sortDirection() === 'asc' ? 'ascending' : 'descending';
   }
 
+  private static readonly MONTH_ABBR = [
+    'janv.', 'f\u00e9vr.', 'mars', 'avr.', 'mai', 'juin',
+    'juil.', 'ao\u00fbt', 'sept.', 'oct.', 'nov.', 'd\u00e9c.',
+  ];
+
   formatDate(value?: string): string {
     if (!value) return '-';
     const isoValue = value.includes('T') ? value : value.replace(' ', 'T');
@@ -167,15 +172,26 @@ export class HomePage implements OnInit {
     if (Number.isNaN(date.getTime())) return '-';
 
     const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    const diffMonths = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
+    const currentYear = now.getFullYear();
+    const dateYear = date.getFullYear();
+    const yearDiff = currentYear - dateYear;
 
-    if (diffDays === 0) return 'auj.';
-    if (diffDays === 1) return 'hier';
-    if (diffDays < 7) return `j-${diffDays}`;
-    if (diffDays <= 28) return `${Math.floor(diffDays / 7)} sem.`;
-    if (diffMonths < 12) return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' }).format(date);
-    return new Intl.DateTimeFormat('fr-FR', { month: '2-digit', year: 'numeric' }).format(date);
+    if (yearDiff === 0) {
+      // Within the current year: DD/MM
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      return `${day}/${month}`;
+    }
+
+    if (yearDiff === 1) {
+      // Previous year: DD mmm.
+      const day = String(date.getDate()).padStart(2, '0');
+      const monthAbbr = HomePage.MONTH_ABBR[date.getMonth()];
+      return `${day} ${monthAbbr}`;
+    }
+
+    // 2+ years old: YYYY
+    return String(dateYear);
   }
 
   private async loadProfiles(): Promise<void> {
