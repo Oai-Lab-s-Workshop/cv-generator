@@ -29,13 +29,15 @@ class CvMcpToolsTest {
 
     private PocketBaseClient pocketBaseClient;
     private FrontendProperties frontendProperties;
+    private IdempotencyStore idempotencyStore;
     private CvMcpTools cvMcpTools;
 
     @BeforeEach
     void setUp() {
         pocketBaseClient = mock(PocketBaseClient.class);
         frontendProperties = new FrontendProperties("https://resumate.app");
-        cvMcpTools = new CvMcpTools(pocketBaseClient, frontendProperties);
+        idempotencyStore = mock(IdempotencyStore.class);
+        cvMcpTools = new CvMcpTools(pocketBaseClient, frontendProperties, idempotencyStore);
     }
 
     @AfterEach
@@ -149,7 +151,7 @@ class CvMcpToolsTest {
                 "Professional summary",
                 List.of("skill1"), List.of("job1"), List.of("proj1"),
                 List.of("ach1"), List.of("deg1"), List.of("hob1"), Map.of()
-        );
+        , null);
 
         CvMcpTools.CreateTailoredCvProfileResponse response = cvMcpTools.createTailoredCvProfile(request);
 
@@ -179,7 +181,7 @@ class CvMcpToolsTest {
                 "Acme - Dev", " ", "Job listing text", "classic",
                 "Professional summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
-        );
+        , null);
 
         cvMcpTools.createTailoredCvProfile(request);
 
@@ -205,7 +207,7 @@ class CvMcpToolsTest {
                 "Acme - Dev", null, "Job listing text", "classic",
                 "Professional summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
-        );
+        , null);
 
         cvMcpTools.createTailoredCvProfile(request);
 
@@ -224,7 +226,7 @@ class CvMcpToolsTest {
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 " ", "Dev CV", "Job listing", "classic",
                 "Summary", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
-        );
+        , null);
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -243,7 +245,7 @@ class CvMcpToolsTest {
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "Acme - Dev", "Dev CV", "Job listing", null,
                 "Summary", List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
-        );
+        , null);
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -266,7 +268,7 @@ class CvMcpToolsTest {
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "Acme - CV", "CV", "Job", "modern", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
-        );
+        , null);
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -282,7 +284,7 @@ class CvMcpToolsTest {
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "Acme - CV", "CV", "Job", "classic", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
-        );
+        , null);
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalStateException.class)
@@ -308,7 +310,7 @@ class CvMcpToolsTest {
                 "Acme - CV", "CV", "Job", "classic", "Summary",
                 List.of("skill1"), List.of("job1"), List.of(),
                 List.of(), List.of(), List.of(), Map.of()
-        );
+        , null);
 
         cvMcpTools.createTailoredCvProfile(request);
 
@@ -319,7 +321,7 @@ class CvMcpToolsTest {
     @Test
     void listTemplates_stripsTrailingSlash_fromFrontendUrl() {
         FrontendProperties trailingSlashProps = new FrontendProperties("https://resumate.app/");
-        CvMcpTools toolsWithSlash = new CvMcpTools(pocketBaseClient, trailingSlashProps);
+        CvMcpTools toolsWithSlash = new CvMcpTools(pocketBaseClient, trailingSlashProps, idempotencyStore);
 
         AiTokenPrincipal principal = new AiTokenPrincipal(
                 "tokenId", "userId", "label"
@@ -337,7 +339,7 @@ class CvMcpToolsTest {
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "Acme - CV", "CV", "Job", "classic", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
-        );
+        , null);
 
         CvMcpTools.CreateTailoredCvProfileResponse response = toolsWithSlash.createTailoredCvProfile(request);
 
@@ -347,7 +349,7 @@ class CvMcpToolsTest {
     @Test
     void frontendUrl_prependsHttps_whenNoProtocol() {
         FrontendProperties hostOnlyProps = new FrontendProperties("resumate.app");
-        CvMcpTools tools = new CvMcpTools(pocketBaseClient, hostOnlyProps);
+        CvMcpTools tools = new CvMcpTools(pocketBaseClient, hostOnlyProps, idempotencyStore);
 
         AiTokenPrincipal principal = new AiTokenPrincipal(
                 "tokenId", "userId", "label"
@@ -365,7 +367,7 @@ class CvMcpToolsTest {
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "Acme - CV", "CV", "Job", "classic", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), Map.of()
-        );
+        , null);
 
         CvMcpTools.CreateTailoredCvProfileResponse response = tools.createTailoredCvProfile(request);
 
@@ -392,7 +394,7 @@ class CvMcpToolsTest {
                 "Acme - CV", "CV", "Job", "modern", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
                 Map.of("headline", "Senior developer", "accentColor", "#2563eb")
-        );
+        , null);
 
         cvMcpTools.createTailoredCvProfile(request);
 
@@ -416,7 +418,7 @@ class CvMcpToolsTest {
                 "Acme - CV", "CV", "Job", "modern", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
                 Map.of("unknown", "value")
-        );
+        , null);
 
         assertThatThrownBy(() -> cvMcpTools.createTailoredCvProfile(request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -444,7 +446,7 @@ class CvMcpToolsTest {
                 "Acme - CV", "CV", "Job", "supa", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
                 Map.of("featuredProjectIds", List.of("proj1"))
-        );
+        , null);
 
         cvMcpTools.createTailoredCvProfile(request);
 
