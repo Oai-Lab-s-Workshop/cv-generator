@@ -292,6 +292,41 @@ public class PocketBaseClient {
         }
     }
 
+    public CvProfileRecord findProfileBySlugOrId(String slugOrId) {
+        RecordListResponse<CvProfileRecord> response = getCollectionRecords(
+                "cv_profiles",
+                String.format("slug=\"%s\"||id=\"%s\"", escapeFilterValue(slugOrId), escapeFilterValue(slugOrId)),
+                1,
+                new ParameterizedTypeReference<>() {
+                }
+        );
+
+        return response.items().stream().findFirst().orElse(null);
+    }
+
+    public UpdatedProfileRecord updateCvProfile(String profileId, Map<String, Object> patchBody) {
+        UpdatedProfileRecord updated;
+        try {
+            updated = restClient.patch()
+                    .uri("/api/collections/cv_profiles/records/{profileId}", profileId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
+                    .body(patchBody)
+                    .retrieve()
+                    .body(UpdatedProfileRecord.class);
+        } catch (RestClientResponseException ex) {
+            logger.error(
+                    "PocketBase cv_profiles update failed status={} profileId={} responseBody={}",
+                    ex.getStatusCode().value(),
+                    profileId,
+                    ex.getResponseBodyAsString()
+            );
+            throw ex;
+        }
+
+        return Objects.requireNonNull(updated, "PocketBase updated profile payload is required.");
+    }
+
     public CreatedProfileRecord createTailoredProfile(String userId, CreateProfilePayload payload) {
         String slug = payload.templateId() + "--" + slugify(payload.profileName()) + "-" + Instant.now().toEpochMilli();
         Map<String, Object> body = new LinkedHashMap<>();
@@ -756,7 +791,21 @@ public class PocketBaseClient {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    public record CvProfileRecord(
+            String id,
+            String slug,
+            String user,
+            String template,
+            Map<String, Object> extra
+    ) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record CreatedProfileRecord(String id, String slug) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record UpdatedProfileRecord(String id, String slug) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

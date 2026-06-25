@@ -15,6 +15,14 @@ Optional OAuth variables:
 - `MCP_OAUTH_REFRESH_TOKEN_TTL`: OAuth refresh-token lifetime, default `90d`
 - `MCP_OAUTH_ALLOWED_REDIRECT_URI_PATTERNS`: comma-separated dynamic-client redirect allow-list, default `https://claude.ai/*`
 
+Optional MCP variables:
+
+- `resumate.mcp.idempotency.ttl`: idempotency key cache TTL, default `5m`
+
+## Agent rules
+
+Agent-facing rules are maintained in `mcp/AGENTS.md`. Read that file for the complete workflow, do's/don'ts, idempotency-key guidance, and error-handling reference.
+
 ## OAuth key generation
 
 Generate a private RSA JWK for `MCP_OAUTH_JWK` and keep it in deployment secrets. Do not commit the generated value.
@@ -35,19 +43,43 @@ Incoming MCP requests authenticate with the `API_KEY` header. The API key is a u
 
 ## Agent purpose
 
-Use this MCP server when a user asks you to create, tailor, adapt, optimize, or customize a CV/resume from their existing Resumate data. The server lets you inspect available templates, load the authenticated user's reusable resume material, and create a new public tailored CV profile for a specific job or opportunity.
+Use this MCP server when a user asks you to create, tailor, adapt, optimize, or customize a CV/resume from their existing Resumate data. The server lets you inspect available templates, load the authenticated user's reusable resume material, create a new public tailored CV profile, and update existing profiles.
 
 Do not invent template IDs or record IDs. Use only template IDs returned by `listTemplates` and user-owned record IDs returned by `listProfileMaterial`. A successful create call returns a shareable frontend URL for the created profile.
 
-## Agent workflow
+## Tools
+
+| Tool | Purpose |
+|---|---|
+| `listTemplates` | List available CV templates with `extraSchema` descriptors |
+| `whoAmI` | Return the authenticated principal identity |
+| `listProfileMaterial` | Load the user's skills, jobs, projects, achievements, degrees, and hobbies |
+| `createTailoredCvProfile` | Create a new tailored CV profile. Pass an `idempotencyKey` scoped to the job offer to prevent duplicates. |
+| `updateCvProfile` | Edit an existing profile by slug or id. Only fields explicitly provided are updated (PATCH semantics). |
+
+### Agent workflow
 
 1. Call `listTemplates` and choose one returned `template.id` for `templateId`.
 2. Call `listProfileMaterial` and select only IDs from the returned user records.
 3. Call `createTailoredCvProfile` with a non-empty `label`, the chosen `templateId`, a role-focused `professionalSummary`, selected ID arrays, and only `templateExtra` fields listed in the selected template's `extraSchema`.
+4. To refine a profile, call `updateCvProfile` with the profile's `slug` and only the fields you want to change.
 
 Always include `label` in create calls. The server does not generate it; choose a concise saved-resume label such as `Acme - Senior Backend Engineer`.
 
-If validation fails, correct the missing or invalid field and retry `createTailoredCvProfile` with the fixed value. Do not repeat the same invalid call.
+If validation fails, correct the missing or invalid field and retry with the fixed value. Do not repeat the same invalid call.
+
+### Idempotency (deduplication)
+
+Prevent accidental duplicate profiles by passing an `idempotencyKey` on `createTailoredCvProfile` calls:
+
+- Pick a descriptive key scoped to the job offer, e.g. `"create-profile-for-job-acme-senior"`.
+- If the same key is reused within 5 minutes, the server reroutes to `updateCvProfile` on the original profile instead of creating a duplicate.
+- The response includes `"deduplicated": true` when rerouted — treat this as normal success.
+- Concurrent creates with different keys (different job offers) proceed independently.
+
+### Empty profile guard
+
+`createTailoredCvProfile` rejects requests that would produce a profile with no substantive content. Provide at least one of: `skillIds`, `jobIds`, or `professionalSummary`.
 
 ## Internal PocketBase access
 
