@@ -30,10 +30,15 @@
   border: 1px solid #d8dee9;
   border-radius: 1rem;
   padding: 1rem 1.15rem;
+  overflow: hidden;
 }
 
 .profile-summary-chip__content {
   margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
+  white-space: pre-wrap;
   color: rgb(125, 122, 117);
   font-family: ui-sans-serif, -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   font-size: 14px;
