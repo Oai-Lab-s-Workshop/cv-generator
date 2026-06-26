@@ -10,6 +10,12 @@ interface AgentPreset {
   configTemplate: (url: string, token: string) => string;
 }
 
+interface CustomClientField {
+  key: string;
+  value: string;
+  copyable: boolean;
+}
+
 const AGENT_PRESETS: AgentPreset[] = [
   {
     id: 'claude-code',
@@ -51,16 +57,17 @@ const AGENT_PRESETS: AgentPreset[] = [
   {
     id: 'opencode',
     name: 'OpenCode',
-    description: 'Configuration HTTP bearer token par cle API pour OpenCode.',
+    description: 'Configuration par cle API pour OpenCode (header API_KEY).',
     configFormat: 'json',
     configTemplate: (url, token) => `{
   "mcp": {
     "resumate": {
-      "transport": "http",
+      "type": "remote",
       "url": "${url}",
-      "auth": {
-        "type": "bearer",
-        "token": "${token}"
+      "oauth": false,
+      "enabled": true,
+      "headers": {
+        "API_KEY": "${token}"
       }
     }
   }
@@ -84,17 +91,17 @@ const AGENT_PRESETS: AgentPreset[] = [
 }`,
   },
   {
-    id: 'plain',
-    name: 'Valeurs essentielles',
-    description: 'Liste plate des valeurs essentielles pour une configuration par cle API.',
+    id: 'custom-client',
+    name: 'Client personnalisé',
+    description: 'Affichage structuré des valeurs essentielles pour un client MCP personnalisé.',
     configFormat: 'flat',
     configTemplate: (url, token) =>
       `URL du serveur MCP : ${url}\n` +
       `Transport          : HTTP (Streamable)\n` +
-      `Nom du serveur     : resumate-mcp\n` +
-      `Methode auth       : Cle API manuelle\n` +
+      `Méthode auth       : Clé API\n` +
       `Header Auth        : Authorization: Bearer ${token || '<votre-cle-api>'}\n` +
-      `Cle API            : ${token || '<votre-cle-api>'}`,
+      `Clé API            : ${token || '<votre-cle-api>'}\n` +
+      `Outils disponibles : list_resumes, generate_cv, get_token_status, create_token, revoke_token, list_tokens`,
   },
 ];
 
@@ -112,6 +119,7 @@ export class McpConfigHelper {
   readonly customToken = signal('');
   readonly customUrl = signal(resolveMcpEndpointUrl());
   readonly copiedAgent = signal<string | null>(null);
+  readonly copiedField = signal<string | null>(null);
 
   getSelectedPreset(): AgentPreset | undefined {
     return this.agentPresets.find((preset) => preset.id === this.selectedAgent());
@@ -149,5 +157,57 @@ export class McpConfigHelper {
 
   isCopied(): boolean {
     return this.copiedAgent() === this.selectedAgent();
+  }
+
+  customClientConfig(): CustomClientField[] {
+    const token = this.customToken() || '<votre-cle-api>';
+    const authHeader = token !== '<votre-cle-api>' ? `Authorization: Bearer ${token}` : 'Authorization: Bearer <votre-cle-api>';
+    return [
+      { key: 'URL du serveur MCP', value: this.customUrl(), copyable: true },
+      { key: 'Transport', value: 'HTTP (Streamable)', copyable: false },
+      { key: 'Méthode d\'authentification', value: 'Clé API', copyable: false },
+      { key: 'Header d\'autorisation', value: authHeader, copyable: true },
+      { key: 'Clé API', value: token, copyable: true },
+      { key: 'Outils disponibles', value: 'list_resumes, generate_cv, get_token_status, create_token, revoke_token, list_tokens', copyable: false },
+    ];
+  }
+
+  async copyFieldValue(value: string, fieldKey: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = value;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+
+    this.copiedField.set(fieldKey);
+    setTimeout(() => this.copiedField.set(null), 2000);
+  }
+
+  async copyAllFields(): Promise<void> {
+    const fields = this.customClientConfig();
+    const text = fields.map((f) => `${f.key} : ${f.value}`).join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+
+    this.copiedAgent.set(this.selectedAgent());
+    setTimeout(() => this.copiedAgent.set(null), 2000);
+  }
+
+  isFieldCopied(fieldKey: string): boolean {
+    return this.copiedField() === fieldKey;
   }
 }

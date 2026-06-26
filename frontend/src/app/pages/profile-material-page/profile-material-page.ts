@@ -39,7 +39,6 @@ type DegreeForm = Omit<SaveCurrentUserDegreeInput, 'sortOrder'> & { id?: string;
 type HobbyForm = Omit<SaveCurrentUserHobbyInput, 'sortOrder'> & { id?: string; sortOrder: number | null };
 type AssetForm = Omit<SaveCurrentUserFileInput, 'file' | 'sortOrder'> & { id?: string; sortOrder: number | null };
 type MaterialSection = 'jobs' | 'projects' | 'skills' | 'achievements' | 'degrees' | 'hobbies' | 'assets';
-type AutosaveKey = MaterialSection | 'personalInfo';
 
 interface MaterialTab {
   readonly section: MaterialSection;
@@ -117,7 +116,6 @@ const EMPTY_ASSET_FORM: AssetForm = {
 export class ProfileMaterialPage implements OnInit, OnDestroy {
   private readonly pocketBaseService = inject(PocketBaseService);
   private readonly authService = inject(AuthService);
-  private readonly autosaveTimeoutIds = new Map<AutosaveKey, ReturnType<typeof setTimeout>>();
 
   readonly jobs = signal<Job[]>([]);
   readonly skills = signal<Skill[]>([]);
@@ -148,11 +146,13 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   readonly selectedProjectPicture = signal<File | null>(null);
   readonly selectedAssetFile = signal<File | null>(null);
-  readonly responsibilitiesEditorModules = {
+  readonly editorModules = {
     toolbar: [
-      ['bold', 'italic', 'underline'],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ header: [1, 2, 3, false] }],
       [{ list: 'ordered' }, { list: 'bullet' }],
-      [{ indent: '-1' }, { indent: '+1' }],
+      [{ align: [] }],
+      ['blockquote'],
       ['link'],
       ['clean'],
     ],
@@ -265,11 +265,7 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    for (const timeoutId of this.autosaveTimeoutIds.values()) {
-      clearTimeout(timeoutId);
-    }
-
-    this.autosaveTimeoutIds.clear();
+    // No cleanup needed — autosave removed
   }
 
   editJob(job: Job): void {
@@ -296,11 +292,9 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   setJobFormValue(field: keyof Omit<JobForm, 'id' | 'sortOrder'>, value: string): void {
     this.jobForm.update((form) => ({ ...form, [field]: value }));
-    this.scheduleExistingRecordAutosave('jobs', () => this.jobForm().id, () => this.saveJob(false));
   }
 
   async saveJob(resetAfterSave = true): Promise<void> {
-    this.clearAutosave('jobs');
     this.jobFormSubmitted.set(true);
     const form = this.jobForm();
     const input: SaveCurrentUserJobInput = {
@@ -348,12 +342,13 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   setSkillFormValue(field: keyof Omit<SkillForm, 'id' | 'level' | 'sortOrder'>, value: string): void {
     this.skillForm.update((form) => ({ ...form, [field]: value }));
-    this.scheduleExistingRecordAutosave('skills', () => this.skillForm().id, () => this.saveSkill(false));
   }
 
   setSkillLevel(value: string | number | null): void {
     this.skillForm.update((form) => ({ ...form, level: this.toNullableNumber(value) }));
-    this.scheduleExistingRecordAutosave('skills', () => this.skillForm().id, () => this.saveSkill(false));
+    if (this.skillForm().id) {
+      void this.saveSkill(false);
+    }
   }
 
   setSkillCategoryQuery(value: string): void {
@@ -367,12 +362,16 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
   selectSkillCategory(categoryId: string): void {
     this.skillForm.update((form) => ({ ...form, category: categoryId }));
     this.skillCategoryQuery.set('');
-    this.scheduleExistingRecordAutosave('skills', () => this.skillForm().id, () => this.saveSkill(false));
+    if (this.skillForm().id) {
+      void this.saveSkill(false);
+    }
   }
 
   clearSkillCategory(): void {
     this.skillForm.update((form) => ({ ...form, category: '' }));
-    this.scheduleExistingRecordAutosave('skills', () => this.skillForm().id, () => this.saveSkill(false));
+    if (this.skillForm().id) {
+      void this.saveSkill(false);
+    }
   }
 
   async createAndSelectSkillCategory(): Promise<void> {
@@ -392,7 +391,6 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
   }
 
   async saveSkill(resetAfterSave = true): Promise<void> {
-    this.clearAutosave('skills');
     this.skillFormSubmitted.set(true);
     const form = this.skillForm();
     const input: SaveCurrentUserSkillInput = {
@@ -442,7 +440,6 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   setProjectFormValue(field: keyof Omit<ProjectForm, 'id' | 'sortOrder' | 'achievements'>, value: string): void {
     this.projectForm.update((form) => ({ ...form, [field]: value }));
-    this.scheduleExistingRecordAutosave('projects', () => this.projectForm().id, () => this.saveProject(false));
   }
 
   toggleProjectAchievement(achievementId: string, selected: boolean): void {
@@ -452,7 +449,9 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
         ? Array.from(new Set([...(form.achievements ?? []), achievementId]))
         : (form.achievements ?? []).filter((id) => id !== achievementId),
     }));
-    this.scheduleExistingRecordAutosave('projects', () => this.projectForm().id, () => this.saveProject(false));
+    if (this.projectForm().id) {
+      void this.saveProject(false);
+    }
   }
 
   addProjectAchievement(achievementId: string): void {
@@ -501,7 +500,9 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   onProjectAchievementSelectionChange(selectedIds: string[]): void {
     this.projectForm.update((form) => ({ ...form, achievements: selectedIds }));
-    this.scheduleExistingRecordAutosave('projects', () => this.projectForm().id, () => this.saveProject(false));
+    if (this.projectForm().id) {
+      void this.saveProject(false);
+    }
   }
 
   async onProjectAchievementCreate(name: string): Promise<void> {
@@ -527,7 +528,9 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   onSkillCategorySelectionChange(selectedIds: string[]): void {
     this.skillForm.update((form) => ({ ...form, category: selectedIds[0] ?? '' }));
-    this.scheduleExistingRecordAutosave('skills', () => this.skillForm().id, () => this.saveSkill(false));
+    if (this.skillForm().id) {
+      void this.saveSkill(false);
+    }
   }
 
   async onSkillCategoryCreate(name: string): Promise<void> {
@@ -553,21 +556,24 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   onProjectAssetSelectionChange(selectedIds: string[]): void {
     this.projectForm.update((form) => ({ ...form, file: selectedIds[0] ?? '' }));
-    this.scheduleExistingRecordAutosave('projects', () => this.projectForm().id, () => this.saveProject(false));
+    if (this.projectForm().id) {
+      void this.saveProject(false);
+    }
   }
 
   onProjectPictureSelected(event: Event): void {
     this.selectedProjectPicture.set((event.target as HTMLInputElement).files?.[0] ?? null);
-    this.scheduleExistingRecordAutosave('projects', () => this.projectForm().id, () => this.saveProject(false));
+    if (this.projectForm().id) {
+      void this.saveProject(false);
+    }
   }
 
   async saveProject(resetAfterSave = true): Promise<void> {
-    this.clearAutosave('projects');
     this.projectFormSubmitted.set(true);
     const form = this.projectForm();
     const input: SaveCurrentUserProjectInput = {
       name: form.name.trim(),
-      description: this.optionalText(form.description),
+      description: this.normalizeHtmlEditorValue(form.description),
       url: this.optionalText(form.url),
       date: this.optionalText(form.date),
       type: form.type || undefined,
@@ -607,16 +613,14 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   setAchievementFormValue(field: keyof Omit<AchievementForm, 'id' | 'sortOrder'>, value: string): void {
     this.achievementForm.update((form) => ({ ...form, [field]: value }));
-    this.scheduleExistingRecordAutosave('achievements', () => this.achievementForm().id, () => this.saveAchievement(false));
   }
 
   async saveAchievement(resetAfterSave = true): Promise<void> {
-    this.clearAutosave('achievements');
     this.achievementFormSubmitted.set(true);
     const form = this.achievementForm();
     const input: SaveCurrentUserAchievementInput = {
       title: form.title.trim(),
-      description: this.optionalText(form.description),
+      description: this.normalizeHtmlEditorValue(form.description),
       sortOrder: form.sortOrder ?? undefined,
     };
 
@@ -652,11 +656,9 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   setDegreeFormValue(field: keyof Omit<DegreeForm, 'id' | 'sortOrder'>, value: string): void {
     this.degreeForm.update((form) => ({ ...form, [field]: value }));
-    this.scheduleExistingRecordAutosave('degrees', () => this.degreeForm().id, () => this.saveDegree(false));
   }
 
   async saveDegree(resetAfterSave = true): Promise<void> {
-    this.clearAutosave('degrees');
     this.degreeFormSubmitted.set(true);
     const form = this.degreeForm();
     const input: SaveCurrentUserDegreeInput = {
@@ -697,16 +699,14 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   setHobbyFormValue(field: keyof Omit<HobbyForm, 'id' | 'sortOrder'>, value: string): void {
     this.hobbyForm.update((form) => ({ ...form, [field]: value }));
-    this.scheduleExistingRecordAutosave('hobbies', () => this.hobbyForm().id, () => this.saveHobby(false));
   }
 
   async saveHobby(resetAfterSave = true): Promise<void> {
-    this.clearAutosave('hobbies');
     this.hobbyFormSubmitted.set(true);
     const form = this.hobbyForm();
     const input: SaveCurrentUserHobbyInput = {
       name: form.name.trim(),
-      description: this.optionalText(form.description),
+      description: this.normalizeHtmlEditorValue(form.description),
       sortOrder: form.sortOrder ?? undefined,
     };
 
@@ -743,16 +743,16 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   setAssetFormValue(field: keyof Omit<AssetForm, 'id' | 'sortOrder'>, value: string): void {
     this.assetForm.update((form) => ({ ...form, [field]: value }));
-    this.scheduleExistingRecordAutosave('assets', () => this.assetForm().id, () => this.saveAsset(false));
   }
 
   onAssetFileSelected(event: Event): void {
     this.selectedAssetFile.set((event.target as HTMLInputElement).files?.[0] ?? null);
-    this.scheduleExistingRecordAutosave('assets', () => this.assetForm().id, () => this.saveAsset(false));
+    if (this.assetForm().id) {
+      void this.saveAsset(false);
+    }
   }
 
   async saveAsset(resetAfterSave = true): Promise<void> {
-    this.clearAutosave('assets');
     this.assetFormSubmitted.set(true);
     const form = this.assetForm();
     const input: SaveCurrentUserFileInput = {
@@ -794,11 +794,9 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
 
   setPersonalInfoField(field: keyof UpdateCurrentUserInput, value: string): void {
     this.personalInfoForm.update((form) => ({ ...form, [field]: value }));
-    this.scheduleAutosave('personalInfo', () => this.savePersonalInfo());
   }
 
   async savePersonalInfo(): Promise<void> {
-    this.clearAutosave('personalInfo');
     const form = this.personalInfoForm();
     const input: UpdateCurrentUserInput = {
       firstName: form.firstName?.trim(),
@@ -952,35 +950,6 @@ export class ProfileMaterialPage implements OnInit, OnDestroy {
     } finally {
       this.savingSection.set(null);
     }
-  }
-
-  private scheduleExistingRecordAutosave(key: MaterialSection, getRecordId: () => string | undefined, save: () => Promise<void>): void {
-    if (!getRecordId()) {
-      return;
-    }
-
-    this.scheduleAutosave(key, save);
-  }
-
-  private scheduleAutosave(key: AutosaveKey, save: () => Promise<void>): void {
-    this.clearAutosave(key);
-
-    const timeoutId = setTimeout(() => {
-      this.autosaveTimeoutIds.delete(key);
-      void save();
-    }, 500);
-
-    this.autosaveTimeoutIds.set(key, timeoutId);
-  }
-
-  private clearAutosave(key: AutosaveKey): void {
-    const existingTimeoutId = this.autosaveTimeoutIds.get(key);
-    if (!existingTimeoutId) {
-      return;
-    }
-
-    clearTimeout(existingTimeoutId);
-    this.autosaveTimeoutIds.delete(key);
   }
 
   private async createSkillCategoryFromName(name: string, successMessage: string): Promise<SkillCategory | null> {

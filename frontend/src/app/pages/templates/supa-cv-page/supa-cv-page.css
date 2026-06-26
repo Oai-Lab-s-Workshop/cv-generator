@@ -405,4 +405,14 @@ app-education-chip .copy {
   *, *::before, *::after {
     box-shadow: none !important;
   }
+
+  .data a {
+    color: #111;
+  }
+
+  .project-card__link {
+    background: none;
+    color: #111;
+    -webkit-text-fill-color: #111;
+  }
 }

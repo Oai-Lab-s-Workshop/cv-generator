@@ -96,7 +96,7 @@ public final class TestData {
                 PROFILE_LABEL, PROFILE_NAME, JOB_LISTING, TEMPLATE_CLASSIC,
                 "Experienced Java developer",
                 List.of("skill1"), List.of("job1"), List.of("proj1"),
-                List.of("ach1"), List.of("deg1"), List.of("hob1"), Map.of()
+                List.of("ach1"), List.of("deg1"), List.of("hob1"), Map.of(), null
         );
     }
 }
