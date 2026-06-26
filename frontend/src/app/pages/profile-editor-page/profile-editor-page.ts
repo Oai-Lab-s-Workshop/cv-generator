@@ -55,7 +55,8 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
 
   readonly profileId = input.required<string>();
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
-  readonly statusOptions = CV_PROFILE_SELECTABLE_STATUS_OPTIONS;
+  readonly selectableStatusOptions = CV_PROFILE_SELECTABLE_STATUS_OPTIONS;
+  readonly statusOptions = CV_PROFILE_STATUS_OPTIONS;
   readonly editorState = signal<EditorState | null>(null);
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
