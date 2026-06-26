@@ -176,8 +176,26 @@ export class HomePage implements OnInit {
     const dateYear = date.getFullYear();
     const yearDiff = currentYear - dateYear;
 
+    // Relative display for dates within ~1 month
     if (yearDiff === 0) {
-      // Within the current year: DD/MM
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const targetDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const dayDiff = Math.round((today.getTime() - targetDay.getTime()) / 86400000);
+
+      if (dayDiff === 0) {
+        return 'Auj.';
+      }
+
+      if (dayDiff >= 1 && dayDiff <= 6) {
+        return `${dayDiff}j`;
+      }
+
+      if (dayDiff >= 7 && dayDiff <= 30) {
+        const weeks = Math.round(dayDiff / 7);
+        return `${weeks}sem`;
+      }
+
+      // Older than ~1 month but same year: DD/MM
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       return `${day}/${month}`;

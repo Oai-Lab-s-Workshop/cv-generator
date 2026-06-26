@@ -519,10 +519,24 @@ describe('HomePage', () => {
       });
     });
 
-    it('returns DD/MM for a date within the current year', () => {
+    it('returns relative format for recent dates (≤ 1 month), then DD/MM', () => {
       withFixedNow(fixedNow, () => {
+        // Same day → Auj.
+        expect(component.formatDate(isoFor(2026, 6, 3))).toBe('Auj.');
+        // 1 day ago
+        expect(component.formatDate(isoFor(2026, 6, 2))).toBe('1j');
+        // 3 days ago
+        expect(component.formatDate(isoFor(2026, 5, 31))).toBe('3j');
+        // 6 days ago
+        expect(component.formatDate(isoFor(2026, 5, 28))).toBe('6j');
+        // 1 week ago
+        expect(component.formatDate(isoFor(2026, 5, 27))).toBe('1sem');
+        // 2 weeks ago
+        expect(component.formatDate(isoFor(2026, 5, 20))).toBe('2sem');
+        // 4 weeks ago
+        expect(component.formatDate(isoFor(2026, 5, 6))).toBe('4sem');
+        // Older than 1 month → DD/MM
         expect(component.formatDate(isoFor(2026, 1, 15))).toBe('15/01');
-        expect(component.formatDate(isoFor(2026, 6, 3))).toBe('03/06');
         expect(component.formatDate(isoFor(2026, 12, 31))).toBe('31/12');
       });
     });
