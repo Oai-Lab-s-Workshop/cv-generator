@@ -87,7 +87,7 @@
             <div class="status-control">
               <span class="status-dot status-dot--{{ getStatusOption(state.profile.status)?.tone || 'gray' }}"></span>
               <select [ngModel]="state.profile.status || 'unsent'" (ngModelChange)="setStatusAndSave($event)" name="status">
-                @for (option of statusOptions; track option.value) {
+                @for (option of selectableStatusOptions; track option.value) {
                   <option [value]="option.value">{{ option.label }}</option>
                 }
               </select>

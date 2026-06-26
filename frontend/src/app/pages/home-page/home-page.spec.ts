@@ -490,14 +490,11 @@ describe('HomePage', () => {
     });
   });
 
-  // --- T10: formatDate ---
+  // --- T10: formatDate (updated_at abbreviated format) ---
   describe('formatDate', () => {
-    const isoDaysAgo = (days: number): string =>
-      new Date(fixedNow.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
-
-    const withFixedNow = (assertion: () => void): void => {
+    const withFixedNow = (date: Date, assertion: () => void): void => {
       jest.useFakeTimers();
-      jest.setSystemTime(fixedNow);
+      jest.setSystemTime(date);
 
       try {
         assertion();
@@ -506,62 +503,84 @@ describe('HomePage', () => {
       }
     };
 
+    // Helper to create an ISO date string for a specific year/month/day
+    const isoFor = (year: number, month: number, day: number): string =>
+      new Date(Date.UTC(year, month - 1, day, 12, 0, 0)).toISOString();
+
     it('returns "-" for undefined value', () => {
-      withFixedNow(() => {
+      withFixedNow(fixedNow, () => {
         expect(component.formatDate(undefined)).toBe('-');
       });
     });
 
     it('returns "-" for invalid date string', () => {
-      withFixedNow(() => {
+      withFixedNow(fixedNow, () => {
         expect(component.formatDate('not-a-date')).toBe('-');
       });
     });
 
-    it('returns "auj." for today', () => {
-      withFixedNow(() => {
-        expect(component.formatDate(isoDaysAgo(0))).toBe('auj.');
+    it('returns relative format for recent dates (≤ 1 month), then DD/MM', () => {
+      withFixedNow(fixedNow, () => {
+        // Same day → Auj.
+        expect(component.formatDate(isoFor(2026, 6, 3))).toBe('Auj.');
+        // 1 day ago
+        expect(component.formatDate(isoFor(2026, 6, 2))).toBe('1j');
+        // 3 days ago
+        expect(component.formatDate(isoFor(2026, 5, 31))).toBe('3j');
+        // 6 days ago
+        expect(component.formatDate(isoFor(2026, 5, 28))).toBe('6j');
+        // 1 week ago
+        expect(component.formatDate(isoFor(2026, 5, 27))).toBe('1sem');
+        // 2 weeks ago
+        expect(component.formatDate(isoFor(2026, 5, 20))).toBe('2sem');
+        // 4 weeks ago
+        expect(component.formatDate(isoFor(2026, 5, 6))).toBe('4sem');
+        // Older than 1 month → DD/MM
+        expect(component.formatDate(isoFor(2026, 1, 15))).toBe('15/01');
+        expect(component.formatDate(isoFor(2026, 12, 31))).toBe('31/12');
       });
     });
 
-    it('returns "hier" for yesterday', () => {
-      withFixedNow(() => {
-        expect(component.formatDate(isoDaysAgo(1))).toBe('hier');
+    it('returns DD mmm. for a date from the previous year', () => {
+      withFixedNow(fixedNow, () => {
+        expect(component.formatDate(isoFor(2025, 1, 5))).toBe('05 janv.');
+        expect(component.formatDate(isoFor(2025, 4, 25))).toBe('25 avr.');
+        expect(component.formatDate(isoFor(2025, 12, 31))).toBe('31 déc.');
       });
     });
 
-    it('returns "j-3" for 3 days ago', () => {
-      withFixedNow(() => {
-        expect(component.formatDate(isoDaysAgo(3))).toBe('j-3');
+    it('returns DD mmm. with correct month abbreviations', () => {
+      withFixedNow(fixedNow, () => {
+        const expected = [
+          '15 janv.', '15 févr.', '15 mars', '15 avr.',
+          '15 mai', '15 juin', '15 juil.', '15 août',
+          '15 sept.', '15 oct.', '15 nov.', '15 déc.',
+        ];
+        for (let m = 0; m < 12; m++) {
+          expect(component.formatDate(isoFor(2025, m + 1, 15))).toBe(expected[m]);
+        }
       });
     });
 
-    it('returns "2 sem." for 14 days ago', () => {
-      withFixedNow(() => {
-        expect(component.formatDate(isoDaysAgo(14))).toBe('2 sem.');
-      });
-    });
-
-    it('returns DD/MM for a date within the last year but older than 28 days', () => {
-      withFixedNow(() => {
-        const d = new Date(fixedNow.getTime() - 60 * 24 * 60 * 60 * 1000);
-        const expected = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' }).format(d);
-        expect(component.formatDate(d.toISOString())).toBe(expected);
-      });
-    });
-
-    it('returns MM/YYYY for a date over a year ago', () => {
-      withFixedNow(() => {
-        const d = new Date(fixedNow.getTime() - 400 * 24 * 60 * 60 * 1000);
-        const expected = new Intl.DateTimeFormat('fr-FR', { month: '2-digit', year: 'numeric' }).format(d);
-        expect(component.formatDate(d.toISOString())).toBe(expected);
+    it('returns YYYY for a date 2+ years old', () => {
+      withFixedNow(fixedNow, () => {
+        expect(component.formatDate(isoFor(2024, 3, 10))).toBe('2024');
+        expect(component.formatDate(isoFor(2023, 7, 1))).toBe('2023');
+        expect(component.formatDate(isoFor(2020, 1, 1))).toBe('2020');
       });
     });
 
     it('handles ISO date format without T (PocketBase format)', () => {
-      withFixedNow(() => {
-        const result = component.formatDate('2026-01-15 10:30:00.000Z');
-        expect(result).toMatch(/^(auj\.|hier|j-\d+|\d+ sem\.|\d{2}\/\d{2}|\d{2}\/\d{4}|-)$/);
+      withFixedNow(fixedNow, () => {
+        expect(component.formatDate('2026-02-20 10:30:00.000Z')).toBe('20/02');
+        expect(component.formatDate('2025-11-05 10:30:00.000Z')).toBe('05 nov.');
+        expect(component.formatDate('2024-08-15 10:30:00.000Z')).toBe('2024');
+      });
+    });
+
+    it('handles null-like empty string', () => {
+      withFixedNow(fixedNow, () => {
+        expect(component.formatDate('')).toBe('-');
       });
     });
   });

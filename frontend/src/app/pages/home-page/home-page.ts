@@ -16,8 +16,9 @@ type SortDirection = 'asc' | 'desc';
 const STATUS_SORT_ORDER: Record<string, number> = {
   unsent: 0,
   sent: 1,
-  rejected: 2,
-  responded: 3,
+  unanswered: 2,
+  rejected: 3,
+  responded: 4,
 };
 
 function pbDateValue(value?: string): number {
@@ -56,6 +57,7 @@ export class HomePage implements OnInit {
   readonly currentUser = this.authService.currentUser;
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
   readonly statusOptions = CV_PROFILE_STATUS_OPTIONS;
+  readonly selectableStatusOptions = CV_PROFILE_STATUS_OPTIONS.filter((o) => o.value !== 'unanswered');
   readonly totalProfileCount = computed(() => this.profiles().length);
   readonly publicProfileCount = computed(
     () => this.profiles().filter((profile) => Boolean(profile.template) && profile.public !== false).length,
@@ -84,11 +86,15 @@ export class HomePage implements OnInit {
   readonly rejectedProfileCount = computed(
     () => this.profiles().filter((p) => p.status === 'rejected').length,
   );
+  readonly unansweredProfileCount = computed(
+    () => this.profiles().filter((p) => p.status === 'unanswered').length,
+  );
 
   readonly unsentPercentage = computed(() => this.percentageOf(this.unsentProfileCount()));
   readonly sentPercentage = computed(() => this.percentageOf(this.sentProfileCount()));
   readonly respondedPercentage = computed(() => this.percentageOf(this.respondedProfileCount()));
   readonly rejectedPercentage = computed(() => this.percentageOf(this.rejectedProfileCount()));
+  readonly unansweredPercentage = computed(() => this.percentageOf(this.unansweredProfileCount()));
 
   readonly publicPercentage = computed(() => this.percentageOf(this.publicProfileCount()));
   readonly privatePercentage = computed(() => this.percentageOf(this.privateProfileCount()));
@@ -160,6 +166,11 @@ export class HomePage implements OnInit {
     return this.sortDirection() === 'asc' ? 'ascending' : 'descending';
   }
 
+  private static readonly MONTH_ABBR = [
+    'janv.', 'f\u00e9vr.', 'mars', 'avr.', 'mai', 'juin',
+    'juil.', 'ao\u00fbt', 'sept.', 'oct.', 'nov.', 'd\u00e9c.',
+  ];
+
   formatDate(value?: string): string {
     if (!value) return '-';
     const isoValue = value.includes('T') ? value : value.replace(' ', 'T');
@@ -167,15 +178,44 @@ export class HomePage implements OnInit {
     if (Number.isNaN(date.getTime())) return '-';
 
     const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    const diffMonths = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
+    const currentYear = now.getFullYear();
+    const dateYear = date.getFullYear();
+    const yearDiff = currentYear - dateYear;
 
-    if (diffDays === 0) return 'auj.';
-    if (diffDays === 1) return 'hier';
-    if (diffDays < 7) return `j-${diffDays}`;
-    if (diffDays <= 28) return `${Math.floor(diffDays / 7)} sem.`;
-    if (diffMonths < 12) return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' }).format(date);
-    return new Intl.DateTimeFormat('fr-FR', { month: '2-digit', year: 'numeric' }).format(date);
+    // Relative display for dates within ~1 month
+    if (yearDiff === 0) {
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const targetDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const dayDiff = Math.round((today.getTime() - targetDay.getTime()) / 86400000);
+
+      if (dayDiff === 0) {
+        return 'Auj.';
+      }
+
+      if (dayDiff >= 1 && dayDiff <= 6) {
+        return `${dayDiff}j`;
+      }
+
+      if (dayDiff >= 7 && dayDiff <= 30) {
+        const weeks = Math.round(dayDiff / 7);
+        return `${weeks}sem`;
+      }
+
+      // Older than ~1 month but same year: DD/MM
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      return `${day}/${month}`;
+    }
+
+    if (yearDiff === 1) {
+      // Previous year: DD mmm.
+      const day = String(date.getDate()).padStart(2, '0');
+      const monthAbbr = HomePage.MONTH_ABBR[date.getMonth()];
+      return `${day} ${monthAbbr}`;
+    }
+
+    // 2+ years old: YYYY
+    return String(dateYear);
   }
 
   private async loadProfiles(): Promise<void> {

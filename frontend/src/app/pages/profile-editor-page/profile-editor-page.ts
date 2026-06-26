@@ -20,7 +20,10 @@ export const CV_PROFILE_STATUS_OPTIONS: { value: CvProfileStatus; label: string;
   { value: 'sent', label: 'Envoye', tone: 'blue' },
   { value: 'rejected', label: 'Rejete', tone: 'red' },
   { value: 'responded', label: 'Repondu', tone: 'green' },
+  { value: 'unanswered', label: 'Sans reponse', tone: 'yellow' },
 ];
+
+export const CV_PROFILE_SELECTABLE_STATUS_OPTIONS = CV_PROFILE_STATUS_OPTIONS.filter((o) => o.value !== 'unanswered');
 
 type RelationType = 'jobs' | 'projects' | 'skills' | 'degrees' | 'achievements' | 'hobbies';
 type ExtraSourceRecord = Job | Project | Skill | Degree | Achievement | Hobby;
@@ -49,10 +52,10 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
   private readonly pocketBaseService = inject(PocketBaseService);
   private readonly injector = inject(Injector);
   private requestId = 0;
-  private profileSaveTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   readonly profileId = input.required<string>();
   readonly templateOptions = CV_TEMPLATE_OPTIONS;
+  readonly selectableStatusOptions = CV_PROFILE_SELECTABLE_STATUS_OPTIONS;
   readonly statusOptions = CV_PROFILE_STATUS_OPTIONS;
   readonly editorState = signal<EditorState | null>(null);
   readonly isLoading = signal(true);
@@ -80,10 +83,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.profileSaveTimeoutId !== null) {
-      clearTimeout(this.profileSaveTimeoutId);
-      this.profileSaveTimeoutId = null;
-    }
+    // No cleanup needed — autosave removed
   }
 
   async save(): Promise<void> {
@@ -124,7 +124,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         status: state.profile.status,
       });
 
-      await this.loadEditorData(state.profile.id);
+      await this.loadEditorData(state.profile.id, false);
       this.successMessage.set('Profil enregistre.');
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
@@ -135,12 +135,10 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
 
   setProfileLabel(value: string): void {
     this.updateProfileField('label', value);
-    this.scheduleProfileAutosave();
   }
 
   setProfileName(value: string): void {
     this.updateProfileField('profileName', value);
-    this.scheduleProfileAutosave();
   }
 
   setProfileTemplate(value: string): void {
@@ -168,17 +166,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     void this.saveProfileFields();
   }
 
-  scheduleProfileAutosave(): void {
-    if (this.profileSaveTimeoutId !== null) {
-      clearTimeout(this.profileSaveTimeoutId);
-    }
-
-    this.profileSaveTimeoutId = setTimeout(() => {
-      this.profileSaveTimeoutId = null;
-      void this.saveProfileFields();
-    }, 500);
-  }
-
   async saveProfileFields(): Promise<void> {
     const state = this.editorState();
 
@@ -190,11 +177,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     if (!profileName) {
       this.errorMessage.set('Le nom du profil est obligatoire.');
       return;
-    }
-
-    if (this.profileSaveTimeoutId !== null) {
-      clearTimeout(this.profileSaveTimeoutId);
-      this.profileSaveTimeoutId = null;
     }
 
     this.isProfileSaving.set(true);
@@ -221,7 +203,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         linkOverrides: state.profile.linkOverrides,
       });
 
-      await this.loadEditorData(state.profile.id);
+      await this.loadEditorData(state.profile.id, false);
       this.profileSaveMessage.set('Profil CV enregistre.');
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
@@ -255,7 +237,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     });
 
     if (changed) {
-      this.scheduleProfileAutosave();
+      void this.saveProfileFields();
     }
   }
 
@@ -280,7 +262,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     });
 
     if (changed) {
-      this.scheduleProfileAutosave();
+      void this.saveProfileFields();
     }
   }
 
@@ -309,17 +291,12 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
   }
 
   setExtraValue(field: CvTemplateExtraField, value: CvProfileExtraValue): void {
-    let changed = false;
-
     this.editorState.update((state) => {
       const templateId = state?.profile.template;
 
       if (!state || !templateId) {
         return state;
       }
-
-      const currentValue = state.profile.extra?.[templateId]?.[field.id];
-      changed = JSON.stringify(currentValue) !== JSON.stringify(value);
 
       return {
         ...state,
@@ -335,10 +312,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         },
       };
     });
-
-    if (changed) {
-      this.scheduleProfileAutosave();
-    }
   }
 
   setProfessionalSummary(value: string): void {
@@ -355,7 +328,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         },
       };
     });
-    this.scheduleProfileAutosave();
   }
 
   setLinkOverrideField(field: keyof CvProfileLinkOverrides, value: string): void {
@@ -375,7 +347,6 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         },
       };
     });
-    this.scheduleProfileAutosave();
   }
 
   setStatus(status: CvProfileStatus): void {
@@ -561,9 +532,11 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
     return selectedPicture?.name || selectedPicture?.alt || 'Image selectionnee';
   }
 
-  private async loadEditorData(profileId: string): Promise<void> {
+  private async loadEditorData(profileId: string, showLoading = true): Promise<void> {
     const currentRequestId = ++this.requestId;
-    this.isLoading.set(true);
+    if (showLoading) {
+      this.isLoading.set(true);
+    }
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
@@ -583,7 +556,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
       this.editorState.set(null);
       this.errorMessage.set(getErrorMessage(error));
     } finally {
-      if (currentRequestId === this.requestId) {
+      if (currentRequestId === this.requestId && showLoading) {
         this.isLoading.set(false);
       }
     }

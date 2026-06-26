@@ -6,8 +6,10 @@ import com.resumate.mcp.security.McpPrincipal;
 import com.resumate.mcp.service.PocketBaseClient;
 import com.resumate.mcp.service.PocketBaseClient.CreateProfilePayload;
 import com.resumate.mcp.service.PocketBaseClient.CreatedProfileRecord;
+import com.resumate.mcp.service.PocketBaseClient.CvProfileRecord;
 import com.resumate.mcp.service.PocketBaseClient.ProfileMaterialBundle;
 import com.resumate.mcp.service.PocketBaseClient.TemplateDescriptor;
+import com.resumate.mcp.service.PocketBaseClient.UpdatedProfileRecord;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.security.core.Authentication;
@@ -29,10 +31,12 @@ public class CvMcpTools {
 
     private final PocketBaseClient pocketBaseClient;
     private final FrontendProperties frontendProperties;
+    private final IdempotencyStore idempotencyStore;
 
-    public CvMcpTools(PocketBaseClient pocketBaseClient, FrontendProperties frontendProperties) {
+    public CvMcpTools(PocketBaseClient pocketBaseClient, FrontendProperties frontendProperties, IdempotencyStore idempotencyStore) {
         this.pocketBaseClient = pocketBaseClient;
         this.frontendProperties = frontendProperties;
+        this.idempotencyStore = idempotencyStore;
     }
 
     @Tool(description = RESUMATE_MCP_PURPOSE + " Call this before creating a tailored profile. Use one returned template.id exactly as createTailoredCvProfile.templateId, and inspect extraSchema before sending templateExtra.")
@@ -59,7 +63,7 @@ public class CvMcpTools {
         return pocketBaseClient.loadProfileMaterial(currentPrincipal().userId());
     }
 
-    @Tool(description = RESUMATE_MCP_PURPOSE + " Use this final step when the user asks to create, craft, tailor, adapt, optimize, or customize a resume for a role. " + CREATE_PROFILE_WORKFLOW + " Always include a non-empty label; the server does not generate it. Choose a concise saved-resume label such as 'Acme - Senior Backend Engineer'. If validation fails, fix the missing or invalid field and retry instead of repeating the same invalid call.")
+    @Tool(description = RESUMATE_MCP_PURPOSE + " Use this final step when the user asks to create, craft, tailor, adapt, optimize, or customize a resume for a role. " + CREATE_PROFILE_WORKFLOW + " Always include a non-empty label; the server does not generate it. Choose a concise saved-resume label such as 'Acme - Senior Backend Engineer'. If validation fails, fix the missing or invalid field and retry instead of repeating the same invalid call. Provide an idempotencyKey scoped to the job offer (e.g. 'create-profile-for-job-acme-senior') to prevent duplicate profiles.")
     public CreateTailoredCvProfileResponse createTailoredCvProfile(CreateTailoredCvProfileRequest request) {
         McpPrincipal principal = currentPrincipal();
         if (request == null) {
@@ -67,11 +71,28 @@ public class CvMcpTools {
         }
 
         String label = validateLabel(request.label());
-        String profileName = StringUtils.hasText(request.profileName()) ? request.profileName() : label;
+        String profileName = request.profileName();
         TemplateDescriptor template = resolveTemplate(request.templateId());
         String templateId = template.id();
         validateOwnedSelections(principal.userId(), request);
         Map<String, Object> templateExtra = validateTemplateExtra(principal.userId(), template, request.templateExtra());
+
+        rejectEmptyCreate(request);
+
+        String idempotencyKey = request.idempotencyKey();
+        if (StringUtils.hasText(idempotencyKey)) {
+            IdempotencyStore.IdempotencyRecord existing = idempotencyStore.get(principal.userId(), idempotencyKey);
+            if (existing != null) {
+                UpdateCvProfileRequest updateRequest = buildRerouteUpdate(request);
+                UpdatedProfileRecord updated = doUpdateCvProfile(principal.userId(), existing.slug(), updateRequest);
+                return new CreateTailoredCvProfileResponse(
+                        existing.profileId(),
+                        existing.slug(),
+                        frontendBaseUrl() + "/" + existing.slug(),
+                        true
+                );
+            }
+        }
 
         CreatedProfileRecord created = pocketBaseClient.createTailoredProfile(
                 principal.userId(),
@@ -90,10 +111,144 @@ public class CvMcpTools {
                 )
         );
 
+        if (StringUtils.hasText(idempotencyKey)) {
+            idempotencyStore.put(principal.userId(), idempotencyKey, created.id(), created.slug());
+        }
+
         return new CreateTailoredCvProfileResponse(
                 created.id(),
                 created.slug(),
-                frontendBaseUrl() + "/" + created.slug()
+                frontendBaseUrl() + "/" + created.slug(),
+                false
+        );
+    }
+
+    @Tool(description = RESUMATE_MCP_PURPOSE + " Edit an existing CV profile identified by slug or id. Only provide fields you want to change; omitted fields are left unchanged. When changing templateId, include templateExtra fields for the new template. Relation arrays (skillIds, jobIds, etc.) replace the entire set when provided. Use this tool to refine a profile instead of creating a duplicate.")
+    public UpdateCvProfileResponse updateCvProfile(UpdateCvProfileRequest request) {
+        McpPrincipal principal = currentPrincipal();
+        if (request == null || !StringUtils.hasText(request.profileSlug())) {
+            throw new IllegalArgumentException("profileSlug is required. Provide the slug or id of an existing CV profile.");
+        }
+
+        UpdatedProfileRecord updated = doUpdateCvProfile(principal.userId(), request.profileSlug(), request);
+        return new UpdateCvProfileResponse(
+                updated.id(),
+                updated.slug(),
+                frontendBaseUrl() + "/" + updated.slug()
+        );
+    }
+
+    private UpdatedProfileRecord doUpdateCvProfile(String userId, String profileSlug, UpdateCvProfileRequest request) {
+        CvProfileRecord profile = pocketBaseClient.findProfileBySlugOrId(profileSlug);
+        if (profile == null) {
+            throw new IllegalArgumentException("Profile not found: " + profileSlug + ". Verify the slug or id matches an existing profile owned by you.");
+        }
+        if (!userId.equals(profile.user())) {
+            throw new IllegalArgumentException("Profile does not belong to the authenticated user.");
+        }
+
+        String initialTemplateId = profile.template();
+        String resolvedTemplateId = initialTemplateId;
+        TemplateDescriptor currentTemplate = pocketBaseClient.resolveAvailableTemplates().stream()
+                .filter(t -> t.id().equals(initialTemplateId))
+                .findFirst()
+                .orElse(null);
+
+        Map<String, Object> patchBody = new LinkedHashMap<>();
+
+        if (request.label() != null) {
+            patchBody.put("label", validateLabel(request.label()));
+        }
+        if (request.profileName() != null) {
+            patchBody.put("profileName", request.profileName());
+        }
+        if (request.jobListing() != null) {
+            patchBody.put("jobListing", request.jobListing());
+        }
+        if (request.professionalSummary() != null) {
+            patchBody.put("professionalSummary", request.professionalSummary());
+        }
+        if (request.publicProfile() != null) {
+            patchBody.put("public", request.publicProfile());
+        }
+
+        if (request.templateId() != null) {
+            TemplateDescriptor newTemplate = resolveTemplate(request.templateId());
+            patchBody.put("template", newTemplate.id());
+            resolvedTemplateId = newTemplate.id();
+            currentTemplate = newTemplate;
+        }
+
+        if (request.skillIds() != null) {
+            pocketBaseClient.validateOwnedRecordIds("skills", userId, request.skillIds());
+            patchBody.put("skills", request.skillIds());
+        }
+        if (request.jobIds() != null) {
+            pocketBaseClient.validateOwnedRecordIds("jobs", userId, request.jobIds());
+            patchBody.put("jobs", request.jobIds());
+        }
+        if (request.projectIds() != null) {
+            pocketBaseClient.validateOwnedRecordIds("projects", userId, request.projectIds());
+            patchBody.put("projects", request.projectIds());
+        }
+        if (request.achievementIds() != null) {
+            pocketBaseClient.validateOwnedRecordIds("achievements", userId, request.achievementIds());
+            patchBody.put("achievements", request.achievementIds());
+        }
+        if (request.degreeIds() != null) {
+            pocketBaseClient.validateOwnedRecordIds("degrees", userId, request.degreeIds());
+            patchBody.put("degrees", request.degreeIds());
+        }
+        if (request.hobbyIds() != null) {
+            pocketBaseClient.validateOwnedRecordIds("hobbies", userId, request.hobbyIds());
+            patchBody.put("hobbies", request.hobbyIds());
+        }
+
+        if (request.templateExtra() != null) {
+            if (currentTemplate == null) {
+                throw new IllegalArgumentException("Cannot set templateExtra on a profile with an unknown template.");
+            }
+            Map<String, Object> validatedExtra = validateTemplateExtra(userId, currentTemplate, request.templateExtra());
+            Map<String, Object> mergedExtra = new LinkedHashMap<>();
+            if (profile.extra() != null) {
+                mergedExtra.putAll(profile.extra());
+            }
+            mergedExtra.put(resolvedTemplateId, validatedExtra);
+            patchBody.put("extra", mergedExtra);
+        }
+
+        return pocketBaseClient.updateCvProfile(profile.id(), patchBody);
+    }
+
+    private void rejectEmptyCreate(CreateTailoredCvProfileRequest request) {
+        boolean hasSkills = request.skillIds() != null && !request.skillIds().isEmpty();
+        boolean hasJobs = request.jobIds() != null && !request.jobIds().isEmpty();
+        boolean hasSummary = StringUtils.hasText(request.professionalSummary());
+
+        if (!hasSkills && !hasJobs && !hasSummary) {
+            throw new IllegalArgumentException(
+                    "Cannot create an empty CV profile. Provide at least one of: skillIds, jobIds, or professionalSummary. " +
+                    "Call listProfileMaterial to get valid IDs, then retry createTailoredCvProfile with content."
+            );
+        }
+    }
+
+    private UpdateCvProfileRequest buildRerouteUpdate(CreateTailoredCvProfileRequest createRequest) {
+        return new UpdateCvProfileRequest(
+                null,
+                createRequest.label(),
+                createRequest.profileName(),
+                createRequest.jobListing(),
+                createRequest.templateId(),
+                createRequest.professionalSummary(),
+                createRequest.skillIds(),
+                createRequest.jobIds(),
+                createRequest.projectIds(),
+                createRequest.achievementIds(),
+                createRequest.degreeIds(),
+                createRequest.hobbyIds(),
+                createRequest.templateExtra(),
+                null
         );
     }
 
@@ -216,6 +371,9 @@ public class CvMcpTools {
     private String frontendBaseUrl() {
         String baseUrl = frontendProperties.baseUrl();
         String normalizedBaseUrl = Objects.requireNonNullElse(baseUrl, "");
+        if (!normalizedBaseUrl.isBlank() && !normalizedBaseUrl.contains("://")) {
+            normalizedBaseUrl = "https://" + normalizedBaseUrl;
+        }
         return normalizedBaseUrl.endsWith("/")
                 ? normalizedBaseUrl.substring(0, normalizedBaseUrl.length() - 1)
                 : normalizedBaseUrl;
@@ -257,10 +415,53 @@ public class CvMcpTools {
             @ToolParam(required = false, description = "Hobby record ids selected from listProfileMaterial. Do not invent ids.")
             List<String> hobbyIds,
             @ToolParam(required = false, description = "Template-specific values. Only include fields listed in the selected template's extraSchema from listTemplates.")
-            Map<String, Object> templateExtra
+            Map<String, Object> templateExtra,
+            @ToolParam(required = false, description = "Optional idempotency key scoped to the job offer, e.g. 'create-profile-for-job-acme-senior'. Prevents duplicate profiles when the same key is reused within 5 minutes.")
+            String idempotencyKey
     ) {
     }
 
-    public record CreateTailoredCvProfileResponse(String profileId, String slug, String frontendUrl) {
+    public record CreateTailoredCvProfileResponse(
+            String profileId,
+            String slug,
+            String frontendUrl,
+            @ToolParam(description = "True when this request was deduplicated and rerouted to update an existing profile instead of creating a new one.")
+            Boolean deduplicated
+    ) {
+    }
+
+    public record UpdateCvProfileRequest(
+            @ToolParam(description = "Required. Slug or id of the CV profile to update. Use the slug returned by createTailoredCvProfile.")
+            String profileSlug,
+            @ToolParam(required = false, description = "New saved-resume label, e.g. 'Acme - Senior Backend Engineer'.")
+            String label,
+            @ToolParam(required = false, description = "New display name for the profile.")
+            String profileName,
+            @ToolParam(required = false, description = "Updated source job listing or role description.")
+            String jobListing,
+            @ToolParam(required = false, description = "New template id. Must be from listTemplates. When changed, templateExtra is validated against the new template's extraSchema.")
+            String templateId,
+            @ToolParam(required = false, description = "Updated role-focused professional summary.")
+            String professionalSummary,
+            @ToolParam(required = false, description = "Replacement skill record ids from listProfileMaterial.")
+            List<String> skillIds,
+            @ToolParam(required = false, description = "Replacement job record ids from listProfileMaterial.")
+            List<String> jobIds,
+            @ToolParam(required = false, description = "Replacement project record ids from listProfileMaterial.")
+            List<String> projectIds,
+            @ToolParam(required = false, description = "Replacement achievement record ids from listProfileMaterial.")
+            List<String> achievementIds,
+            @ToolParam(required = false, description = "Replacement degree record ids from listProfileMaterial.")
+            List<String> degreeIds,
+            @ToolParam(required = false, description = "Replacement hobby record ids from listProfileMaterial.")
+            List<String> hobbyIds,
+            @ToolParam(required = false, description = "Template-specific fields. Only from the selected template's extraSchema.")
+            Map<String, Object> templateExtra,
+            @ToolParam(required = false, description = "Whether the profile is publicly viewable.")
+            Boolean publicProfile
+    ) {
+    }
+
+    public record UpdateCvProfileResponse(String profileId, String slug, String frontendUrl) {
     }
 }

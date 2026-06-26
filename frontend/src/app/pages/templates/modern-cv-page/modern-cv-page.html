@@ -54,7 +54,7 @@
       @if (data.profile.professionalSummary) {
         <section class="content__section">
           <h2>A propos</h2>
-          <p>{{ data.profile.professionalSummary }}</p>
+          <p [innerHTML]="data.profile.professionalSummary"></p>
         </section>
       }
 
@@ -66,7 +66,7 @@
             <h3>{{ job.position }}</h3>
             <p class="timeline-item__meta">{{ job.company }}@if (job.location) { · {{ job.location }} }</p>
             @if (job.responsibilities) {
-              <p>{{ job.responsibilities }}</p>
+              <p [innerHTML]="job.responsibilities"></p>
             }
           </article>
         }
@@ -80,7 +80,7 @@
               <article class="project-card">
                 <h3>{{ project.name }}</h3>
                 @if (project.description) {
-                  <p>{{ project.description }}</p>
+                  <p [innerHTML]="project.description"></p>
                 }
                 @if (project.url) {
                   <a [href]="project.url" target="_blank" rel="noreferrer">Voir le projet</a>
