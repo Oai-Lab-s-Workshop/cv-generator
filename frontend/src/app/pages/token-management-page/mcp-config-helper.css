@@ -138,10 +138,10 @@
 }
 
 .mcp-helper__kv-item {
-  display: grid;
-  grid-template-columns: minmax(10rem, 0.35fr) 1fr;
-  gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
+  gap: 0.5rem 1rem;
   padding: 0.6rem 1rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 }
@@ -151,19 +151,25 @@
 }
 
 .mcp-helper__kv-key {
+  flex: 0 0 auto;
+  min-width: 8rem;
+  max-width: 100%;
   color: #94a3b8;
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .mcp-helper__kv-value {
+  flex: 1 1 0;
+  min-width: 12rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  min-width: 0;
 }
 
 .mcp-helper__kv-value code {
@@ -226,7 +232,7 @@
   }
 
   .mcp-helper__kv-item {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 0.2rem;
     padding: 0.6rem 0.75rem;
   }

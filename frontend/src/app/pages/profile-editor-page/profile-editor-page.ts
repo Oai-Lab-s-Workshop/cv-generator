@@ -124,7 +124,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         status: state.profile.status,
       });
 
-      await this.loadEditorData(state.profile.id);
+      await this.loadEditorData(state.profile.id, false);
       this.successMessage.set('Profil enregistre.');
     } catch (error: unknown) {
       this.errorMessage.set(getErrorMessage(error));
