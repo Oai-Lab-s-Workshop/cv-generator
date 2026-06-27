@@ -694,6 +694,7 @@ export class PocketBaseService {
     return {
       ...profile,
       extra: profile.extra ?? {},
+      professionalSummary: this.normalizeEditorHtmlField(profile.professionalSummary),
       profilePicture: profilePictureFile?.file || this.getFileFieldUrl(profile as unknown as RecordModel, profile.profilePicture),
       coverPicture: coverPictureFile?.file || this.getFileFieldUrl(profile as unknown as RecordModel, profile.coverPicture),
       expand: profile.expand
@@ -705,6 +706,39 @@ export class PocketBaseService {
           }
         : undefined,
     };
+  }
+
+  private normalizeEditorHtmlField(value: string | undefined): string | undefined {
+    let html = value?.trim() ?? '';
+
+    if (!html) {
+      return undefined;
+    }
+
+    // Some editor values may come back as a JSON-serialized HTML string,
+    // e.g. "<p>content</p>". Quill then treats the wrapping quotes as user
+    // content and persists them as <p>"content</p>. Normalize before the value
+    // reaches editors/templates.
+    if (html.startsWith('"') && html.endsWith('"')) {
+      try {
+        const parsed = JSON.parse(html);
+        if (typeof parsed === 'string') {
+          html = parsed.trim();
+        }
+      } catch {
+        html = html.slice(1, -1).trim();
+      }
+    }
+
+    // Repair already-persisted summaries where serialized quotes became part of
+    // the first/last HTML text nodes.
+    html = html
+      .replace(/^<p>(["“”])/, '<p>')
+      .replace(/(["“”])<\/p>$/, '</p>')
+      .replace(/^(["“”])(<[a-z][\s\S]*>)/i, '$2')
+      .replace(/(<\/[a-z]+>)(["“”])$/i, '$1');
+
+    return html || undefined;
   }
 
   private normalizeUser(user: User | null): User | null {
