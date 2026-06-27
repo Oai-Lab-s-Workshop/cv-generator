@@ -107,15 +107,11 @@
   white-space: pre-wrap;
   text-align: justify;
   text-align-last: left;
-  overflow-wrap: break-word;
-  word-break: normal;
 }
 
 .professional-summary * {
   max-width: 100%;
   min-width: 0;
-  overflow-wrap: break-word;
-  word-break: normal;
 }
 
 .professional-summary p {
