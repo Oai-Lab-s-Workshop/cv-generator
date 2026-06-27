@@ -179,13 +179,32 @@
 }
 
 .profile-summary {
-  display: -webkit-box;
+  display: block;
+  max-width: 100%;
+  min-width: 0;
   color: #202020;
   font-size: 8pt;
   line-height: 1.22;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   overflow: hidden;
+}
+
+.profile-summary * {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.profile-summary p {
+  margin: 0 0 1.2mm;
+  white-space: pre-wrap;
+}
+
+.profile-summary p:last-child {
+  margin-bottom: 0;
 }
 
 .chip-grid {

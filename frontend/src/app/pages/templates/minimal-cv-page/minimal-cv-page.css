@@ -96,8 +96,33 @@
   background: #222;
 }
 
-.cv-section > p {
+.cv-section > p,
+.professional-summary {
   text-align: justify;
+}
+
+.professional-summary {
+  max-width: 100%;
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.professional-summary * {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.professional-summary p {
+  margin: 0 0 1mm;
+  white-space: pre-wrap;
+}
+
+.professional-summary p:last-child {
+  margin-bottom: 0;
 }
 
 .entry {
