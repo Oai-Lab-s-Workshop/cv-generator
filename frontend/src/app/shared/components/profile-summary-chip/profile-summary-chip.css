@@ -49,8 +49,9 @@ app-profile-summary-chip,
   min-width: 0;
   overflow-wrap: break-word;
   word-break: normal;
-  hyphens: auto;
   white-space: pre-wrap;
+  text-align: justify;
+  text-align-last: left;
   color: rgb(125, 122, 117);
   font-family: ui-sans-serif, -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   font-size: 14px;
@@ -62,7 +63,6 @@ app-profile-summary-chip,
   min-width: 0;
   overflow-wrap: break-word;
   word-break: normal;
-  hyphens: auto;
 }
 
 .profile-summary-chip__content :first-child {
@@ -76,6 +76,8 @@ app-profile-summary-chip,
 .profile-summary-chip__content p {
   margin: 0 0 0.5rem;
   white-space: pre-wrap;
+  text-align: justify;
+  text-align-last: left;
 }
 
 .profile-summary-chip__content ul,
