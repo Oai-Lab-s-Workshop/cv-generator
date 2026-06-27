@@ -1,10 +1,17 @@
+app-profile-summary-chip,
 :host {
   display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .profile-summary-chip {
   display: grid;
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .profile-summary-chip__title {
@@ -31,18 +38,29 @@
   border-radius: 1rem;
   padding: 1rem 1.15rem;
   overflow: hidden;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .profile-summary-chip__content {
   margin: 0;
-  overflow-wrap: break-word;
-  word-break: break-word;
+  max-width: 100%;
   min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   white-space: pre-wrap;
   color: rgb(125, 122, 117);
   font-family: ui-sans-serif, -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   font-size: 14px;
   line-height: 21px;
+}
+
+.profile-summary-chip__content * {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .profile-summary-chip__content :first-child {
@@ -55,6 +73,7 @@
 
 .profile-summary-chip__content p {
   margin: 0 0 0.5rem;
+  white-space: pre-wrap;
 }
 
 .profile-summary-chip__content ul,
