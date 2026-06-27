@@ -76,20 +76,23 @@ hr {
     font-size: 8pt;
     line-height: 1.35;
     white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
 }
 #summary p { 
     margin-bottom: 2mm;
     white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
 }
 #summary * {
     max-width: 100%;
     min-width: 0;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
 }
 .stack{
     margin-top: 4mm;
