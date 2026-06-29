@@ -110,7 +110,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         profileName,
         public: state.profile.public !== false,
         template: state.profile.template,
-        professionalSummary: state.profile.professionalSummary,
+        professionalSummary: this.normalizeSummaryHtml(state.profile.professionalSummary),
         jobs: state.profile.jobs ?? [],
         projects: state.profile.projects ?? [],
         skills: state.profile.skills ?? [],
@@ -192,7 +192,7 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         profilePictureFile: state.profile.profilePictureFile || '',
         coverPictureFile: state.profile.coverPictureFile || '',
         status: state.profile.status,
-        professionalSummary: state.profile.professionalSummary,
+        professionalSummary: this.normalizeSummaryHtml(state.profile.professionalSummary),
         jobs: state.profile.jobs ?? [],
         projects: state.profile.projects ?? [],
         skills: state.profile.skills ?? [],
@@ -315,6 +315,8 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
   }
 
   setProfessionalSummary(value: string): void {
+    const professionalSummary = this.normalizeSummaryHtml(value);
+
     this.editorState.update((state) => {
       if (!state) {
         return state;
@@ -324,10 +326,42 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
         ...state,
         profile: {
           ...state.profile,
-          professionalSummary: value || undefined,
+          professionalSummary,
         },
       };
     });
+  }
+
+  private normalizeSummaryHtml(value: string | undefined): string | undefined {
+    let html = value?.trim() ?? '';
+
+    if (!html || html === '<br>') {
+      return undefined;
+    }
+
+    if (html.startsWith('"') && html.endsWith('"')) {
+      try {
+        const parsed = JSON.parse(html);
+        if (typeof parsed === 'string') {
+          html = parsed.trim();
+        }
+      } catch {
+        html = html.slice(1, -1).trim();
+      }
+    }
+
+    html = html
+      .replace(/^<p>(["“”])/, '<p>')
+      .replace(/(["“”])<\/p>$/, '</p>')
+      .replace(/^(["“”])(<[a-z][\s\S]*>)/i, '$2')
+      .replace(/(<\/[a-z]+>)(["“”])$/i, '$1');
+
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    const hasMediaOrStructure = !!container.querySelector('img,video,iframe,ul,ol,li,table,hr');
+    const text = container.textContent?.replace(/\u00a0/g, ' ').trim() ?? '';
+
+    return text || hasMediaOrStructure ? html : undefined;
   }
 
   setLinkOverrideField(field: keyof CvProfileLinkOverrides, value: string): void {

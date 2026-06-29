@@ -91,6 +91,34 @@
   margin-top: 2rem;
 }
 
+.professional-summary {
+  max-width: 100%;
+  min-width: 0;
+  white-space: pre-wrap;
+  text-align: justify;
+  text-align-last: left;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.professional-summary * {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.professional-summary p {
+  margin: 0 0 0.6rem;
+  white-space: pre-wrap;
+  text-align: justify;
+  text-align-last: left;
+}
+
+.professional-summary p:last-child {
+  margin-bottom: 0;
+}
+
 .timeline-item,
 .project-card {
   padding: 1rem 1.1rem;

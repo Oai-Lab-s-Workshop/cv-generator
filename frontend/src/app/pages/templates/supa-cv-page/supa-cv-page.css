@@ -59,17 +59,42 @@ hr {
 }
 .resume-aside{
     width:60mm;
+    max-width: 60mm;
+    min-width: 0;
+    box-sizing: border-box;
     padding: 8mm;
     padding-right: 2mm;
     border-right:1px solid var(--colorBorder);
     background: var(--color1);
+    overflow: hidden;
 }
 #summary { 
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     font-size: 8pt;
-}
+    line-height: 1.35;
+    white-space: pre-wrap;
+    text-align: justify;
+    text-align-last: left;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
 #summary p { 
     margin-bottom: 2mm;
-}
+    white-space: pre-wrap;
+    text-align: justify;
+    text-align-last: left;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+#summary * {
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
 .stack{
     margin-top: 4mm;
     display: flex;
