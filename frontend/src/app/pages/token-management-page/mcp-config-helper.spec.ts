@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { resolveMcpEndpointUrl } from '../../core/utils/desktop-runtime-config';
 import { McpConfigHelper } from './mcp-config-helper';
 
 describe('McpConfigHelper', () => {
@@ -244,6 +245,179 @@ describe('McpConfigHelper', () => {
 
       // Only copyable fields: URL du serveur MCP, Header d'autorisation, Clé API = 3 copy buttons
       expect(copyButtons.length).toBe(3);
+    });
+  });
+
+  describe('URL source and reset', () => {
+    afterEach(() => {
+      delete window.__RESUMATE_DESKTOP_CONFIG__;
+      delete window.__RESUMATE_RUNTIME_CONFIG__;
+    });
+
+    it('reports the URL as unmodified when it matches the resolved default', () => {
+      expect(component.isUrlModified()).toBe(false);
+    });
+
+    it('reports the URL as modified after the user edits it', () => {
+      component.customUrl.set('https://changed.example.com/mcp');
+
+      expect(component.isUrlModified()).toBe(true);
+    });
+
+    it('resetUrl restores the resolved default and clears the modified state', () => {
+      const original = component.customUrl();
+      component.customUrl.set('https://changed.example.com/mcp');
+      expect(component.isUrlModified()).toBe(true);
+
+      component.resetUrl();
+
+      expect(component.customUrl()).toBe(original);
+      expect(component.isUrlModified()).toBe(false);
+    });
+
+    it('labels the URL source as desktop runtime config when a desktop MCP url is present', () => {
+      window.__RESUMATE_DESKTOP_CONFIG__ = {
+        appMode: 'desktop',
+        pocketbaseUrl: 'http://localhost',
+        mcpUrl: 'http://localhost:9000/mcp',
+      };
+      const fresh = TestBed.createComponent(McpConfigHelper).componentInstance;
+
+      expect(fresh.urlSourceLabel()).toBe('Configuration desktop locale');
+    });
+
+    it('labels the URL source as hosted runtime config when a public base url is present', () => {
+      window.__RESUMATE_RUNTIME_CONFIG__ = { mcpPublicBaseUrl: 'https://mcp.hosted.example.com' };
+      const fresh = TestBed.createComponent(McpConfigHelper).componentInstance;
+
+      expect(fresh.urlSourceLabel()).toBe('Configuration runtime hébergée');
+    });
+
+    it('labels the URL source as local fallback when no config sources are present', () => {
+      const fresh = TestBed.createComponent(McpConfigHelper).componentInstance;
+
+      expect(fresh.urlSourceLabel()).toBe('Fallback local PocketBase');
+    });
+
+    it('seeds the default URL from the resolved endpoint when no input is provided', () => {
+      const fresh = TestBed.createComponent(McpConfigHelper).componentInstance;
+
+      expect(fresh.customUrl()).toBe(resolveMcpEndpointUrl());
+      expect(fresh['defaultMcpUrl']()).toBe(resolveMcpEndpointUrl());
+      expect(fresh.isUrlModified()).toBe(false);
+    });
+
+    it('derives the default URL from the mcpEndpointUrl input', () => {
+      fixture.componentRef.setInput('mcpEndpointUrl', 'https://input.example.com/mcp');
+      fixture.detectChanges();
+
+      expect(component['defaultMcpUrl']()).toBe('https://input.example.com/mcp');
+    });
+
+    it('reset uses the latest mcpEndpointUrl input value', () => {
+      fixture.componentRef.setInput('mcpEndpointUrl', 'https://updated.example.com/mcp');
+      component.onUrlEdited('https://edited.example.com/mcp');
+      fixture.detectChanges();
+      expect(component.isUrlModified()).toBe(true);
+
+      component.resetUrl();
+
+      expect(component.customUrl()).toBe('https://updated.example.com/mcp');
+      expect(component.isUrlModified()).toBe(false);
+    });
+
+    it('uses the sourceLabel input when provided, overriding internal computation', () => {
+      window.__RESUMATE_RUNTIME_CONFIG__ = { mcpPublicBaseUrl: 'https://mcp.hosted.example.com' };
+      fixture.componentRef.setInput('sourceLabel', 'Source fournie par la page');
+      fixture.detectChanges();
+
+      expect(component.urlSourceLabel()).toBe('Source fournie par la page');
+    });
+
+    it('updates the source label when the sourceLabel input changes', () => {
+      fixture.componentRef.setInput('sourceLabel', 'Configuration runtime hébergée');
+      fixture.detectChanges();
+      expect(component.urlSourceLabel()).toBe('Configuration runtime hébergée');
+
+      fixture.componentRef.setInput('sourceLabel', 'Configuration desktop locale');
+      fixture.detectChanges();
+      expect(component.urlSourceLabel()).toBe('Configuration desktop locale');
+    });
+
+    it('falls back to internal computation when sourceLabel is undefined', () => {
+      fixture.componentRef.setInput('sourceLabel', undefined);
+      fixture.detectChanges();
+
+      expect(component.urlSourceLabel()).toBe('Fallback local PocketBase');
+    });
+
+    it('renders the URL source label and a reset control after the URL input', () => {
+      const sourceLabel = fixture.nativeElement.querySelector('.mcp-helper__url-source') as HTMLElement;
+      const resetButton = fixture.nativeElement.querySelector('.mcp-helper__url-reset') as HTMLButtonElement;
+
+      expect(sourceLabel).toBeTruthy();
+      expect(sourceLabel.textContent).toContain(component.urlSourceLabel());
+      expect(resetButton).toBeTruthy();
+      expect(resetButton.disabled).toBe(true);
+
+      const original = component.customUrl();
+      component.customUrl.set('https://changed.example.com/mcp');
+      fixture.detectChanges();
+      expect(resetButton.disabled).toBe(false);
+
+      resetButton.click();
+      fixture.detectChanges();
+      expect(component.customUrl()).toBe(original);
+      expect(resetButton.disabled).toBe(true);
+    });
+
+    it('auto-syncs customUrl when mcpEndpointUrl input changes and user has not edited', () => {
+      fixture.componentRef.setInput('mcpEndpointUrl', 'https://new-url.example.com/mcp');
+      fixture.detectChanges();
+
+      expect(component.customUrl()).toBe('https://new-url.example.com/mcp');
+      expect(component.isUrlModified()).toBe(false);
+    });
+
+    it('does not overwrite customUrl when mcpEndpointUrl input changes and user has edited', () => {
+      component.onUrlEdited('https://user-edited.example.com/mcp');
+      fixture.detectChanges();
+
+      fixture.componentRef.setInput('mcpEndpointUrl', 'https://new-url.example.com/mcp');
+      fixture.detectChanges();
+
+      expect(component.customUrl()).toBe('https://user-edited.example.com/mcp');
+      expect(component.isUrlModified()).toBe(true);
+    });
+
+    it('resetUrl restores latest default URL and clears modified state after input changes', () => {
+      // User edits first, input changes, then reset should use latest input
+      component.onUrlEdited('https://user-edited.example.com/mcp');
+      fixture.detectChanges();
+
+      fixture.componentRef.setInput('mcpEndpointUrl', 'https://intermediate.example.com/mcp');
+      fixture.detectChanges();
+
+      // User edits again
+      component.onUrlEdited('https://user-edited-2.example.com/mcp');
+      fixture.detectChanges();
+
+      // Input changes again
+      fixture.componentRef.setInput('mcpEndpointUrl', 'https://final.example.com/mcp');
+      fixture.detectChanges();
+
+      component.resetUrl();
+      fixture.detectChanges();
+
+      expect(component.customUrl()).toBe('https://final.example.com/mcp');
+      expect(component.isUrlModified()).toBe(false);
+
+      // After reset, auto-sync should work again
+      fixture.componentRef.setInput('mcpEndpointUrl', 'https://post-reset.example.com/mcp');
+      fixture.detectChanges();
+
+      expect(component.customUrl()).toBe('https://post-reset.example.com/mcp');
+      expect(component.isUrlModified()).toBe(false);
     });
   });
 });
