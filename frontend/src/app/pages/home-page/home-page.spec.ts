@@ -645,4 +645,246 @@ describe('HomePage', () => {
       expect(component.privatePercentage()).toBe(25); // 1/4 = 25
     });
   });
+
+  // ===== Selection =====
+
+  it('toggles selection of a single profile', () => {
+    component.profiles.set([mockProfile]);
+    fixture.detectChanges();
+
+    const event = new MouseEvent('click', { bubbles: true });
+    jest.spyOn(event, 'stopPropagation');
+
+    component.toggleSelection(mockProfile.id, event);
+
+    expect(event.stopPropagation).toHaveBeenCalled();
+    expect(component.selectedIds().has(mockProfile.id)).toBe(true);
+    expect(component.selectedCount()).toBe(1);
+    expect(component.isSelectionActive()).toBe(true);
+
+    component.toggleSelection(mockProfile.id, event);
+
+    expect(component.selectedIds().has(mockProfile.id)).toBe(false);
+    expect(component.selectedCount()).toBe(0);
+    expect(component.isSelectionActive()).toBe(false);
+  });
+
+  it('toggles select all and deselect all', () => {
+    const profiles = [
+      { ...mockProfile, id: 'p1' },
+      { ...mockProfile, id: 'p2', label: 'CV 2', profileName: 'Dev' },
+      { ...mockProfile, id: 'p3', label: 'CV 3', profileName: 'Backend' },
+    ];
+    component.profiles.set(profiles);
+    fixture.detectChanges();
+
+    component.toggleSelectAll();
+    expect(component.isAllSelected()).toBe(true);
+    expect(component.selectedIds().size).toBe(3);
+
+    component.toggleSelectAll();
+    expect(component.isAllSelected()).toBe(false);
+    expect(component.selectedIds().size).toBe(0);
+  });
+
+  it('isAllSelected is false when there are no profiles', () => {
+    component.profiles.set([]);
+    fixture.detectChanges();
+    expect(component.isAllSelected()).toBe(false);
+  });
+
+  it('clears selection', () => {
+    component.profiles.set([mockProfile, { ...mockProfile, id: 'p2' }]);
+    component.toggleSelectAll();
+    expect(component.selectedCount()).toBe(2);
+
+    component.clearSelection();
+    expect(component.selectedCount()).toBe(0);
+    expect(component.isSelectionActive()).toBe(false);
+  });
+
+  it('isAllSelected is false when only some profiles are selected', () => {
+    const profiles = [
+      { ...mockProfile, id: 'p1' },
+      { ...mockProfile, id: 'p2', label: 'CV 2' },
+    ];
+    component.profiles.set(profiles);
+    fixture.detectChanges();
+
+    component.toggleSelection('p1', new MouseEvent('click'));
+    expect(component.isAllSelected()).toBe(false);
+  });
+
+  // ===== Batch delete =====
+
+  it('batch deletes selected profiles after confirmation', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const profiles = [
+      { ...mockProfile, id: 'p1' },
+      { ...mockProfile, id: 'p2', label: 'CV 2' },
+    ];
+    component.profiles.set(profiles);
+    fixture.detectChanges();
+
+    component.toggleSelectAll();
+
+    await component.batchDelete();
+
+    expect(pocketBaseService.deleteCurrentUserCvProfile).toHaveBeenCalledTimes(2);
+    expect(pocketBaseService.deleteCurrentUserCvProfile).toHaveBeenCalledWith('p1');
+    expect(pocketBaseService.deleteCurrentUserCvProfile).toHaveBeenCalledWith('p2');
+    expect(component.selectedCount()).toBe(0);
+  });
+
+  it('cancels batch delete when confirmation is denied', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    component.profiles.set([mockProfile]);
+    fixture.detectChanges();
+    component.toggleSelection(mockProfile.id, new MouseEvent('click'));
+
+    await component.batchDelete();
+
+    expect(pocketBaseService.deleteCurrentUserCvProfile).not.toHaveBeenCalled();
+    expect(component.selectedCount()).toBe(1);
+  });
+
+  it('handles partial batch delete failure', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const profiles = [
+      { ...mockProfile, id: 'p1' },
+      { ...mockProfile, id: 'p2', label: 'CV 2' },
+    ];
+    component.profiles.set(profiles);
+    fixture.detectChanges();
+
+    component.toggleSelectAll();
+    pocketBaseService.deleteCurrentUserCvProfile
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('Delete failed'));
+
+    await component.batchDelete();
+
+    expect(pocketBaseService.deleteCurrentUserCvProfile).toHaveBeenCalledTimes(2);
+    expect(component.errorMessage()).toContain('1 profil(s) sur 2');
+    expect(component.selectedIds().has('p2')).toBe(true);
+  });
+
+  it('does nothing when batch delete has no selection', async () => {
+    await component.batchDelete();
+    expect(pocketBaseService.deleteCurrentUserCvProfile).not.toHaveBeenCalled();
+  });
+
+  // ===== Batch visibility =====
+
+  it('batch changes visibility to public', async () => {
+    const profiles = [
+      { ...mockProfile, id: 'p1', template: 'classic', public: false },
+      { ...mockProfile, id: 'p2', template: 'classic', public: false, label: 'CV 2' },
+    ];
+    component.profiles.set(profiles);
+    fixture.detectChanges();
+    component.toggleSelectAll();
+
+    pocketBaseService.setPublicForCurrentUserCvProfile.mockResolvedValue({ ...mockProfile, id: 'p1', public: true });
+
+    await component.batchChangeVisibility(true);
+
+    expect(pocketBaseService.setPublicForCurrentUserCvProfile).toHaveBeenCalledWith('p1', true);
+    expect(component.selectedCount()).toBe(0);
+  });
+
+  it('batch changes visibility to private', async () => {
+    const profiles = [
+      { ...mockProfile, id: 'p1', template: 'classic', public: true },
+      { ...mockProfile, id: 'p2', template: 'classic', public: true, label: 'CV 2' },
+    ];
+    component.profiles.set(profiles);
+    fixture.detectChanges();
+    component.toggleSelectAll();
+
+    pocketBaseService.setPublicForCurrentUserCvProfile.mockResolvedValue({ ...mockProfile, id: 'p1', public: false });
+
+    await component.batchChangeVisibility(false);
+
+    expect(pocketBaseService.setPublicForCurrentUserCvProfile).toHaveBeenCalledWith('p1', false);
+    expect(component.selectedCount()).toBe(0);
+  });
+
+  it('skips visibility change for profiles without template', async () => {
+    const profileNoTemplate = { ...mockProfile, id: 'p1', template: undefined };
+    component.profiles.set([profileNoTemplate]);
+    fixture.detectChanges();
+    component.toggleSelection('p1', new MouseEvent('click'));
+
+    await component.batchChangeVisibility(true);
+
+    expect(pocketBaseService.setPublicForCurrentUserCvProfile).not.toHaveBeenCalled();
+  });
+
+  // ===== Batch template =====
+
+  it('batch changes template', async () => {
+    const profiles = [
+      { ...mockProfile, id: 'p1', template: 'classic' },
+      { ...mockProfile, id: 'p2', template: 'classic', label: 'CV 2' },
+    ];
+    component.profiles.set(profiles);
+    fixture.detectChanges();
+    component.toggleSelectAll();
+
+    pocketBaseService.setTemplateForCurrentUserCvProfile.mockResolvedValue({ ...mockProfile, id: 'p1', template: 'modern' });
+
+    await component.batchChangeTemplate('modern');
+
+    expect(pocketBaseService.setTemplateForCurrentUserCvProfile).toHaveBeenCalledWith('p1', 'modern', true);
+    expect(component.selectedCount()).toBe(0);
+  });
+
+  it('ignores batch template change with empty template id', async () => {
+    component.toggleSelectAll();
+    await component.batchChangeTemplate('');
+    expect(pocketBaseService.setTemplateForCurrentUserCvProfile).not.toHaveBeenCalled();
+  });
+
+  // ===== Batch status =====
+
+  it('batch changes status', async () => {
+    const profiles = [
+      { ...mockProfile, id: 'p1' },
+      { ...mockProfile, id: 'p2', label: 'CV 2' },
+    ];
+    component.profiles.set(profiles);
+    fixture.detectChanges();
+    component.toggleSelectAll();
+
+    pocketBaseService.setStatusForCvProfile.mockResolvedValue({ ...mockProfile, id: 'p1', status: 'sent' });
+
+    await component.batchChangeStatus('sent');
+
+    expect(pocketBaseService.setStatusForCvProfile).toHaveBeenCalledWith('p1', 'sent');
+    expect(component.selectedCount()).toBe(0);
+  });
+
+  it('ignores batch status change with empty status', async () => {
+    component.toggleSelectAll();
+    await component.batchChangeStatus('');
+    expect(pocketBaseService.setStatusForCvProfile).not.toHaveBeenCalled();
+  });
+
+  // ===== No row navigation from checkbox =====
+
+  it('checkbox clicks do not trigger row navigation', () => {
+    const router = TestBed.inject(Router);
+    jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    mockWideScreen(true);
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    const event = new MouseEvent('click', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: checkbox });
+
+    component.openProfileFromRow(mockProfile, event);
+
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });
