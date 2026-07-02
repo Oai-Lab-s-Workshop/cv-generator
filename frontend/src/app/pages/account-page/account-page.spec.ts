@@ -7,13 +7,20 @@ import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { AccountPage } from './account-page';
 
 class AuthServiceStub {
-  readonly currentUser = signal({ firstName: 'John', lastName: 'Doe' });
+  readonly currentUser = signal({
+    firstName: 'John',
+    lastName: 'Doe',
+    writingStyleDescription: 'Formal and concise tone',
+    writingStyleUrl: 'https://example.com/style-guide',
+  });
   readonly isAuthenticated = computed(() => true);
   logout = jest.fn();
+  refreshCurrentUser = jest.fn<Promise<void>, []>().mockResolvedValue(undefined);
 }
 
 class PocketBaseServiceStub {
   changeCurrentUserPassword = jest.fn<Promise<void>, []>().mockResolvedValue(undefined);
+  updateCurrentUser = jest.fn<Promise<unknown>, [unknown]>().mockResolvedValue({ id: 'user-123' });
   deleteCurrentUserAccount = jest.fn<Promise<void>, []>().mockResolvedValue(undefined);
   exportCurrentUserData = jest.fn<Promise<Record<string, unknown>>, []>().mockResolvedValue({
     exportedAt: '2026-01-01T00:00:00.000Z',
@@ -182,6 +189,60 @@ describe('AccountPage', () => {
 
       expect(component.deleteErrorMessage()).toBe('Deletion failed');
       expect(component.showDeleteConfirm()).toBe(false);
+    });
+  });
+
+  describe('writing style fields', () => {
+    it('loads writing style fields from current user on init', () => {
+      // ngOnInit ran during the beforeEach detectChanges()
+      expect(component.writingStyleDescription()).toBe('Formal and concise tone');
+      expect(component.writingStyleUrl()).toBe('https://example.com/style-guide');
+    });
+
+    it('saves writing style fields via PocketBaseService', async () => {
+      component.writingStyleDescription.set('Casual and friendly');
+      component.writingStyleUrl.set('https://example.com/casual');
+
+      await component.saveWritingStyleFields();
+
+      expect(pocketBaseService.updateCurrentUser).toHaveBeenCalledWith({
+        writingStyleDescription: 'Casual and friendly',
+        writingStyleUrl: 'https://example.com/casual',
+      });
+      expect(authService.refreshCurrentUser).toHaveBeenCalled();
+      expect(component.writingStyleSuccessMessage()).toBe('Préférences de style enregistrées avec succès.');
+    });
+
+    it('clears error message before saving', async () => {
+      component.writingStyleErrorMessage.set('Previous error');
+
+      await component.saveWritingStyleFields();
+
+      expect(component.writingStyleErrorMessage()).toBeNull();
+    });
+
+    it('shows error message on save failure', async () => {
+      pocketBaseService.updateCurrentUser.mockRejectedValue(new Error('Save failed'));
+
+      component.writingStyleDescription.set('Casual and friendly');
+
+      await component.saveWritingStyleFields();
+
+      expect(component.writingStyleErrorMessage()).toBe('Save failed');
+      expect(component.writingStyleSuccessMessage()).toBeNull();
+    });
+
+    it('clears fields then saves', async () => {
+      component.writingStyleDescription.set('Casual and friendly');
+      component.writingStyleUrl.set('https://example.com/casual');
+
+      await component.clearWritingStyleFields();
+
+      expect(pocketBaseService.updateCurrentUser).toHaveBeenCalledWith({
+        writingStyleDescription: null,
+        writingStyleUrl: null,
+      });
+      expect(component.writingStyleSuccessMessage()).toBe('Préférences de style enregistrées avec succès.');
     });
   });
 });
