@@ -18,6 +18,19 @@ Optional OAuth variables:
 Optional MCP variables:
 
 - `resumate.mcp.idempotency.ttl`: idempotency key cache TTL, default `5m`
+- `AUTHORIZED_URL`: comma-separated list of additional CORS origins allowed to call the MCP API
+
+## CORS configuration
+
+The MCP server protects its API with CORS, allowing only the frontend URL (`FRONTEND_BASE_URL`) and the MCP public base URL (`MCP_PUBLIC_BASE_URL`) by default.
+
+Set the `AUTHORIZED_URL` environment variable to add extra comma-separated allowed origins. CORS is enforced at the Spring Security layer.
+
+Example:
+
+```bash
+AUTHORIZED_URL=https://admin.example.com,http://localhost:3000
+```
 
 ## Agent rules
 

@@ -58,3 +58,12 @@ To prevent duplicate profiles when you or the MCP host retries a create call:
 | `listProfileMaterial` | Before any create or update that selects record IDs. Returns user's skills, jobs, projects, etc. |
 | `createTailoredCvProfile` | Create a new tailored CV profile. Always pass `label`, `templateId`, and content. Pass `idempotencyKey` to prevent duplicates. |
 | `updateCvProfile` | Edit an existing profile (by slug or id). Only pass fields you want to change. Relation arrays replace the full set when provided. |
+
+## Writing Style Guidance
+
+When drafting or revising content for a user, check the `writingStyleDescription` and `writingStyleUrl` fields returned by `listProfileMaterial` in the `user` object.
+
+- **writingStyleDescription**: Free-form text describing the user's preferred tone, vocabulary, paragraph structure, and formatting conventions. Let this description guide the voice and style of all generated content.
+- **writingStyleUrl**: An optional URL to a style guide, blog post, or reference page that represents the user's writing style. When present, reference it to better match the user's voice.
+
+Use these fields as the primary style reference when generating or editing any user-facing text (summaries, CV content, cover letters, etc.). If both fields are absent or empty, fall back to a professional, neutral tone.

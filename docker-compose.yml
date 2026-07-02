@@ -41,6 +41,7 @@ services:
       MCP_OAUTH_ACCESS_TOKEN_TTL: ${MCP_OAUTH_ACCESS_TOKEN_TTL:-1h}
       MCP_OAUTH_REFRESH_TOKEN_TTL: ${MCP_OAUTH_REFRESH_TOKEN_TTL:-90d}
       MCP_OAUTH_ALLOWED_REDIRECT_URI_PATTERNS: ${MCP_OAUTH_ALLOWED_REDIRECT_URI_PATTERNS:-https://claude.ai/*}
+      AUTHORIZED_URL: ${AUTHORIZED_URL:-}
     depends_on:
       pocketbase:
         condition: service_healthy

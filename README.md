@@ -267,9 +267,19 @@ Description rapide :
 - `PB_URL` : URL PocketBase côté hôte, utilisée par les scripts locaux
 - `POCKETBASE_BASE_URL` : URL PocketBase côté réseau Docker, utilisée par le MCP et le proxy frontend
 - `MCP_BASE_URL` : URL MCP côté hôte
+- `AUTHORIZED_URL` : liste d'origines CORS autorisées supplémentaires, séparées par des virgules (voir la section CORS ci-dessous)
 - `POCKETBASE_SERVICE_USER_EMAIL` : compte de service utilisé par le serveur MCP
 - `POCKETBASE_SERVICE_USER_PASSWORD` : mot de passe du compte de service MCP
 - `RESUMATE_AI_TOKEN` : jeton éventuel utilisé dans certains flux d'intégration
+
+### CORS
+
+Le serveur MCP applique une politique CORS stricte et n'autorise que les origines configurées.
+
+- Par défaut, les origines autorisées sont dérivées de `FRONTEND_BASE_URL` et `MCP_PUBLIC_BASE_URL`, normalisées sous la forme schéma + hôte + port.
+- `AUTHORIZED_URL` : liste d'origines CORS autorisées supplémentaires, séparées par des virgules (par exemple `http://localhost:3000,https://app.example.com`). Elles sont combinées à la liste par défaut.
+- En développement local, les valeurs par défaut fonctionnent sans configuration supplémentaire.
+- Pour le CORS de l'API PocketBase, configurez-le via l'interface d'administration PocketBase (Settings → Application → CORS) ou utilisez le flag `--cors` dans `docker-compose`.
 
 ## Développement
 
