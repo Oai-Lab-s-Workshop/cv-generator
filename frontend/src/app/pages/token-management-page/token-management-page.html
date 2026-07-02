@@ -152,7 +152,11 @@
         </section>
       }
 
-      <app-mcp-config-helper [activeTokenCount]="activeAiTokenCount()" />
+      <app-mcp-config-helper
+        [activeTokenCount]="activeAiTokenCount()"
+        [mcpEndpointUrl]="mcpEndpointUrl()"
+        [sourceLabel]="mcpSourceLabel()"
+      />
 
       @if (isLoadingAiTokens()) {
         <section class="state-card">
