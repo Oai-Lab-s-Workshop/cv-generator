@@ -96,6 +96,8 @@ export class HomePage implements OnInit {
   readonly rejectedPercentage = computed(() => this.percentageOf(this.rejectedProfileCount()));
   readonly unansweredPercentage = computed(() => this.percentageOf(this.unansweredProfileCount()));
 
+  readonly activeStatusFilter = signal<CvProfileStatus | null>(null);
+
   readonly publicPercentage = computed(() => this.percentageOf(this.publicProfileCount()));
   readonly privatePercentage = computed(() => this.percentageOf(this.privateProfileCount()));
 
@@ -132,6 +134,19 @@ export class HomePage implements OnInit {
     });
 
     return list;
+  });
+
+  readonly filteredSortedProfiles = computed(() => {
+    const filter = this.activeStatusFilter();
+    const sorted = this.sortedProfiles();
+    if (filter === null) return sorted;
+    return sorted.filter((profile) => (profile.status || 'unsent') === filter);
+  });
+
+  readonly activeFilterLabel = computed(() => {
+    const filter = this.activeStatusFilter();
+    if (filter === null) return '';
+    return CV_PROFILE_STATUS_OPTIONS.find((option) => option.value === filter)?.label ?? 'Non envoye';
   });
 
   ngOnInit(): void {
@@ -464,6 +479,22 @@ export class HomePage implements OnInit {
   getStatusTone(profile: CvProfile): string {
     const status = profile.status ?? 'unsent';
     return CV_PROFILE_STATUS_OPTIONS.find((opt) => opt.value === status)?.tone ?? 'gray';
+  }
+
+  setActiveFilter(status: CvProfileStatus): void {
+    this.activeStatusFilter.update((current) => (current === status ? null : status));
+  }
+
+  clearFilter(): void {
+    this.activeStatusFilter.set(null);
+  }
+
+  isFilterActive(): boolean {
+    return this.activeStatusFilter() !== null;
+  }
+
+  isFilterSelected(status: CvProfileStatus): boolean {
+    return this.activeStatusFilter() === status;
   }
 
 }

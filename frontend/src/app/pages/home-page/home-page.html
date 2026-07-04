@@ -32,50 +32,80 @@
   <section class="status-breakdown" aria-label="Repartition par statut">
     <h2 class="status-breakdown__title">Statut des CV</h2>
     <div class="status-breakdown__grid">
-      <article class="status-card status-card--gray">
+      <button
+        class="status-card status-card--gray"
+        type="button"
+        [class.status-card--active]="isFilterSelected('unsent')"
+        [attr.aria-pressed]="isFilterSelected('unsent')"
+        (click)="setActiveFilter('unsent')"
+      >
         <span class="status-dot status-dot--gray" aria-hidden="true"></span>
         <div class="status-card__body">
           <strong>{{ isLoading() ? '...' : unsentProfileCount() }}</strong>
           <span>Non envoyes</span>
           <small>{{ isLoading() ? '...' : unsentPercentage() + '%' }}</small>
         </div>
-      </article>
+      </button>
 
-      <article class="status-card status-card--blue">
+      <button
+        class="status-card status-card--blue"
+        type="button"
+        [class.status-card--active]="isFilterSelected('sent')"
+        [attr.aria-pressed]="isFilterSelected('sent')"
+        (click)="setActiveFilter('sent')"
+      >
         <span class="status-dot status-dot--blue" aria-hidden="true"></span>
         <div class="status-card__body">
           <strong>{{ isLoading() ? '...' : sentProfileCount() }}</strong>
           <span>Envoyes</span>
           <small>{{ isLoading() ? '...' : sentPercentage() + '%' }}</small>
         </div>
-      </article>
+      </button>
 
-      <article class="status-card status-card--red">
+      <button
+        class="status-card status-card--red"
+        type="button"
+        [class.status-card--active]="isFilterSelected('rejected')"
+        [attr.aria-pressed]="isFilterSelected('rejected')"
+        (click)="setActiveFilter('rejected')"
+      >
         <span class="status-dot status-dot--red" aria-hidden="true"></span>
         <div class="status-card__body">
           <strong>{{ isLoading() ? '...' : rejectedProfileCount() }}</strong>
           <span>Rejetes</span>
           <small>{{ isLoading() ? '...' : rejectedPercentage() + '%' }}</small>
         </div>
-      </article>
+      </button>
 
-      <article class="status-card status-card--green">
+      <button
+        class="status-card status-card--green"
+        type="button"
+        [class.status-card--active]="isFilterSelected('responded')"
+        [attr.aria-pressed]="isFilterSelected('responded')"
+        (click)="setActiveFilter('responded')"
+      >
         <span class="status-dot status-dot--green" aria-hidden="true"></span>
         <div class="status-card__body">
           <strong>{{ isLoading() ? '...' : respondedProfileCount() }}</strong>
           <span>Repondus</span>
           <small>{{ isLoading() ? '...' : respondedPercentage() + '%' }}</small>
         </div>
-      </article>
+      </button>
 
-      <article class="status-card status-card--yellow">
+      <button
+        class="status-card status-card--yellow"
+        type="button"
+        [class.status-card--active]="isFilterSelected('unanswered')"
+        [attr.aria-pressed]="isFilterSelected('unanswered')"
+        (click)="setActiveFilter('unanswered')"
+      >
         <span class="status-dot status-dot--yellow" aria-hidden="true"></span>
         <div class="status-card__body">
           <strong>{{ isLoading() ? '...' : unansweredProfileCount() }}</strong>
           <span>Sans reponse</span>
           <small>{{ isLoading() ? '...' : unansweredPercentage() + '%' }}</small>
         </div>
-      </article>
+      </button>
     </div>
   </section>
 
@@ -133,10 +163,27 @@
         <p>Templates, visibilite et routes publiques.</p>
       </div>
 
+      @if (isFilterActive()) {
+        <div class="filter-summary">
+          <span class="filter-summary__label">
+            Filtre actif : <strong>{{ activeFilterLabel() }}</strong>
+          </span>
+          <button class="filter-summary__clear" type="button" (click)="clearFilter()">
+            <i class="bi bi-x" aria-hidden="true"></i>
+            Effacer
+          </button>
+        </div>
+      }
+
       @if (profiles().length === 0) {
         <section class="state-card state-card--empty">
           <h2>Aucun CV genere pour le moment</h2>
           <p>Creez un premier profil avec un template pour generer une route CV.</p>
+        </section>
+      } @else if (filteredSortedProfiles().length === 0) {
+        <section class="state-card">
+          <h2>Aucun profil ne correspond au filtre</h2>
+          <p>Essayez de selectionner un autre statut ou <a href="#" (click)="clearFilter(); $event.preventDefault()">effacez le filtre</a>.</p>
         </section>
       } @else {
         <div class="profile-table" role="table" aria-label="Profils CV generes">
@@ -188,7 +235,7 @@
           </div>
 
           <div class="profile-table__body">
-            @for (profile of sortedProfiles(); track profile.id) {
+            @for (profile of filteredSortedProfiles(); track profile.id) {
               <article
                 class="profile-row"
                 role="row"
