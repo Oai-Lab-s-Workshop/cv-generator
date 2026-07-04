@@ -5,7 +5,13 @@ import { AiToken } from '../../core/models/ai-token.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { getErrorMessage } from '../../core/utils/error-message';
-import { loadRuntimeConfig, resolveMcpEndpointUrl, resolveOAuthDiscoveryUrl } from '../../core/utils/desktop-runtime-config';
+import { environment } from '../../../environments/environment';
+import {
+  loadRuntimeConfig,
+  resolveMcpEndpointUrl,
+  resolveMcpUrl,
+  resolveOAuthDiscoveryUrl,
+} from '../../core/utils/desktop-runtime-config';
 import { Navbar } from '../../shared/components/navbar/navbar';
 import { McpConfigHelper } from './mcp-config-helper';
 
@@ -31,6 +37,8 @@ export class TokenManagementPage implements OnInit {
   readonly selectedAuthMethod = signal<'oauth' | 'api-key'>('oauth');
   readonly oauthMcpEndpointUrl = signal(resolveMcpEndpointUrl());
   readonly oauthDiscoveryUrl = signal(resolveOAuthDiscoveryUrl());
+  readonly mcpEndpointUrl = signal(resolveMcpEndpointUrl());
+  readonly mcpSourceLabel = signal(this.computeMcpSourceLabel());
   readonly currentUser = this.authService.currentUser;
   readonly currentUserName = computed(() => {
     const user = this.currentUser();
@@ -72,10 +80,25 @@ export class TokenManagementPage implements OnInit {
     this.selectedAuthMethod.set(method);
   }
 
+  private computeMcpSourceLabel(): string {
+    if (resolveMcpUrl()) {
+      return 'Configuration desktop locale';
+    }
+    if (window.__RESUMATE_RUNTIME_CONFIG__?.mcpPublicBaseUrl?.trim()) {
+      return 'Configuration runtime hébergée';
+    }
+    if (environment.mcpPublicBaseUrl.trim()) {
+      return "Configuration d'environnement";
+    }
+    return 'Fallback local PocketBase';
+  }
+
   private async loadMcpRuntimeUrls(): Promise<void> {
     await loadRuntimeConfig();
     this.oauthMcpEndpointUrl.set(resolveMcpEndpointUrl());
     this.oauthDiscoveryUrl.set(resolveOAuthDiscoveryUrl());
+    this.mcpEndpointUrl.set(resolveMcpEndpointUrl());
+    this.mcpSourceLabel.set(this.computeMcpSourceLabel());
   }
 
   private async loadAiTokens(): Promise<void> {
