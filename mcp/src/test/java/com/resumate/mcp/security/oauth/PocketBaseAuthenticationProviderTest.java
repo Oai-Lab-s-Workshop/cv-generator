@@ -41,6 +41,8 @@ class PocketBaseAuthenticationProviderTest {
                         null,
                         null,
                         "user@example.com",
+                        null,
+                        null,
                         null
                 )));
 

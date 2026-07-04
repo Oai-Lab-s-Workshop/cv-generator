@@ -824,7 +824,9 @@ public class PocketBaseClient {
             String github,
             String website,
             String email,
-            String phone
+            String phone,
+            String writingStyleDescription,
+            String writingStyleUrl
     ) {
     }
 }
