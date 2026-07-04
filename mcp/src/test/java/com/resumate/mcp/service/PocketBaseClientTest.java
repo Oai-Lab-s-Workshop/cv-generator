@@ -182,6 +182,30 @@ class PocketBaseClientTest {
     }
 
     @Test
+    void loadProfileMaterial_deserializesWritingStyleFields() {
+        enqueueAuthResponse();
+        enqueueJsonResponse("""
+                {
+                    "id": "userId",
+                    "firstName": "Jane",
+                    "lastName": "Doe",
+                    "writingStyleDescription": "Concise, results-oriented tone",
+                    "writingStyleUrl": "https://janedoe.dev/style"
+                }
+                """);
+
+        String collectionResponse = "{\"items\": [{\"id\": \"test-id\", \"name\": \"test\"}]}";
+        for (int i = 0; i < 6; i++) {
+            enqueueJsonResponse(collectionResponse);
+        }
+
+        ProfileMaterialBundle bundle = client.loadProfileMaterial("userId");
+
+        assertThat(bundle.user().writingStyleDescription()).isEqualTo("Concise, results-oriented tone");
+        assertThat(bundle.user().writingStyleUrl()).isEqualTo("https://janedoe.dev/style");
+    }
+
+    @Test
     void validateOwnedRecordIds_passes_whenAllIdsBelongToUser() {
         enqueueAuthResponse();
         enqueueJsonResponse("{\"id\":\"skill1\",\"user\":\"userId\"}");

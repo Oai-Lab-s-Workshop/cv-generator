@@ -47,7 +47,9 @@ export type SaveCurrentUserAchievementInput = Pick<Achievement, 'title'> & Parti
 export type SaveCurrentUserDegreeInput = Pick<Degree, 'title'> & Partial<Pick<Degree, 'school' | 'year' | 'level' | 'sortOrder'>>;
 export type SaveCurrentUserHobbyInput = Pick<Hobby, 'name'> & Partial<Pick<Hobby, 'description' | 'sortOrder'>>;
 export type SaveCurrentUserFileInput = Partial<Pick<MediaFile, 'name' | 'alt' | 'kind' | 'sortOrder'>> & { file?: File | null };
-export type UpdateCurrentUserInput = Partial<Pick<User, 'firstName' | 'lastName' | 'linkedin' | 'github' | 'website' | 'phone'>>;
+export type UpdateCurrentUserInput = Partial<
+  Pick<User, 'firstName' | 'lastName' | 'linkedin' | 'github' | 'website' | 'phone' | 'writingStyleDescription' | 'writingStyleUrl'>
+>;
 
 @Injectable({ providedIn: 'root' })
 export class PocketBaseService {
@@ -748,6 +750,8 @@ export class PocketBaseService {
 
     return {
       ...user,
+      writingStyleDescription: user.writingStyleDescription ?? null,
+      writingStyleUrl: user.writingStyleUrl ?? null,
       profilePicture: this.getFileFieldUrl(user as unknown as RecordModel, user.profilePicture),
       coverPicture: this.getFileFieldUrl(user as unknown as RecordModel, user.coverPicture),
     };
