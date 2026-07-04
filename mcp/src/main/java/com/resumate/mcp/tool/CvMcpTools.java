@@ -58,7 +58,7 @@ public class CvMcpTools {
         );
     }
 
-    @Tool(description = RESUMATE_MCP_PURPOSE + " Call this before creating a tailored profile. Only pass ids returned by this tool in skillIds, jobIds, projectIds, achievementIds, degreeIds, and hobbyIds.")
+    @Tool(description = RESUMATE_MCP_PURPOSE + " Call this before creating a tailored profile. Only pass ids returned by this tool in skillIds, jobIds, projectIds, achievementIds, degreeIds, and hobbyIds. The returned user object includes writingStyleDescription and writingStyleUrl fields; use them as the primary style reference when generating or editing any user-facing text.")
     public ProfileMaterialBundle listProfileMaterial() {
         return pocketBaseClient.loadProfileMaterial(currentPrincipal().userId());
     }

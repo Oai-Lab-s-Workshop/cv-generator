@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../../shared/components/navbar/navbar';
@@ -13,11 +13,17 @@ import { getErrorMessage } from '../../core/utils/error-message';
   styleUrls: ['../../styles/home-shared.css', './account-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AccountPage {
+export class AccountPage implements OnInit {
   private readonly pocketBaseService = inject(PocketBaseService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   readonly currentUser = this.authService.currentUser;
+
+  readonly writingStyleDescription = signal<string>('');
+  readonly writingStyleUrl = signal<string>('');
+  readonly isSavingWritingStyle = signal(false);
+  readonly writingStyleErrorMessage = signal<string | null>(null);
+  readonly writingStyleSuccessMessage = signal<string | null>(null);
 
   readonly oldPassword = signal('');
   readonly newPassword = signal('');
@@ -33,6 +39,42 @@ export class AccountPage {
   readonly isExporting = signal(false);
   readonly exportErrorMessage = signal<string | null>(null);
   readonly exportSuccessMessage = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.loadWritingStyleFields();
+  }
+
+  private loadWritingStyleFields(): void {
+    const user = this.currentUser();
+    this.writingStyleDescription.set(user?.writingStyleDescription ?? '');
+    this.writingStyleUrl.set(user?.writingStyleUrl ?? '');
+  }
+
+  async saveWritingStyleFields(): Promise<void> {
+    this.writingStyleErrorMessage.set(null);
+    this.writingStyleSuccessMessage.set(null);
+    this.isSavingWritingStyle.set(true);
+
+    try {
+      await this.pocketBaseService.updateCurrentUser({
+        writingStyleDescription: this.writingStyleDescription() || null,
+        writingStyleUrl: this.writingStyleUrl() || null,
+      });
+      await this.authService.refreshCurrentUser();
+      this.loadWritingStyleFields();
+      this.writingStyleSuccessMessage.set('Préférences de style enregistrées avec succès.');
+    } catch (error: unknown) {
+      this.writingStyleErrorMessage.set(getErrorMessage(error));
+    } finally {
+      this.isSavingWritingStyle.set(false);
+    }
+  }
+
+  async clearWritingStyleFields(): Promise<void> {
+    this.writingStyleDescription.set('');
+    this.writingStyleUrl.set('');
+    await this.saveWritingStyleFields();
+  }
 
   async changePassword(): Promise<void> {
     this.errorMessage.set(null);

@@ -27,7 +27,18 @@
 
       <label class="field mcp-helper__field">
         <span>URL serveur MCP</span>
-        <input [ngModel]="customUrl()" (ngModelChange)="customUrl.set($event)" type="url" placeholder="http://localhost:8080/mcp" />
+        <input [ngModel]="customUrl()" (ngModelChange)="onUrlEdited($event)" type="url" placeholder="http://localhost:8080/mcp" />
+        <div class="mcp-helper__url-meta">
+          <small class="mcp-helper__url-source">Source : {{ urlSourceLabel() }}</small>
+          <button
+            type="button"
+            class="mcp-helper__url-reset"
+            [disabled]="!isUrlModified()"
+            (click)="resetUrl()"
+          >
+            Réinitialiser
+          </button>
+        </div>
       </label>
     </div>
 

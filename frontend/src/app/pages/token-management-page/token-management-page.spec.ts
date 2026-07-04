@@ -123,6 +123,20 @@ describe('TokenManagementPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Configuration manuelle');
   });
 
+  it('resolves the MCP endpoint URL and source label after runtime config loads', () => {
+    expect(component.mcpEndpointUrl()).toBe('https://mcp.example.test/mcp');
+    expect(component.mcpSourceLabel()).toBe("Configuration d'environnement");
+  });
+
+  it('passes the resolved URL and source label to the config helper', () => {
+    component.selectAuthMethod('api-key');
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+
+    expect(text).toContain('https://mcp.example.test/mcp');
+    expect(text).toContain("Source : Configuration d'environnement");
+  });
+
   it('renders OAuth as the default authentication method', () => {
     const text = fixture.nativeElement.textContent;
 
