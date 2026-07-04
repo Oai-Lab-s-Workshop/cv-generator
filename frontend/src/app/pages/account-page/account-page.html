@@ -9,6 +9,69 @@
     </div>
   </section>
 
+  <section class="material-card material-card--single" aria-labelledby="style-guidance-title">
+    <div class="material-card__header">
+      <div>
+        <p class="eyebrow">Assistant IA</p>
+        <h2 id="style-guidance-title">Préférences de style rédactionnel</h2>
+      </div>
+    </div>
+
+    <form class="password-form" (ngSubmit)="saveWritingStyleFields()">
+      <p class="relation-helper password-form__intro">Décrivez votre style d'écriture préféré pour que l'assistant IA puisse imiter votre voix. Cela aide le contenu généré à vous ressembler.</p>
+
+      @if (writingStyleErrorMessage()) {
+        <section class="state-card state-card--error password-form__full">
+          <p>{{ writingStyleErrorMessage() }}</p>
+        </section>
+      }
+
+      @if (writingStyleSuccessMessage()) {
+        <section class="state-card state-card--success password-form__full">
+          <p>{{ writingStyleSuccessMessage() }}</p>
+        </section>
+      }
+
+      <label class="editor-field password-form__full">
+        <span>Description du style</span>
+        <textarea
+          [ngModel]="writingStyleDescription()"
+          (ngModelChange)="writingStyleDescription.set($event)"
+          name="writingStyleDescription"
+          rows="4"
+          placeholder="ex. : Professionnel mais conversationnel, voix active, paragraphes courts..."
+        ></textarea>
+        <small>Décrivez votre ton, votre vocabulaire et vos préférences de mise en forme.</small>
+      </label>
+
+      <label class="editor-field password-form__full">
+        <span>URL de référence (optionnel)</span>
+        <input
+          [ngModel]="writingStyleUrl()"
+          (ngModelChange)="writingStyleUrl.set($event)"
+          name="writingStyleUrl"
+          type="url"
+          placeholder="https://exemple.com/mon-guide-de-style"
+        />
+        <small>Lien vers un guide de style, un article de blog ou toute page représentative de votre écriture.</small>
+      </label>
+
+      <div class="password-form__full" style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="clearWritingStyleFields()"
+          [disabled]="isSavingWritingStyle() || (!writingStyleDescription() && !writingStyleUrl())"
+        >
+          Effacer
+        </button>
+        <button class="primary-button" type="submit" [disabled]="isSavingWritingStyle()">
+          {{ isSavingWritingStyle() ? 'Enregistrement...' : 'Enregistrer le style' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
   <section class="material-card material-card--single" aria-labelledby="security-title">
     <div class="material-card__header">
       <div>

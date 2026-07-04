@@ -71,7 +71,9 @@ public final class TestData {
                 "https://linkedin.com/in/janedoe",
                 "https://github.com/janedoe",
                 "https://janedoe.dev",
-                "jane@example.com", "+1234567890"
+                "jane@example.com", "+1234567890",
+                "Concise, results-oriented tone",
+                "https://janedoe.dev/style"
         );
     }
 
