@@ -646,6 +646,82 @@ describe('HomePage', () => {
     });
   });
 
+  describe('RESUMATE-32 — Status tile filtering', () => {
+    const profiles = [
+      { ...mockProfile, id: '1', status: 'unsent' as const, updated_at: '2026-01-01 00:00:00' },
+      { ...mockProfile, id: '2', status: 'sent' as const, updated_at: '2026-01-02 00:00:00' },
+      { ...mockProfile, id: '3', status: 'rejected' as const, updated_at: '2026-01-03 00:00:00' },
+      { ...mockProfile, id: '4', status: 'responded' as const, updated_at: '2026-01-04 00:00:00' },
+      { ...mockProfile, id: '5', status: undefined, updated_at: '2026-01-05 00:00:00' },
+      { ...mockProfile, id: '6', status: 'unanswered' as const, updated_at: '2026-01-06 00:00:00' },
+    ];
+
+    beforeEach(() => {
+      component.profiles.set(profiles);
+    });
+
+    it('starts with no active filter and shows all profiles', () => {
+      expect(component.isFilterActive()).toBe(false);
+      expect(component.filteredSortedProfiles().length).toBe(6);
+    });
+
+    it('filters unsent profiles and treats undefined status as unsent', () => {
+      component.setActiveFilter('unsent');
+
+      expect(component.isFilterActive()).toBe(true);
+      expect(component.isFilterSelected('unsent')).toBe(true);
+      expect(component.filteredSortedProfiles().map((profile) => profile.id).sort()).toEqual(['1', '5']);
+    });
+
+    it('filters each explicit status', () => {
+      component.setActiveFilter('sent');
+      expect(component.filteredSortedProfiles().map((profile) => profile.id)).toEqual(['2']);
+
+      component.setActiveFilter('rejected');
+      expect(component.filteredSortedProfiles().map((profile) => profile.id)).toEqual(['3']);
+
+      component.setActiveFilter('responded');
+      expect(component.filteredSortedProfiles().map((profile) => profile.id)).toEqual(['4']);
+
+      component.setActiveFilter('unanswered');
+      expect(component.filteredSortedProfiles().map((profile) => profile.id)).toEqual(['6']);
+    });
+
+    it('selecting the same filter twice clears it', () => {
+      component.setActiveFilter('sent');
+      component.setActiveFilter('sent');
+
+      expect(component.isFilterActive()).toBe(false);
+      expect(component.filteredSortedProfiles().length).toBe(6);
+    });
+
+    it('clearFilter restores all profiles', () => {
+      component.setActiveFilter('sent');
+      component.clearFilter();
+
+      expect(component.isFilterActive()).toBe(false);
+      expect(component.filteredSortedProfiles().length).toBe(6);
+    });
+
+    it('keeps status counts based on the full profile set while filtered', () => {
+      component.setActiveFilter('sent');
+
+      expect(component.filteredSortedProfiles().length).toBe(1);
+      expect(component.unsentProfileCount()).toBe(2);
+      expect(component.sentProfileCount()).toBe(1);
+      expect(component.rejectedProfileCount()).toBe(1);
+      expect(component.respondedProfileCount()).toBe(1);
+      expect(component.unansweredProfileCount()).toBe(1);
+    });
+
+    it('exposes the active filter label', () => {
+      expect(component.activeFilterLabel()).toBe('');
+
+      component.setActiveFilter('sent');
+      expect(component.activeFilterLabel()).toBe('Envoye');
+    });
+  });
+
   // ===== Selection =====
 
   it('toggles selection of a single profile', () => {

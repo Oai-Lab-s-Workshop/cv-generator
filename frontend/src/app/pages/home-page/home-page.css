@@ -77,6 +77,31 @@
   background: var(--home-surface);
   box-shadow: var(--home-shadow);
   backdrop-filter: blur(18px);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.status-card:hover {
+  border-color: light-dark(rgba(15, 61, 140, 0.22), rgba(106, 158, 245, 0.35));
+  background: light-dark(rgba(15, 61, 140, 0.05), rgba(106, 158, 245, 0.08));
+}
+
+.status-card:focus-visible {
+  outline: 2px solid light-dark(#2563eb, #60a5fa);
+  outline-offset: 2px;
+}
+
+.status-card--active {
+  border-color: light-dark(rgba(15, 61, 140, 0.35), rgba(106, 158, 245, 0.5));
+  background: light-dark(rgba(15, 61, 140, 0.08), rgba(106, 158, 245, 0.12));
+  box-shadow: light-dark(0 0 0 2px rgba(15, 61, 140, 0.12), 0 0 0 2px rgba(106, 158, 245, 0.2));
+}
+
+.status-card--active:hover {
+  border-color: light-dark(rgba(15, 61, 140, 0.45), rgba(106, 158, 245, 0.6));
+  background: light-dark(rgba(15, 61, 140, 0.12), rgba(106, 158, 245, 0.18));
 }
 
 .status-card__body {
@@ -103,6 +128,49 @@
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.06em;
+}
+
+.filter-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid light-dark(rgba(15, 61, 140, 0.22), rgba(106, 158, 245, 0.3));
+  border-radius: 0.7rem;
+  background: light-dark(rgba(15, 61, 140, 0.06), rgba(106, 158, 245, 0.08));
+}
+
+.filter-summary__label {
+  font-size: 0.82rem;
+  color: var(--home-text);
+}
+
+.filter-summary__clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.55rem;
+  background: transparent;
+  color: var(--home-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.filter-summary__clear:hover {
+  background: light-dark(rgba(15, 61, 140, 0.08), rgba(106, 158, 245, 0.12));
+  border-color: light-dark(rgba(15, 61, 140, 0.18), rgba(106, 158, 245, 0.3));
+}
+
+.filter-summary__clear:focus-visible {
+  outline: 2px solid light-dark(#2563eb, #60a5fa);
+  outline-offset: 2px;
 }
 
 @media (max-width: 1080px) {
