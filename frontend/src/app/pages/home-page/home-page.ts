@@ -98,6 +98,8 @@ export class HomePage implements OnInit {
   readonly rejectedPercentage = computed(() => this.percentageOf(this.rejectedProfileCount()));
   readonly unansweredPercentage = computed(() => this.percentageOf(this.unansweredProfileCount()));
 
+  readonly activeStatusFilter = signal<CvProfileStatus | null>(null);
+
   readonly publicPercentage = computed(() => this.percentageOf(this.publicProfileCount()));
   readonly privatePercentage = computed(() => this.percentageOf(this.privateProfileCount()));
 
@@ -136,11 +138,24 @@ export class HomePage implements OnInit {
     return list;
   });
 
+  readonly filteredSortedProfiles = computed(() => {
+    const filter = this.activeStatusFilter();
+    const sorted = this.sortedProfiles();
+    if (filter === null) return sorted;
+    return sorted.filter((profile) => (profile.status || 'unsent') === filter);
+  });
+
+  readonly activeFilterLabel = computed(() => {
+    const filter = this.activeStatusFilter();
+    if (filter === null) return '';
+    return CV_PROFILE_STATUS_OPTIONS.find((option) => option.value === filter)?.label ?? 'Non envoye';
+  });
+
   readonly selectedCount = computed(() => this.selectedIds().size);
   readonly isSelectionActive = computed(() => this.selectedIds().size > 0);
   readonly isAllSelected = computed(() => {
     const ids = this.selectedIds();
-    const profiles = this.sortedProfiles();
+    const profiles = this.filteredSortedProfiles();
     return profiles.length > 0 && profiles.every(p => ids.has(p.id));
   });
 
@@ -476,6 +491,22 @@ export class HomePage implements OnInit {
     return CV_PROFILE_STATUS_OPTIONS.find((opt) => opt.value === status)?.tone ?? 'gray';
   }
 
+  setActiveFilter(status: CvProfileStatus): void {
+    this.activeStatusFilter.update((current) => (current === status ? null : status));
+  }
+
+  clearFilter(): void {
+    this.activeStatusFilter.set(null);
+  }
+
+  isFilterActive(): boolean {
+    return this.activeStatusFilter() !== null;
+  }
+
+  isFilterSelected(status: CvProfileStatus): boolean {
+    return this.activeStatusFilter() === status;
+  }
+
   toggleSelection(profileId: string, event: Event): void {
     event.stopPropagation();
     this.selectedIds.update(ids => {
@@ -493,7 +524,7 @@ export class HomePage implements OnInit {
     if (this.isAllSelected()) {
       this.selectedIds.set(new Set());
     } else {
-      this.selectedIds.set(new Set(this.sortedProfiles().map(p => p.id)));
+      this.selectedIds.set(new Set(this.filteredSortedProfiles().map(p => p.id)));
     }
   }
 
