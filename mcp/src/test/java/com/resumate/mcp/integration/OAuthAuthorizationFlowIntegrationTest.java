@@ -84,6 +84,8 @@ class OAuthAuthorizationFlowIntegrationTest {
                         null,
                         null,
                         "user@example.com",
+                        null,
+                        null,
                         null
                 )));
         when(pocketBaseClient.findOAuthClientByClientId(CLIENT_ID)).thenReturn(Optional.of(oauthClientRecord()));

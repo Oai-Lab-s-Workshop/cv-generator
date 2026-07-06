@@ -246,6 +246,174 @@ const revokeAiTokenHandler = (e) => {
 routerAdd('POST', '/api/custom/ai-tokens/{id}/revoke', revokeAiTokenHandler);
 routerAdd('PATCH', '/api/custom/ai-tokens/{id}/revoke', revokeAiTokenHandler);
 
+const getPublicCvDataBySlugHandler = (e) => {
+  const toArray = (value) => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+
+    try {
+      return Array.from(value);
+    } catch (_) {
+      return [];
+    }
+  };
+
+  const serializeRecord = (record, fieldNames) => {
+    const result = { id: record.id };
+
+    for (const fieldName of fieldNames) {
+      result[fieldName] = record.get(fieldName);
+    }
+
+    return result;
+  };
+
+  const findLinkedRecords = (collectionName, ids, fieldNames, ownerId) => {
+    const records = [];
+
+    for (const id of ids) {
+      try {
+        const record = $app.findRecordById(collectionName, id);
+        const recordOwnerId = record.getString('user');
+
+        if (recordOwnerId && recordOwnerId !== ownerId) continue;
+
+        records.push(serializeRecord(record, fieldNames));
+      } catch (_) {
+        // Keep public rendering resilient to stale relation ids.
+      }
+    }
+
+    return records;
+  };
+
+  const slug = e.request.pathValue('slug');
+  let profileRecord;
+
+  try {
+    profileRecord = $app.findFirstRecordByFilter('cv_profiles', 'slug={:slug}', { slug });
+  } catch (_) {
+    throw new NotFoundError('CV profile not found.');
+  }
+
+  const ownerId = profileRecord.getString('user');
+  const isOwner = !!e.auth && e.auth.id === ownerId;
+  const isPublic = profileRecord.getBool('public');
+
+  if (!isPublic && !isOwner) {
+    if (!e.auth) {
+      throw new UnauthorizedError('Authentication required.');
+    }
+
+    throw new ForbiddenError('Not your CV profile.');
+  }
+
+  const profile = serializeRecord(profileRecord, [
+    'slug',
+    'label',
+    'profileName',
+    'template',
+    'public',
+    'user',
+    'professionalSummary',
+    'achievements',
+    'projects',
+    'hobbies',
+    'jobs',
+    'degrees',
+    'skills',
+    'profilePicture',
+    'coverPicture',
+    'profilePictureFile',
+    'coverPictureFile',
+    'extra',
+    'linkOverrides',
+    'status',
+    'updated_at',
+  ]);
+
+  const publicProfile = serializeRecord(profileRecord, [
+    'slug',
+    'label',
+    'profileName',
+    'template',
+    'public',
+    'professionalSummary',
+    'profilePicture',
+    'coverPicture',
+    'extra',
+    'linkOverrides',
+    'status',
+    'updated_at',
+  ]);
+
+  const responseProfile = isOwner ? profile : publicProfile;
+
+  responseProfile.expand = {};
+  for (const fieldName of ['profilePictureFile', 'coverPictureFile']) {
+    if (!profile[fieldName]) continue;
+
+    try {
+      const fileRecord = $app.findRecordById('files', profile[fieldName]);
+      if (fileRecord.getString('user') !== ownerId) continue;
+
+      responseProfile.expand[fieldName] = serializeRecord(
+        fileRecord,
+        isOwner ? ['user', 'name', 'file', 'alt', 'kind', 'sortOrder'] : ['name', 'file', 'alt', 'kind', 'sortOrder'],
+      );
+    } catch (_) {
+      // Missing image relations should not block rendering the rest of the CV.
+    }
+  }
+
+  let user = null;
+  try {
+    const userRecord = $app.findRecordById('users', ownerId);
+    user = serializeRecord(userRecord, ['firstName', 'lastName', 'linkedin', 'github', 'website', 'email', 'phone', 'profilePicture', 'coverPicture']);
+  } catch (_) {
+    user = null;
+  }
+
+  return e.json(200, {
+    profile: responseProfile,
+    user,
+    jobs: findLinkedRecords('jobs', toArray(profile.jobs), [
+      ...(isOwner ? ['user'] : []),
+      'label',
+      'company',
+      'position',
+      'location',
+      'startDate',
+      'endDate',
+      'responsibilities',
+      'bulletPointSummary',
+      'sortOrder',
+      'type',
+      'skills',
+      'projects',
+      'achievements',
+    ], ownerId),
+    projects: findLinkedRecords('projects', toArray(profile.projects), [
+      ...(isOwner ? ['user'] : []),
+      'name',
+      'description',
+      'url',
+      'date',
+      'picture',
+      'type',
+      'file',
+      'sortOrder',
+      'achievements',
+    ], ownerId),
+    skills: findLinkedRecords('skills', toArray(profile.skills), [...(isOwner ? ['user'] : []), 'name', 'category', 'type', 'level', 'sortOrder', 'icon'], ownerId),
+    degrees: findLinkedRecords('degrees', toArray(profile.degrees), [...(isOwner ? ['user'] : []), 'title', 'school', 'year', 'level', 'sortOrder'], ownerId),
+    achievements: findLinkedRecords('achievements', toArray(profile.achievements), [...(isOwner ? ['user'] : []), 'title', 'description', 'sortOrder'], ownerId),
+    hobbies: findLinkedRecords('hobbies', toArray(profile.hobbies), [...(isOwner ? ['user'] : []), 'name', 'description', 'sortOrder'], ownerId),
+  });
+};
+
+routerAdd('GET', '/api/custom/cv-data/by-slug/{slug}', getPublicCvDataBySlugHandler);
+
 onRecordsListRequest((e) => {
   try {
     const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;

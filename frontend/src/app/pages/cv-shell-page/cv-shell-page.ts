@@ -1,5 +1,6 @@
 import { NgComponentOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, Injector, input, OnInit, signal } from '@angular/core';
+import { CvData } from '../../core/models/cv-data.model';
 import { CvProfile } from '../../core/models/cv-profile.model';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
 import { CV_TEMPLATE_OPTIONS_BY_ID } from '../../core/templates/cv-template-registry';
@@ -20,6 +21,7 @@ export class CvShellPage implements OnInit {
   private requestId = 0;
 
   readonly slug = input.required<string>();
+  readonly cvData = signal<CvData | null>(null);
   readonly profile = signal<CvProfile | null>(null);
   readonly isAuthenticated = this.authService.isAuthenticated;
   readonly isPreviewMode = signal(false);
@@ -95,19 +97,21 @@ export class CvShellPage implements OnInit {
     const currentRequestId = ++this.requestId;
 
     try {
-      const profile = await this.pocketBaseService.getCvProfileBySlug(slug);
+      const cvData = await this.pocketBaseService.getCvDataBySlug(slug);
 
       if (currentRequestId !== this.requestId) {
         return;
       }
 
-      this.profile.set(profile);
+      this.cvData.set(cvData);
+      this.profile.set(cvData.profile);
       this.statusMessage.set(null);
     } catch {
       if (currentRequestId !== this.requestId) {
         return;
       }
 
+      this.cvData.set(null);
       this.profile.set(null);
     }
   }

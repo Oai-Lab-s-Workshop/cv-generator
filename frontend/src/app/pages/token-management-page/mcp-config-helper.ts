@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { resolveMcpEndpointUrl } from '../../core/utils/desktop-runtime-config';
+import { environment } from '../../../environments/environment';
+import { resolveMcpEndpointUrl, resolveMcpUrl } from '../../core/utils/desktop-runtime-config';
 
 interface AgentPreset {
   id: string;
@@ -114,15 +115,65 @@ const AGENT_PRESETS: AgentPreset[] = [
 })
 export class McpConfigHelper {
   readonly activeTokenCount = input(0);
+  readonly mcpEndpointUrl = input(resolveMcpEndpointUrl());
+  readonly sourceLabel = input<string | undefined>(undefined);
   readonly agentPresets = AGENT_PRESETS;
   readonly selectedAgent = signal<string>(AGENT_PRESETS[0]?.id ?? '');
   readonly customToken = signal('');
-  readonly customUrl = signal(resolveMcpEndpointUrl());
+  private readonly defaultMcpUrl = computed(() => this.mcpEndpointUrl());
+  readonly customUrl = signal(this.mcpEndpointUrl());
   readonly copiedAgent = signal<string | null>(null);
   readonly copiedField = signal<string | null>(null);
 
+  /** Tracks whether the user has intentionally edited the URL field via the template. */
+  private readonly userEditedUrl = signal(false);
+
+  constructor() {
+    // Auto-sync: when the parent runtime config updates the mcpEndpointUrl input
+    // and the user has NOT edited the field, keep the editable URL in sync.
+    // If the user HAS edited, preserve their value and let resetUrl() restore.
+    effect(() => {
+      const latestUrl = this.mcpEndpointUrl();
+      if (!this.userEditedUrl()) {
+        this.customUrl.set(latestUrl);
+      }
+    });
+  }
+
+  readonly urlSourceLabel = computed(() => {
+    const providedLabel = this.sourceLabel();
+    if (providedLabel !== undefined) {
+      return providedLabel;
+    }
+    if (resolveMcpUrl()) {
+      return 'Configuration desktop locale';
+    }
+    if (window.__RESUMATE_RUNTIME_CONFIG__?.mcpPublicBaseUrl?.trim()) {
+      return 'Configuration runtime hébergée';
+    }
+    if (environment.mcpPublicBaseUrl.trim()) {
+      return "Configuration d'environnement";
+    }
+    return 'Fallback local PocketBase';
+  });
+
   getSelectedPreset(): AgentPreset | undefined {
     return this.agentPresets.find((preset) => preset.id === this.selectedAgent());
+  }
+
+  /** Called from the template when the user types in the URL field. */
+  onUrlEdited(value: string): void {
+    this.userEditedUrl.set(true);
+    this.customUrl.set(value);
+  }
+
+  isUrlModified(): boolean {
+    return this.customUrl() !== this.defaultMcpUrl();
+  }
+
+  resetUrl(): void {
+    this.customUrl.set(this.defaultMcpUrl());
+    this.userEditedUrl.set(false);
   }
 
   getGeneratedConfig(): string {
@@ -130,7 +181,6 @@ export class McpConfigHelper {
     if (!preset) {
       return '';
     }
-
     return preset.configTemplate(this.customUrl(), this.customToken() || 'votre-token-ici');
   }
 
@@ -139,7 +189,6 @@ export class McpConfigHelper {
     if (!config) {
       return;
     }
-
     try {
       await navigator.clipboard.writeText(config);
     } catch {
@@ -150,7 +199,6 @@ export class McpConfigHelper {
       document.execCommand('copy');
       document.body.removeChild(textarea);
     }
-
     this.copiedAgent.set(this.selectedAgent());
     setTimeout(() => this.copiedAgent.set(null), 2000);
   }
@@ -165,8 +213,8 @@ export class McpConfigHelper {
     return [
       { key: 'URL du serveur MCP', value: this.customUrl(), copyable: true },
       { key: 'Transport', value: 'HTTP (Streamable)', copyable: false },
-      { key: 'Méthode d\'authentification', value: 'Clé API', copyable: false },
-      { key: 'Header d\'autorisation', value: authHeader, copyable: true },
+      { key: "Méthode d'authentification", value: 'Clé API', copyable: false },
+      { key: "Header d'autorisation", value: authHeader, copyable: true },
       { key: 'Clé API', value: token, copyable: true },
       { key: 'Outils disponibles', value: 'list_resumes, generate_cv, get_token_status, create_token, revoke_token, list_tokens', copyable: false },
     ];
@@ -183,7 +231,6 @@ export class McpConfigHelper {
       document.execCommand('copy');
       document.body.removeChild(textarea);
     }
-
     this.copiedField.set(fieldKey);
     setTimeout(() => this.copiedField.set(null), 2000);
   }
@@ -191,7 +238,6 @@ export class McpConfigHelper {
   async copyAllFields(): Promise<void> {
     const fields = this.customClientConfig();
     const text = fields.map((f) => `${f.key} : ${f.value}`).join('\n');
-
     try {
       await navigator.clipboard.writeText(text);
     } catch {
@@ -202,7 +248,6 @@ export class McpConfigHelper {
       document.execCommand('copy');
       document.body.removeChild(textarea);
     }
-
     this.copiedAgent.set(this.selectedAgent());
     setTimeout(() => this.copiedAgent.set(null), 2000);
   }

@@ -47,7 +47,9 @@ export type SaveCurrentUserAchievementInput = Pick<Achievement, 'title'> & Parti
 export type SaveCurrentUserDegreeInput = Pick<Degree, 'title'> & Partial<Pick<Degree, 'school' | 'year' | 'level' | 'sortOrder'>>;
 export type SaveCurrentUserHobbyInput = Pick<Hobby, 'name'> & Partial<Pick<Hobby, 'description' | 'sortOrder'>>;
 export type SaveCurrentUserFileInput = Partial<Pick<MediaFile, 'name' | 'alt' | 'kind' | 'sortOrder'>> & { file?: File | null };
-export type UpdateCurrentUserInput = Partial<Pick<User, 'firstName' | 'lastName' | 'linkedin' | 'github' | 'website' | 'phone'>>;
+export type UpdateCurrentUserInput = Partial<
+  Pick<User, 'firstName' | 'lastName' | 'linkedin' | 'github' | 'website' | 'phone' | 'writingStyleDescription' | 'writingStyleUrl'>
+>;
 
 @Injectable({ providedIn: 'root' })
 export class PocketBaseService {
@@ -65,11 +67,16 @@ export class PocketBaseService {
   }
 
   async getCvProfileBySlug(slug: string): Promise<CvProfile> {
-    const profile = await this.pb.collection<CvProfile>('cv_profiles').getFirstListItem(`slug="${slug}"`, {
-      expand: this.cvProfileExpand,
+    return (await this.getCvDataBySlug(slug)).profile;
+  }
+
+  async getCvDataBySlug(slug: string): Promise<CvData> {
+    const cvData = await this.pb.send(`/api/custom/cv-data/by-slug/${encodeURIComponent(slug)}`, {
+      method: 'GET',
+      requestKey: `cv-data-by-slug-${slug}`,
     });
 
-    return this.normalizeCvProfile(profile);
+    return this.normalizeCvData(cvData as CvData);
   }
 
   async getUser(userId: string): Promise<User | null> {
@@ -636,6 +643,22 @@ export class PocketBaseService {
     };
   }
 
+  private normalizeCvData(cvData: CvData): CvData {
+    const profile = this.normalizeCvProfile(cvData.profile);
+    const user = this.normalizeUser(cvData.user);
+
+    return {
+      profile,
+      user: this.resolveUserLinks(profile, user),
+      jobs: cvData.jobs ?? [],
+      projects: (cvData.projects ?? []).map((project) => this.normalizeProject(project)),
+      skills: (cvData.skills ?? []).map((skill) => this.normalizeSkill(skill)),
+      degrees: cvData.degrees ?? [],
+      achievements: cvData.achievements ?? [],
+      hobbies: cvData.hobbies ?? [],
+    };
+  }
+
   resolveUserLinks(profile: CvProfile, user: User | null): User | null {
     if (!user) {
       return null;
@@ -748,6 +771,8 @@ export class PocketBaseService {
 
     return {
       ...user,
+      writingStyleDescription: user.writingStyleDescription ?? null,
+      writingStyleUrl: user.writingStyleUrl ?? null,
       profilePicture: this.getFileFieldUrl(user as unknown as RecordModel, user.profilePicture),
       coverPicture: this.getFileFieldUrl(user as unknown as RecordModel, user.coverPicture),
     };

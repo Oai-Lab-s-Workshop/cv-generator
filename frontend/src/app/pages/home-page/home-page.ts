@@ -68,6 +68,8 @@ export class HomePage implements OnInit {
   readonly activeAiTokenCount = computed(() => this.aiTokens().filter((token) => token.status === 'active').length);
   readonly sortColumn = signal<SortColumn>('updated_at');
   readonly sortDirection = signal<SortDirection>('desc');
+  readonly selectedIds = signal<Set<string>>(new Set());
+  readonly isBatchProcessing = signal(false);
 
   readonly currentUserName = computed(() => {
     const user = this.currentUser();
@@ -95,6 +97,8 @@ export class HomePage implements OnInit {
   readonly respondedPercentage = computed(() => this.percentageOf(this.respondedProfileCount()));
   readonly rejectedPercentage = computed(() => this.percentageOf(this.rejectedProfileCount()));
   readonly unansweredPercentage = computed(() => this.percentageOf(this.unansweredProfileCount()));
+
+  readonly activeStatusFilter = signal<CvProfileStatus | null>(null);
 
   readonly publicPercentage = computed(() => this.percentageOf(this.publicProfileCount()));
   readonly privatePercentage = computed(() => this.percentageOf(this.privateProfileCount()));
@@ -132,6 +136,27 @@ export class HomePage implements OnInit {
     });
 
     return list;
+  });
+
+  readonly filteredSortedProfiles = computed(() => {
+    const filter = this.activeStatusFilter();
+    const sorted = this.sortedProfiles();
+    if (filter === null) return sorted;
+    return sorted.filter((profile) => (profile.status || 'unsent') === filter);
+  });
+
+  readonly activeFilterLabel = computed(() => {
+    const filter = this.activeStatusFilter();
+    if (filter === null) return '';
+    return CV_PROFILE_STATUS_OPTIONS.find((option) => option.value === filter)?.label ?? 'Non envoye';
+  });
+
+  readonly selectedCount = computed(() => this.selectedIds().size);
+  readonly isSelectionActive = computed(() => this.selectedIds().size > 0);
+  readonly isAllSelected = computed(() => {
+    const ids = this.selectedIds();
+    const profiles = this.filteredSortedProfiles();
+    return profiles.length > 0 && profiles.every(p => ids.has(p.id));
   });
 
   ngOnInit(): void {
@@ -464,6 +489,177 @@ export class HomePage implements OnInit {
   getStatusTone(profile: CvProfile): string {
     const status = profile.status ?? 'unsent';
     return CV_PROFILE_STATUS_OPTIONS.find((opt) => opt.value === status)?.tone ?? 'gray';
+  }
+
+  setActiveFilter(status: CvProfileStatus): void {
+    this.activeStatusFilter.update((current) => (current === status ? null : status));
+  }
+
+  clearFilter(): void {
+    this.activeStatusFilter.set(null);
+  }
+
+  isFilterActive(): boolean {
+    return this.activeStatusFilter() !== null;
+  }
+
+  isFilterSelected(status: CvProfileStatus): boolean {
+    return this.activeStatusFilter() === status;
+  }
+
+  toggleSelection(profileId: string, event: Event): void {
+    event.stopPropagation();
+    this.selectedIds.update(ids => {
+      const next = new Set(ids);
+      if (next.has(profileId)) {
+        next.delete(profileId);
+      } else {
+        next.add(profileId);
+      }
+      return next;
+    });
+  }
+
+  toggleSelectAll(): void {
+    if (this.isAllSelected()) {
+      this.selectedIds.set(new Set());
+    } else {
+      this.selectedIds.set(new Set(this.filteredSortedProfiles().map(p => p.id)));
+    }
+  }
+
+  clearSelection(): void {
+    this.selectedIds.set(new Set());
+  }
+
+  async batchDelete(): Promise<void> {
+    const ids = [...this.selectedIds()];
+    if (ids.length === 0) return;
+
+    if (!confirm(`Supprimer ${ids.length} profil(s) ? Cette action est irreversible.`)) {
+      return;
+    }
+
+    this.isBatchProcessing.set(true);
+    this.errorMessage.set(null);
+
+    const results = await Promise.all(
+      ids.map(async (id) => {
+        try {
+          await this.pocketBaseService.deleteCurrentUserCvProfile(id);
+          return { id, success: true as const };
+        } catch {
+          return { id, success: false as const };
+        }
+      }),
+    );
+
+    const failedIds = results.filter((r) => !r.success).map((r) => r.id);
+
+    await this.loadProfiles();
+
+    if (failedIds.length > 0) {
+      this.errorMessage.set(
+        `${failedIds.length} profil(s) sur ${ids.length} n'ont pas pu être supprimé(s).`,
+      );
+      this.selectedIds.set(new Set(failedIds));
+    } else {
+      this.selectedIds.set(new Set());
+    }
+
+    this.isBatchProcessing.set(false);
+  }
+
+  async batchChangeVisibility(isPublic: boolean): Promise<void> {
+    const ids = [...this.selectedIds()];
+    if (ids.length === 0) return;
+
+    this.isBatchProcessing.set(true);
+    this.errorMessage.set(null);
+
+    let hasError = false;
+    await Promise.all(
+      ids.map(async (id) => {
+        try {
+          const profile = this.profiles().find((p) => p.id === id);
+          if (!profile || !profile.template) return;
+
+          const updated = await this.pocketBaseService.setPublicForCurrentUserCvProfile(id, isPublic);
+          this.replaceProfile(updated);
+        } catch (error: unknown) {
+          hasError = true;
+          this.errorMessage.set(getErrorMessage(error));
+        }
+      }),
+    );
+
+    if (!hasError) {
+      this.selectedIds.set(new Set());
+    }
+    this.isBatchProcessing.set(false);
+  }
+
+  async batchChangeTemplate(templateId: string): Promise<void> {
+    if (!templateId) return;
+    const ids = [...this.selectedIds()];
+    if (ids.length === 0) return;
+
+    this.isBatchProcessing.set(true);
+    this.errorMessage.set(null);
+
+    let hasError = false;
+    await Promise.all(
+      ids.map(async (id) => {
+        try {
+          const isPublic = this.publicSelections()[id] ?? true;
+          const updated = await this.pocketBaseService.setTemplateForCurrentUserCvProfile(
+            id,
+            templateId,
+            isPublic,
+          );
+          this.replaceProfile(updated);
+          this.templateSelections.update((current) => ({ ...current, [id]: templateId }));
+        } catch (error: unknown) {
+          hasError = true;
+          this.errorMessage.set(getErrorMessage(error));
+        }
+      }),
+    );
+
+    if (!hasError) {
+      this.selectedIds.set(new Set());
+    }
+    this.isBatchProcessing.set(false);
+  }
+
+  async batchChangeStatus(status: string): Promise<void> {
+    if (!status) return;
+    const ids = [...this.selectedIds()];
+    if (ids.length === 0) return;
+
+    this.isBatchProcessing.set(true);
+    this.errorMessage.set(null);
+
+    let hasError = false;
+    await Promise.all(
+      ids.map(async (id) => {
+        try {
+          const updated = await this.pocketBaseService.setStatusForCvProfile(
+            id,
+            status as CvProfileStatus,
+          );
+          this.replaceProfile(updated);
+        } catch (error: unknown) {
+          hasError = true;
+          this.errorMessage.set(getErrorMessage(error));
+        }
+      }),
+    );
+
+    if (!hasError) {
+      this.selectedIds.set(new Set());
+    }
+    this.isBatchProcessing.set(false);
   }
 
 }
