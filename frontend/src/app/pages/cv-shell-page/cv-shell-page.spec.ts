@@ -8,19 +8,28 @@ import { CvShellPage } from './cv-shell-page';
 describe('CvShellPage', () => {
   let component: CvShellPage;
   let fixture: ComponentFixture<CvShellPage>;
-  let pocketBaseService: { getCvProfileBySlug: jest.Mock; getCvDataByProfileId: jest.Mock };
+  let pocketBaseService: { getCvDataBySlug: jest.Mock; getCvDataByProfileId: jest.Mock };
   let currentUserId = 'user-1';
 
   beforeEach(async () => {
     currentUserId = 'user-1';
     pocketBaseService = {
-      getCvProfileBySlug: jest.fn().mockResolvedValue({
-        id: 'profile-1',
-        slug: 'classic--profile-1',
-        profileName: 'Jane Doe',
-        template: 'unknown-template',
-        public: true,
-        user: 'user-1',
+      getCvDataBySlug: jest.fn().mockResolvedValue({
+        profile: {
+          id: 'profile-1',
+          slug: 'classic--profile-1',
+          profileName: 'Jane Doe',
+          template: 'unknown-template',
+          public: true,
+          user: 'user-1',
+        },
+        user: { id: 'user-1', firstName: 'Jane', lastName: 'Doe' },
+        jobs: [],
+        projects: [],
+        skills: [],
+        degrees: [],
+        achievements: [],
+        hobbies: [],
       }),
       getCvDataByProfileId: jest.fn(),
     };
@@ -53,6 +62,12 @@ describe('CvShellPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('loads CV data by slug', () => {
+    expect(pocketBaseService.getCvDataBySlug).toHaveBeenCalledWith('classic--profile-1');
+    expect(component.profile()?.id).toBe('profile-1');
+    expect(component.cvData()?.profile.id).toBe('profile-1');
   });
 
   it('shows the admin bar for the profile owner', () => {
@@ -145,7 +160,7 @@ describe('CvShellPage', () => {
   });
 
   it('handles loadProfile error', async () => {
-    pocketBaseService.getCvProfileBySlug.mockRejectedValue(new Error('Not found'));
+    pocketBaseService.getCvDataBySlug.mockRejectedValue(new Error('Not found'));
 
     fixture = TestBed.createComponent(CvShellPage);
     component = fixture.componentInstance;
@@ -155,6 +170,37 @@ describe('CvShellPage', () => {
     fixture.detectChanges();
 
     expect(component.profile()).toBeNull();
+    expect(component.cvData()).toBeNull();
+  });
+
+  it('passes loaded CV data to known templates without refetching by profile id', async () => {
+    pocketBaseService.getCvDataBySlug.mockResolvedValue({
+      profile: {
+        id: 'profile-1',
+        slug: 'minimal--profile-1',
+        profileName: 'Jane Doe',
+        template: 'minimal',
+        public: true,
+        user: 'user-1',
+      },
+      user: { id: 'user-1', firstName: 'Jane', lastName: 'Doe' },
+      jobs: [],
+      projects: [],
+      skills: [],
+      degrees: [],
+      achievements: [],
+      hobbies: [],
+    });
+
+    fixture = TestBed.createComponent(CvShellPage);
+    component = fixture.componentInstance;
+    fixture.componentRef.setInput('slug', 'minimal--profile-1');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Jane Doe');
+    expect(pocketBaseService.getCvDataByProfileId).not.toHaveBeenCalled();
   });
 
   it('computes templateLabel for unknown template', () => {
