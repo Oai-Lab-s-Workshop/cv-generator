@@ -22,9 +22,7 @@ export const cvAccessGuard: CanActivateFn = async (route, state) => {
     }
 
     if (!authService.isAuthenticated()) {
-      return router.createUrlTree(['/login'], {
-        queryParams: { returnUrl: state.url },
-      });
+      return createNotFoundTree(router, state.url);
     }
 
     if (authService.getCurrentUserId() !== profile.user) {
@@ -36,9 +34,7 @@ export const cvAccessGuard: CanActivateFn = async (route, state) => {
     const status = getErrorStatus(error);
 
     if (status === 401) {
-      return router.createUrlTree(['/login'], {
-        queryParams: { returnUrl: state.url },
-      });
+      return createNotFoundTree(router, state.url);
     }
 
     if (status === 403) {
@@ -46,12 +42,18 @@ export const cvAccessGuard: CanActivateFn = async (route, state) => {
     }
 
     if (status === 404) {
-      return true;
+      return createNotFoundTree(router, state.url);
     }
 
-    return authService.isAuthenticated() ? router.createUrlTree(['/home']) : true;
+    return authService.isAuthenticated() ? router.createUrlTree(['/home']) : createNotFoundTree(router, state.url);
   }
 };
+
+function createNotFoundTree(router: Router, returnUrl: string) {
+  return router.createUrlTree(['/not-found'], {
+    queryParams: { returnUrl },
+  });
+}
 
 function getErrorStatus(error: unknown): number | null {
   if (typeof error !== 'object' || error === null) {

@@ -1,0 +1,67 @@
+.not-found-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: var(--app-bg-gradient);
+  color: var(--app-text);
+}
+
+.not-found-card {
+  width: min(100%, 34rem);
+  padding: clamp(2rem, 6vw, 3rem);
+  border: 1px solid var(--app-border);
+  border-radius: 1.25rem;
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow);
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 8vw, 4rem);
+}
+
+.lede {
+  margin: 1rem 0 1.75rem;
+  color: var(--app-muted-strong);
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.primary-action,
+.secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.85rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.primary-action {
+  background: var(--app-primary);
+  color: var(--app-on-primary);
+}
+
+.secondary-action {
+  border: 1px solid var(--app-border-strong);
+  color: var(--app-text);
+}

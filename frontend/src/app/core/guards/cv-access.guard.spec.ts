@@ -52,18 +52,18 @@ describe('cvAccessGuard', () => {
     router = TestBed.inject(Router);
   });
 
-  it('allows unauthenticated unknown slugs to render the non-login fallback', async () => {
+  it('redirects unauthenticated unknown slugs to not-found', async () => {
     const result = await runGuard('missing-slug');
 
-    expect(result).toBe(true);
+    expect(router.serializeUrl(result as UrlTree)).toBe('/not-found?returnUrl=%2Fmissing-slug');
   });
 
-  it('allows authenticated unknown slugs to render the non-login fallback', async () => {
+  it('redirects authenticated unknown slugs to not-found', async () => {
     authService.authenticated = true;
 
     const result = await runGuard('missing-slug');
 
-    expect(result).toBe(true);
+    expect(router.serializeUrl(result as UrlTree)).toBe('/not-found?returnUrl=%2Fmissing-slug');
   });
 
   it('allows valid public CV slugs', async () => {
@@ -83,7 +83,7 @@ describe('cvAccessGuard', () => {
 
     const result = await runGuard('private-slug');
 
-    expect(router.serializeUrl(result as UrlTree)).toBe('/login?returnUrl=%2Fprivate-slug');
+    expect(router.serializeUrl(result as UrlTree)).toBe('/not-found?returnUrl=%2Fprivate-slug');
   });
 
   it('redirects authenticated non-owners away from private profiles', async () => {
