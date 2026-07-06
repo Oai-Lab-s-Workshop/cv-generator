@@ -18,10 +18,15 @@ class AuthServiceStub {
 
 class PocketBaseServiceStub {
   profile: CvProfile | null = null;
+  errorStatus: number | null = null;
 
   async getCvProfileBySlug(): Promise<CvProfile> {
+    if (this.errorStatus) {
+      throw { status: this.errorStatus };
+    }
+
     if (!this.profile) {
-      throw new Error('not found');
+      throw { status: 404 };
     }
 
     return this.profile;
@@ -47,18 +52,18 @@ describe('cvAccessGuard', () => {
     router = TestBed.inject(Router);
   });
 
-  it('redirects unauthenticated unknown slugs to login', async () => {
+  it('allows unauthenticated unknown slugs to render the non-login fallback', async () => {
     const result = await runGuard('missing-slug');
 
-    expect(router.serializeUrl(result as UrlTree)).toBe('/login');
+    expect(result).toBe(true);
   });
 
-  it('redirects authenticated unknown slugs to home', async () => {
+  it('allows authenticated unknown slugs to render the non-login fallback', async () => {
     authService.authenticated = true;
 
     const result = await runGuard('missing-slug');
 
-    expect(router.serializeUrl(result as UrlTree)).toBe('/home');
+    expect(result).toBe(true);
   });
 
   it('allows valid public CV slugs', async () => {
@@ -74,7 +79,7 @@ describe('cvAccessGuard', () => {
   });
 
   it('redirects anonymous users away from private profiles', async () => {
-    pocketBaseService.profile = createProfile({ public: false });
+    pocketBaseService.errorStatus = 401;
 
     const result = await runGuard('private-slug');
 
@@ -84,7 +89,7 @@ describe('cvAccessGuard', () => {
   it('redirects authenticated non-owners away from private profiles', async () => {
     authService.authenticated = true;
     authService.currentUserId = 'another-user';
-    pocketBaseService.profile = createProfile({ public: false, user: 'user-id' });
+    pocketBaseService.errorStatus = 403;
 
     const result = await runGuard('private-slug');
 
@@ -97,6 +102,14 @@ describe('cvAccessGuard', () => {
     pocketBaseService.profile = createProfile({ public: false, user: 'user-id' });
 
     await expect(runGuard('private-slug')).resolves.toBe(true);
+  });
+
+  it('allows public profile owners', async () => {
+    authService.authenticated = true;
+    authService.currentUserId = 'user-id';
+    pocketBaseService.profile = createProfile({ public: true, user: 'user-id' });
+
+    await expect(runGuard('public-slug')).resolves.toBe(true);
   });
 
   function runGuard(slug: string | null): Promise<boolean | UrlTree> {

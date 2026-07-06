@@ -32,7 +32,33 @@ export const cvAccessGuard: CanActivateFn = async (route, state) => {
     }
 
     return true;
-  } catch {
-    return router.createUrlTree([authService.isAuthenticated() ? '/home' : '/login']);
+  } catch (error: unknown) {
+    const status = getErrorStatus(error);
+
+    if (status === 401) {
+      return router.createUrlTree(['/login'], {
+        queryParams: { returnUrl: state.url },
+      });
+    }
+
+    if (status === 403) {
+      return router.createUrlTree(['/home']);
+    }
+
+    if (status === 404) {
+      return true;
+    }
+
+    return authService.isAuthenticated() ? router.createUrlTree(['/home']) : true;
   }
 };
+
+function getErrorStatus(error: unknown): number | null {
+  if (typeof error !== 'object' || error === null) {
+    return null;
+  }
+
+  const status = (error as { status?: unknown }).status;
+
+  return typeof status === 'number' ? status : null;
+}
