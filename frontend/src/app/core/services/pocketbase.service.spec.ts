@@ -252,16 +252,51 @@ describe('PocketBaseService', () => {
     expect((noOverride as unknown as Record<string, unknown>)['github']).toBe('gh');
   });
 
-  it('gets profile by slug', async () => {
-    collections['cv_profiles'] = {
-      getFirstListItem: jest.fn().mockResolvedValue({
-        id: 'profile-1', slug: 'classic--profile-1', user: 'user-1', profileName: 'Jane',
-        profilePicture: 'p.png',
-        expand: { user: { id: 'user-1', firstName: 'Jane' } },
-      }),
-    } as never;
+  it('gets CV data by slug through the public custom endpoint', async () => {
+    pb.send.mockResolvedValue({
+      profile: {
+        id: 'profile-1', slug: 'classic--profile-1', user: 'user-1', profileName: 'Jane', profilePicture: 'p.png', profilePictureFile: 'file-1',
+        linkOverrides: { github: 'https://github.test/override' },
+        expand: { profilePictureFile: { id: 'file-1', file: 'portrait.png' } },
+      },
+      user: { id: 'user-1', firstName: 'Jane', github: 'https://github.test/original', profilePicture: 'u.png' },
+      jobs: [{ id: 'job-1' }],
+      projects: [{ id: 'project-1', picture: 'project.png' }],
+      skills: [{ id: 'skill-1', name: 'Angular' }],
+      degrees: [{ id: 'degree-1' }],
+      achievements: [{ id: 'achievement-1' }],
+      hobbies: [{ id: 'hobby-1' }],
+    });
+
+    const data = await service.getCvDataBySlug('classic--profile-1');
+
+    expect(pb.send).toHaveBeenCalledWith('/api/custom/cv-data/by-slug/classic--profile-1', {
+      method: 'GET',
+      requestKey: 'cv-data-by-slug-classic--profile-1',
+    });
+    expect(data.profile.profilePicture).toBe('https://files.test/file-1/portrait.png');
+    expect(data.user?.profilePicture).toBe('https://files.test/user-1/u.png');
+    expect(data.user?.github).toBe('https://github.test/override');
+    expect(data.projects[0].picture).toBe('https://files.test/project-1/project.png');
+  });
+
+  it('gets profile by slug without using the owner-only cv_profiles list API or users getOne', async () => {
+    pb.send.mockResolvedValue({
+      profile: { id: 'profile-1', slug: 'classic--profile-1', user: 'user-1', profileName: 'Jane', profilePicture: 'p.png' },
+      user: { id: 'user-1', firstName: 'Jane' },
+      jobs: [],
+      projects: [],
+      skills: [],
+      degrees: [],
+      achievements: [],
+      hobbies: [],
+    });
+
     const profile = await service.getCvProfileBySlug('classic--profile-1');
+
     expect(profile.profilePicture).toBe('https://files.test/profile-1/p.png');
+    expect(collections['cv_profiles']).toBeUndefined();
+    expect(collections['users']).toBeUndefined();
   });
 
   it('gets all CV profiles', async () => {
