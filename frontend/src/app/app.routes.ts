@@ -57,6 +57,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/privacy-page/privacy-page').then((module) => module.PrivacyPage),
   },
   {
+    path: 'not-found',
+    loadComponent: () => import('./pages/not-found-page/not-found-page').then((module) => module.NotFoundPage),
+  },
+  {
     path: ':slug',
     canActivate: [cvAccessGuard],
     loadComponent: () => import('./pages/cv-shell-page/cv-shell-page').then((module) => module.CvShellPage),

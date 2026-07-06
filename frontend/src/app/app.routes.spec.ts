@@ -21,8 +21,15 @@ describe('app routes', () => {
     expect(route('home/tokens')?.canActivate).toEqual([authGuard]);
     expect(route('home/templates')?.canActivate).toBeUndefined();
     expect(route('home/privacy')?.canActivate).toBeUndefined();
+    expect(route('not-found')?.canActivate).toBeUndefined();
     expect(route(':slug')?.canActivate).toEqual([cvAccessGuard]);
     expect(route('**')).toMatchObject({ pathMatch: 'full' });
+  });
+
+  it('places not-found before the slug catch route', () => {
+    const paths = routes.map((entry) => entry.path);
+
+    expect(paths.indexOf('not-found')).toBeLessThan(paths.indexOf(':slug'));
   });
 
   function route(path: string) {
