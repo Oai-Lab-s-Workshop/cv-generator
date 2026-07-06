@@ -32,3 +32,4 @@ desktop/test-results.xml
 frontend/coverage/
 coverage/
 frontend/test-results.xml
+.playwright-mcp/
