@@ -332,7 +332,24 @@ const getPublicCvDataBySlugHandler = (e) => {
     'updated_at',
   ]);
 
-  profile.expand = {};
+  const publicProfile = serializeRecord(profileRecord, [
+    'slug',
+    'label',
+    'profileName',
+    'template',
+    'public',
+    'professionalSummary',
+    'profilePicture',
+    'coverPicture',
+    'extra',
+    'linkOverrides',
+    'status',
+    'updated_at',
+  ]);
+
+  const responseProfile = isOwner ? profile : publicProfile;
+
+  responseProfile.expand = {};
   for (const fieldName of ['profilePictureFile', 'coverPictureFile']) {
     if (!profile[fieldName]) continue;
 
@@ -340,7 +357,10 @@ const getPublicCvDataBySlugHandler = (e) => {
       const fileRecord = $app.findRecordById('files', profile[fieldName]);
       if (fileRecord.getString('user') !== ownerId) continue;
 
-      profile.expand[fieldName] = serializeRecord(fileRecord, ['user', 'name', 'file', 'alt', 'kind', 'sortOrder']);
+      responseProfile.expand[fieldName] = serializeRecord(
+        fileRecord,
+        isOwner ? ['user', 'name', 'file', 'alt', 'kind', 'sortOrder'] : ['name', 'file', 'alt', 'kind', 'sortOrder'],
+      );
     } catch (_) {
       // Missing image relations should not block rendering the rest of the CV.
     }
@@ -355,10 +375,10 @@ const getPublicCvDataBySlugHandler = (e) => {
   }
 
   return e.json(200, {
-    profile,
+    profile: responseProfile,
     user,
     jobs: findLinkedRecords('jobs', toArray(profile.jobs), [
-      'user',
+      ...(isOwner ? ['user'] : []),
       'label',
       'company',
       'position',
@@ -374,7 +394,7 @@ const getPublicCvDataBySlugHandler = (e) => {
       'achievements',
     ], ownerId),
     projects: findLinkedRecords('projects', toArray(profile.projects), [
-      'user',
+      ...(isOwner ? ['user'] : []),
       'name',
       'description',
       'url',
@@ -385,10 +405,10 @@ const getPublicCvDataBySlugHandler = (e) => {
       'sortOrder',
       'achievements',
     ], ownerId),
-    skills: findLinkedRecords('skills', toArray(profile.skills), ['user', 'name', 'category', 'type', 'level', 'sortOrder', 'icon'], ownerId),
-    degrees: findLinkedRecords('degrees', toArray(profile.degrees), ['user', 'title', 'school', 'year', 'level', 'sortOrder'], ownerId),
-    achievements: findLinkedRecords('achievements', toArray(profile.achievements), ['user', 'title', 'description', 'sortOrder'], ownerId),
-    hobbies: findLinkedRecords('hobbies', toArray(profile.hobbies), ['user', 'name', 'description', 'sortOrder'], ownerId),
+    skills: findLinkedRecords('skills', toArray(profile.skills), [...(isOwner ? ['user'] : []), 'name', 'category', 'type', 'level', 'sortOrder', 'icon'], ownerId),
+    degrees: findLinkedRecords('degrees', toArray(profile.degrees), [...(isOwner ? ['user'] : []), 'title', 'school', 'year', 'level', 'sortOrder'], ownerId),
+    achievements: findLinkedRecords('achievements', toArray(profile.achievements), [...(isOwner ? ['user'] : []), 'title', 'description', 'sortOrder'], ownerId),
+    hobbies: findLinkedRecords('hobbies', toArray(profile.hobbies), [...(isOwner ? ['user'] : []), 'name', 'description', 'sortOrder'], ownerId),
   });
 };
 
