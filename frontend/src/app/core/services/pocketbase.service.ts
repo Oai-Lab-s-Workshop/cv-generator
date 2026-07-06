@@ -67,11 +67,16 @@ export class PocketBaseService {
   }
 
   async getCvProfileBySlug(slug: string): Promise<CvProfile> {
-    const profile = await this.pb.collection<CvProfile>('cv_profiles').getFirstListItem(`slug="${slug}"`, {
-      expand: this.cvProfileExpand,
+    return (await this.getCvDataBySlug(slug)).profile;
+  }
+
+  async getCvDataBySlug(slug: string): Promise<CvData> {
+    const cvData = await this.pb.send(`/api/custom/cv-data/by-slug/${encodeURIComponent(slug)}`, {
+      method: 'GET',
+      requestKey: `cv-data-by-slug-${slug}`,
     });
 
-    return this.normalizeCvProfile(profile);
+    return this.normalizeCvData(cvData as CvData);
   }
 
   async getUser(userId: string): Promise<User | null> {
@@ -635,6 +640,22 @@ export class PocketBaseService {
       degrees,
       achievements,
       hobbies,
+    };
+  }
+
+  private normalizeCvData(cvData: CvData): CvData {
+    const profile = this.normalizeCvProfile(cvData.profile);
+    const user = this.normalizeUser(cvData.user);
+
+    return {
+      profile,
+      user: this.resolveUserLinks(profile, user),
+      jobs: cvData.jobs ?? [],
+      projects: (cvData.projects ?? []).map((project) => this.normalizeProject(project)),
+      skills: (cvData.skills ?? []).map((skill) => this.normalizeSkill(skill)),
+      degrees: cvData.degrees ?? [],
+      achievements: cvData.achievements ?? [],
+      hobbies: cvData.hobbies ?? [],
     };
   }
 
