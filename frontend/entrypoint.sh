@@ -7,7 +7,7 @@ set -e
 # without rebuilding the image.
 mkdir -p /usr/share/nginx/html/assets
 
-echo "{\"bugReportUrl\": \"${BUG_REPORT_URL:-}\", \"mcpPublicBaseUrl\": \"${MCP_PUBLIC_BASE_URL:-${MCP_BASE_URL:-}}\"}" \
+echo "{\"bugReportUrl\": \"${BUG_REPORT_URL:-}\", \"mcpPublicBaseUrl\": \"${MCP_PUBLIC_BASE_URL:-}\"}" \
   > /usr/share/nginx/html/assets/runtime-config.json
 
 # Process nginx config templates (substitutes ${POCKETBASE_INTERNAL_PORT}

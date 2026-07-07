@@ -2,7 +2,7 @@
 
 ## Required environment variables
 
-- `POCKETBASE_BASE_URL`: PocketBase base URL. Defaults to `http://localhost:${POCKETBASE_PORT:-8090}` locally and `http://pocketbase:${POCKETBASE_INTERNAL_PORT:-8090}` in Docker Compose.
+- `POCKETBASE_BASE_URL`: internal PocketBase base URL used by the MCP service. In Docker Compose this should normally stay on the private service URL, `http://pocketbase:${POCKETBASE_INTERNAL_PORT:-8090}`; PocketBase does not need a public domain or host port.
 - `POCKETBASE_SERVICE_USER_EMAIL`: dedicated PocketBase user email for the MCP service
 - `POCKETBASE_SERVICE_USER_PASSWORD`: password for that service user
 - `FRONTEND_BASE_URL`: public frontend origin used when returning profile URLs

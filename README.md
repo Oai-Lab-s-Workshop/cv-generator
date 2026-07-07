@@ -183,11 +183,11 @@ docker compose up -d
 Services disponibles ensuite :
 
 - Frontend : `${FRONTEND_BASE_URL}` avec `http://localhost:${FRONTEND_PORT:-4200}` par défaut
-- PocketBase Admin : `${PB_URL}/_/` avec `http://localhost:${POCKETBASE_PORT:-8090}/_/` par défaut
-- API PocketBase : `${PB_URL}/api/` avec `http://localhost:${POCKETBASE_PORT:-8090}/api/` par défaut
-- MCP : `${MCP_BASE_URL}/mcp` avec `http://localhost:${MCP_PORT:-8081}/mcp` par défaut
+- PocketBase Admin : `${FRONTEND_BASE_URL}/_/` via le proxy frontend
+- API PocketBase : `${FRONTEND_BASE_URL}/api/` via le proxy frontend
+- MCP : `${MCP_PUBLIC_BASE_URL}/mcp` pour un déploiement public, ou `http://localhost:${MCP_PORT:-8081}/mcp` en local
 
-Ces ports correspondent aux valeurs par défaut. Vous pouvez les remplacer dans `.env` avec `FRONTEND_PORT`, `POCKETBASE_PORT` et `MCP_PORT`.
+PocketBase n'expose pas de port hôte par défaut dans Docker Compose. Le frontend nginx est le point d'entrée public pour l'admin et l'API PocketBase.
 
 Le compte administrateur PocketBase doit être configuré explicitement via `PB_ADMIN_EMAIL` et `PB_ADMIN_PASSWORD`. Le dépôt ne fournit plus de mot de passe exécutable par défaut.
 
@@ -224,11 +224,11 @@ make bootstrap
 ### 3. Vérifier les services
 
 - Frontend : `${FRONTEND_BASE_URL}`
-- PocketBase Admin : `${PB_URL}/_/`
-- PocketBase API : `${PB_URL}/api/health`
-- MCP : `${MCP_BASE_URL}/mcp`
+- PocketBase Admin : `${FRONTEND_BASE_URL}/_/`
+- PocketBase API : `${FRONTEND_BASE_URL}/api/health`
+- MCP : `${MCP_PUBLIC_BASE_URL}/mcp` en déploiement public, ou `http://localhost:${MCP_PORT:-8081}/mcp` en local
 
-Si vous avez modifié les ports exposés dans `.env`, utilisez les ports configurés à la place des valeurs par défaut ci-dessus.
+Si vous avez modifié les ports exposés dans `.env`, utilisez le port frontend configuré pour accéder à PocketBase via `/api/` et `/_/`.
 
 ## Configuration
 
@@ -237,18 +237,16 @@ Variables principales disponibles dans `.env` :
 ```env
 PB_ADMIN_EMAIL=
 PB_ADMIN_PASSWORD=
-POCKETBASE_PORT=8090
 POCKETBASE_INTERNAL_PORT=8090
 MCP_PORT=8081
 MCP_INTERNAL_PORT=8081
 FRONTEND_PORT=4200
 FRONTEND_INTERNAL_PORT=4200
 FRONTEND_BASE_URL=http://localhost:${FRONTEND_PORT:-4200}
-PB_URL=http://localhost:${POCKETBASE_PORT:-8090}
-POCKETBASE_BASE_URL=http://pocketbase:${POCKETBASE_INTERNAL_PORT:-8090}
-MCP_BASE_URL=http://localhost:${MCP_PORT:-8081}
 POCKETBASE_SERVICE_USER_EMAIL=
 POCKETBASE_SERVICE_USER_PASSWORD=
+MCP_PUBLIC_BASE_URL=
+MCP_OAUTH_JWK=
 RESUMATE_AI_TOKEN=
 SEED_USER_PASSWORD=
 ```
@@ -257,18 +255,16 @@ Description rapide :
 
 - `PB_ADMIN_EMAIL` : email du super administrateur PocketBase
 - `PB_ADMIN_PASSWORD` : mot de passe du super administrateur PocketBase
-- `POCKETBASE_PORT` : port hôte exposé pour PocketBase
-- `POCKETBASE_INTERNAL_PORT` : port interne écouté par PocketBase dans Docker
+- `POCKETBASE_INTERNAL_PORT` : port interne écouté par PocketBase dans Docker, non publié sur l'hôte par défaut
 - `MCP_PORT` : port hôte exposé pour le serveur MCP
 - `MCP_INTERNAL_PORT` : port interne écouté par le serveur MCP dans Docker
 - `FRONTEND_PORT` : port hôte exposé pour le frontend Angular
 - `FRONTEND_INTERNAL_PORT` : port interne écouté par le serveur Angular dans Docker
 - `FRONTEND_BASE_URL` : URL publique du frontend, utilisée notamment par le MCP
-- `PB_URL` : URL PocketBase côté hôte, utilisée par les scripts locaux
-- `POCKETBASE_BASE_URL` : URL PocketBase côté réseau Docker, utilisée par le MCP et le proxy frontend
-- `MCP_BASE_URL` : URL MCP côté hôte
 - `POCKETBASE_SERVICE_USER_EMAIL` : compte de service utilisé par le serveur MCP
 - `POCKETBASE_SERVICE_USER_PASSWORD` : mot de passe du compte de service MCP
+- `MCP_PUBLIC_BASE_URL` : URL HTTPS publique du serveur MCP séparé, sans le suffixe `/mcp`
+- `MCP_OAUTH_JWK` : clé privée RSA JWK utilisée pour signer les tokens OAuth MCP
 - `RESUMATE_AI_TOKEN` : jeton éventuel utilisé dans certains flux d'intégration
 
 ## Développement
@@ -366,7 +362,7 @@ Le dépôt inclut une configuration devcontainer/Codespaces orientée Docker. El
 
 - démarrer automatiquement la stack complète
 - attendre la disponibilité de PocketBase et du frontend
-- exposer les ports définis par `FRONTEND_PORT`, `POCKETBASE_PORT` et `MCP_PORT`
+- exposer les ports définis par `FRONTEND_PORT` et `MCP_PORT`
 - conserver les données PocketBase dans un dossier privé au workspace
 
 Si vous devez relancer l'initialisation dans le conteneur :
@@ -407,7 +403,7 @@ Ensuite :
 3. Créez une clé API MCP.
 4. Injectez cette clé dans votre configuration locale d'agent si nécessaire.
 
-Le fichier `opencode.json` du projet pointe vers l'endpoint MCP local par défaut. Si vous changez `MCP_PORT`, adaptez aussi cette URL dans votre configuration d'agent locale ou utilisez `${MCP_BASE_URL}/mcp` comme valeur cible.
+Le fichier `opencode.json` du projet pointe vers l'endpoint MCP local par défaut. Si vous changez `MCP_PORT`, adaptez aussi cette URL dans votre configuration d'agent locale. En déploiement public, utilisez `${MCP_PUBLIC_BASE_URL}/mcp` comme valeur cible.
 
 ## Données de démonstration
 

@@ -9,17 +9,16 @@ if [ -f .env ]; then
   set +a
 fi
 
-POCKETBASE_PORT="${POCKETBASE_PORT:-8090}"
 POCKETBASE_INTERNAL_PORT="${POCKETBASE_INTERNAL_PORT:-8090}"
 FRONTEND_PORT="${FRONTEND_PORT:-4200}"
 FRONTEND_INTERNAL_PORT="${FRONTEND_INTERNAL_PORT:-4200}"
 MCP_PORT="${MCP_PORT:-8081}"
 MCP_INTERNAL_PORT="${MCP_INTERNAL_PORT:-8081}"
-PB_URL="${PB_URL:-http://localhost:${POCKETBASE_PORT}}"
 FRONTEND_BASE_URL="${FRONTEND_BASE_URL:-http://localhost:${FRONTEND_PORT}}"
 MCP_BASE_URL="${MCP_BASE_URL:-http://localhost:${MCP_PORT}}"
+PB_URL="${PB_URL:-${FRONTEND_BASE_URL}}"
 
-export POCKETBASE_PORT POCKETBASE_INTERNAL_PORT FRONTEND_PORT FRONTEND_INTERNAL_PORT MCP_PORT MCP_INTERNAL_PORT
+export POCKETBASE_INTERNAL_PORT FRONTEND_PORT FRONTEND_INTERNAL_PORT MCP_PORT MCP_INTERNAL_PORT
 export PB_URL FRONTEND_BASE_URL MCP_BASE_URL
 
 echo "Starting Docker Compose development stack"
@@ -57,8 +56,8 @@ echo ""
 echo "URLs"
 echo "Angular Dev:       ${FRONTEND_BASE_URL}"
 echo "Preview Seed:      ${FRONTEND_BASE_URL}/app-data/seed.json"
-echo "PocketBase Admin:  ${PB_URL}/_/"
-echo "PocketBase API:    ${PB_URL}/api/"
+echo "PocketBase Admin:  ${FRONTEND_BASE_URL}/_/"
+echo "PocketBase API:    ${FRONTEND_BASE_URL}/api/"
 echo "MCP Server:         ${MCP_BASE_URL}/mcp"
 echo "PocketBase Data:   .local/pocketbase/pb_data"
 echo ""

@@ -1,19 +1,18 @@
 #!/bin/bash
 set -e
 
-echo "Starting PocketBase..."
-docker-compose up -d pocketbase
+echo "Starting PocketBase and frontend proxy..."
+docker-compose up -d pocketbase frontend
 
-echo "Waiting for PocketBase to be ready..."
+echo "Waiting for services to be ready..."
 sleep 3
 
 echo ""
-POCKETBASE_PORT="${POCKETBASE_PORT:-8090}"
-PB_URL="${PB_URL:-http://localhost:${POCKETBASE_PORT}}"
+FRONTEND_PORT="${FRONTEND_PORT:-4200}"
+PB_URL="${PB_URL:-http://localhost:${FRONTEND_PORT}}"
 
-echo "PocketBase running at: ${PB_URL}"
+echo "PocketBase is internal to Docker. Use the frontend proxy: ${PB_URL}/api/"
 echo "Admin UI: ${PB_URL}/_/"
 echo ""
-echo "To start Angular dev server:"
-echo "  cd frontend && npm install && npm start"
+echo "Frontend proxy started by Docker Compose."
 echo ""

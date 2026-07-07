@@ -6,8 +6,6 @@ services:
     image: resumate-pocketbase
     container_name: resumate-pb
     restart: unless-stopped
-    ports:
-      - "${POCKETBASE_PORT:-8090}:${POCKETBASE_INTERNAL_PORT:-8090}"
     environment:
       TZ: UTC
       PB_HOST: 0.0.0.0
@@ -57,7 +55,6 @@ services:
     environment:
       BUG_REPORT_URL: ${BUG_REPORT_URL:-}
       MCP_PUBLIC_BASE_URL: ${MCP_PUBLIC_BASE_URL:-}
-      MCP_BASE_URL: ${MCP_BASE_URL:-http://localhost:${MCP_PORT:-8081}}
       POCKETBASE_INTERNAL_PORT: ${POCKETBASE_INTERNAL_PORT:-8090}
     depends_on:
       pocketbase:

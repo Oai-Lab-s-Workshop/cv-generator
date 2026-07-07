@@ -1,13 +1,13 @@
 # Docker Compose Plan
 
-This document is historical. The current Compose setup uses configurable host and internal ports with defaults from `.env.example`.
+This document is historical and predates the current one-domain frontend/PocketBase model. The current Compose setup keeps PocketBase internal to Docker and exposes PocketBase publicly only through the frontend nginx proxy (`/api/` and `/_/`).
 
 ## Goal
 
 Replace the current PocketBase-only `docker-compose.yml` with a development-oriented stack that runs:
 
 - Angular on `${FRONTEND_BASE_URL}`
-- PocketBase on `${PB_URL}`
+- PocketBase behind the frontend proxy
 - Persistent PocketBase data via `./pb_data`
 - Shared network so Angular can call PocketBase by service name inside Docker
 - A Codespaces-ready devcontainer that starts the same Docker Compose stack
@@ -30,7 +30,7 @@ Use two services:
 ### `pocketbase`
 
 - Keep the existing image-based setup.
-- Keep the PocketBase port configurable with `POCKETBASE_PORT` and `POCKETBASE_INTERNAL_PORT`.
+- Keep only the PocketBase internal port configurable.
 - Keep `./pb_data:/pb_data` and `./pb_migrations:/pb_migrations`.
 - Keep the healthcheck.
 
@@ -53,8 +53,6 @@ services:
     image: ghcr.io/muchobien/pocketbase:latest
     container_name: resumate-pb
     restart: unless-stopped
-    ports:
-      - "${POCKETBASE_PORT:-8090}:${POCKETBASE_INTERNAL_PORT:-8090}"
     environment:
       TZ: UTC
     volumes:
@@ -95,8 +93,8 @@ Replace the current `.devcontainer` setup so Codespaces works with the Docker Co
 - Configure the devcontainer to start from the repository root
 - Use `postCreateCommand` only for lightweight setup, not for starting long-running app processes manually
 - Let Docker Compose own both `frontend` and `pocketbase`
-- Forward ports `4200` and `8090`
-- Set port labels so Codespaces opens Angular automatically and keeps PocketBase available in the background
+- Forward the frontend port only for app/PocketBase access
+- Set port labels so Codespaces opens Angular automatically
 
 ### Devcontainer Responsibilities
 
@@ -110,9 +108,7 @@ Replace the current `.devcontainer` setup so Codespaces works with the Docker Co
 - Replace the current `post-create.sh` and `setup.sh` flow with a compose-first workflow
 - Update `.devcontainer/devcontainer.json` so it is explicitly aligned with GitHub Codespaces
 - Preserve useful VS Code extensions for Angular and Docker
-- Keep forwarded ports:
-  - `4200` labeled as Angular UI and auto-open preview
-  - `8090` labeled as PocketBase API/Admin
+- Keep the frontend port labeled as Angular UI and auto-open preview
 
 ### Result
 
@@ -128,7 +124,7 @@ This keeps local development and Codespaces development consistent.
 
 To avoid browser-side CORS and hardcoded localhost issues, the Angular app should call PocketBase using an environment value such as:
 
-- `${PB_URL}` when accessed from the browser on the host
+- `${FRONTEND_BASE_URL}/api/` when accessed from the browser on the host
 
 If Angular code currently hardcodes a different URL, that should be aligned in the same pass as the compose update.
 
@@ -136,8 +132,8 @@ If Angular code currently hardcodes a different URL, that should be aligned in t
 
 1. Run `docker-compose up --build`.
 2. Confirm Angular is reachable on `${FRONTEND_BASE_URL}`.
-3. Confirm PocketBase health endpoint responds on `${PB_URL}/api/health`.
-4. Confirm PocketBase admin UI loads on `${PB_URL}/_/`.
+3. Confirm PocketBase health endpoint responds on `${FRONTEND_BASE_URL}/api/health`.
+4. Confirm PocketBase admin UI loads on `${FRONTEND_BASE_URL}/_/`.
 5. Confirm Angular can reach PocketBase from the browser.
 
 ## Optional Next Improvement

@@ -9,7 +9,7 @@ function requiredEnv(name) {
   return value;
 }
 
-const PB_URL = process.env.PB_URL || `http://localhost:${process.env.POCKETBASE_PORT || '8090'}`;
+const PB_URL = process.env.PB_URL || process.env.FRONTEND_BASE_URL || `http://localhost:${process.env.FRONTEND_PORT || '4200'}`;
 const PB_ADMIN_EMAIL = requiredEnv('PB_ADMIN_EMAIL');
 const PB_ADMIN_PASSWORD = requiredEnv('PB_ADMIN_PASSWORD');
 const DEFAULT_USER_PASSWORD = requiredEnv('SEED_USER_PASSWORD');
