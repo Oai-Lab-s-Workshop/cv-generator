@@ -94,9 +94,9 @@ Le mode de développement actuel expose trois services principaux :
 
 Resumate est organisé autour de quatre couches.
 
-### Frontend Angular
+### Application web (Angular)
 
-Le frontend sert à la fois d'interface d'administration et de moteur de rendu des CV publics.
+L'application web (`apps/web`) sert à la fois d'interface d'administration et de moteur de rendu des CV publics.
 
 Il couvre notamment :
 
@@ -109,7 +109,7 @@ Il couvre notamment :
 - les pages publiques de CV accessibles par slug
 - les écrans dédiés au futur usage desktop
 
-Les templates disponibles sont déclarés dans `frontend/src/app/core/templates/cv-template-registry.ts`. Les templates actuels incluent `classic`, `bento`, `modern`, `supa` et `minimal`.
+Les templates disponibles sont déclarés dans `apps/web/src/app/core/templates/cv-template-registry.ts`. Les templates actuels incluent `classic`, `bento`, `modern`, `supa` et `minimal`.
 
 ### Backend PocketBase
 
@@ -135,7 +135,7 @@ Il permet notamment de :
 
 ### Packaging desktop
 
-Le dossier `desktop/` prépare une application locale basée sur Electrobun.
+Le dossier `apps/desktop/` prépare une application locale basée sur Electrobun.
 
 Cette couche vise à empaqueter :
 
@@ -177,7 +177,7 @@ L'option la plus simple pour lancer la stack complète :
 ```bash
 cp .env.example .env
 # Editez .env et renseignez PB_ADMIN_EMAIL/PB_ADMIN_PASSWORD avec des valeurs locales fortes.
-docker compose up -d
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 Services disponibles ensuite :
@@ -206,7 +206,7 @@ cp .env.example .env
 Avec Docker Compose :
 
 ```bash
-docker compose up -d
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 Ou avec les commandes `make` du projet :
@@ -300,9 +300,9 @@ Comportement principal :
 
 ### Frontend
 
-Le frontend Angular est situé dans `frontend/`.
+L'application web Angular est située dans `apps/web/`.
 
-Structure principale sous `frontend/src/app/` :
+Structure principale sous `apps/web/src/app/` :
 
 - `pages/` : pages de route chargées via `app.routes.ts`
 - `core/` : services, guards, modèles, utilitaires, données de preview et registre des templates
@@ -311,7 +311,7 @@ Structure principale sous `frontend/src/app/` :
 Scripts disponibles :
 
 ```bash
-cd frontend
+cd apps/web
 npm install
 npm start
 npm run build
@@ -322,7 +322,7 @@ Le serveur de développement Angular proxy les requêtes `/api` vers PocketBase 
 
 ### Templates CV
 
-Le fichier `frontend/src/app/core/templates/cv-template-registry.ts` est le point central qui déclare les templates disponibles :
+Le fichier `apps/web/src/app/core/templates/cv-template-registry.ts` est le point central qui déclare les templates disponibles :
 
 - chaque entrée expose un `id`, un `label` et le composant Angular à rendre
 - `CV_TEMPLATE_OPTIONS` alimente les listes de choix dans les écrans d'administration
@@ -342,7 +342,7 @@ Pour ajouter un nouveau template :
 
 ### Desktop
 
-Le dossier `desktop/` contient le travail de packaging local.
+Le dossier `apps/desktop/` contient le travail de packaging local.
 
 Commandes principales :
 
@@ -431,15 +431,23 @@ make clean-seed
 
 ```text
 .
-├── frontend/                 # Application Angular
-├── desktop/                  # Packaging local Electrobun
-├── mcp/                      # Serveur MCP Spring Boot
-├── pb_migrations/            # Migrations PocketBase
-├── pb_hooks/                 # Hooks PocketBase
+├── apps/
+│   ├── web/                  # Application Angular
+│   ├── website/              # Réservé pour le futur site public
+│   └── desktop/              # Packaging local Electrobun
+├── backend/
+│   ├── mcp/                  # Serveur MCP Spring Boot
+│   └── pocketbase/
+│       ├── Dockerfile
+│       ├── hooks/            # Hooks PocketBase
+│       └── migrations/       # Migrations PocketBase
+├── docker/
+│   ├── docker-compose.yml
+│   ├── docker-compose.dev.yml
+│   └── docker-compose.devcontainer.yml
 ├── pb_data/                  # Données locales PocketBase
 ├── scripts/                  # Scripts utilitaires et import seed
 ├── .devcontainer/            # Environnement Codespaces/devcontainer
-├── docker-compose.yml        # Stack locale principale
 ├── Makefile                  # Commandes de confort
 └── opencode.json             # Configuration MCP locale pour OpenCode
 ```

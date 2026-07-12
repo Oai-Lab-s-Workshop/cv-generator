@@ -45,26 +45,26 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: apps/web/package-lock.json
 
       - name: Install frontend dependencies
-        run: npm ci --prefix frontend
+        run: npm ci --prefix apps/web
 
       - name: Install desktop dependencies
         run: bun install --frozen-lockfile
-        working-directory: desktop
+        working-directory: apps/desktop
 
       - name: Build frontend
         run: NODE_OPTIONS= node node_modules/.bin/ng build
-        working-directory: frontend
+        working-directory: apps/web
 
       - name: Test MCP
         run: ./mvnw test
-        working-directory: mcp
+        working-directory: backend/mcp
 
       - name: Typecheck desktop
         run: bun run typecheck
-        working-directory: desktop
+        working-directory: apps/desktop
 
   desktop-build-macos:
     if: ${{ inputs.build_desktop }}
@@ -103,9 +103,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          artifact="$(find desktop/artifacts -type f -name 'stable-macos-*-Resumate.dmg' | sort | head -n 1)"
+          artifact="$(find apps/desktop/artifacts -type f -name 'stable-macos-*-Resumate.dmg' | sort | head -n 1)"
           if [ -z "$artifact" ]; then
-            find desktop/artifacts -maxdepth 2 -print
+            find apps/desktop/artifacts -maxdepth 2 -print
             echo "No macOS DMG artifact found." >&2
             exit 1
           fi
@@ -141,14 +141,14 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: apps/web/package-lock.json
 
       - name: Install frontend dependencies
-        run: npm ci --prefix frontend
+        run: npm ci --prefix apps/web
 
       - name: Install desktop dependencies
         run: bun install --frozen-lockfile
-        working-directory: desktop
+        working-directory: apps/desktop
 
       - name: Prepare desktop resources
         run: bun run desktop:prepare
@@ -160,9 +160,9 @@ jobs:
         id: artifact
         shell: pwsh
         run: |
-          $artifact = Get-ChildItem -Path desktop/artifacts -Recurse -File -Filter 'Resumate-Setup*.exe' | Select-Object -First 1
+          $artifact = Get-ChildItem -Path apps/desktop/artifacts -Recurse -File -Filter 'Resumate-Setup*.exe' | Select-Object -First 1
           if (-not $artifact) {
-            Get-ChildItem -Path desktop/artifacts -Recurse | Select-Object -ExpandProperty FullName
+            Get-ChildItem -Path apps/desktop/artifacts -Recurse | Select-Object -ExpandProperty FullName
             throw 'No Windows .exe installer artifact found.'
           }
           "path=$($artifact.FullName)" >> $env:GITHUB_OUTPUT
@@ -197,14 +197,14 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: apps/web/package-lock.json
 
       - name: Install frontend dependencies
-        run: npm ci --prefix frontend
+        run: npm ci --prefix apps/web
 
       - name: Install desktop dependencies
         run: bun install --frozen-lockfile
-        working-directory: desktop
+        working-directory: apps/desktop
 
       - name: Prepare desktop resources
         run: bun run desktop:prepare
@@ -217,9 +217,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          artifact="$(find desktop/artifacts -type f -name 'Resumate-Setup*.AppImage' | sort | head -n 1)"
+          artifact="$(find apps/desktop/artifacts -type f -name 'Resumate-Setup*.AppImage' | sort | head -n 1)"
           if [ -z "$artifact" ]; then
-            find desktop/artifacts -maxdepth 2 -print
+            find apps/desktop/artifacts -maxdepth 2 -print
             echo "No Linux AppImage artifact found." >&2
             exit 1
           fi

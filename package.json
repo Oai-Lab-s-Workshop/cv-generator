@@ -1,13 +1,13 @@
 {
   "scripts": {
-    "test": "bun run --cwd frontend test",
-    "test:unit": "bun run --cwd frontend test:unit",
-    "test:integration": "bun run --cwd frontend test:integration",
-    "test:desktop": "bun run --cwd desktop test",
-    "desktop:prepare": "bun run --cwd desktop prepare:desktop",
-    "desktop:build": "bun run --cwd desktop build",
-    "desktop:build:stable": "bun run --cwd desktop build:stable",
-    "desktop:dev": "bun run --cwd desktop dev"
+    "test": "bun run --cwd apps/web test",
+    "test:unit": "bun run --cwd apps/web test:unit",
+    "test:integration": "bun run --cwd apps/web test:integration",
+    "test:desktop": "bun run --cwd apps/desktop test",
+    "desktop:prepare": "bun run --cwd apps/desktop prepare:desktop",
+    "desktop:build": "bun run --cwd apps/desktop build",
+    "desktop:build:stable": "bun run --cwd apps/desktop build:stable",
+    "desktop:dev": "bun run --cwd apps/desktop dev"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0"

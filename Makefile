@@ -3,6 +3,8 @@ SHELL := /bin/bash
 
 HELPERS := scripts/make_helpers.sh
 SEED_USER_EMAIL := alexandre.cv@gmail.com
+COMPOSE := docker compose -f docker/docker-compose.yml
+COMPOSE_DEV := docker compose -f docker/docker-compose.dev.yml
 
 .PHONY: env-init up down logs ps dev-up dev-down dev-logs dev-ps mcp-up mcp-down mcp-logs wait-pocketbase bootstrap bootstrap-with-seed seed clean-seed ensure-mcp-service-user frontend-install frontend-build frontend-test mcp-test mcp-package desktop-install desktop-typecheck desktop-prepare desktop-build desktop-package desktop-release-local desktop-check check ci
 
@@ -12,38 +14,38 @@ env-init:
 	echo "Ensured .env exists."
 
 up: env-init
-	docker compose up -d
+	$(COMPOSE) up -d
 
 down:
-	docker compose down
+	$(COMPOSE) down
 
 logs:
-	docker compose logs -f
+	$(COMPOSE) logs -f
 
 ps:
-	docker compose ps
+	$(COMPOSE) ps
 
-# Dev targets — hot-reload with source bind-mount (docker-compose.dev.yml)
+# Dev targets — hot-reload with source bind-mount (docker/docker-compose.dev.yml)
 dev-up: env-init
-	docker compose -f docker-compose.dev.yml up -d
+	$(COMPOSE_DEV) up -d
 
 dev-down:
-	docker compose -f docker-compose.dev.yml down
+	$(COMPOSE_DEV) down
 
 dev-logs:
-	docker compose -f docker-compose.dev.yml logs -f
+	$(COMPOSE_DEV) logs -f
 
 dev-ps:
-	docker compose -f docker-compose.dev.yml ps
+	$(COMPOSE_DEV) ps
 
 mcp-up: env-init
-	docker compose up -d mcp
+	$(COMPOSE) up -d mcp
 
 mcp-down:
-	docker compose stop mcp
+	$(COMPOSE) stop mcp
 
 mcp-logs:
-	docker compose logs -f mcp
+	$(COMPOSE) logs -f mcp
 
 wait-pocketbase: env-init
 	source "$(HELPERS)"; \
@@ -118,25 +120,25 @@ clean-seed: env-init wait-pocketbase
 	echo 'Removed seeded preview data.'
 
 frontend-install:
-	npm ci --prefix frontend
+	npm ci --prefix apps/web
 
 frontend-build:
-	cd frontend && npm ci && NODE_OPTIONS= node node_modules/.bin/ng build --configuration production
+	cd apps/web && npm ci && NODE_OPTIONS= node node_modules/.bin/ng build --configuration production
 
 frontend-test:
-	cd frontend && npm test -- --runInBand
+	cd apps/web && npm test -- --runInBand
 
 mcp-test:
-	cd mcp && ./mvnw test
+	cd backend/mcp && ./mvnw test
 
 mcp-package:
-	cd mcp && ./mvnw package -DskipTests
+	cd backend/mcp && ./mvnw package -DskipTests
 
 desktop-install:
-	cd desktop && bun install --frozen-lockfile
+	cd apps/desktop && bun install --frozen-lockfile
 
 desktop-typecheck:
-	bun run --cwd desktop typecheck
+	bun run --cwd apps/desktop typecheck
 
 desktop-prepare:
 	bun run desktop:prepare
@@ -152,9 +154,9 @@ desktop-package:
 	  MINGW*|MSYS*|CYGWIN*) pattern='Resumate-Setup*.exe' ;; \
 	  *) echo 'Unsupported local release platform.' >&2; exit 1 ;; \
 	esac; \
-	artifact="$$(find desktop/artifacts -type f -name "$$pattern" | sort | head -n 1)"; \
+	artifact="$$(find apps/desktop/artifacts -type f -name "$$pattern" | sort | head -n 1)"; \
 	if [ -z "$$artifact" ]; then \
-	  find desktop/artifacts -maxdepth 2 -print 2>/dev/null || true; \
+	  find apps/desktop/artifacts -maxdepth 2 -print 2>/dev/null || true; \
 	  echo "No desktop release artifact found for pattern $$pattern. Run make desktop-build first." >&2; \
 	  exit 1; \
 	fi; \
