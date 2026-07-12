@@ -15,7 +15,7 @@ const PB_ADMIN_PASSWORD = requiredEnv('PB_ADMIN_PASSWORD');
 const DEFAULT_USER_PASSWORD = requiredEnv('SEED_USER_PASSWORD');
 const ALLOW_NONEMPTY = process.env.ALLOW_NONEMPTY === '1';
 
-const seedPath = path.join(__dirname, '..', 'pb_data', 'seed.json');
+const seedPath = path.join(__dirname, '..', 'backend', 'pocketbase', 'pb_data', 'seed.json');
 const seed = JSON.parse(fs.readFileSync(seedPath, 'utf8'));
 
 const idMaps = {

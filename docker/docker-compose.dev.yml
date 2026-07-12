@@ -10,7 +10,7 @@ services:
       PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL:?PB_ADMIN_EMAIL is required}
       PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD:?PB_ADMIN_PASSWORD is required}
     volumes:
-      - ../pb_data:/pb_data
+      - ../backend/pocketbase/pb_data:/pb_data
       - ../backend/pocketbase/migrations:/pb_migrations
       - ../backend/pocketbase/hooks:/pb_hooks
     healthcheck:
@@ -57,7 +57,7 @@ services:
       POCKETBASE_BASE_URL: ${POCKETBASE_BASE_URL:-http://pocketbase:${POCKETBASE_INTERNAL_PORT:-8090}}
       BUG_REPORT_URL: ${BUG_REPORT_URL:-}
     volumes:
-      - ./:/workspace
+      - ..:/workspace
       - frontend_node_modules:/workspace/apps/web/node_modules
     command:
       - sh

@@ -2,7 +2,7 @@
 set -e
 
 echo "Starting PocketBase and frontend proxy..."
-docker compose -f docker/docker-compose.yml up -d pocketbase frontend
+docker compose --env-file .env -f docker/docker-compose.yml up -d pocketbase frontend
 
 echo "Waiting for services to be ready..."
 sleep 3

@@ -369,7 +369,15 @@ const getPublicCvDataBySlugHandler = (e) => {
   let user = null;
   try {
     const userRecord = $app.findRecordById('users', ownerId);
-    user = serializeRecord(userRecord, ['firstName', 'lastName', 'linkedin', 'github', 'website', 'email', 'phone', 'profilePicture', 'coverPicture']);
+    // Contact PII (email/phone) is only exposed to the owner, or publicly when the
+    // owner has opted in via emailVisibility. Otherwise anonymous viewers of a public
+    // CV would be able to scrape every owner's direct contact details.
+    const exposeContact = isOwner || userRecord.getBool('emailVisibility');
+    const userFields = ['firstName', 'lastName', 'linkedin', 'github', 'website', 'profilePicture', 'coverPicture'];
+    if (exposeContact) {
+      userFields.push('email', 'phone');
+    }
+    user = serializeRecord(userRecord, userFields);
   } catch (_) {
     user = null;
   }

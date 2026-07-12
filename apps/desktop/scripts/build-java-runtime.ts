@@ -2,14 +2,14 @@ import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const root = resolve(import.meta.dir, '../..');
-const desktopRoot = resolve(root, 'desktop');
+const root = resolve(import.meta.dir, '../../..');
+const desktopRoot = resolve(root, 'apps/desktop');
 const platformArch = `${process.platform}-${process.arch}`;
 const output = resolve(desktopRoot, 'resources/java-runtime', platformArch);
-const jar = firstExistingFile(resolve(root, 'mcp/target'), (name) => name.endsWith('.jar') && !name.endsWith('-plain.jar'));
+const jar = firstExistingFile(resolve(root, 'backend/mcp/target'), (name) => name.endsWith('.jar') && !name.endsWith('-plain.jar'));
 
 if (!jar) {
-  throw new Error('MCP jar is missing. Run `npm run prepare:mcp` from desktop/ first.');
+  throw new Error('MCP jar is missing. Run `bun run prepare:mcp` from apps/desktop/ first.');
 }
 
 const jdeps = javaTool('jdeps');

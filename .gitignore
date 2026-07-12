@@ -6,9 +6,9 @@ dist/
 .local/
 apps/web/.angular/
 .angular/
-pb_data/backups/
-pb_data/storage
-pb_data/types.d.ts
+backend/pocketbase/pb_data/backups/
+backend/pocketbase/pb_data/storage
+backend/pocketbase/pb_data/types.d.ts
 dist/*
 opencode.json
 .tmp-electrobun/

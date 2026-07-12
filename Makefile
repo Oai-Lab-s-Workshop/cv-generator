@@ -3,8 +3,8 @@ SHELL := /bin/bash
 
 HELPERS := scripts/make_helpers.sh
 SEED_USER_EMAIL := alexandre.cv@gmail.com
-COMPOSE := docker compose -f docker/docker-compose.yml
-COMPOSE_DEV := docker compose -f docker/docker-compose.dev.yml
+COMPOSE := docker compose --env-file .env -f docker/docker-compose.yml
+COMPOSE_DEV := docker compose --env-file .env -f docker/docker-compose.dev.yml
 
 .PHONY: env-init up down logs ps dev-up dev-down dev-logs dev-ps mcp-up mcp-down mcp-logs wait-pocketbase bootstrap bootstrap-with-seed seed clean-seed ensure-mcp-service-user frontend-install frontend-build frontend-test mcp-test mcp-package desktop-install desktop-typecheck desktop-prepare desktop-build desktop-package desktop-release-local desktop-check check ci
 

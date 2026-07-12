@@ -6,7 +6,7 @@ COPY apps/web/package*.json ./
 RUN npm ci
 
 COPY apps/web/ ./
-COPY pb_data/seed.json /app/pb_data/seed.json
+COPY backend/pocketbase/pb_data/seed.json /app/pb_data/seed.json
 RUN mkdir -p src/assets && echo '{"bugReportUrl":"","mcpPublicBaseUrl":""}' > src/assets/runtime-config.json
 
 RUN npx ng build --configuration production 2>&1

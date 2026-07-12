@@ -3,8 +3,8 @@ import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 
-const root = resolve(import.meta.dir, '../..');
-const desktopRoot = resolve(root, 'desktop');
+const root = resolve(import.meta.dir, '../../..');
+const desktopRoot = resolve(root, 'apps/desktop');
 const version = process.env.POCKETBASE_VERSION || '0.31.0';
 const target = resolve(desktopRoot, 'resources/pocketbase', `${process.platform}-${process.arch}`);
 const archive = resolve(target, 'pocketbase.zip');

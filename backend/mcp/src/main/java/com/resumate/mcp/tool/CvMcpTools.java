@@ -71,7 +71,7 @@ public class CvMcpTools {
         }
 
         String label = validateLabel(request.label());
-        String profileName = request.profileName();
+        String profileName = StringUtils.hasText(request.profileName()) ? request.profileName() : label;
         TemplateDescriptor template = resolveTemplate(request.templateId());
         String templateId = template.id();
         validateOwnedSelections(principal.userId(), request);

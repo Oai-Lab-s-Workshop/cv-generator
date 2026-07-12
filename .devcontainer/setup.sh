@@ -22,7 +22,7 @@ export POCKETBASE_INTERNAL_PORT FRONTEND_PORT FRONTEND_INTERNAL_PORT MCP_PORT MC
 export PB_URL FRONTEND_BASE_URL MCP_BASE_URL
 
 echo "Starting Docker Compose development stack"
-docker compose -f docker-compose.yml -f docker-compose.devcontainer.yml up -d --build
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.devcontainer.yml up -d --build
 
 echo "Waiting for PocketBase..."
 for i in {1..20}; do
@@ -50,7 +50,7 @@ done
 
 echo ""
 echo "Services"
-docker compose -f docker-compose.yml -f docker-compose.devcontainer.yml ps
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.devcontainer.yml ps
 
 echo ""
 echo "URLs"

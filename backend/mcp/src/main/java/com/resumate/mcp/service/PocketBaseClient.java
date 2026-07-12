@@ -397,7 +397,7 @@ public class PocketBaseClient {
     private List<Map<String, Object>> getOwnedRecords(String collectionName, String userId, String sort) {
         RecordListResponse<Map<String, Object>> response = getCollectionRecords(
                 collectionName,
-                String.format("user=\"%s\"", userId),
+                String.format("user=\"%s\"", escapeFilterValue(userId)),
                 200,
                 new ParameterizedTypeReference<>() {
                 },

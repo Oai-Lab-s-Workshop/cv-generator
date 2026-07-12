@@ -177,7 +177,7 @@ L'option la plus simple pour lancer la stack complète :
 ```bash
 cp .env.example .env
 # Editez .env et renseignez PB_ADMIN_EMAIL/PB_ADMIN_PASSWORD avec des valeurs locales fortes.
-docker compose -f docker/docker-compose.yml up -d
+docker compose --env-file .env -f docker/docker-compose.yml up -d
 ```
 
 Services disponibles ensuite :
@@ -206,8 +206,10 @@ cp .env.example .env
 Avec Docker Compose :
 
 ```bash
-docker compose -f docker/docker-compose.yml up -d
+docker compose --env-file .env -f docker/docker-compose.yml up -d
 ```
+
+Le fichier `.env` vit à la racine du dépôt alors que les fichiers compose sont dans `docker/` ; le flag `--env-file .env` est donc nécessaire lorsque vous invoquez `docker compose` directement (les commandes `make` l'ajoutent déjà).
 
 Ou avec les commandes `make` du projet :
 
@@ -445,7 +447,7 @@ make clean-seed
 │   ├── docker-compose.yml
 │   ├── docker-compose.dev.yml
 │   └── docker-compose.devcontainer.yml
-├── pb_data/                  # Données locales PocketBase
+├── backend/pocketbase/pb_data/  # Données locales PocketBase
 ├── scripts/                  # Scripts utilitaires et import seed
 ├── .devcontainer/            # Environnement Codespaces/devcontainer
 ├── Makefile                  # Commandes de confort

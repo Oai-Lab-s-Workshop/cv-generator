@@ -1,8 +1,8 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 
-const root = resolve(import.meta.dir, '../..');
-const desktopRoot = resolve(root, 'desktop');
+const root = resolve(import.meta.dir, '../../..');
+const desktopRoot = resolve(root, 'apps/desktop');
 const distRoot = resolve(desktopRoot, 'dist');
 const resourcesRoot = resolve(distRoot, 'resources');
 
@@ -22,16 +22,16 @@ function copyAngularBuild(): void {
 }
 
 function copyPocketBaseRuntimeFiles(): void {
-  cpSync(resolve(root, 'pb_migrations'), resolve(resourcesRoot, 'pb_migrations'), { recursive: true });
-  cpSync(resolve(root, 'pb_hooks'), resolve(resourcesRoot, 'pb_hooks'), { recursive: true });
+  cpSync(resolve(root, 'backend/pocketbase/migrations'), resolve(resourcesRoot, 'pb_migrations'), { recursive: true });
+  cpSync(resolve(root, 'backend/pocketbase/hooks'), resolve(resourcesRoot, 'pb_hooks'), { recursive: true });
 }
 
 function copyMcpJar(): void {
   const targetDir = resolve(resourcesRoot, 'mcp');
   mkdirSync(targetDir, { recursive: true });
-  const jar = firstExistingFile(resolve(root, 'mcp/target'), (name) => name.endsWith('.jar') && !name.endsWith('-plain.jar'));
+  const jar = firstExistingFile(resolve(root, 'backend/mcp/target'), (name) => name.endsWith('.jar') && !name.endsWith('-plain.jar'));
   if (!jar) {
-    warnOrThrow('MCP jar is missing. Run `bun run prepare:mcp` from desktop/.');
+    warnOrThrow('MCP jar is missing. Run `bun run prepare:mcp` from apps/desktop/.');
     return;
   }
   copyFileSync(jar, resolve(targetDir, 'resumate-mcp.jar'));

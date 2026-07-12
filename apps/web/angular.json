@@ -24,7 +24,7 @@
               "src/assets",
               {
                 "glob": "seed.json",
-                "input": "../../pb_data",
+                "input": "../../backend/pocketbase/pb_data",
                 "output": "app-data"
               }
             ],

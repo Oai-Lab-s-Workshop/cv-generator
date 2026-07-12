@@ -8,8 +8,8 @@ backend/mcp/
 apps/desktop/
 
 # PocketBase data: only seed.json is needed for frontend build
-pb_data/*
-!pb_data/seed.json
+backend/pocketbase/pb_data/*
+!backend/pocketbase/pb_data/seed.json
 
 # Local/generated files
 .git/
