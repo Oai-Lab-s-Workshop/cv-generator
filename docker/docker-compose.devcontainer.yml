@@ -1,0 +1,6 @@
+services:
+  pocketbase:
+    volumes:
+      - ../.local/pocketbase/pb_data:/pb_data
+      - ../backend/pocketbase/migrations:/pb_migrations
+      - ../backend/pocketbase/hooks:/pb_hooks

@@ -1,15 +1,15 @@
 # Frontend build artifacts/deps
-frontend/node_modules/
-frontend/dist/
-frontend/.angular/
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.angular/
 
 # Exclude unrelated projects from frontend root-context build
-mcp/
-desktop/
+backend/mcp/
+apps/desktop/
 
 # PocketBase data: only seed.json is needed for frontend build
-pb_data/*
-!pb_data/seed.json
+backend/pocketbase/pb_data/*
+!backend/pocketbase/pb_data/seed.json
 
 # Local/generated files
 .git/

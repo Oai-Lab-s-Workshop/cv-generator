@@ -17,19 +17,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install xmllint (libxml2-utils)
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+
       - uses: oven-sh/setup-bun@v2
 
       - name: Install desktop dependencies
         run: bun install --frozen-lockfile
-        working-directory: desktop
+        working-directory: apps/desktop
 
       - name: Run desktop unit tests
         run: bun test
-        working-directory: desktop
+        working-directory: apps/desktop
 
       - name: Publish test summary
         if: always()
-        working-directory: desktop
+        working-directory: apps/desktop
         shell: bash
         run: |
           set -euo pipefail
@@ -93,4 +96,4 @@ jobs:
 
       - name: Typecheck desktop
         run: bun run typecheck
-        working-directory: desktop
+        working-directory: apps/desktop

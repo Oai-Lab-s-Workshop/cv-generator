@@ -1,0 +1,76 @@
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: resumate-pb
+    restart: unless-stopped
+    environment:
+      TZ: UTC
+      PB_HOST: 0.0.0.0
+      PB_PORT: ${POCKETBASE_INTERNAL_PORT:-8090}
+      PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL:?PB_ADMIN_EMAIL is required}
+      PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD:?PB_ADMIN_PASSWORD is required}
+    volumes:
+      - ../backend/pocketbase/pb_data:/pb_data
+      - ../backend/pocketbase/migrations:/pb_migrations
+      - ../backend/pocketbase/hooks:/pb_hooks
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:${POCKETBASE_INTERNAL_PORT:-8090}/api/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  mcp:
+    build:
+      context: ../backend/mcp
+    container_name: resumate-mcp
+    restart: unless-stopped
+    ports:
+      - "${MCP_PORT:-8081}:${MCP_INTERNAL_PORT:-8081}"
+    environment:
+      PORT: ${MCP_INTERNAL_PORT:-8081}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:${FRONTEND_PORT:-4200}}
+      POCKETBASE_BASE_URL: ${POCKETBASE_BASE_URL:-http://pocketbase:${POCKETBASE_INTERNAL_PORT:-8090}}
+      POCKETBASE_SERVICE_USER_EMAIL: ${POCKETBASE_SERVICE_USER_EMAIL:-}
+      POCKETBASE_SERVICE_USER_PASSWORD: ${POCKETBASE_SERVICE_USER_PASSWORD:-}
+      MCP_PUBLIC_BASE_URL: ${MCP_PUBLIC_BASE_URL:?MCP_PUBLIC_BASE_URL is required}
+      MCP_OAUTH_JWK: ${MCP_OAUTH_JWK:?MCP_OAUTH_JWK is required}
+      MCP_OAUTH_ACCESS_TOKEN_TTL: ${MCP_OAUTH_ACCESS_TOKEN_TTL:-1h}
+      MCP_OAUTH_REFRESH_TOKEN_TTL: ${MCP_OAUTH_REFRESH_TOKEN_TTL:-90d}
+      MCP_OAUTH_ALLOWED_REDIRECT_URI_PATTERNS: ${MCP_OAUTH_ALLOWED_REDIRECT_URI_PATTERNS:-https://claude.ai/*}
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+
+  frontend:
+    image: node:22-alpine
+    container_name: resumate-web-dev
+    restart: unless-stopped
+    working_dir: /workspace/apps/web
+    ports:
+      - "${FRONTEND_PORT:-4200}:${FRONTEND_INTERNAL_PORT:-4200}"
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      FRONTEND_INTERNAL_PORT: ${FRONTEND_INTERNAL_PORT:-4200}
+      MCP_PUBLIC_BASE_URL: ${MCP_PUBLIC_BASE_URL:-}
+      POCKETBASE_INTERNAL_PORT: ${POCKETBASE_INTERNAL_PORT:-8090}
+      POCKETBASE_BASE_URL: ${POCKETBASE_BASE_URL:-http://pocketbase:${POCKETBASE_INTERNAL_PORT:-8090}}
+      BUG_REPORT_URL: ${BUG_REPORT_URL:-}
+    volumes:
+      - ..:/workspace
+      - frontend_node_modules:/workspace/apps/web/node_modules
+    command:
+      - sh
+      - -c
+      - >
+        mkdir -p src/assets
+        && node -e "require('fs').writeFileSync('src/assets/runtime-config.json',
+        JSON.stringify({ bugReportUrl: process.env.BUG_REPORT_URL || '', mcpPublicBaseUrl: process.env.MCP_PUBLIC_BASE_URL || '' }))"
+        && npm install
+        && npm start -- --port "${FRONTEND_INTERNAL_PORT:-4200}"
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+
+volumes:
+  frontend_node_modules:

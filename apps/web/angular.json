@@ -1,0 +1,55 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "resumate": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist/resumate",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "polyfills": ["zone.js"],
+            "tsConfig": "tsconfig.json",
+            "optimization": { "fonts": { "inline": false } },
+            "allowedCommonJsDependencies": ["html2canvas", "qrcode", "quill-delta"],
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              {
+                "glob": "seed.json",
+                "input": "../../backend/pocketbase/pb_data",
+                "output": "app-data"
+              }
+            ],
+            "styles": ["src/styles.css", "node_modules/bootstrap-icons/font/bootstrap-icons.css"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                { "type": "initial", "maximumWarning": "2mb", "maximumError": "5mb" },
+                { "type": "anyComponentStyle", "maximumWarning": "12kb", "maximumError": "16kb" }
+              ],
+              "outputHashing": "all"
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": { 
+            "buildTarget": "resumate:build",
+            "proxyConfig": "proxy.conf.js"
+          },
+          "configurations": { "production": { "buildTarget": "resumate:build:production" } }
+        }
+      }
+    }
+  }
+}
