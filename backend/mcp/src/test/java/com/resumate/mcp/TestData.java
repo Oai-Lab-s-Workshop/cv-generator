@@ -71,15 +71,12 @@ public final class TestData {
                 "https://linkedin.com/in/janedoe",
                 "https://github.com/janedoe",
                 "https://janedoe.dev",
-                "jane@example.com", "+1234567890",
-                "Concise, results-oriented tone",
-                "https://janedoe.dev/style"
+                "jane@example.com", "+1234567890"
         );
     }
 
     public static PocketBaseClient.ProfileMaterialBundle profileMaterialBundle() {
         return new PocketBaseClient.ProfileMaterialBundle(
-                userRecord(),
                 List.of(Map.of("id", "skill1", "name", "Java")),
                 List.of(Map.of("id", "job1", "title", "Senior Developer")),
                 List.of(Map.of("id", "proj1", "name", "Project Alpha")),

@@ -155,21 +155,8 @@ class PocketBaseClientTest {
     }
 
     @Test
-    void loadProfileMaterial_returnsBundle() {
+    void loadProfileMaterial_returnsMaterialWithoutReadingUsers() throws InterruptedException {
         enqueueAuthResponse();
-        enqueueJsonResponse("""
-                {
-                    "id": "userId",
-                    "firstName": "Jane",
-                    "lastName": "Doe",
-                    "linkedin": "https://linkedin.com/in/janedoe",
-                    "github": "https://github.com/janedoe",
-                    "website": "https://janedoe.dev",
-                    "email": "jane@example.com",
-                    "phone": "+1234567890"
-                }
-                """);
-
         String collectionResponse = "{\"items\": [{\"id\": \"test-id\", \"name\": \"test\"}]}";
         for (int i = 0; i < 6; i++) {
             enqueueJsonResponse(collectionResponse);
@@ -177,32 +164,17 @@ class PocketBaseClientTest {
 
         ProfileMaterialBundle bundle = client.loadProfileMaterial("userId");
 
-        assertThat(bundle.user().id()).isEqualTo("userId");
-        assertThat(bundle.user().firstName()).isEqualTo("Jane");
-    }
+        assertThat(bundle.skills()).extracting(record -> record.get("id")).containsExactly("test-id");
 
-    @Test
-    void loadProfileMaterial_deserializesWritingStyleFields() {
-        enqueueAuthResponse();
-        enqueueJsonResponse("""
-                {
-                    "id": "userId",
-                    "firstName": "Jane",
-                    "lastName": "Doe",
-                    "writingStyleDescription": "Concise, results-oriented tone",
-                    "writingStyleUrl": "https://janedoe.dev/style"
-                }
-                """);
-
-        String collectionResponse = "{\"items\": [{\"id\": \"test-id\", \"name\": \"test\"}]}";
-        for (int i = 0; i < 6; i++) {
-            enqueueJsonResponse(collectionResponse);
+        assertThat(mockWebServer.takeRequest().getPath())
+                .isEqualTo("/api/collections/users/auth-with-password");
+        for (String collection : List.of("skills", "jobs", "projects", "achievements", "degrees", "hobbies")) {
+            String path = mockWebServer.takeRequest().getPath();
+            assertThat(path)
+                    .startsWith("/api/collections/" + collection + "/records?")
+                    .contains("filter=user%3D%22userId%22")
+                    .doesNotContain("/api/collections/users/records");
         }
-
-        ProfileMaterialBundle bundle = client.loadProfileMaterial("userId");
-
-        assertThat(bundle.user().writingStyleDescription()).isEqualTo("Concise, results-oriented tone");
-        assertThat(bundle.user().writingStyleUrl()).isEqualTo("https://janedoe.dev/style");
     }
 
     @Test

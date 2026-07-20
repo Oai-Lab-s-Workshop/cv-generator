@@ -60,7 +60,7 @@ Do not invent template IDs or record IDs. Use only template IDs returned by `lis
 ### Agent workflow
 
 1. Call `listTemplates` and choose one returned `template.id` for `templateId`.
-2. Call `listProfileMaterial` and select only IDs from the returned user records.
+2. Call `listProfileMaterial` and select only IDs from the returned material records. Identity, contact, and presentation metadata are handled by the selected template and are not returned by this tool.
 3. Call `createTailoredCvProfile` with a non-empty `label`, the chosen `templateId`, a role-focused `professionalSummary`, selected ID arrays, and only `templateExtra` fields listed in the selected template's `extraSchema`.
 4. To refine a profile, call `updateCvProfile` with the profile's `slug` and only the fields you want to change.
 

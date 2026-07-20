@@ -7,6 +7,7 @@ import com.resumate.mcp.service.PocketBaseClient;
 import com.resumate.mcp.service.PocketBaseClient.CreateProfilePayload;
 import com.resumate.mcp.service.PocketBaseClient.CreatedProfileRecord;
 import com.resumate.mcp.service.PocketBaseClient.CvProfileRecord;
+import com.resumate.mcp.service.PocketBaseClient.ProfileMaterialBundle;
 import com.resumate.mcp.service.PocketBaseClient.UpdatedProfileRecord;
 import com.resumate.mcp.support.OAuthTestPropertiesInitializer;
 import com.resumate.mcp.tool.CvMcpTools;
@@ -189,5 +190,60 @@ class UpdateAndIdempotencyIntegrationTest {
         assertThat(response.profileId()).isEqualTo("profile-3");
         assertThat(response.slug()).isEqualTo("my-slug");
         assertThat(response.frontendUrl()).isEqualTo("https://resumate.app/my-slug");
+    }
+
+    @Test
+    void allTools_completeOwnerScopedWorkflow() {
+        ProfileMaterialBundle material = new ProfileMaterialBundle(
+                List.of(Map.of("id", "skill-1", "name", "Java")),
+                List.of(), List.of(), List.of(), List.of(), List.of()
+        );
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new PocketBaseClient.TemplateDescriptor("classic", "Classic", "desc", List.of())
+        ));
+        when(pocketBaseClient.loadProfileMaterial("userId")).thenReturn(material);
+        when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
+                .thenReturn(new CreatedProfileRecord("profile-5", "workflow-slug"));
+        when(pocketBaseClient.findProfileBySlugOrId("workflow-slug"))
+                .thenReturn(new CvProfileRecord("profile-5", "workflow-slug", "userId", "classic", Map.of()));
+        when(pocketBaseClient.updateCvProfile(eq("profile-5"), any()))
+                .thenReturn(new UpdatedProfileRecord("profile-5", "workflow-slug"));
+
+        assertThat(cvMcpTools.whoAmI().userId()).isEqualTo("userId");
+        assertThat(cvMcpTools.listTemplates().templates()).extracting(PocketBaseClient.TemplateDescriptor::id)
+                .containsExactly("classic");
+        assertThat(cvMcpTools.listProfileMaterial().skills()).extracting(record -> record.get("id"))
+                .containsExactly("skill-1");
+
+        CvMcpTools.CreateTailoredCvProfileResponse created = cvMcpTools.createTailoredCvProfile(
+                new CvMcpTools.CreateTailoredCvProfileRequest(
+                        "Workflow", "Workflow", null, "classic", "Summary",
+                        List.of("skill-1"), List.of(), List.of(), List.of(), List.of(), List.of(),
+                        Map.of(), "workflow-key"
+                )
+        );
+        CvMcpTools.UpdateCvProfileResponse updated = cvMcpTools.updateCvProfile(
+                new CvMcpTools.UpdateCvProfileRequest(
+                        created.slug(), "Updated Workflow", null, null, null, null,
+                        null, null, null, null, null, null, null, null
+                )
+        );
+
+        assertThat(updated.profileId()).isEqualTo(created.profileId());
+        verify(pocketBaseClient).loadProfileMaterial("userId");
+    }
+
+    @Test
+    void updateCvProfile_rejectsAnotherOwnersProfile() {
+        when(pocketBaseClient.findProfileBySlugOrId("foreign-slug"))
+                .thenReturn(new CvProfileRecord("foreign-profile", "foreign-slug", "other-user", "classic", Map.of()));
+
+        assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> cvMcpTools.updateCvProfile(
+                new CvMcpTools.UpdateCvProfileRequest(
+                        "foreign-slug", "Nope", null, null, null, null,
+                        null, null, null, null, null, null, null, null
+                )
+        ))).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not belong");
     }
 }

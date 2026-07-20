@@ -245,14 +245,7 @@ public class PocketBaseClient {
     }
 
     public ProfileMaterialBundle loadProfileMaterial(String userId) {
-        UserRecord user = restClient.get()
-                .uri("/api/collections/users/records/{userId}", userId)
-                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
-                .retrieve()
-                .body(UserRecord.class);
-
         return new ProfileMaterialBundle(
-                Objects.requireNonNull(user, "PocketBase user payload is required."),
                 getOwnedRecords("skills", userId, "+sortOrder,+name"),
                 getOwnedRecords("jobs", userId, "+sortOrder,-startDate"),
                 getOwnedRecords("projects", userId, "+sortOrder,-date"),
@@ -658,7 +651,6 @@ public class PocketBaseClient {
     }
 
     public record ProfileMaterialBundle(
-            UserRecord user,
             List<Map<String, Object>> skills,
             List<Map<String, Object>> jobs,
             List<Map<String, Object>> projects,
@@ -824,9 +816,7 @@ public class PocketBaseClient {
             String github,
             String website,
             String email,
-            String phone,
-            String writingStyleDescription,
-            String writingStyleUrl
+            String phone
     ) {
     }
 }
