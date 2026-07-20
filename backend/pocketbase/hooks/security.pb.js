@@ -144,6 +144,26 @@ onRecordCreateRequest((e) => {
   if (!e.auth) {
     throw new UnauthorizedError('Authentication required.');
   }
+  if (!e.hasSuperuserAuth()) {
+    e.record.set('user', e.auth.id);
+  }
+  return e.next();
+}, 'profile_metadata');
+
+onRecordUpdateRequest((e) => {
+  if (!e.auth) {
+    throw new UnauthorizedError('Authentication required.');
+  }
+  if (!e.hasSuperuserAuth()) {
+    e.record.set('user', e.auth.id);
+  }
+  return e.next();
+}, 'profile_metadata');
+
+onRecordCreateRequest((e) => {
+  if (!e.auth) {
+    throw new UnauthorizedError('Authentication required.');
+  }
 
   const record = e.record;
   if (!record) {

@@ -10,8 +10,6 @@ class AuthServiceStub {
   readonly currentUser = signal({
     firstName: 'John',
     lastName: 'Doe',
-    writingStyleDescription: 'Formal and concise tone',
-    writingStyleUrl: 'https://example.com/style-guide',
   });
   readonly isAuthenticated = computed(() => true);
   logout = jest.fn();
@@ -21,6 +19,13 @@ class AuthServiceStub {
 class PocketBaseServiceStub {
   changeCurrentUserPassword = jest.fn<Promise<void>, []>().mockResolvedValue(undefined);
   updateCurrentUser = jest.fn<Promise<unknown>, [unknown]>().mockResolvedValue({ id: 'user-123' });
+  getCurrentProfileMetadata = jest.fn().mockResolvedValue({
+    id: 'metadata-1',
+    user: 'user-123',
+    writingStyleDescription: 'Formal and concise tone',
+    writingStyleUrl: 'https://example.com/style-guide',
+  });
+  saveCurrentProfileMetadata = jest.fn<Promise<unknown>, [unknown]>().mockResolvedValue({ id: 'metadata-1' });
   deleteCurrentUserAccount = jest.fn<Promise<void>, []>().mockResolvedValue(undefined);
   exportCurrentUserData = jest.fn<Promise<Record<string, unknown>>, []>().mockResolvedValue({
     exportedAt: '2026-01-01T00:00:00.000Z',
@@ -62,6 +67,7 @@ describe('AccountPage', () => {
     pocketBaseService = TestBed.inject(PocketBaseService) as unknown as PocketBaseServiceStub;
     authService = TestBed.inject(AuthService) as unknown as AuthServiceStub;
     fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {
@@ -193,7 +199,7 @@ describe('AccountPage', () => {
   });
 
   describe('writing style fields', () => {
-    it('loads writing style fields from current user on init', () => {
+    it('loads writing style fields from profile metadata on init', () => {
       // ngOnInit ran during the beforeEach detectChanges()
       expect(component.writingStyleDescription()).toBe('Formal and concise tone');
       expect(component.writingStyleUrl()).toBe('https://example.com/style-guide');
@@ -205,11 +211,10 @@ describe('AccountPage', () => {
 
       await component.saveWritingStyleFields();
 
-      expect(pocketBaseService.updateCurrentUser).toHaveBeenCalledWith({
+      expect(pocketBaseService.saveCurrentProfileMetadata).toHaveBeenCalledWith({
         writingStyleDescription: 'Casual and friendly',
         writingStyleUrl: 'https://example.com/casual',
       });
-      expect(authService.refreshCurrentUser).toHaveBeenCalled();
       expect(component.writingStyleSuccessMessage()).toBe('Préférences de style enregistrées avec succès.');
     });
 
@@ -222,7 +227,7 @@ describe('AccountPage', () => {
     });
 
     it('shows error message on save failure', async () => {
-      pocketBaseService.updateCurrentUser.mockRejectedValue(new Error('Save failed'));
+      pocketBaseService.saveCurrentProfileMetadata.mockRejectedValue(new Error('Save failed'));
 
       component.writingStyleDescription.set('Casual and friendly');
 
@@ -238,7 +243,7 @@ describe('AccountPage', () => {
 
       await component.clearWritingStyleFields();
 
-      expect(pocketBaseService.updateCurrentUser).toHaveBeenCalledWith({
+      expect(pocketBaseService.saveCurrentProfileMetadata).toHaveBeenCalledWith({
         writingStyleDescription: null,
         writingStyleUrl: null,
       });

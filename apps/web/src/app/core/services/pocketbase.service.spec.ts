@@ -207,6 +207,35 @@ describe('PocketBaseService', () => {
     await expect(service.updateCurrentUser({ firstName: 'Jane' })).resolves.toMatchObject({ id: 'user-1', firstName: 'Jane' });
   });
 
+  it('loads, creates, and updates owner profile metadata outside users', async () => {
+    collections['profile_metadata'] = {
+      getFirstListItem: jest.fn()
+        .mockRejectedValueOnce({ status: 404 })
+        .mockRejectedValueOnce({ status: 404 })
+        .mockResolvedValueOnce({ id: 'metadata-1', user: 'user-1' }),
+      create: jest.fn().mockResolvedValue({ id: 'metadata-1', user: 'user-1', writingStyleDescription: 'Concise' }),
+      update: jest.fn().mockResolvedValue({ id: 'metadata-1', user: 'user-1', writingStyleDescription: 'Direct' }),
+    } as never;
+
+    await expect(service.getCurrentProfileMetadata()).resolves.toBeNull();
+    await expect(service.saveCurrentProfileMetadata({ writingStyleDescription: 'Concise', writingStyleUrl: null }))
+      .resolves.toMatchObject({ writingStyleDescription: 'Concise' });
+    expect(collections['profile_metadata']['create']).toHaveBeenCalledWith({
+      user: 'user-1',
+      writingStyleDescription: 'Concise',
+      writingStyleUrl: null,
+    });
+
+    collections['profile_metadata']['getFirstListItem'].mockResolvedValue({ id: 'metadata-1', user: 'user-1' });
+    await expect(service.saveCurrentProfileMetadata({ writingStyleDescription: 'Direct', writingStyleUrl: null }))
+      .resolves.toMatchObject({ writingStyleDescription: 'Direct' });
+    expect(collections['profile_metadata']['update']).toHaveBeenCalledWith('metadata-1', {
+      writingStyleDescription: 'Direct',
+      writingStyleUrl: null,
+    });
+    expect(collections['users']).toBeUndefined();
+  });
+
   it('builds complete CV data and resolves link overrides', async () => {
     jest.spyOn(service, 'getCvProfileById').mockResolvedValue({
       id: 'profile-1',

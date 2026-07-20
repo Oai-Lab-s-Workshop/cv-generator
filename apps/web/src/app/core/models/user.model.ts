@@ -7,8 +7,6 @@ export interface User {
   website?: string;
   email?: string;
   phone?: string;
-  writingStyleDescription?: string | null;
-  writingStyleUrl?: string | null;
   profilePicture?: string;
   coverPicture?: string;
 }

@@ -9,6 +9,7 @@ import { Hobby } from '../models/hobby.model';
 import { Job } from '../models/job.model';
 import { MediaFile } from '../models/file.model';
 import { Project } from '../models/project.model';
+import { ProfileMetadata, SaveProfileMetadataInput } from '../models/profile-metadata.model';
 import { Skill } from '../models/skill.model';
 import { SkillCategory } from '../models/skill-category.model';
 import { User } from '../models/user.model';
@@ -48,7 +49,7 @@ export type SaveCurrentUserDegreeInput = Pick<Degree, 'title'> & Partial<Pick<De
 export type SaveCurrentUserHobbyInput = Pick<Hobby, 'name'> & Partial<Pick<Hobby, 'description' | 'sortOrder'>>;
 export type SaveCurrentUserFileInput = Partial<Pick<MediaFile, 'name' | 'alt' | 'kind' | 'sortOrder'>> & { file?: File | null };
 export type UpdateCurrentUserInput = Partial<
-  Pick<User, 'firstName' | 'lastName' | 'linkedin' | 'github' | 'website' | 'phone' | 'writingStyleDescription' | 'writingStyleUrl'>
+  Pick<User, 'firstName' | 'lastName' | 'linkedin' | 'github' | 'website' | 'phone'>
 >;
 
 @Injectable({ providedIn: 'root' })
@@ -479,6 +480,25 @@ export class PocketBaseService {
     return this.normalizeUser(updated) as User;
   }
 
+  async getCurrentProfileMetadata(): Promise<ProfileMetadata | null> {
+    const currentUserId = this.requireCurrentUserId();
+    try {
+      return await this.pb.collection<ProfileMetadata>('profile_metadata').getFirstListItem(`user="${currentUserId}"`);
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && (error as { status?: unknown }).status === 404) return null;
+      throw error;
+    }
+  }
+
+  async saveCurrentProfileMetadata(input: SaveProfileMetadataInput): Promise<ProfileMetadata> {
+    const currentUserId = this.requireCurrentUserId();
+    const metadata = await this.getCurrentProfileMetadata();
+    if (metadata) {
+      return this.pb.collection<ProfileMetadata>('profile_metadata').update(metadata.id, input);
+    }
+    return this.pb.collection<ProfileMetadata>('profile_metadata').create({ ...input, user: currentUserId });
+  }
+
   async setLinkOverridesForCvProfile(profileId: string, linkOverrides: CvProfile['linkOverrides']): Promise<CvProfile> {
     const profile = await this.getCurrentUserCvProfileById(profileId);
     const updated = await this.pb.collection<CvProfile>('cv_profiles').update(profile.id, { linkOverrides });
@@ -530,6 +550,7 @@ export class PocketBaseService {
       'hobbies',
       'files',
       'ai_tokens',
+      'profile_metadata',
     ];
 
     for (const collection of ownedCollections) {
@@ -560,6 +581,7 @@ export class PocketBaseService {
       { name: 'files', sort: '+sortOrder,+name' },
       { name: 'cv_profiles', sort: '+label' },
       { name: 'ai_tokens', sort: '-created' },
+      { name: 'profile_metadata', sort: '-updated' },
     ];
 
     const results: Record<string, unknown> = {
@@ -771,8 +793,6 @@ export class PocketBaseService {
 
     return {
       ...user,
-      writingStyleDescription: user.writingStyleDescription ?? null,
-      writingStyleUrl: user.writingStyleUrl ?? null,
       profilePicture: this.getFileFieldUrl(user as unknown as RecordModel, user.profilePicture),
       coverPicture: this.getFileFieldUrl(user as unknown as RecordModel, user.coverPicture),
     };

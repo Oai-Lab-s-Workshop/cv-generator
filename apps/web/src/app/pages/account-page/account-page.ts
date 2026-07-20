@@ -41,13 +41,17 @@ export class AccountPage implements OnInit {
   readonly exportSuccessMessage = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.loadWritingStyleFields();
+    void this.loadWritingStyleFields();
   }
 
-  private loadWritingStyleFields(): void {
-    const user = this.currentUser();
-    this.writingStyleDescription.set(user?.writingStyleDescription ?? '');
-    this.writingStyleUrl.set(user?.writingStyleUrl ?? '');
+  private async loadWritingStyleFields(): Promise<void> {
+    try {
+      const metadata = await this.pocketBaseService.getCurrentProfileMetadata();
+      this.writingStyleDescription.set(metadata?.writingStyleDescription ?? '');
+      this.writingStyleUrl.set(metadata?.writingStyleUrl ?? '');
+    } catch (error: unknown) {
+      this.writingStyleErrorMessage.set(getErrorMessage(error));
+    }
   }
 
   async saveWritingStyleFields(): Promise<void> {
@@ -56,12 +60,10 @@ export class AccountPage implements OnInit {
     this.isSavingWritingStyle.set(true);
 
     try {
-      await this.pocketBaseService.updateCurrentUser({
+      await this.pocketBaseService.saveCurrentProfileMetadata({
         writingStyleDescription: this.writingStyleDescription() || null,
         writingStyleUrl: this.writingStyleUrl() || null,
       });
-      await this.authService.refreshCurrentUser();
-      this.loadWritingStyleFields();
       this.writingStyleSuccessMessage.set('Préférences de style enregistrées avec succès.');
     } catch (error: unknown) {
       this.writingStyleErrorMessage.set(getErrorMessage(error));
