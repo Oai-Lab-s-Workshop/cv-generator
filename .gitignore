@@ -34,3 +34,6 @@ apps/web/test-results.xml
 .playwright-mcp/
 backend/mcp/target/
 backend/mcp/.mvn/
+
+# Local-only working docs (purged from history; kept on disk)
+docs/
