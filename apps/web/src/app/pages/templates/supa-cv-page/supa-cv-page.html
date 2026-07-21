@@ -94,7 +94,7 @@
         </aside>
         
         <main class="resume-main" #resumeMain>
-            <section class="section--panel" [attr.data-mode]="sectionModes().projects">
+            <section class="section--panel" [attr.data-mode]="sectionModes().projects" [attr.data-projects-desc]="projectDescriptionMode()">
                 @if (data.projects.length > 0) {
                     <h3>Mes derniers projets</h3>
                     <section class="avoid-break project-stack">
@@ -128,7 +128,7 @@
                                     <div class="full">
                                         <p>{{ getDate(job.startDate) }} - {{ job.endDate ? getDate(job.endDate) : 'Present' }} @if(job.location) {<i icon class="bi bi-geo-alt-fill"></i> {{ job.location }}} </p>
                                     </div>
-                                    <div class="full">
+                                    <div class="job-description" [class.is-hidden]="!isJobDescriptionVisible(job)">
                                         <p [innerHTML]="job.responsibilities"></p>
                                     </div>
                                 </div>
