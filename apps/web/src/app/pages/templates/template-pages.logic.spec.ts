@@ -171,12 +171,40 @@ describe('CV template page logic', () => {
     (component as never as { resumeRoot?: { nativeElement: unknown }; resumeMain?: { nativeElement: unknown } }).resumeMain = { nativeElement: main };
     expect(api['mainFits']()).toBe(false);
     api['fitSectionsToA4']();
+    // Page never fits: the full ladder runs. Project descriptions are trimmed/hidden and the
+    // current/last job description is only removed as a last resort, before the section fallbacks.
+    expect(component.projectDescriptionMode()).toBe('hide-linked');
+    expect(component.experienceDescriptions()).toBe('none');
+    expect(component.sectionModes().skills).toBe('compact');
+    expect(component.sectionModes().diplomas).toBe('compact');
     expect(component.sectionModes().projects).toBe('compact');
     expect(component.visibleProjectCount()).toBeGreaterThanOrEqual(1);
 
     (main as { scrollHeight: number }).scrollHeight = 100;
     api['fitSectionsToA4']();
     expect(component.sectionModes().experience).toBe('full');
+    expect(component.experienceDescriptions()).toBe('all');
+    expect(component.projectDescriptionMode()).toBe('full');
+
+    // highlightedJob: with no endDate on any job, the most recent (job-2) is highlighted.
+    const jobs = data.jobs as { id: string; endDate?: string }[];
+    expect((api['highlightedJob'](jobs) as { id: string }).id).toBe('job-2');
+    // When one job is current (no endDate) it wins over an earlier ended job.
+    const mixedJobs = [
+      { id: 'ended', startDate: '2023-01-01', endDate: '2023-12-01' },
+      { id: 'current', startDate: '2021-01-01' },
+    ];
+    expect((api['highlightedJob'](mixedJobs) as { id: string }).id).toBe('current');
+    expect(api['highlightedJob']([])).toBeNull();
+
+    // isJobDescriptionVisible respects the experience-description mode.
+    component.experienceDescriptions.set('all');
+    expect(api['isJobDescriptionVisible'](jobs[0])).toBe(true);
+    component.experienceDescriptions.set('none');
+    expect(api['isJobDescriptionVisible'](jobs[1])).toBe(false);
+    component.experienceDescriptions.set('highlighted');
+    expect(api['isJobDescriptionVisible']({ id: 'job-2' })).toBe(true);
+    expect(api['isJobDescriptionVisible']({ id: 'job-1' })).toBe(false);
   });
 
   it('covers template pages error and previewData load paths', async () => {
