@@ -397,6 +397,24 @@ app-education-chip .copy {
     .full{ display: none;}
 }
 
+.job-description.is-hidden {
+    display: none;
+}
+
+/* Trim project descriptions to 3 lines with an ellipsis. */
+.resume-main [data-projects-desc="clamped"] .project-card__description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    max-height: none;
+}
+
+/* Remove descriptions only on projects that carry a link (reader can follow the URL). */
+.resume-main [data-projects-desc="hide-linked"] .card.project:has(.project-card__link) .project-card__description {
+    display: none;
+}
+
 
 
 @media print {

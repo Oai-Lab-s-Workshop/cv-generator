@@ -28,6 +28,8 @@ import { Job } from '../../../core/models/job.model';
 
 type SectionKey = 'projects' | 'experience' | 'skills' | 'diplomas';
 type SectionMode = 'full' | 'compact';
+type ExperienceDescriptionMode = 'all' | 'highlighted' | 'none';
+type ProjectDescriptionMode = 'full' | 'clamped' | 'hide-linked';
 
 @Component({
   selector: 'app-supa-cv-page',
@@ -45,7 +47,6 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
   private readonly pageHeightMm = 297;
   private requestId = 0;
   private fitFrameId: number | null = null;
-  private readonly sectionPriority: SectionKey[] = ['experience', 'projects', 'skills', 'diplomas'];
 
   @ViewChild('resumeRoot') private readonly resumeRoot?: ElementRef<HTMLElement>;
   @ViewChild('resumeMain') private readonly resumeMain?: ElementRef<HTMLElement>;
@@ -62,6 +63,8 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
     skills: 'full',
     diplomas: 'full',
   });
+  readonly experienceDescriptions = signal<ExperienceDescriptionMode>('all');
+  readonly projectDescriptionMode = signal<ProjectDescriptionMode>('full');
 
   protected getDate(dateStr: string | null | undefined): string {
     const date = this.pocketBaseService.toDate(dateStr);
@@ -118,6 +121,32 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
         return (left.job.sortOrder ?? left.index) - (right.job.sortOrder ?? right.index);
       })
       .map(({ job }) => job);
+  }
+
+  protected highlightedJob(jobs: Job[]): Job | null {
+    const ordered = this.chronologicalJobs(jobs);
+
+    if (ordered.length === 0) {
+      return null;
+    }
+
+    const current = ordered.filter((job) => !job.endDate);
+
+    return current.length ? current[current.length - 1] : ordered[ordered.length - 1];
+  }
+
+  protected isJobDescriptionVisible(job: Job): boolean {
+    const mode = this.experienceDescriptions();
+
+    if (mode === 'all') {
+      return true;
+    }
+
+    if (mode === 'none') {
+      return false;
+    }
+
+    return job.id === this.highlightedJob(this.cvData()?.jobs ?? [])?.id;
   }
 
   ngOnInit(): void {
@@ -221,8 +250,12 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    const compact = this.extraBoolean('compactMode');
+    const defaultMode: SectionMode = compact ? 'compact' : 'full';
+
     this.visibleProjectCount.set(projectCount);
-    const defaultMode: SectionMode = this.extraBoolean('compactMode') ? 'compact' : 'full';
+    this.experienceDescriptions.set(compact ? 'highlighted' : 'all');
+    this.projectDescriptionMode.set(compact ? 'clamped' : 'full');
     this.sectionModes.set({
       projects: defaultMode,
       experience: defaultMode,
@@ -235,18 +268,20 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    for (const sectionKey of this.sectionPriority) {
-      if (sectionKey === 'projects') {
-        this.fitProjectsSection(projectCount);
+    // Escalation ladder, applied until the page fits. Ordered so project descriptions are
+    // trimmed then removed before the current/last job's description is ever hidden.
+    const steps: Array<() => void> = [
+      () => this.experienceDescriptions.set('highlighted'), // keep only current/last job description
+      () => this.projectDescriptionMode.set('clamped'), // 3 lines + ellipsis
+      () => this.projectDescriptionMode.set('hide-linked'), // drop descriptions on linked projects
+      () => this.experienceDescriptions.set('none'), // last resort: remove current/last job description
+      () => this.sectionModes.update((modes) => ({ ...modes, skills: 'compact' })),
+      () => this.sectionModes.update((modes) => ({ ...modes, diplomas: 'compact' })),
+      () => this.fitProjectsSection(projectCount), // reduce visible project cards (floor 2)
+    ];
 
-        if (this.mainFits()) {
-          return;
-        }
-
-        continue;
-      }
-
-      this.sectionModes.update((modes) => ({ ...modes, [sectionKey]: 'compact' }));
+    for (const applyStep of steps) {
+      applyStep();
       this.changeDetectorRef.detectChanges();
 
       if (this.mainFits()) {

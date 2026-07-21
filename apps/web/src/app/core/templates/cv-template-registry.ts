@@ -66,7 +66,7 @@ export const CV_TEMPLATE_OPTIONS: CvTemplateOption[] = [
   },
   {
     id: 'supa',
-    label: 'Supa (Figma)',
+    label: 'Supa',
     component: SupaCVPage,
     extraSchema: [
       {
