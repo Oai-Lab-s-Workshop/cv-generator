@@ -5,6 +5,7 @@ import com.resumate.mcp.service.PocketBaseClient.AiTokenRecord;
 import com.resumate.mcp.service.PocketBaseClient.CreatedProfileRecord;
 import com.resumate.mcp.service.PocketBaseClient.ProfileMaterialBundle;
 import com.resumate.mcp.service.PocketBaseClient.TemplateDescriptor;
+import com.resumate.mcp.service.PocketBaseClient.UpdatedProfileRecord;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -493,6 +494,41 @@ class PocketBaseClientTest {
         assertThat(updateRequest.getPath()).isEqualTo("/api/collections/oauth_authorizations/records/authRecordId");
         assertThat(deleteRequest.getMethod()).isEqualTo("DELETE");
         assertThat(deleteRequest.getPath()).isEqualTo("/api/collections/oauth_authorizations/records/authRecordId");
+    }
+
+    @Test
+    void updateCvProfile_sendsPatchToRecordEndpoint() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("""
+                {
+                    "id": "profile-42",
+                    "slug": "classic--updated-profile-42"
+                }
+                """);
+
+        Map<String, Object> patchBody = new java.util.LinkedHashMap<>();
+        patchBody.put("label", "Updated Label");
+        patchBody.put("professionalSummary", "Updated summary text");
+        patchBody.put("public", false);
+
+        UpdatedProfileRecord result = client.updateCvProfile("profile-42", patchBody);
+
+        assertThat(result.id()).isEqualTo("profile-42");
+        assertThat(result.slug()).isEqualTo("classic--updated-profile-42");
+
+        mockWebServer.takeRequest(); // service-user auth
+        RecordedRequest updateRequest = mockWebServer.takeRequest();
+
+        assertThat(updateRequest.getMethod()).isEqualTo("PATCH");
+        assertThat(updateRequest.getPath())
+                .isEqualTo("/api/collections/cv_profiles/records/profile-42");
+        assertThat(updateRequest.getHeader(HttpHeaders.CONTENT_TYPE))
+                .isEqualTo("application/json");
+
+        String body = updateRequest.getBody().readUtf8();
+        assertThat(body).contains("\"label\":\"Updated Label\"");
+        assertThat(body).contains("\"professionalSummary\":\"Updated summary text\"");
+        assertThat(body).contains("\"public\":false");
     }
 
     @Test

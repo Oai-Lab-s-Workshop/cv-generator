@@ -6,8 +6,10 @@ import com.resumate.mcp.security.McpPrincipal;
 import com.resumate.mcp.service.PocketBaseClient;
 import com.resumate.mcp.service.PocketBaseClient.CreatedProfileRecord;
 import com.resumate.mcp.service.PocketBaseClient.CreateProfilePayload;
+import com.resumate.mcp.service.PocketBaseClient.CvProfileRecord;
 import com.resumate.mcp.service.PocketBaseClient.ProfileMaterialBundle;
 import com.resumate.mcp.service.PocketBaseClient.TemplateDescriptor;
+import com.resumate.mcp.service.PocketBaseClient.UpdatedProfileRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -574,6 +577,124 @@ class CvMcpToolsTest {
         CvMcpTools.UpdateCvProfileResponse response = cvMcpTools.updateCvProfile(request);
         assertThat(response.profileId()).isEqualTo("profileId");
         assertThat(response.slug()).isEqualTo("my-slug");
+        verify(pocketBaseClient, never()).createTailoredProfile(any(), any(CreateProfilePayload.class));
+    }
+
+    @Test
+    void updateCvProfile_callsUpdateNeverCreate() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.findProfileBySlugOrId("my-slug"))
+                .thenReturn(new CvProfileRecord("profileId", "my-slug", "userId", "classic", Map.of()));
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "desc", List.of())
+        ));
+        when(pocketBaseClient.updateCvProfile(eq("profileId"), any()))
+                .thenReturn(new UpdatedProfileRecord("profileId", "my-slug"));
+
+        CvMcpTools.UpdateCvProfileResponse response = cvMcpTools.updateCvProfile(
+                new CvMcpTools.UpdateCvProfileRequest(
+                        "my-slug",
+                        "New Label", null, null, null,
+                        "Updated summary",
+                        null, null, null, null, null, null,
+                        null, null
+                )
+        );
+
+        assertThat(response.profileId()).isEqualTo("profileId");
+        assertThat(response.slug()).isEqualTo("my-slug");
+        verify(pocketBaseClient).updateCvProfile(eq("profileId"), any());
+        verify(pocketBaseClient, never()).createTailoredProfile(any(), any(CreateProfilePayload.class));
+    }
+
+    @Test
+    void updateCvProfile_missingProfile_throwsAndInvokesNeither() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.findProfileBySlugOrId("nonexistent-slug"))
+                .thenReturn(null);
+
+        CvMcpTools.UpdateCvProfileRequest request = new CvMcpTools.UpdateCvProfileRequest(
+                "nonexistent-slug",
+                "New Label", null, null, null, null,
+                null, null, null, null, null, null, null, null
+        );
+
+        assertThatThrownBy(() -> cvMcpTools.updateCvProfile(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Profile not found");
+
+        verify(pocketBaseClient, never()).updateCvProfile(any(), any());
+        verify(pocketBaseClient, never()).createTailoredProfile(any(), any(CreateProfilePayload.class));
+    }
+
+    @Test
+    void updateCvProfile_rejectsWrongOwnerNeverCreates() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        when(pocketBaseClient.findProfileBySlugOrId("foreign-slug"))
+                .thenReturn(new CvProfileRecord("foreign-id", "foreign-slug", "other-user", "classic", Map.of()));
+
+        CvMcpTools.UpdateCvProfileRequest request = new CvMcpTools.UpdateCvProfileRequest(
+                "foreign-slug",
+                "New Label", null, null, null, null,
+                null, null, null, null, null, null, null, null
+        );
+
+        assertThatThrownBy(() -> cvMcpTools.updateCvProfile(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not belong");
+
+        verify(pocketBaseClient, never()).updateCvProfile(any(), any());
+        verify(pocketBaseClient, never()).createTailoredProfile(any(), any(CreateProfilePayload.class));
+    }
+
+    @Test
+    void updateCvProfile_nullRequest_throwsIdentifierRequiredNeverCreates() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        assertThatThrownBy(() -> cvMcpTools.updateCvProfile(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("profileSlug is required");
+
+        verify(pocketBaseClient, never()).findProfileBySlugOrId(any());
+        verify(pocketBaseClient, never()).updateCvProfile(any(), any());
+        verify(pocketBaseClient, never()).createTailoredProfile(any(), any(CreateProfilePayload.class));
+    }
+
+    @Test
+    void updateCvProfile_blankSlug_throwsIdentifierRequiredNeverCreates() {
+        AiTokenPrincipal principal = new AiTokenPrincipal(
+                "tokenId", "userId", "label"
+        );
+        setAuthentication(principal);
+
+        CvMcpTools.UpdateCvProfileRequest request = new CvMcpTools.UpdateCvProfileRequest(
+                "   ",
+                "New Label", null, null, null, null,
+                null, null, null, null, null, null, null, null
+        );
+
+        assertThatThrownBy(() -> cvMcpTools.updateCvProfile(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("profileSlug is required");
+
+        verify(pocketBaseClient, never()).findProfileBySlugOrId(any());
+        verify(pocketBaseClient, never()).updateCvProfile(any(), any());
+        verify(pocketBaseClient, never()).createTailoredProfile(any(), any(CreateProfilePayload.class));
     }
     private record TestMcpPrincipal(String userId, String label, String authSource) implements McpPrincipal {
         @Override
