@@ -9,6 +9,7 @@ import com.resumate.mcp.service.PocketBaseClient;
 import com.resumate.mcp.support.OAuthTestPropertiesInitializer;
 import com.resumate.mcp.tool.CvMcpTools;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.mcp.server.common.autoconfigure.properties.McpServerProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -58,6 +59,9 @@ class McpServerIntegrationTest {
     @Autowired
     private McpToolConfiguration mcpToolConfiguration;
 
+    @Autowired
+    private McpServerProperties mcpServerProperties;
+
     @Test
     void contextLoads() {
     }
@@ -105,5 +109,47 @@ class McpServerIntegrationTest {
                 pocketBaseClient.resolveAvailableTemplates();
 
         assertThat(templates).hasSize(2);
+    }
+
+    @Test
+    void runtimeInstructions_coverRequiredGuidance() {
+        assertThat(mcpServerProperties).isNotNull();
+
+        String instructions = mcpServerProperties.getInstructions();
+        assertThat(instructions).isNotNull().isNotBlank();
+
+        // The instructions must stand alone: an MCP host never fetches mcp/AGENTS.md for us.
+        assertThat(instructions).doesNotContain("Read mcp/AGENTS.md");
+        assertThat(instructions).doesNotContain("AGENTS.md");
+
+        // Material-first workflow.
+        assertThat(instructions).contains("listTemplates");
+        assertThat(instructions).contains("listProfileMaterial");
+
+        // Holistic portrait before selection.
+        assertThat(instructions).contains("holistic portrait");
+
+        // Displayed role title is synthesised, not copied, and never carries the user's name.
+        assertThat(instructions).contains("profileName");
+        assertThat(instructions).contains("coherent middle ground");
+        assertThat(instructions).contains("Do not copy the job offer listing title verbatim");
+        assertThat(instructions).contains("never include the user's name in profileName");
+
+        // Summary is drafted only once the rest of the material is selected.
+        assertThat(instructions).contains("professionalSummary");
+        assertThat(instructions).contains("Only after every other selection is final");
+
+        // Existing safety guidance survives.
+        assertThat(instructions).contains("do not create new source records");
+        assertThat(instructions).contains("updateCvProfile");
+        assertThat(instructions).contains("idempotencyKey");
+        assertThat(instructions).contains("deduplicated");
+
+        // The createTailoredCvProfile call step itself must require profileName and professionalSummary.
+        int createIdx = instructions.indexOf("Call createTailoredCvProfile");
+        assertThat(createIdx).as("instructions must contain the createTailoredCvProfile step").isGreaterThan(-1);
+        String createSection = instructions.substring(createIdx);
+        assertThat(createSection).contains("profileName");
+        assertThat(createSection).contains("professionalSummary");
     }
 }
