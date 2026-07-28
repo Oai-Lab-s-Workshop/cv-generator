@@ -55,7 +55,6 @@ public class PocketBaseClient {
                     "Supa",
                     "Clean, compact, print-first CV designed to fit into a single A4 page. Dynamic sizing, great for showcasing lots of projects.",
                     List.of(
-                            new ExtraFieldDescriptor("featuredProjectIds", "Featured projects", "multi_select", false, "Project IDs to emphasize in the compact Supa layout. Choose projects most relevant to the target role.", "projects", List.of()),
                             new ExtraFieldDescriptor("compactMode", "Compact mode", "boolean", false, "Whether the template should aggressively reduce spacing to fit more content on one A4 page.", null, List.of())
                     )
             ),

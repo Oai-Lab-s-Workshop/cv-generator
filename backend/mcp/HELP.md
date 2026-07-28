@@ -122,7 +122,6 @@ Current supported examples:
 - `bento.qrCodeUrl`: URL encoded into the QR code on the bento card. Leave empty to auto-generate from the profile public route.
 - `modern.headline`: string shown near the candidate name
 - `modern.accentColor`: CSS color string used as the visual accent
-- `supa.featuredProjectIds`: array of owned project IDs to prioritize in the project section
 - `supa.compactMode`: boolean requesting more compact A4 layout behavior
 
 ## Local run
