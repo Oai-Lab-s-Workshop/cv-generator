@@ -288,13 +288,17 @@ public class PocketBaseClient {
     public CvProfileRecord findProfileBySlugOrId(String slugOrId) {
         RecordListResponse<CvProfileRecord> response = getCollectionRecords(
                 "cv_profiles",
-                String.format("slug=\"%s\"||id=\"%s\"", escapeFilterValue(slugOrId), escapeFilterValue(slugOrId)),
+                String.format("(slug=\"%s\"||id=\"%s\")", escapeFilterValue(slugOrId), escapeFilterValue(slugOrId)),
                 1,
                 new ParameterizedTypeReference<>() {
                 }
         );
 
-        return response.items().stream().findFirst().orElse(null);
+        CvProfileRecord profile = response.items() != null ? response.items().stream().findFirst().orElse(null) : null;
+        if (profile == null) {
+            logger.warn("PocketBase cv_profiles lookup returned no match slugOrId={}", slugOrId);
+        }
+        return profile;
     }
 
     public UpdatedProfileRecord updateCvProfile(String profileId, Map<String, Object> patchBody) {

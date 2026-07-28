@@ -10,6 +10,8 @@ import com.resumate.mcp.service.PocketBaseClient.CvProfileRecord;
 import com.resumate.mcp.service.PocketBaseClient.ProfileMaterialBundle;
 import com.resumate.mcp.service.PocketBaseClient.TemplateDescriptor;
 import com.resumate.mcp.service.PocketBaseClient.UpdatedProfileRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.security.core.Authentication;
@@ -28,6 +30,8 @@ public class CvMcpTools {
     private static final String RESUMATE_MCP_PURPOSE = "Resumate MCP creates tailored public CV/resume profiles from the authenticated user's existing data and returns a shareable frontend URL. Do not invent template ids or record ids.";
 
     private static final String CREATE_PROFILE_WORKFLOW = "Workflow for tailoring requests: call listTemplates, choose one returned template id, call listProfileMaterial, select only returned user-owned record ids, then call createTailoredCvProfile with label, templateId, professionalSummary, selected id arrays, and supported templateExtra fields.";
+
+    private static final Logger logger = LoggerFactory.getLogger(CvMcpTools.class);
 
     private final PocketBaseClient pocketBaseClient;
     private final FrontendProperties frontendProperties;
@@ -141,9 +145,15 @@ public class CvMcpTools {
     private UpdatedProfileRecord doUpdateCvProfile(String userId, String profileSlug, UpdateCvProfileRequest request) {
         CvProfileRecord profile = pocketBaseClient.findProfileBySlugOrId(profileSlug);
         if (profile == null) {
-            throw new IllegalArgumentException("Profile not found: " + profileSlug + ". Verify the slug or id matches an existing profile owned by you.");
+            logger.warn("doUpdateCvProfile: no profile matched slugOrId='{}' for userId='{}'. This may indicate a missing profile or insufficient permissions (check isMcpServiceAccount flag).", profileSlug, userId);
+            throw new IllegalArgumentException(
+                    "Profile not found: '" + profileSlug + "'. No existing profile matches this slug or id, " +
+                    "or you may not have permission to access it. Verify you are using the exact slug returned " +
+                    "by createTailoredCvProfile or the profile's PocketBase record id, and that your service account has the required permissions."
+            );
         }
         if (!userId.equals(profile.user())) {
+            logger.warn("doUpdateCvProfile: profile ownership mismatch — profile.user='{}' does not match userId='{}' for slugOrId='{}'", profile.user(), userId, profileSlug);
             throw new IllegalArgumentException("Profile does not belong to the authenticated user.");
         }
 
