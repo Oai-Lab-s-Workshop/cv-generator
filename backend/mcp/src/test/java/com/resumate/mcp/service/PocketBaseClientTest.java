@@ -208,6 +208,65 @@ class PocketBaseClientTest {
     }
 
     @Test
+    void listCvProfilesForUser_filtersByOwnerAndSortsByMostRecent() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("""
+                {
+                    "items": [{
+                        "id": "profile1",
+                        "slug": "classic--acme-dev-1",
+                        "label": "Acme - Dev",
+                        "profileName": "Acme Dev CV",
+                        "template": "classic",
+                        "public": true,
+                        "user": "userId",
+                        "updated_at": "2026-07-20 10:00:00.000Z"
+                    }]
+                }
+                """);
+
+        List<PocketBaseClient.CvProfileSummaryRecord> profiles = client.listCvProfilesForUser("userId");
+
+        assertThat(profiles).hasSize(1);
+        assertThat(profiles.get(0).id()).isEqualTo("profile1");
+        assertThat(profiles.get(0).slug()).isEqualTo("classic--acme-dev-1");
+        assertThat(profiles.get(0).label()).isEqualTo("Acme - Dev");
+        assertThat(profiles.get(0).profileName()).isEqualTo("Acme Dev CV");
+        assertThat(profiles.get(0).template()).isEqualTo("classic");
+        assertThat(profiles.get(0).publicProfile()).isTrue();
+        assertThat(profiles.get(0).updatedAt()).isEqualTo("2026-07-20 10:00:00.000Z");
+
+        mockWebServer.takeRequest();
+        RecordedRequest listRequest = mockWebServer.takeRequest();
+        assertThat(listRequest.getPath())
+                .startsWith("/api/collections/cv_profiles/records?")
+                .contains("filter=user%3D%22userId%22");
+        assertThat(listRequest.getRequestUrl().queryParameter("sort")).isEqualTo("-updated_at");
+        assertThat(listRequest.getRequestUrl().queryParameter("perPage")).isEqualTo("200");
+    }
+
+    @Test
+    void listCvProfilesForUser_returnsEmptyList_whenNoProfilesExist() {
+        enqueueAuthResponse();
+        enqueueJsonResponse("{\"items\": []}");
+
+        assertThat(client.listCvProfilesForUser("userId")).isEmpty();
+    }
+
+    @Test
+    void listCvProfilesForUser_escapesQuotesInUserId() throws InterruptedException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("{\"items\": []}");
+
+        client.listCvProfilesForUser("user\"Id");
+
+        mockWebServer.takeRequest();
+        RecordedRequest listRequest = mockWebServer.takeRequest();
+        assertThat(listRequest.getRequestUrl().queryParameter("filter"))
+                .isEqualTo("user=\"user\\\"Id\"");
+    }
+
+    @Test
     void createTailoredProfile_returnsCreatedRecord() throws InterruptedException {
         enqueueAuthResponse();
         enqueueJsonResponse("""

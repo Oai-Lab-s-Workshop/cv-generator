@@ -31,6 +31,8 @@ public class PocketBaseClient {
     public static final String OAUTH_RECORD_TYPE_AUTHORIZATION = "authorization";
     public static final String OAUTH_RECORD_TYPE_CONSENT = "consent";
 
+    private static final int CV_PROFILE_LIST_PAGE_SIZE = 200;
+
     private static final List<TemplateDescriptor> TEMPLATE_DESCRIPTORS = List.of(
             new TemplateDescriptor("classic", "Classic", "Two-column CV with grouped experience, a dedicated contact panel, and categorized skills.", List.of()),
             new TemplateDescriptor(
@@ -283,6 +285,19 @@ public class PocketBaseClient {
                 throw new IllegalArgumentException("One or more selected records do not belong to the API key owner.");
             }
         }
+    }
+
+    public List<CvProfileSummaryRecord> listCvProfilesForUser(String userId) {
+        RecordListResponse<CvProfileSummaryRecord> response = getCollectionRecords(
+                "cv_profiles",
+                String.format("user=\"%s\"", escapeFilterValue(userId)),
+                CV_PROFILE_LIST_PAGE_SIZE,
+                new ParameterizedTypeReference<>() {
+                },
+                "-updated_at"
+        );
+
+        return response.items();
     }
 
     public CvProfileRecord findProfileBySlugOrId(String slugOrId) {
@@ -789,6 +804,18 @@ public class PocketBaseClient {
             String user,
             String template,
             Map<String, Object> extra
+    ) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record CvProfileSummaryRecord(
+            String id,
+            String slug,
+            String label,
+            String profileName,
+            String template,
+            @JsonProperty("public") Boolean publicProfile,
+            @JsonProperty("updated_at") String updatedAt
     ) {
     }
 

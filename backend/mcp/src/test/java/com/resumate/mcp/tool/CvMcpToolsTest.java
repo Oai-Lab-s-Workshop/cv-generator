@@ -131,6 +131,69 @@ class CvMcpToolsTest {
     }
 
     @Test
+    void listCvProfiles_returnsOwnedProfilesWithFrontendUrls() {
+        setAuthentication(new AiTokenPrincipal("tokenId", "userId", "label"));
+
+        when(pocketBaseClient.listCvProfilesForUser("userId")).thenReturn(List.of(
+                new PocketBaseClient.CvProfileSummaryRecord(
+                        "profile1", "classic--acme-dev-1", "Acme - Dev", "Acme Dev CV", "classic", true, "2026-07-20 10:00:00.000Z"
+                ),
+                new PocketBaseClient.CvProfileSummaryRecord(
+                        "profile2", "supa--globex-lead-2", "Globex - Lead", "Globex Lead CV", "supa", false, "2026-07-19 10:00:00.000Z"
+                )
+        ));
+
+        CvMcpTools.ListCvProfilesResponse response = cvMcpTools.listCvProfiles();
+
+        assertThat(response.profiles()).hasSize(2);
+        CvMcpTools.CvProfileSummary first = response.profiles().get(0);
+        assertThat(first.profileId()).isEqualTo("profile1");
+        assertThat(first.slug()).isEqualTo("classic--acme-dev-1");
+        assertThat(first.label()).isEqualTo("Acme - Dev");
+        assertThat(first.profileName()).isEqualTo("Acme Dev CV");
+        assertThat(first.templateId()).isEqualTo("classic");
+        assertThat(first.publicProfile()).isTrue();
+        assertThat(first.updatedAt()).isEqualTo("2026-07-20 10:00:00.000Z");
+        assertThat(first.frontendUrl()).isEqualTo("https://resumate.app/classic--acme-dev-1");
+        assertThat(response.profiles().get(1).frontendUrl()).isEqualTo("https://resumate.app/supa--globex-lead-2");
+        verify(pocketBaseClient).listCvProfilesForUser("userId");
+    }
+
+    @Test
+    void listCvProfiles_returnsEmptyList_whenUserHasNoProfiles() {
+        setAuthentication(new AiTokenPrincipal("tokenId", "userId", "label"));
+        when(pocketBaseClient.listCvProfilesForUser("userId")).thenReturn(List.of());
+
+        CvMcpTools.ListCvProfilesResponse response = cvMcpTools.listCvProfiles();
+
+        assertThat(response.profiles()).isEmpty();
+    }
+
+    @Test
+    void listCvProfiles_scopesToAuthenticatedPrincipal() {
+        setAuthentication(new TestMcpPrincipal("oauth-user", "claude.ai", "OAUTH"));
+        when(pocketBaseClient.listCvProfilesForUser("oauth-user")).thenReturn(List.of(
+                new PocketBaseClient.CvProfileSummaryRecord(
+                        "profile1", "classic--slug", "Label", "Name", "classic", true, "2026-07-20 10:00:00.000Z"
+                )
+        ));
+
+        CvMcpTools.ListCvProfilesResponse response = cvMcpTools.listCvProfiles();
+
+        assertThat(response.profiles()).hasSize(1);
+        verify(pocketBaseClient).listCvProfilesForUser("oauth-user");
+    }
+
+    @Test
+    void listCvProfiles_throws_whenNoAuthentication() {
+        SecurityContextHolder.clearContext();
+
+        assertThatThrownBy(() -> cvMcpTools.listCvProfiles())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Authenticated MCP principal is required.");
+    }
+
+    @Test
     void createTailoredCvProfile_happyPath() {
         AiTokenPrincipal principal = new AiTokenPrincipal(
                 "tokenId", "userId", "label"

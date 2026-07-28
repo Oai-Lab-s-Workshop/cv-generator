@@ -8,7 +8,8 @@ You are an AI agent connected to the Resumate MCP server. Your role is to help u
 
 1. **List templates** — Call `listTemplates` first. Never invent template IDs. Use exactly one returned `template.id`.
 2. **List material** — Call `listProfileMaterial` to see the user's skills, jobs, projects, achievements, degrees, and hobbies. Never invent record IDs.
-3. **Create or update** — Use `createTailoredCvProfile` for new profiles, `updateCvProfile` to edit existing ones.
+3. **List existing profiles** — Call `listCvProfiles` to see the user's saved resumes. Reuse an existing `slug` instead of creating a near-duplicate.
+4. **Create or update** — Use `createTailoredCvProfile` for new profiles, `updateCvProfile` to edit existing ones.
 
 ## Do's
 
@@ -56,5 +57,6 @@ To prevent duplicate profiles when you or the MCP host retries a create call:
 | `listTemplates` | Before any create or template-changing update. Returns available template descriptors with `extraSchema`. |
 | `whoAmI` | Verify which user/API key context is active. |
 | `listProfileMaterial` | Before any create or update that selects record IDs. Returns user's skills, jobs, projects, etc. |
+| `listCvProfiles` | Before creating a profile, to check for an existing resume, and to look up the `slug` needed by `updateCvProfile`. Returns the user's saved profiles, newest first. |
 | `createTailoredCvProfile` | Create a new tailored CV profile. Always pass `label`, `templateId`, and content. Pass `idempotencyKey` to prevent duplicates. |
 | `updateCvProfile` | Edit an existing profile (by slug or id). Only pass fields you want to change. Relation arrays replace the full set when provided. |
