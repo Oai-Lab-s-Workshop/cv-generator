@@ -1,0 +1,14 @@
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/MaterialMcpApplication.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/annotation/Tool.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/annotation/ToolParam.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/config/FrontendProperties.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/config/PocketBaseProperties.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/dto/MaterialRequest.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/dto/MaterialResponse.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/security/AiTokenAuthenticationFilter.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/security/AiTokenAuthenticationService.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/security/AiTokenPrincipal.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/security/McpPrincipal.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/security/SecurityConfig.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/service/MaterialPocketBaseClient.java
+/Users/pcsfpsi037/www/perso/cv-generator/backend/material-mcp/src/main/java/com/resumate/materialmcp/tools/MaterialMcpTools.java

@@ -5,14 +5,7 @@ package com.resumate.materialmcp.dto;
  */
 public class MaterialResponse {
 
-    /**
-     * Response for material creation/update operations.
-     */
-    public record MaterialResult(
-            String id,
-            String slug,
-            String frontendUrl
-    ) {}
+
 
     /**
      * Response for project operations.
@@ -21,7 +14,7 @@ public class MaterialResponse {
             String id,
             String slug,
             String frontendUrl
-    ) implements MaterialResult {}
+    ) {}
 
     /**
      * Response for achievement operations.
@@ -30,7 +23,7 @@ public class MaterialResponse {
             String id,
             String slug,
             String frontendUrl
-    ) implements MaterialResult {}
+    ) {}
 
     /**
      * Response for skill operations.
@@ -39,7 +32,7 @@ public class MaterialResponse {
             String id,
             String slug,
             String frontendUrl
-    ) implements MaterialResult {}
+    ) {}
 
     /**
      * Response for job operations.
@@ -48,7 +41,7 @@ public class MaterialResponse {
             String id,
             String slug,
             String frontendUrl
-    ) implements MaterialResult {}
+    ) {}
 
     /**
      * Response for degree operations.
@@ -57,7 +50,7 @@ public class MaterialResponse {
             String id,
             String slug,
             String frontendUrl
-    ) implements MaterialResult {}
+    ) {}
 
     /**
      * Response for hobby operations.
@@ -66,5 +59,5 @@ public class MaterialResponse {
             String id,
             String slug,
             String frontendUrl
-    ) implements MaterialResult {}
+    ) {}
 }

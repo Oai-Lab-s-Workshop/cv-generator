@@ -4,15 +4,18 @@ import com.resumate.materialmcp.config.FrontendProperties;
 import com.resumate.materialmcp.dto.MaterialRequest;
 import com.resumate.materialmcp.dto.MaterialResponse;
 import com.resumate.materialmcp.service.MaterialPocketBaseClient;
-import org.springframework.ai.mcp.tool.Tool;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
 /**
  * MCP tools for material creation and management.
  */
-@Component
+@Service
+@RestController
+@RequestMapping("/api/materials")
 public class MaterialMcpTools {
 
     private final MaterialPocketBaseClient pocketBaseClient;
@@ -52,7 +55,7 @@ public class MaterialMcpTools {
                 
                 throw new IllegalArgumentException(
                         "" + action.substring(0, 1).toUpperCase() + action.substring(1) +
-                        "ing material tailored to job listings is not allowed. " +
+                        " material tailored to job listings is not allowed. " +
                         "" + action.substring(0, 1).toUpperCase() + action.substring(1) +
                         " authentic " + materialType + " based on your actual experience.");
             }
@@ -207,8 +210,8 @@ public class MaterialMcpTools {
      * @return The created project response
      * @throws IllegalArgumentException if user confirmation is missing or job-listing references are detected
      */
-    @Tool(name = "createProject", description = "Creates a new project for a user. Requires userConfirmed=true. Rejects job-listing tailored content.")
-    public MaterialResponse.ProjectResponse createProject(MaterialRequest.CreateProjectRequest request) {
+    @PostMapping("/projects")
+    public ResponseEntity<MaterialResponse.ProjectResponse> createProject(@RequestBody MaterialRequest.CreateProjectRequest request) {
         validateProjectSafety(request);
         
         Map<String, Object> result = pocketBaseClient.createProject(
@@ -225,11 +228,11 @@ public class MaterialMcpTools {
                 )
         );
         
-        return new MaterialResponse.ProjectResponse(
+        return ResponseEntity.ok(new MaterialResponse.ProjectResponse(
                 (String) result.get("id"),
                 (String) result.get("slug"),
                 frontendProperties.baseUrl() + "/projects/" + result.get("slug")
-        );
+        ));
     }
 
     /**
@@ -239,8 +242,8 @@ public class MaterialMcpTools {
      * @return The updated project response
      * @throws IllegalArgumentException if user confirmation is missing, job-listing references are detected, or ownership validation fails
      */
-    @Tool(name = "updateProject", description = "Updates an existing project for a user. Requires userConfirmed=true and ownership validation. Rejects job-listing tailored content.")
-    public MaterialResponse.ProjectResponse updateProject(String projectId, MaterialRequest.CreateProjectRequest request) {
+    @PatchMapping("/projects/{projectId}")
+    public ResponseEntity<MaterialResponse.ProjectResponse> updateProject(@PathVariable String projectId, @RequestBody MaterialRequest.CreateProjectRequest request) {
         validateProjectUpdateSafety(request);
         
         // TODO: Implement ownership validation
@@ -260,11 +263,11 @@ public class MaterialMcpTools {
                 )
         );
         
-        return new MaterialResponse.ProjectResponse(
+        return ResponseEntity.ok(new MaterialResponse.ProjectResponse(
                 (String) result.get("id"),
                 (String) result.get("slug"),
                 frontendProperties.baseUrl() + "/projects/" + result.get("slug")
-        );
+        ));
     }
 
     /**
@@ -273,8 +276,8 @@ public class MaterialMcpTools {
      * @return The created achievement response
      * @throws IllegalArgumentException if user confirmation is missing or job-listing references are detected
      */
-    @Tool(name = "createAchievement", description = "Creates a new achievement for a user. Requires userConfirmed=true. Rejects job-listing tailored content.")
-    public MaterialResponse.AchievementResponse createAchievement(MaterialRequest.CreateAchievementRequest request) {
+    @PostMapping("/achievements")
+    public ResponseEntity<MaterialResponse.AchievementResponse> createAchievement(@RequestBody MaterialRequest.CreateAchievementRequest request) {
         validateAchievementSafety(request);
         
         Map<String, Object> result = pocketBaseClient.createAchievement(
@@ -288,11 +291,11 @@ public class MaterialMcpTools {
                 )
         );
         
-        return new MaterialResponse.AchievementResponse(
+        return ResponseEntity.ok(new MaterialResponse.AchievementResponse(
                 (String) result.get("id"),
                 (String) result.get("slug"),
                 frontendProperties.baseUrl() + "/achievements/" + result.get("slug")
-        );
+        ));
     }
 
     /**
@@ -302,8 +305,8 @@ public class MaterialMcpTools {
      * @return The updated achievement response
      * @throws IllegalArgumentException if user confirmation is missing, job-listing references are detected, or ownership validation fails
      */
-    @Tool(name = "updateAchievement", description = "Updates an existing achievement for a user. Requires userConfirmed=true and ownership validation. Rejects job-listing tailored content.")
-    public MaterialResponse.AchievementResponse updateAchievement(String achievementId, MaterialRequest.CreateAchievementRequest request) {
+    @PatchMapping("/achievements/{achievementId}")
+    public ResponseEntity<MaterialResponse.AchievementResponse> updateAchievement(@PathVariable String achievementId, @RequestBody MaterialRequest.CreateAchievementRequest request) {
         validateAchievementUpdateSafety(request);
         
         // TODO: Implement ownership validation
@@ -320,11 +323,11 @@ public class MaterialMcpTools {
                 )
         );
         
-        return new MaterialResponse.AchievementResponse(
+        return ResponseEntity.ok(new MaterialResponse.AchievementResponse(
                 (String) result.get("id"),
                 (String) result.get("slug"),
                 frontendProperties.baseUrl() + "/achievements/" + result.get("slug")
-        );
+        ));
     }
 
     /**
@@ -333,8 +336,8 @@ public class MaterialMcpTools {
      * @return The created skill response
      * @throws IllegalArgumentException if user confirmation is missing or job-listing references are detected
      */
-    @Tool(name = "createSkill", description = "Creates a new skill for a user. Requires userConfirmed=true. Rejects job-listing tailored content.")
-    public MaterialResponse.SkillResponse createSkill(MaterialRequest.CreateSkillRequest request) {
+    @PostMapping("/skills")
+    public ResponseEntity<MaterialResponse.SkillResponse> createSkill(@RequestBody MaterialRequest.CreateSkillRequest request) {
         validateSkillSafety(request);
         
         Map<String, Object> result = pocketBaseClient.createSkill(
@@ -347,11 +350,11 @@ public class MaterialMcpTools {
                 )
         );
         
-        return new MaterialResponse.SkillResponse(
+        return ResponseEntity.ok(new MaterialResponse.SkillResponse(
                 (String) result.get("id"),
                 (String) result.get("slug"),
                 frontendProperties.baseUrl() + "/skills/" + result.get("slug")
-        );
+        ));
     }
 
     /**
@@ -361,8 +364,8 @@ public class MaterialMcpTools {
      * @return The updated skill response
      * @throws IllegalArgumentException if user confirmation is missing, job-listing references are detected, or ownership validation fails
      */
-    @Tool(name = "updateSkill", description = "Updates an existing skill for a user. Requires userConfirmed=true and ownership validation. Rejects job-listing tailored content.")
-    public MaterialResponse.SkillResponse updateSkill(String skillId, MaterialRequest.CreateSkillRequest request) {
+    @PatchMapping("/skills/{skillId}")
+    public ResponseEntity<MaterialResponse.SkillResponse> updateSkill(@PathVariable String skillId, @RequestBody MaterialRequest.CreateSkillRequest request) {
         validateSkillUpdateSafety(request);
         
         // TODO: Implement ownership validation
@@ -378,11 +381,11 @@ public class MaterialMcpTools {
                 )
         );
         
-        return new MaterialResponse.SkillResponse(
+        return ResponseEntity.ok(new MaterialResponse.SkillResponse(
                 (String) result.get("id"),
                 (String) result.get("slug"),
                 frontendProperties.baseUrl() + "/skills/" + result.get("slug")
-        );
+        ));
     }
 
     /**
@@ -391,8 +394,8 @@ public class MaterialMcpTools {
      * @return The created job response
      * @throws IllegalArgumentException if user confirmation is missing or job-listing references are detected
      */
-    @Tool(name = "createJob", description = "Creates a new job for a user. Requires userConfirmed=true. Rejects job-listing tailored content.")
-    public MaterialResponse.JobResponse createJob(MaterialRequest.CreateJobRequest request) {
+    @PostMapping("/jobs")
+    public ResponseEntity<MaterialResponse.JobResponse> createJob(@RequestBody MaterialRequest.CreateJobRequest request) {
         validateJobSafety(request);
         
         Map<String, Object> result = pocketBaseClient.createJob(
@@ -409,11 +412,11 @@ public class MaterialMcpTools {
                 )
         );
         
-        return new MaterialResponse.JobResponse(
+        return ResponseEntity.ok(new MaterialResponse.JobResponse(
                 (String) result.get("id"),
                 (String) result.get("slug"),
                 frontendProperties.baseUrl() + "/jobs/" + result.get("slug")
-        );
+        ));
     }
 
     /**
@@ -423,8 +426,8 @@ public class MaterialMcpTools {
      * @return The updated job response
      * @throws IllegalArgumentException if user confirmation is missing, job-listing references are detected, or ownership validation fails
      */
-    @Tool(name = "updateJob", description = "Updates an existing job for a user. Requires userConfirmed=true and ownership validation. Rejects job-listing tailored content.")
-    public MaterialResponse.JobResponse updateJob(String jobId, MaterialRequest.CreateJobRequest request) {
+    @PatchMapping("/jobs/{jobId}")
+    public ResponseEntity<MaterialResponse.JobResponse> updateJob(@PathVariable String jobId, @RequestBody MaterialRequest.CreateJobRequest request) {
         validateJobUpdateSafety(request);
         
         // TODO: Implement ownership validation
@@ -444,10 +447,10 @@ public class MaterialMcpTools {
                 )
         );
         
-        return new MaterialResponse.JobResponse(
+        return ResponseEntity.ok(new MaterialResponse.JobResponse(
                 (String) result.get("id"),
                 (String) result.get("slug"),
                 frontendProperties.baseUrl() + "/jobs/" + result.get("slug")
-        );
+        ));
     }
 }

@@ -1,6 +1,6 @@
 package com.resumate.materialmcp.dto;
 
-import org.springframework.ai.mcp.tool.ToolParam;
+
 
 /**
  * Request DTOs for material creation/update operations.
@@ -11,54 +11,54 @@ public class MaterialRequest {
      * Request for creating/updating a project.
      */
     public record CreateProjectRequest(
-            @ToolParam(description = "The user ID who owns the project") String userId,
-            @ToolParam(description = "The project data to create") ProjectData data,
-            @ToolParam(description = "User confirmation flag (must be true)") boolean userConfirmed
+            String userId,
+            ProjectData data,
+            boolean userConfirmed
     ) {}
 
     /**
      * Request for creating/updating an achievement.
      */
     public record CreateAchievementRequest(
-            @ToolParam(description = "The user ID who owns the achievement") String userId,
-            @ToolParam(description = "The achievement data to create") AchievementData data,
-            @ToolParam(description = "User confirmation flag (must be true)") boolean userConfirmed
+            String userId,
+            AchievementData data,
+            boolean userConfirmed
     ) {}
 
     /**
      * Request for creating/updating a skill.
      */
     public record CreateSkillRequest(
-            @ToolParam(description = "The user ID who owns the skill") String userId,
-            @ToolParam(description = "The skill data to create") SkillData data,
-            @ToolParam(description = "User confirmation flag (must be true)") boolean userConfirmed
+            String userId,
+            SkillData data,
+            boolean userConfirmed
     ) {}
 
     /**
      * Request for creating/updating a job.
      */
     public record CreateJobRequest(
-            @ToolParam(description = "The user ID who owns the job") String userId,
-            @ToolParam(description = "The job data to create") JobData data,
-            @ToolParam(description = "User confirmation flag (must be true)") boolean userConfirmed
+            String userId,
+            JobData data,
+            boolean userConfirmed
     ) {}
 
     /**
      * Request for creating/updating a degree.
      */
     public record CreateDegreeRequest(
-            @ToolParam(description = "The user ID who owns the degree") String userId,
-            @ToolParam(description = "The degree data to create") DegreeData data,
-            @ToolParam(description = "User confirmation flag (must be true)") boolean userConfirmed
+            String userId,
+            DegreeData data,
+            boolean userConfirmed
     ) {}
 
     /**
      * Request for creating/updating a hobby.
      */
     public record CreateHobbyRequest(
-            @ToolParam(description = "The user ID who owns the hobby") String userId,
-            @ToolParam(description = "The hobby data to create") HobbyData data,
-            @ToolParam(description = "User confirmation flag (must be true)") boolean userConfirmed
+            String userId,
+            HobbyData data,
+            boolean userConfirmed
     ) {}
 
     /**
@@ -106,7 +106,8 @@ public class MaterialRequest {
             String endDate,
             String description,
             String responsibilities,
-            String location
+            String location,
+            String requirements
     ) {}
 
     /**

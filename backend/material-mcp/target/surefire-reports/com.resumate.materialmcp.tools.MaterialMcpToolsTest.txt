@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.resumate.materialmcp.tools.MaterialMcpToolsTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.646 s -- in com.resumate.materialmcp.tools.MaterialMcpToolsTest
