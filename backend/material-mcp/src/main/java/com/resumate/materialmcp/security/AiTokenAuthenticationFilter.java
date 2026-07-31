@@ -29,7 +29,8 @@ public class AiTokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return !path.equals("/mcp") && !path.startsWith("/mcp/");
+        return !(path.equals("/mcp") || path.startsWith("/mcp/")
+                || path.equals("/api/materials") || path.startsWith("/api/materials/"));
     }
 
     @Override

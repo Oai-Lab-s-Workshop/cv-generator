@@ -65,14 +65,15 @@ public class MaterialRequest {
      * Project data structure.
      */
     public record ProjectData(
-            String title,
+            String name,
             String description,
-            String startDate,
-            String endDate,
-            String role,
-            String technologies,
-            String responsibilities,
-            String outcomes
+            String url,
+            String date,
+            String picture,
+            String type,
+            String file,
+            java.util.List<String> achievements,
+            Integer sortOrder
     ) {}
 
     /**
@@ -81,9 +82,7 @@ public class MaterialRequest {
     public record AchievementData(
             String title,
             String description,
-            String date,
-            String type,
-            String issuer
+            Integer sortOrder
     ) {}
 
     /**
@@ -91,23 +90,28 @@ public class MaterialRequest {
      */
     public record SkillData(
             String name,
-            String level,
             String category,
-            String yearsOfExperience
+            String type,
+            Integer level,
+            Integer sortOrder
     ) {}
 
     /**
      * Job data structure.
      */
     public record JobData(
-            String title,
+            String label,
             String company,
+            String position,
             String startDate,
             String endDate,
-            String description,
             String responsibilities,
             String location,
-            String requirements
+            Integer sortOrder,
+            String type,
+            java.util.List<String> skills,
+            java.util.List<String> projects,
+            java.util.List<String> achievements
     ) {}
 
     /**
@@ -115,12 +119,10 @@ public class MaterialRequest {
      */
     public record DegreeData(
             String title,
-            String institution,
-            String fieldOfStudy,
-            String startDate,
-            String endDate,
-            String grade,
-            String description
+            String school,
+            String year,
+            String level,
+            Integer sortOrder
     ) {}
 
     /**
@@ -129,6 +131,6 @@ public class MaterialRequest {
     public record HobbyData(
             String name,
             String description,
-            String category
+            Integer sortOrder
     ) {}
 }

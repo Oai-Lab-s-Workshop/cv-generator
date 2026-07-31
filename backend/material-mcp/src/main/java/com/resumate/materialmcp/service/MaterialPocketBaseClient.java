@@ -4,6 +4,7 @@ import com.resumate.materialmcp.config.PocketBaseProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -30,17 +31,7 @@ public class MaterialPocketBaseClient {
         return restClient.post()
                 .uri("/api/collections/projects/records")
                 .header("Authorization", "Bearer " + authenticate())
-                .body(Map.of(
-                        "user", userId,
-                        "title", data.get("title"),
-                        "description", data.get("description"),
-                        "startDate", data.get("startDate"),
-                        "endDate", data.get("endDate"),
-                        "role", data.get("role"),
-                        "technologies", data.get("technologies"),
-                        "responsibilities", data.get("responsibilities"),
-                        "outcomes", data.get("outcomes")
-                ))
+                .body(withUser(userId, data))
                 .retrieve()
                 .body(Map.class);
     }
@@ -70,14 +61,7 @@ public class MaterialPocketBaseClient {
         return restClient.post()
                 .uri("/api/collections/achievements/records")
                 .header("Authorization", "Bearer " + authenticate())
-                .body(Map.of(
-                        "user", userId,
-                        "title", data.get("title"),
-                        "description", data.get("description"),
-                        "date", data.get("date"),
-                        "type", data.get("type"),
-                        "issuer", data.get("issuer")
-                ))
+                .body(withUser(userId, data))
                 .retrieve()
                 .body(Map.class);
     }
@@ -107,13 +91,7 @@ public class MaterialPocketBaseClient {
         return restClient.post()
                 .uri("/api/collections/skills/records")
                 .header("Authorization", "Bearer " + authenticate())
-                .body(Map.of(
-                        "user", userId,
-                        "name", data.get("name"),
-                        "level", data.get("level"),
-                        "category", data.get("category"),
-                        "yearsOfExperience", data.get("yearsOfExperience")
-                ))
+                .body(withUser(userId, data))
                 .retrieve()
                 .body(Map.class);
     }
@@ -143,17 +121,7 @@ public class MaterialPocketBaseClient {
         return restClient.post()
                 .uri("/api/collections/jobs/records")
                 .header("Authorization", "Bearer " + authenticate())
-                .body(Map.of(
-                        "user", userId,
-                        "title", data.get("title"),
-                        "description", data.get("description"),
-                        "company", data.get("company"),
-                        "startDate", data.get("startDate"),
-                        "endDate", data.get("endDate"),
-                        "location", data.get("location"),
-                        "responsibilities", data.get("responsibilities"),
-                        "requirements", data.get("requirements")
-                ))
+                .body(withUser(userId, data))
                 .retrieve()
                 .body(Map.class);
     }
@@ -183,16 +151,7 @@ public class MaterialPocketBaseClient {
         return restClient.post()
                 .uri("/api/collections/degrees/records")
                 .header("Authorization", "Bearer " + authenticate())
-                .body(Map.of(
-                        "user", userId,
-                        "title", data.get("title"),
-                        "institution", data.get("institution"),
-                        "fieldOfStudy", data.get("fieldOfStudy"),
-                        "startDate", data.get("startDate"),
-                        "endDate", data.get("endDate"),
-                        "grade", data.get("grade"),
-                        "activities", data.get("activities")
-                ))
+                .body(withUser(userId, data))
                 .retrieve()
                 .body(Map.class);
     }
@@ -222,13 +181,7 @@ public class MaterialPocketBaseClient {
         return restClient.post()
                 .uri("/api/collections/hobbies/records")
                 .header("Authorization", "Bearer " + authenticate())
-                .body(Map.of(
-                        "user", userId,
-                        "name", data.get("name"),
-                        "description", data.get("description"),
-                        "startDate", data.get("startDate"),
-                        "endDate", data.get("endDate")
-                ))
+                .body(withUser(userId, data))
                 .retrieve()
                 .body(Map.class);
     }
@@ -273,6 +226,22 @@ public class MaterialPocketBaseClient {
      * @throws IllegalArgumentException if the record doesn't belong to the user
      */
     public void validateOwnedRecordId(String collectionName, String userId, String recordId) {
-        // TODO: Implement record ownership validation
+        if (userId == null || userId.isBlank() || recordId == null || recordId.isBlank()) {
+            throw new IllegalArgumentException("A user ID and record ID are required for ownership validation.");
+        }
+        Map<String, Object> record = restClient.get()
+                .uri("/api/collections/{collection}/records/{id}", collectionName, recordId)
+                .header("Authorization", "Bearer " + authenticate())
+                .retrieve()
+                .body(Map.class);
+        if (record == null || !userId.equals(record.get("user"))) {
+            throw new IllegalArgumentException("Record does not belong to the authenticated user.");
+        }
+    }
+
+    private Map<String, Object> withUser(String userId, Map<String, Object> data) {
+        Map<String, Object> payload = new LinkedHashMap<>(data);
+        payload.put("user", userId);
+        return payload;
     }
 }
