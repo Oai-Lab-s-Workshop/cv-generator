@@ -439,7 +439,7 @@ class CvMcpToolsTest {
 
         when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
                 new TemplateDescriptor("supa", "Supa", "Supa layout", List.of(
-                        new PocketBaseClient.ExtraFieldDescriptor("featuredProjectIds", "Featured projects", "multi_select", false, "Featured projects.", "projects", List.of())
+                        new PocketBaseClient.ExtraFieldDescriptor("linkedProjectIds", "Linked projects", "multi_select", false, "Linked projects.", "projects", List.of())
                 ))
         ));
         when(pocketBaseClient.createTailoredProfile(eq("userId"), any(CreateProfilePayload.class)))
@@ -448,7 +448,7 @@ class CvMcpToolsTest {
         CvMcpTools.CreateTailoredCvProfileRequest request = new CvMcpTools.CreateTailoredCvProfileRequest(
                 "Acme - CV", "CV", "Job", "supa", "Summary",
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
-                Map.of("featuredProjectIds", List.of("proj1"))
+                Map.of("linkedProjectIds", List.of("proj1"))
         , null);
 
         cvMcpTools.createTailoredCvProfile(request);

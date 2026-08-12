@@ -70,13 +70,6 @@ export const CV_TEMPLATE_OPTIONS: CvTemplateOption[] = [
     component: SupaCVPage,
     extraSchema: [
       {
-        id: 'featuredProjectIds',
-        label: 'Featured projects',
-        type: 'multi_select',
-        source: 'projects',
-        description: 'Project IDs to emphasize in the compact Supa layout. Choose projects most relevant to the target role.',
-      },
-      {
         id: 'compactMode',
         label: 'Compact mode',
         type: 'boolean',

@@ -89,7 +89,6 @@ describe('CV template page logic', () => {
 
     expect(api['getDate']('2024-01-02')).toContain('2024');
     expect(api['extraBoolean']('visible')).toBe(true);
-    expect(api['extraStringArray']('featuredProjects')).toEqual(['project-1']);
     expect(api['visibleSkills'](data.skills)).toHaveLength(2);
     expect(api['skillCategories'](data.skills)).toEqual(['Frontend', 'Tooling']);
     expect(api['skillCategoryLabel'](data.skills[0])).toBe('Frontend');
@@ -157,9 +156,11 @@ describe('CV template page logic', () => {
     expect(api['getDate']('bad-date')).toBe('');
     expect(api['skillCategoryLabel']({ name: 'No category' })).toBe('Autre');
     expect(api['skillCategoryClass']('Unknown', data.skills)).toBe('skill--tone-0');
+    // Projects keep their source order; only the A4 fitting ladder trims the tail.
     expect(api['getVisibleProjects']([{ id: 'project-2' }, { id: 'project-1' }])).toEqual([{ id: 'project-2' }, { id: 'project-1' }]);
-    component.cvData.set({ ...(cvData() as object), profile: { ...(cvData() as never as { profile: object }).profile, extra: { classic: { featuredProjectIds: ['project-1'] } } } } as never);
-    expect(api['getVisibleProjects']([{ id: 'project-2' }, { id: 'project-1' }])).toEqual([{ id: 'project-1' }, { id: 'project-2' }]);
+    component.visibleProjectCount.set(1);
+    expect(api['getVisibleProjects']([{ id: 'project-2' }, { id: 'project-1' }])).toEqual([{ id: 'project-2' }]);
+    component.visibleProjectCount.set(null);
 
     await api['loadCvData']('profile-1');
     expect(component.isLoading()).toBe(false);

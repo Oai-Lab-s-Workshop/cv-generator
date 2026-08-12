@@ -86,10 +86,6 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
     return this.cvProfileExtra.boolean(this.cvData()?.profile, key);
   }
 
-  protected extraStringArray(key: string): string[] {
-    return this.cvProfileExtra.stringArray(this.cvData()?.profile, key);
-  }
-
   protected visibleSkills(skills: Skill[]): Skill[] {
     return skills.filter((skill) => skill.name.trim() !== '' && skill.type !== 'Language');
   }
@@ -605,16 +601,7 @@ export class SupaCVPage implements OnInit, AfterViewInit, OnDestroy {
 
   protected getVisibleProjects(projects: Project[]): Project[] {
     const visibleProjectCount = this.visibleProjectCount();
-    const featuredProjectIds = this.extraStringArray('featuredProjectIds');
-    const orderedProjects = featuredProjectIds.length
-      ? [...projects].sort((left, right) => this.projectPriority(left.id, featuredProjectIds) - this.projectPriority(right.id, featuredProjectIds))
-      : projects;
 
-    return orderedProjects.slice(0, visibleProjectCount ?? orderedProjects.length);
-  }
-
-  private projectPriority(projectId: string, featuredProjectIds: string[]): number {
-    const index = featuredProjectIds.indexOf(projectId);
-    return index === -1 ? featuredProjectIds.length : index;
+    return projects.slice(0, visibleProjectCount ?? projects.length);
   }
 }
