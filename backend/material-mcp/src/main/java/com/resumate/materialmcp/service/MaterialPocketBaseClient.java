@@ -214,7 +214,7 @@ public class MaterialPocketBaseClient {
                 ))
                 .retrieve()
                 .body(Map.class);
-        
+
         return (String) response.get("token");
     }
 

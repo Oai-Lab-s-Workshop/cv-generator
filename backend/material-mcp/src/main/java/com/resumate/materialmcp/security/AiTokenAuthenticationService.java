@@ -32,7 +32,7 @@ public class AiTokenAuthenticationService {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalArgumentException("API key is required.");
         }
-        
+
         // In a real implementation, this would call PocketBase to validate the token
         // and return the user ID and token details
         return new AiTokenPrincipal("token-id", "user-id", "API Key");

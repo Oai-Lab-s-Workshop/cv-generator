@@ -607,7 +607,7 @@ class PocketBaseClientTest {
     @Test
     void findProfileBySlugOrId_findsProfileBySlug() throws IOException {
         enqueueAuthResponse();
-        
+
         String profileJson = """
                 {"items": [{"id":"profile123","slug":"test-slug","user":"user123","template":"classic"}]}
                 """;
@@ -636,7 +636,7 @@ class PocketBaseClientTest {
     @Test
     void findProfileBySlugOrId_findsProfileById() throws IOException {
         enqueueAuthResponse();
-        
+
         String profileJson = """
                 {"items": [{"id":"profile456","slug":"other-slug","user":"user456","template":"modern"}]}
                 """;
@@ -688,7 +688,7 @@ class PocketBaseClientTest {
     @Test
     void findProfileBySlugOrId_escapesSpecialCharactersInFilter() throws IOException {
         enqueueAuthResponse();
-        
+
         String profileJson = """
                 {"items": [{"id":"profile789","slug":"test\\\"slug","user":"user789","template":"classic"}]}
                 """;
