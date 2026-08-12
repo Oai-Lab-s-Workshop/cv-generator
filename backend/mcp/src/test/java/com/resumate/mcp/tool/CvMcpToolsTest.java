@@ -703,4 +703,74 @@ class CvMcpToolsTest {
         }
     }
 
+    // ==================== doUpdateCvProfile error handling tests ====================
+
+    @Test
+    void doUpdateCvProfile_throwsWhenProfileNotFound() {
+        AiTokenPrincipal principal = new AiTokenPrincipal("tokenId", "userId", "label");
+        setAuthentication(principal);
+
+        when(pocketBaseClient.findProfileBySlugOrId("non-existent-slug"))
+                .thenReturn(null);
+
+        CvMcpTools.UpdateCvProfileRequest request = new CvMcpTools.UpdateCvProfileRequest(
+                "non-existent-slug",
+                null, null, null, null,
+                null, null, null, null, null, null,
+                null, null, null
+        );
+
+        assertThatThrownBy(() -> cvMcpTools.updateCvProfile(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Profile not found")
+                .hasMessageContaining("non-existent-slug")
+                .hasMessageContaining("permission");
+    }
+
+    @Test
+    void doUpdateCvProfile_throwsWhenProfileOwnershipMismatch() {
+        AiTokenPrincipal principal = new AiTokenPrincipal("tokenId", "userId", "label");
+        setAuthentication(principal);
+
+        when(pocketBaseClient.findProfileBySlugOrId("existing-slug"))
+                .thenReturn(new PocketBaseClient.CvProfileRecord("profileId", "existing-slug", "differentUserId", "classic", Map.of()));
+
+        CvMcpTools.UpdateCvProfileRequest request = new CvMcpTools.UpdateCvProfileRequest(
+                "existing-slug",
+                null, null, null, null,
+                null, null, null, null, null, null,
+                null, null, null
+        );
+
+        assertThatThrownBy(() -> cvMcpTools.updateCvProfile(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not belong to the authenticated user");
+    }
+
+    @Test
+    void doUpdateCvProfile_succeedsWhenProfileFoundAndOwned() {
+        AiTokenPrincipal principal = new AiTokenPrincipal("tokenId", "userId", "label");
+        setAuthentication(principal);
+
+        when(pocketBaseClient.findProfileBySlugOrId("valid-slug"))
+                .thenReturn(new PocketBaseClient.CvProfileRecord("profileId", "valid-slug", "userId", "classic", Map.of()));
+        when(pocketBaseClient.resolveAvailableTemplates()).thenReturn(List.of(
+                new TemplateDescriptor("classic", "Classic", "desc", List.of())
+        ));
+        when(pocketBaseClient.updateCvProfile(eq("profileId"), any()))
+                .thenReturn(new PocketBaseClient.UpdatedProfileRecord("profileId", "valid-slug"));
+
+        CvMcpTools.UpdateCvProfileRequest request = new CvMcpTools.UpdateCvProfileRequest(
+                "valid-slug",
+                "New Label", null, null, null,
+                null, null, null, null, null, null,
+                null, null, null
+        );
+
+        CvMcpTools.UpdateCvProfileResponse response = cvMcpTools.updateCvProfile(request);
+
+        assertThat(response.profileId()).isEqualTo("profileId");
+        assertThat(response.slug()).isEqualTo("valid-slug");
+    }
+
 }

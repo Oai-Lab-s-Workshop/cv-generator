@@ -542,4 +542,111 @@ class PocketBaseClientTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("PocketBase MCP service-user credentials are not configured.");
     }
+
+    // ==================== findProfileBySlugOrId tests ====================
+
+    @Test
+    void findProfileBySlugOrId_findsProfileBySlug() throws IOException {
+        enqueueAuthResponse();
+        
+        String profileJson = """
+                {"items": [{"id":"profile123","slug":"test-slug","user":"user123","template":"classic"}]}
+                """;
+        enqueueJsonResponse(profileJson);
+
+        PocketBaseClient.CvProfileRecord result = client.findProfileBySlugOrId("test-slug");
+
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo("profile123");
+        assertThat(result.slug()).isEqualTo("test-slug");
+
+        try {
+            // Skip auth request, get the actual request
+            mockWebServer.takeRequest(); // auth request
+            RecordedRequest request = mockWebServer.takeRequest();
+            assertThat(request.getMethod()).isEqualTo("GET");
+            assertThat(request.getPath()).startsWith("/api/collections/cv_profiles/records");
+            assertThat(request.getHeader("Authorization")).isNotNull();
+            assertThat(request.getRequestUrl().queryParameter("filter")).isEqualTo("(slug=\"test-slug\"||id=\"test-slug\")");
+            assertThat(request.getRequestUrl().queryParameter("perPage")).isEqualTo("1");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Test
+    void findProfileBySlugOrId_findsProfileById() throws IOException {
+        enqueueAuthResponse();
+        
+        String profileJson = """
+                {"items": [{"id":"profile456","slug":"other-slug","user":"user456","template":"modern"}]}
+                """;
+        enqueueJsonResponse(profileJson);
+
+        PocketBaseClient.CvProfileRecord result = client.findProfileBySlugOrId("profile456");
+
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo("profile456");
+
+        try {
+            mockWebServer.takeRequest(); // auth request
+            RecordedRequest request = mockWebServer.takeRequest();
+            assertThat(request.getRequestUrl().queryParameter("filter")).isEqualTo("(slug=\"profile456\"||id=\"profile456\")");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Test
+    void findProfileBySlugOrId_returnsNull_whenNoProfileFound() throws IOException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("{\"items\": []}");
+
+        PocketBaseClient.CvProfileRecord result = client.findProfileBySlugOrId("non-existent");
+
+        assertThat(result).isNull();
+
+        try {
+            mockWebServer.takeRequest(); // auth request
+            RecordedRequest request = mockWebServer.takeRequest();
+            assertThat(request.getRequestUrl().queryParameter("filter")).isEqualTo("(slug=\"non-existent\"||id=\"non-existent\")");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Test
+    void findProfileBySlugOrId_handlesEmptyResponse() throws IOException {
+        enqueueAuthResponse();
+        enqueueJsonResponse("{}");
+
+        PocketBaseClient.CvProfileRecord result = client.findProfileBySlugOrId("test");
+
+        // When response is empty object, items() will be null, so result should be null
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findProfileBySlugOrId_escapesSpecialCharactersInFilter() throws IOException {
+        enqueueAuthResponse();
+        
+        String profileJson = """
+                {"items": [{"id":"profile789","slug":"test\\\"slug","user":"user789","template":"classic"}]}
+                """;
+        enqueueJsonResponse(profileJson);
+
+        PocketBaseClient.CvProfileRecord result = client.findProfileBySlugOrId("test\"slug");
+
+        assertThat(result).isNotNull();
+        assertThat(result.slug()).isEqualTo("test\"slug");
+
+        try {
+            mockWebServer.takeRequest(); // auth request
+            RecordedRequest request = mockWebServer.takeRequest();
+            // Verify the filter contains escaped quotes
+            assertThat(request.getRequestUrl().queryParameter("filter")).contains("\\\"");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
 }
