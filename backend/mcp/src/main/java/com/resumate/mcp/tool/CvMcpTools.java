@@ -67,6 +67,27 @@ public class CvMcpTools {
         return pocketBaseClient.loadProfileMaterial(currentPrincipal().userId());
     }
 
+    @Tool(description = RESUMATE_MCP_PURPOSE + " List the CV profiles already saved by the authenticated user, newest first. Call this before creating a new profile to check whether a suitable resume already exists, and to obtain the slug required by updateCvProfile. Returns only profiles owned by the authenticated user.")
+    public ListCvProfilesResponse listCvProfiles() {
+        McpPrincipal principal = currentPrincipal();
+        String baseUrl = frontendBaseUrl();
+
+        List<CvProfileSummary> profiles = pocketBaseClient.listCvProfilesForUser(principal.userId()).stream()
+                .map(record -> new CvProfileSummary(
+                        record.id(),
+                        record.slug(),
+                        record.label(),
+                        record.profileName(),
+                        record.template(),
+                        record.publicProfile(),
+                        record.updatedAt(),
+                        baseUrl + "/" + record.slug()
+                ))
+                .toList();
+
+        return new ListCvProfilesResponse(profiles);
+    }
+
     @Tool(description = RESUMATE_MCP_PURPOSE + " Use this final step when the user asks to create, craft, tailor, adapt, optimize, or customize a resume for a role. " + CREATE_PROFILE_WORKFLOW + " Always include a non-empty label; the server does not generate it. Choose a concise saved-resume label such as 'Acme - Senior Backend Engineer'. If validation fails, fix the missing or invalid field and retry instead of repeating the same invalid call. Provide an idempotencyKey scoped to the job offer (e.g. 'create-profile-for-job-acme-senior') to prevent duplicate profiles.")
     public CreateTailoredCvProfileResponse createTailoredCvProfile(CreateTailoredCvProfileRequest request) {
         McpPrincipal principal = currentPrincipal();
@@ -390,6 +411,21 @@ public class CvMcpTools {
     }
 
     public record ListTemplatesResponse(List<TemplateDescriptor> templates) {
+    }
+
+    public record ListCvProfilesResponse(List<CvProfileSummary> profiles) {
+    }
+
+    public record CvProfileSummary(
+            String profileId,
+            String slug,
+            String label,
+            String profileName,
+            String templateId,
+            Boolean publicProfile,
+            String updatedAt,
+            String frontendUrl
+    ) {
     }
 
     public record AuthenticatedPrincipalResponse(

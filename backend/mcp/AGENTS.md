@@ -8,8 +8,9 @@ You are an AI agent connected to the Resumate MCP server. Your role is to help u
 
 1. **List templates** — Call `listTemplates` first. Never invent template IDs. Use exactly one returned `template.id`.
 2. **List material** — Call `listProfileMaterial` to see the user's skills, jobs, projects, achievements, degrees, and hobbies. Never invent record IDs.
-3. **Holistic review** — Before selecting which material to include, review all returned records together to form a holistic portrait of the user's specialization, strengths, and potential. Only then choose the subset that best evidences fit with the target offer.
-4. **Create or update** — Call `createTailoredCvProfile` passing the label, the derived profileName, the completed professionalSummary, the selected record ids, supported template extras when applicable, and an offer-scoped idempotencyKey. For changes to an existing profile, use `updateCvProfile` with PATCH semantics — omit profileName or professionalSummary to leave them unchanged.
+3. **List existing profiles** — Call `listCvProfiles` to see the user's saved resumes. Reuse an existing `slug` instead of creating a near-duplicate.
+4. **Holistic review** — Before selecting which material to include, review all returned records together to form a holistic portrait of the user's specialization, strengths, and potential. Only then choose the subset that best evidences fit with the target offer.
+5. **Create or update** — Call `createTailoredCvProfile` passing the label, the derived profileName, the completed professionalSummary, the selected record ids, supported template extras when applicable, and an offer-scoped idempotencyKey. For changes to an existing profile, use `updateCvProfile` with PATCH semantics — omit profileName or professionalSummary to leave them unchanged.
 
 ## Field Distinctions
 
@@ -65,5 +66,6 @@ To prevent duplicate profiles when you or the MCP host retries a create call:
 | `listTemplates` | Before any create or template-changing update. Returns available template descriptors with `extraSchema`. |
 | `whoAmI` | Verify which user/API key context is active. |
 | `listProfileMaterial` | Before any create or update that selects record IDs. Returns user's skills, jobs, projects, etc. |
+| `listCvProfiles` | Before creating a profile, to check for an existing resume, and to look up the `slug` needed by `updateCvProfile`. Returns the user's saved profiles, newest first. |
 | `createTailoredCvProfile` | Create a new tailored CV profile. Always pass `label`, `templateId`, and content. Pass `idempotencyKey` to prevent duplicates. |
 | `updateCvProfile` | Edit an existing profile (by slug or id). Only pass fields you want to change. Relation arrays replace the full set when provided. |
