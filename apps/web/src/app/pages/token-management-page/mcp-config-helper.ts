@@ -102,7 +102,7 @@ const AGENT_PRESETS: AgentPreset[] = [
       `Méthode auth       : Clé API\n` +
       `Header Auth        : Authorization: Bearer ${token || '<votre-cle-api>'}\n` +
       `Clé API            : ${token || '<votre-cle-api>'}\n` +
-      `Outils disponibles : list_resumes, generate_cv, get_token_status, create_token, revoke_token, list_tokens`,
+      `Outils disponibles : listTemplates, whoAmI, listProfileMaterial, listCvProfiles, createTailoredCvProfile, updateCvProfile`,
   },
 ];
 
@@ -119,7 +119,9 @@ export class McpConfigHelper {
   readonly sourceLabel = input<string | undefined>(undefined);
   readonly agentPresets = AGENT_PRESETS;
   readonly selectedAgent = signal<string>(AGENT_PRESETS[0]?.id ?? '');
+  readonly suggestedToken = input('');
   readonly customToken = signal('');
+  private readonly userEditedToken = signal(false);
   private readonly defaultMcpUrl = computed(() => this.mcpEndpointUrl());
   readonly customUrl = signal(this.mcpEndpointUrl());
   readonly copiedAgent = signal<string | null>(null);
@@ -136,6 +138,13 @@ export class McpConfigHelper {
       const latestUrl = this.mcpEndpointUrl();
       if (!this.userEditedUrl()) {
         this.customUrl.set(latestUrl);
+      }
+    });
+
+    effect(() => {
+      const latestToken = this.suggestedToken().trim();
+      if (latestToken && !this.userEditedToken()) {
+        this.customToken.set(latestToken);
       }
     });
   }
@@ -159,6 +168,12 @@ export class McpConfigHelper {
 
   getSelectedPreset(): AgentPreset | undefined {
     return this.agentPresets.find((preset) => preset.id === this.selectedAgent());
+  }
+
+  /** Called from the template when the user types in the token field. */
+  onTokenEdited(value: string): void {
+    this.userEditedToken.set(true);
+    this.customToken.set(value);
   }
 
   /** Called from the template when the user types in the URL field. */
@@ -216,7 +231,7 @@ export class McpConfigHelper {
       { key: "Méthode d'authentification", value: 'Clé API', copyable: false },
       { key: "Header d'autorisation", value: authHeader, copyable: true },
       { key: 'Clé API', value: token, copyable: true },
-      { key: 'Outils disponibles', value: 'list_resumes, generate_cv, get_token_status, create_token, revoke_token, list_tokens', copyable: false },
+      { key: 'Outils disponibles', value: 'listTemplates, whoAmI, listProfileMaterial, listCvProfiles, createTailoredCvProfile, updateCvProfile', copyable: false },
     ];
   }
 

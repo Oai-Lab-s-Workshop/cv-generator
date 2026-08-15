@@ -56,7 +56,7 @@ describe('McpConfigHelper', () => {
   });
 
   it('generates plain essential values for the custom-client preset', () => {
-    component.customToken.set('rmcp_custom');
+    component.customToken.set('resm_custom');
     component.customUrl.set('http://localhost:8081/mcp');
     component.selectedAgent.set('custom-client');
 
@@ -65,31 +65,31 @@ describe('McpConfigHelper', () => {
     expect(config).toContain('URL du serveur MCP : http://localhost:8081/mcp');
     expect(config).toContain('Transport          : HTTP (Streamable)');
     expect(config).toContain('Méthode auth       : Clé API');
-    expect(config).toContain('Clé API            : rmcp_custom');
-    expect(config).toContain('Outils disponibles : list_resumes');
+    expect(config).toContain('Clé API            : resm_custom');
+    expect(config).toContain('Outils disponibles : listTemplates');
   });
 
   it('generates config for the selected agent', () => {
-    component.customToken.set('rmcp_test');
+    component.customToken.set('resm_test');
     component.customUrl.set('http://localhost:8080/mcp');
     component.selectedAgent.set('opencode');
 
     const config = component.getGeneratedConfig();
 
     expect(config).toContain('"resumate"');
-    expect(config).toContain('"API_KEY": "rmcp_test"');
+    expect(config).toContain('"API_KEY": "resm_test"');
     expect(config).toContain('http://localhost:8080/mcp');
   });
 
   it('generates Codex HTTP config for the Codex preset', () => {
-    component.customToken.set('rmcp_codex');
+    component.customToken.set('resm_codex');
     component.customUrl.set('http://localhost:8080/mcp');
     component.selectedAgent.set('codex');
 
     const config = component.getGeneratedConfig();
 
     expect(config).toContain('"transport": "http"');
-    expect(config).toContain('"Authorization": "Bearer rmcp_codex"');
+    expect(config).toContain('"Authorization": "Bearer resm_codex"');
   });
 
   it('returns an empty config when the selected agent is unknown', () => {
@@ -100,11 +100,11 @@ describe('McpConfigHelper', () => {
   });
 
   it('copies generated config to the clipboard', async () => {
-    component.customToken.set('rmcp_copy');
+    component.customToken.set('resm_copy');
 
     await component.copyConfig();
 
-    expect(clipboardWriteText).toHaveBeenCalledWith(expect.stringContaining('rmcp_copy'));
+    expect(clipboardWriteText).toHaveBeenCalledWith(expect.stringContaining('resm_copy'));
     expect(component.isCopied()).toBe(true);
   });
 
@@ -137,9 +137,29 @@ describe('McpConfigHelper', () => {
     expect(component.isCopied()).toBe(true);
   });
 
+
+
+  it('prefills a newly created token when the user has not typed one', () => {
+    fixture.componentRef.setInput('suggestedToken', 'resm_created_token');
+    fixture.detectChanges();
+
+    expect(component.customToken()).toBe('resm_created_token');
+    expect(component.getGeneratedConfig()).toContain('resm_created_token');
+  });
+
+  it('does not overwrite a manually typed token with a suggested token', () => {
+    component.onTokenEdited('resm_manual_token');
+    fixture.detectChanges();
+
+    fixture.componentRef.setInput('suggestedToken', 'resm_created_token');
+    fixture.detectChanges();
+
+    expect(component.customToken()).toBe('resm_manual_token');
+  });
+
   describe('custom-client mode', () => {
     beforeEach(() => {
-      component.customToken.set('rmcp_custom_token');
+      component.customToken.set('resm_custom_token');
       component.customUrl.set('https://example.com/mcp');
       component.selectedAgent.set('custom-client');
       fixture.detectChanges();
@@ -152,8 +172,8 @@ describe('McpConfigHelper', () => {
       expect(fields[0]).toEqual({ key: 'URL du serveur MCP', value: 'https://example.com/mcp', copyable: true });
       expect(fields[1]).toEqual({ key: 'Transport', value: 'HTTP (Streamable)', copyable: false });
       expect(fields[2]).toEqual({ key: "Méthode d'authentification", value: 'Clé API', copyable: false });
-      expect(fields[3]).toEqual({ key: "Header d'autorisation", value: 'Authorization: Bearer rmcp_custom_token', copyable: true });
-      expect(fields[4]).toEqual({ key: 'Clé API', value: 'rmcp_custom_token', copyable: true });
+      expect(fields[3]).toEqual({ key: "Header d'autorisation", value: 'Authorization: Bearer resm_custom_token', copyable: true });
+      expect(fields[4]).toEqual({ key: 'Clé API', value: 'resm_custom_token', copyable: true });
       expect(fields[5].key).toBe('Outils disponibles');
       expect(fields[5].copyable).toBe(false);
     });

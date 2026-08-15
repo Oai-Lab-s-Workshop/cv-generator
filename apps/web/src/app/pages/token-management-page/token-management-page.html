@@ -156,6 +156,7 @@
         [activeTokenCount]="activeAiTokenCount()"
         [mcpEndpointUrl]="mcpEndpointUrl()"
         [sourceLabel]="mcpSourceLabel()"
+        [suggestedToken]="latestCreatedAiToken() ?? ''"
       />
 
       @if (isLoadingAiTokens()) {

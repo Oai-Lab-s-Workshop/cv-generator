@@ -21,7 +21,7 @@
 
       <label class="field mcp-helper__field">
         <span>Token MCP</span>
-        <input [ngModel]="customToken()" (ngModelChange)="customToken.set($event)" type="text" placeholder="rmcp_..." />
+        <input [ngModel]="customToken()" (ngModelChange)="onTokenEdited($event)" type="password" autocomplete="off" spellcheck="false" placeholder="resm_..." />
         <small>Utilise uniquement la methode cle API. Les clients OAuth n'ont pas besoin de coller ce secret.</small>
       </label>
 

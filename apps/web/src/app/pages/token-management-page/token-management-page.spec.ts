@@ -59,7 +59,7 @@ describe('TokenManagementPage', () => {
     pocketBaseService = {
       getCurrentUserAiTokens: jest.fn().mockResolvedValue([activeToken, expiringToken, revokedToken]),
       createCurrentUserAiToken: jest.fn().mockResolvedValue({
-        rawToken: 'rmcp_created',
+        rawToken: 'resm_created',
         record: { ...activeToken, id: 'token-created', token_prefix: 'rmcp_cre' },
       }),
       revokeCurrentUserAiToken: jest.fn().mockResolvedValue(undefined),
@@ -172,7 +172,7 @@ describe('TokenManagementPage', () => {
     fixture.detectChanges();
 
     expect(pocketBaseService.createCurrentUserAiToken).toHaveBeenCalledWith({ label: 'New assistant', expiresAt: null });
-    expect(component.latestCreatedAiToken()).toBe('rmcp_created');
+    expect(component.latestCreatedAiToken()).toBe('resm_created');
     expect(pocketBaseService.getCurrentUserAiTokens).toHaveBeenCalledTimes(1);
     expect(fixture.nativeElement.textContent).toContain('Copiez cette cle maintenant');
   });
@@ -224,8 +224,8 @@ describe('TokenManagementPage', () => {
     await component.copyLatestAiToken();
     expect(writeText).not.toHaveBeenCalled();
 
-    component.latestCreatedAiToken.set('rmcp_latest');
+    component.latestCreatedAiToken.set('resm_latest');
     await component.copyLatestAiToken();
-    expect(writeText).toHaveBeenCalledWith('rmcp_latest');
+    expect(writeText).toHaveBeenCalledWith('resm_latest');
   });
 });
