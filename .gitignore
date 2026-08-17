@@ -26,6 +26,7 @@ apps/web/dist/*
 apps/web/build/
 apps/web/node_modules/
 apps/web/src/assets/runtime-config.json
+apps/web/src/assets/seed.json
 apps/desktop/coverage/
 apps/desktop/test-results.xml
 apps/web/coverage/
@@ -33,6 +34,7 @@ coverage/
 apps/web/test-results.xml
 .playwright-mcp/
 backend/mcp/target/
+backend/material-mcp/target/
 backend/mcp/.mvn/
 
 # Local-only working docs (purged from history; kept on disk)
