@@ -31,6 +31,7 @@ Le dépôt contient encore la base de développement actuelle, notamment la stac
 - [Installation locale](#installation-locale)
 - [Configuration](#configuration)
 - [Développement](#développement)
+- [Vérification de production](#vérification-de-production)
 - [MCP et intégration IA](#mcp-et-intégration-ia)
 - [Données de démonstration](#données-de-démonstration)
 - [Structure du projet](#structure-du-projet)
@@ -321,6 +322,21 @@ npm test
 ```
 
 Le serveur de développement Angular proxy les requêtes `/api` vers PocketBase afin de conserver un mode de fonctionnement proche de la production.
+
+## Vérification de production
+
+Avant un déploiement, utilisez les versions verrouillées des dépendances et exécutez la suite complète :
+
+```bash
+npm ci --prefix apps/web
+bun install --frozen-lockfile --cwd apps/desktop
+bun run test:all
+cd apps/web && npm run build
+```
+
+La suite couvre les tests unitaires Angular, les tests desktop, les tests MCP et les tests Material MCP. Les workflows GitHub exécutent les contrôles frontend, desktop et MCP sur chaque pull request vers `dev` ou `main`.
+
+Pour l'hébergement, configurez des valeurs uniques et secrètes pour `PB_ADMIN_PASSWORD`, `POCKETBASE_SERVICE_USER_PASSWORD` et `MCP_OAUTH_JWK`; ne publiez que le frontend et, si nécessaire, le MCP derrière HTTPS. PocketBase reste interne au réseau Docker par défaut.
 
 ### Templates CV
 

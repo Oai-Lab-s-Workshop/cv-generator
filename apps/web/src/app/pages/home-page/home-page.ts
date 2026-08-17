@@ -52,7 +52,7 @@ export class HomePage implements OnInit {
   readonly isSaving = signal<string | null>(null);
   readonly isDeleting = signal<string | null>(null);
   readonly templateSelections = signal<Record<string, string>>({});
-  readonly publicSelections = signal<Record<string, boolean>>({});
+  readonly publicSelections = signal<Partial<Record<string, boolean>>>({});
   readonly openStatusMenuFor = signal<string | null>(null);
   readonly currentUser = this.authService.currentUser;
   readonly templateOptions = CV_TEMPLATE_OPTIONS;

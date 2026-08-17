@@ -1,10 +1,13 @@
 package com.resumate.materialmcp.security;
 
-import com.resumate.materialmcp.config.PocketBaseProperties;
+import com.resumate.materialmcp.service.MaterialPocketBaseClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
-import java.util.Map;
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 /**
  * Service for authenticating API keys against PocketBase.
@@ -12,12 +15,10 @@ import java.util.Map;
 @Service
 public class AiTokenAuthenticationService {
 
-    private final RestClient restClient;
-    private final PocketBaseProperties properties;
+    private final MaterialPocketBaseClient pocketBaseClient;
 
-    public AiTokenAuthenticationService(RestClient.Builder restClientBuilder, PocketBaseProperties properties) {
-        this.restClient = restClientBuilder.baseUrl(properties.baseUrl()).build();
-        this.properties = properties;
+    public AiTokenAuthenticationService(MaterialPocketBaseClient pocketBaseClient) {
+        this.pocketBaseClient = pocketBaseClient;
     }
 
     /**
@@ -27,14 +28,28 @@ public class AiTokenAuthenticationService {
      * @throws IllegalArgumentException if authentication fails
      */
     public AiTokenPrincipal authenticate(String apiKey) {
-        // TODO: Implement actual PocketBase authentication
-        // This is a placeholder implementation
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalArgumentException("API key is required.");
+        MaterialPocketBaseClient.AiTokenRecord token = pocketBaseClient.findAiTokenByRawToken(apiKey)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid API key."));
+        if (!"active".equals(token.status())) {
+            throw new IllegalArgumentException("API key is not active.");
         }
+        Instant expiresAt = expiresAt(token.expiresAt());
+        if (expiresAt != null && expiresAt.isBefore(Instant.now())) {
+            throw new IllegalArgumentException("API key is expired.");
+        }
+        return new AiTokenPrincipal(token.id(), token.user(), token.label(), token.tokenPrefix());
+    }
 
-        // In a real implementation, this would call PocketBase to validate the token
-        // and return the user ID and token details
-        return new AiTokenPrincipal("token-id", "user-id", "API Key");
+    private static Instant expiresAt(String value) {
+        if (value == null || value.isBlank()) return null;
+        String normalized = value.trim().replace(" ", "T");
+        try {
+            if (normalized.endsWith("Z") || normalized.matches(".*[+-]\\d{2}:\\d{2}$")) {
+                return OffsetDateTime.parse(normalized).toInstant();
+            }
+            return LocalDateTime.parse(normalized).toInstant(ZoneOffset.UTC);
+        } catch (DateTimeException ex) {
+            throw new IllegalArgumentException("API key expiry is invalid.", ex);
+        }
     }
 }

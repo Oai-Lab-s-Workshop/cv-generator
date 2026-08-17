@@ -360,7 +360,7 @@
                     class="visibility-control"
                     type="button"
                     [disabled]="!profile.template || isSaving() === profile.id"
-                    [attr.aria-pressed]="profile.template ? (publicSelections()[profile.id] ?? profile.public !== false) : null"
+                    [attr.aria-pressed]="profile.template ? (publicSelections()[profile.id] ?? (profile.public !== false)) : null"
                     [attr.aria-label]="'Basculer la visibilite: ' + getVisibilityLabel(profile)"
                     (click)="togglePublic(profile)"
                   >

@@ -58,7 +58,6 @@ export class ClassicCvPage implements OnInit {
     const start = this.pocketBaseService.toDate(startDate);
     const end = this.pocketBaseService.toDate(endDate) ?? new Date();
 
-    console.log('Calculating duration for', { start, end }, +end - +(start as Date));
     if (!start || Number.isNaN(end.getTime()) || end < start) {
       return '';
     }

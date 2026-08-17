@@ -2,7 +2,7 @@ name: MCP Tests
 
 on:
   pull_request:
-    branches: [dev]
+    branches: [main, dev]
 
 permissions:
   contents: read
@@ -16,6 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TEST_PASS_THRESHOLD_MCP: ${{ vars.TEST_PASS_THRESHOLD_MCP || '100' }}
+      PB_ADMIN_EMAIL: ci-admin@resumate.test
+      PB_ADMIN_PASSWORD: ci-admin-password-not-for-production
+      MCP_PUBLIC_BASE_URL: https://mcp.resumate.test
+      MCP_OAUTH_JWK: '{"kty":"RSA","n":"ci","e":"AQAB","d":"ci"}'
     steps:
       - uses: actions/checkout@v4
 

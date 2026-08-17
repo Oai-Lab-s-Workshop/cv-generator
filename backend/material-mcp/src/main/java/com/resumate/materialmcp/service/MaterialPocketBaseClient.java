@@ -1,11 +1,19 @@
 package com.resumate.materialmcp.service;
 
 import com.resumate.materialmcp.config.PocketBaseProperties;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * PocketBase client for material operations.
@@ -15,10 +23,28 @@ public class MaterialPocketBaseClient {
 
     private final RestClient restClient;
     private final PocketBaseProperties pocketBaseProperties;
+    private volatile String cachedServiceUserToken;
+    private volatile Instant cachedServiceUserTokenExpiresAt;
 
     public MaterialPocketBaseClient(RestClient.Builder restClientBuilder, PocketBaseProperties pocketBaseProperties) {
         this.restClient = restClientBuilder.baseUrl(pocketBaseProperties.baseUrl()).build();
         this.pocketBaseProperties = pocketBaseProperties;
+    }
+
+    public Optional<AiTokenRecord> findAiTokenByRawToken(String rawToken) {
+        String filter = String.format("token_hash=\"%s\"", sha256Hex(rawToken));
+        RecordListResponse<AiTokenRecord> response = restClient.get()
+                .uri((uriBuilder) -> uriBuilder
+                        .path("/api/collections/ai_tokens/records")
+                        .queryParam("filter", filter)
+                        .queryParam("perPage", 1)
+                        .build())
+                .header(HttpHeaders.AUTHORIZATION, bearer(serviceUserToken()))
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {
+                });
+
+        return response == null ? Optional.empty() : response.items().stream().findFirst();
     }
 
     /**
@@ -202,12 +228,34 @@ public class MaterialPocketBaseClient {
     }
 
     /**
-     * Authenticates with PocketBase and returns an admin token.
-     * @return The admin token
+     * Authenticates the Material MCP service user with PocketBase.
+     * @return The service-user token
      */
     private String authenticate() {
-        Map<String, Object> response = restClient.post()
-                .uri("/api/admins/auth-with-password")
+        return serviceUserToken();
+    }
+
+    private String serviceUserToken() {
+        if (!StringUtils.hasText(pocketBaseProperties.serviceUserEmail())
+                || !StringUtils.hasText(pocketBaseProperties.serviceUserPassword())) {
+            throw new IllegalStateException("PocketBase Material MCP service-user credentials are not configured.");
+        }
+
+        String token = cachedServiceUserToken;
+        Instant expiresAt = cachedServiceUserTokenExpiresAt;
+        if (StringUtils.hasText(token) && expiresAt != null && expiresAt.isAfter(Instant.now().plusSeconds(30))) {
+            return token;
+        }
+
+        synchronized (this) {
+            token = cachedServiceUserToken;
+            expiresAt = cachedServiceUserTokenExpiresAt;
+            if (StringUtils.hasText(token) && expiresAt != null && expiresAt.isAfter(Instant.now().plusSeconds(30))) {
+                return token;
+            }
+
+            Map<String, Object> response = restClient.post()
+                .uri("/api/collections/users/auth-with-password")
                 .body(Map.of(
                         "identity", pocketBaseProperties.serviceUserEmail(),
                         "password", pocketBaseProperties.serviceUserPassword()
@@ -215,7 +263,32 @@ public class MaterialPocketBaseClient {
                 .retrieve()
                 .body(Map.class);
 
-        return (String) response.get("token");
+            String authenticatedToken = response == null ? null : (String) response.get("token");
+            if (!StringUtils.hasText(authenticatedToken)) {
+                throw new IllegalStateException("PocketBase Material MCP service-user authentication failed.");
+            }
+
+            cachedServiceUserToken = authenticatedToken;
+            cachedServiceUserTokenExpiresAt = Instant.now().plusSeconds(300);
+            return authenticatedToken;
+        }
+    }
+
+    private static String bearer(String token) {
+        return "Bearer " + token;
+    }
+
+    private static String sha256Hex(String value) {
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("SHA-256 is not available.", ex);
+        }
     }
 
     /**
@@ -243,5 +316,11 @@ public class MaterialPocketBaseClient {
         Map<String, Object> payload = new LinkedHashMap<>(data);
         payload.put("user", userId);
         return payload;
+    }
+
+    private record RecordListResponse<T>(java.util.List<T> items) {
+    }
+
+    public record AiTokenRecord(String id, String user, String label, String status, String expiresAt, String tokenPrefix) {
     }
 }
