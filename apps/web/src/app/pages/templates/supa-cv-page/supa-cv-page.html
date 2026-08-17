@@ -94,7 +94,7 @@
         </aside>
         
         <main class="resume-main" #resumeMain>
-            <section class="section--panel" [attr.data-mode]="sectionModes().projects" [attr.data-projects-desc]="projectDescriptionMode()" [attr.data-projects-fit]="projectFit()" [style.--supa-project-desc-lines]="projectDescLineClamp()">
+            <section class="section--panel" [attr.data-mode]="sectionModes().projects" [attr.data-projects-desc]="projectDescriptionMode()">
                 @if (data.projects.length > 0) {
                     <h3>Mes derniers projets</h3>
                     <section class="avoid-break project-stack">

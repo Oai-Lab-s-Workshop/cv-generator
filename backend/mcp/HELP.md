@@ -62,9 +62,8 @@ Do not invent template IDs or record IDs. Use only template IDs returned by `lis
 
 1. Call `listTemplates` and choose one returned `template.id` for `templateId`.
 2. Call `listProfileMaterial` and select only IDs from the returned material records. Identity, contact, and presentation metadata are handled by the selected template and are not returned by this tool.
-3. Call `listCvProfiles` to check whether a suitable resume already exists. Reuse its `slug` with `updateCvProfile` instead of creating a near-duplicate.
-4. Call `createTailoredCvProfile` with a non-empty `label`, the chosen `templateId`, a role-focused `professionalSummary`, selected ID arrays, and only `templateExtra` fields listed in the selected template's `extraSchema`.
-5. To refine a profile, call `updateCvProfile` with the profile's `slug` and only the fields you want to change.
+3. Call `createTailoredCvProfile` with a non-empty `label`, the chosen `templateId`, a role-focused `professionalSummary`, selected ID arrays, and only `templateExtra` fields listed in the selected template's `extraSchema`.
+4. To refine a profile, call `updateCvProfile` with the profile's `slug` and only the fields you want to change.
 
 Always include `label` in create calls. The server does not generate it; choose a concise saved-resume label such as `Acme - Senior Backend Engineer`.
 

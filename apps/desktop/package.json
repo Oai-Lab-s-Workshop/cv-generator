@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "test:unit": "bun test",
-    "prepare:frontend": "cd ../web && npm run sync:preview-seed && NODE_OPTIONS= node node_modules/.bin/ng build --base-href ./ --output-path ../desktop/.cache/angular",
+    "prepare:frontend": "cd ../web && NODE_OPTIONS= node node_modules/.bin/ng build --base-href ./ --output-path ../desktop/.cache/angular",
     "prepare:mcp": "../../backend/mcp/mvnw -f ../../backend/mcp/pom.xml package -DskipTests",
     "prepare:java-runtime": "bun scripts/build-java-runtime.ts",
     "prepare:pocketbase": "bun scripts/download-pocketbase.ts",

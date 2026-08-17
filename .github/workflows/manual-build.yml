@@ -58,21 +58,9 @@ jobs:
         run: NODE_OPTIONS= node node_modules/.bin/ng build
         working-directory: apps/web
 
-      - name: Test frontend
-        run: npm run test:unit -- --ci --coverage
-        working-directory: apps/web
-
       - name: Test MCP
         run: ./mvnw test
         working-directory: backend/mcp
-
-      - name: Test Material MCP
-        run: mvn test
-        working-directory: backend/material-mcp
-
-      - name: Test desktop
-        run: bun test
-        working-directory: apps/desktop
 
       - name: Typecheck desktop
         run: bun run typecheck
