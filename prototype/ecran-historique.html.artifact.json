@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "ecran-historique.html",
+  "entry": "ecran-historique.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-08-18T09:43:04.595Z",
+  "updatedAt": "2026-08-18T09:43:04.595Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "ecran-parametres.html",
+  "entry": "ecran-parametres.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-08-18T09:43:04.871Z",
+  "updatedAt": "2026-08-18T09:43:04.871Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

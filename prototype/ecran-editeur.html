@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resumate — Éditeur</title><link rel="stylesheet" href="final.css"></head>
+<body><div class="calque-trame" aria-hidden="true"></div><div class="app-shell">
+<header class="topbar" data-od-id="editor-header"><div class="page topbar__inner">
+  <a class="brand" href="index.html" data-od-id="editor-brand"><img src="assets/logo.png" alt=""><span>Resumate <small>Éditeur</small></span></a>
+  <nav class="main-nav" aria-label="Navigation principale" data-main-nav data-od-id="editor-nav"><a href="ecran-accueil.html">Accueil</a><a href="ecran-editeur.html" aria-current="page">Éditeur</a><a href="ecran-tableau-bord.html">Tableau de bord</a><a href="ecran-historique.html">Historique</a><a href="ecran-modeles.html">Modèles</a><a href="ecran-parametres.html">Paramètres</a></nav>
+  <div class="top-actions"><button class="btn btn--primary" data-toast-action data-toast-title="Profil enregistré" data-toast-message="Toutes les modifications sont synchronisées.">Enregistrer</button><button class="icon-btn mobile-menu" aria-label="Ouvrir la navigation" aria-expanded="false" data-menu>☰</button></div>
+</div></header>
+<main class="page page-main" data-od-id="editor-main">
+  <section class="hero hero--warm" style="min-height:300px" data-od-id="editor-hero"><div class="geo" aria-hidden="true"><i></i><i></i><i></i></div><div><p class="eyebrow">Éditeur · /lead-produit</p><h1 class="display display--medium" data-od-id="editor-title">Lead produit — Doctolib</h1><p class="lede">Brouillon enregistré automatiquement. La publication reste privée.</p></div><aside class="hero__aside"><span class="hero__number" data-completion>72%</span><p class="mono muted">COMPLÉTUDE</p><div class="progress" data-completion-bar style="--progress:72%"><span></span></div></aside></section>
+  <section class="section editor-layout" data-od-id="editor-workspace">
+    <article class="panel" data-editor-form><div class="tabs" role="tablist" data-tabs><button class="tab" role="tab" aria-selected="true" aria-controls="editor-identite">Identité</button><button class="tab" role="tab" aria-selected="false" aria-controls="editor-experience">Expériences</button><button class="tab" role="tab" aria-selected="false" aria-controls="editor-projets">Projets</button></div>
+      <div class="panel__body tab-panel" id="editor-identite" data-tab-panel><div class="form-grid">
+        <label class="field"><span>Prénom</span><input value="Camille"></label><label class="field"><span>Nom</span><input value="Martin"></label>
+        <label class="field field--full"><span>Intitulé</span><input value="Lead produit"></label>
+        <label class="field field--full"><span>Résumé professionnel</span><textarea>Je transforme des produits complexes en expériences simples, mesurables et utiles.</textarea></label>
+        <label class="field"><span>LinkedIn</span><input type="url" value="https://linkedin.com/in/camille-martin"></label><label class="field"><span>Portfolio</span><input type="url" placeholder="https://"></label>
+      </div></div>
+      <div class="panel__body tab-panel" id="editor-experience" data-tab-panel hidden><ul class="list"><li class="list-item"><span class="list-item__index">01</span><div><h3>Lead produit · Doctolib</h3><p>2023 — aujourd’hui · Paris</p></div><button class="btn btn--quiet">Modifier</button></li><li class="list-item"><span class="list-item__index">02</span><div><h3>Product manager · Qonto</h3><p>2020 — 2023 · Paris</p></div><button class="btn btn--quiet">Modifier</button></li></ul><button class="btn btn--primary" style="margin-top:18px">Ajouter une expérience</button></div>
+      <div class="panel__body tab-panel" id="editor-projets" data-tab-panel hidden><p class="muted">Les projets liés apparaîtront ici dans l’ordre du CV.</p><button class="btn btn--primary">Lier un projet</button></div>
+    </article>
+    <aside class="preview-sheet" aria-label="Aperçu du CV" data-od-id="editor-preview"><p class="eyebrow" style="color:#1a31b4">Aperçu · Registre</p><h3>Camille Martin</h3><p>Lead produit</p><div class="preview-block"><strong>Profil</strong><div class="preview-line"></div><div class="preview-line short"></div></div><div class="preview-block"><strong>Expérience</strong><div class="preview-line"></div><div class="preview-line"></div><div class="preview-line short"></div></div><div class="preview-block"><strong>Projets</strong><div class="preview-line"></div><div class="preview-line short"></div></div></aside>
+  </section>
+  <footer class="footer" data-od-id="editor-footer">RESUMATE / ÉDITEUR · ENREGISTREMENT AUTOMATIQUE ACTIF</footer>
+</main></div><div class="toast" data-toast role="status"><strong>Profil enregistré</strong><p>Les modifications sont synchronisées.</p></div><script src="final.js"></script></body></html>
