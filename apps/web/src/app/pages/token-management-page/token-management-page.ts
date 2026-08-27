@@ -19,7 +19,7 @@ import { McpConfigHelper } from './mcp-config-helper';
   selector: 'app-token-management-page',
   imports: [DatePipe, FormsModule, Navbar, McpConfigHelper],
   templateUrl: './token-management-page.html',
-  styleUrls: ['../../styles/home-shared.css', './token-management-page.css'],
+  styleUrls: ['./token-management-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TokenManagementPage implements OnInit {

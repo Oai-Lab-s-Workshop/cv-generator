@@ -1,6 +1,12 @@
+/* Affiche Harness — galerie de modèles (T14).
+   Hero chaud + tête de galerie. Le chrome des cartes d'aperçu est porté
+   par le composant partagé template-preview-list (déjà migré Affiche) ;
+   le contenu du CV (templates protégés) reste intact. */
+
+.af-app .page {
+  padding-bottom: 72px;
+}
+
 app-template-preview-list {
   display: block;
-  width: min(100%, 76rem);
-  margin-inline: auto;
-  margin-top: 1.5rem;
 }

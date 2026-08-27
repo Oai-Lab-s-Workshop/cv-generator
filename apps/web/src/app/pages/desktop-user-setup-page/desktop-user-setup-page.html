@@ -1,74 +1,82 @@
-<main class="desktop-user-setup-page">
-  <section class="setup-card">
-    <a routerLink="/desktop" class="back-link">Back to desktop home</a>
-    <p class="eyebrow">Resumate Desktop</p>
-    <h1>Setup a local user</h1>
-    <p class="lede">Create a PocketBase user for the local desktop database, then sign in through Resumate.</p>
+<main class="af-app desktop-user-setup-page">
+  <div class="page">
+    <div class="page-main">
+      <section class="panel setup-card">
+        <div class="setup-card__body">
+          <a routerLink="/desktop" class="setup-card__back">Back to desktop home</a>
+          <p class="eyebrow">Resumate Desktop</p>
+          <h1 class="display display--medium">Setup a local user</h1>
+          <p class="lede">Create a PocketBase user for the local desktop database, then sign in through Resumate.</p>
 
-    <form class="setup-form" (ngSubmit)="createUser()">
-      <div class="field-grid">
-        <label>
-          <span>First name</span>
-          <input [ngModel]="firstName()" (ngModelChange)="firstName.set($event)" name="firstName" type="text" required />
-        </label>
-        <label>
-          <span>Last name</span>
-          <input [ngModel]="lastName()" (ngModelChange)="lastName.set($event)" name="lastName" type="text" required />
-        </label>
-      </div>
+          <form class="setup-form" (ngSubmit)="createUser()">
+            <div class="form-grid">
+              <div class="field">
+                <label for="firstName">First name</label>
+                <input id="firstName" [ngModel]="firstName()" (ngModelChange)="firstName.set($event)" name="firstName" type="text" required />
+              </div>
+              <div class="field">
+                <label for="lastName">Last name</label>
+                <input id="lastName" [ngModel]="lastName()" (ngModelChange)="lastName.set($event)" name="lastName" type="text" required />
+              </div>
+            </div>
 
-      <label>
-        <span>Email</span>
-        <input [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" type="email" autocomplete="username" required />
-      </label>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" type="email" autocomplete="username" required />
+            </div>
 
-      <label>
-        <span>Password</span>
-        <input [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" type="password" autocomplete="new-password" minlength="8" required />
-      </label>
+            <div class="field">
+              <label for="password">Password</label>
+              <input id="password" [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" type="password" autocomplete="new-password" minlength="8" required />
+            </div>
 
-      <section class="password-panel" aria-live="polite">
-        <p class="password-helper" [class.password-helper--valid]="isPasswordValid()">{{ passwordHelper() }}</p>
-        <ul class="password-rules">
-          @for (rule of passwordRules(); track rule.label) {
-            <li [class.is-met]="rule.isMet">{{ rule.label }}</li>
-          }
-        </ul>
+            <section class="panel password-panel" aria-live="polite">
+              <div class="panel__body">
+                <p class="password-helper" [class.password-helper--valid]="isPasswordValid()">{{ passwordHelper() }}</p>
+                <ul class="password-rules">
+                  @for (rule of passwordRules(); track rule.label) {
+                    <li [class.is-met]="rule.isMet">{{ rule.label }}</li>
+                  }
+                </ul>
+              </div>
+            </section>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="phone">Phone <small class="muted">optional</small></label>
+                <input id="phone" [ngModel]="phone()" (ngModelChange)="phone.set($event)" name="phone" type="tel" />
+              </div>
+              <div class="field">
+                <label for="website">Website <small class="muted">optional</small></label>
+                <input id="website" [ngModel]="website()" (ngModelChange)="website.set($event)" name="website" type="url" />
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="linkedin">LinkedIn <small class="muted">optional</small></label>
+                <input id="linkedin" [ngModel]="linkedin()" (ngModelChange)="linkedin.set($event)" name="linkedin" type="url" />
+              </div>
+              <div class="field">
+                <label for="github">GitHub <small class="muted">optional</small></label>
+                <input id="github" [ngModel]="github()" (ngModelChange)="github.set($event)" name="github" type="url" />
+              </div>
+            </div>
+
+            @if (errorMessage()) {
+              <p class="status status--red setup-state">{{ errorMessage() }}</p>
+            }
+            @if (successMessage()) {
+              <p class="status status--green setup-state">{{ successMessage() }}</p>
+            }
+
+            <div class="service-actions">
+              <button class="btn btn--primary" type="submit" [disabled]="!canSubmit()">{{ isSaving() ? 'Creating...' : 'Create user' }}</button>
+              <a routerLink="/login" class="btn btn--quiet">Go to login</a>
+            </div>
+          </form>
+        </div>
       </section>
-
-      <div class="field-grid">
-        <label>
-          <span>Phone <small>optional</small></span>
-          <input [ngModel]="phone()" (ngModelChange)="phone.set($event)" name="phone" type="tel" />
-        </label>
-        <label>
-          <span>Website <small>optional</small></span>
-          <input [ngModel]="website()" (ngModelChange)="website.set($event)" name="website" type="url" />
-        </label>
-      </div>
-
-      <div class="field-grid">
-        <label>
-          <span>LinkedIn <small>optional</small></span>
-          <input [ngModel]="linkedin()" (ngModelChange)="linkedin.set($event)" name="linkedin" type="url" />
-        </label>
-        <label>
-          <span>GitHub <small>optional</small></span>
-          <input [ngModel]="github()" (ngModelChange)="github.set($event)" name="github" type="url" />
-        </label>
-      </div>
-
-      @if (errorMessage()) {
-        <p class="state state--error">{{ errorMessage() }}</p>
-      }
-      @if (successMessage()) {
-        <p class="state state--success">{{ successMessage() }}</p>
-      }
-
-      <div class="actions-row">
-        <button type="submit" [disabled]="!canSubmit()">{{ isSaving() ? 'Creating...' : 'Create user' }}</button>
-        <a routerLink="/login" class="secondary-action">Go to login</a>
-      </div>
-    </form>
-  </section>
+    </div>
+  </div>
 </main>

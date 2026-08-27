@@ -24,39 +24,37 @@
 }
 
 .item {
-    padding: .5%;
+    padding: 6px 14px;
     text-wrap: nowrap;
-    /* width: 100%; */
-    border-radius: 6px;
-    background-color: var(--bgTileColor, white);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--af-filet);
+    border-radius: 0;
+    background-color: var(--af-planche);
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    gap: 10px;
 }
 
 .item img{
-    /* padding-top: 1%; */
     height: 1rem;
     aspect-ratio: 1;
     object-fit: contain;
-    margin-left: 1%;
 }
 
 .item p{
-    margin: 0 10px;
+    margin: 0;
     font-size: clamp(.8rem, 2.5vw, 1.3rem);
-    color: rgb(105, 105, 105);
+    font-family: var(--af-corps);
+    color: var(--af-mine);
 }
 
 .tile-scroll{
     height: 50%;
     width: 100%;
-    /* overflow: hidden; */
 }
 
 .fade {
-    --col: var(--bgTileColor, white);
+    --col: var(--af-planche);
     width: 200%;
     height: 110%;
     position: relative;
@@ -72,7 +70,7 @@
     );
 
     inset: 0;
-    /* pointer-event: none; */
+    pointer-events: none;
 }
 
 @keyframes loop {
@@ -102,5 +100,11 @@
         100% {
             left: calc(-135% - 2.5vw);
         }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .scrolldiv {
+        animation: none;
     }
 }

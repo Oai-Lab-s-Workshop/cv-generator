@@ -1,37 +1,38 @@
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 7px;
   margin-bottom: 14px;
 }
 
 .form-field label {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: light-dark(#18202b, #e2e8f0);
+  color: var(--af-mine);
+  font: 600 10px/1.2 var(--af-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .form-field__required {
-  color: light-dark(#b91c1c, #f87171);
+  color: var(--af-rouge-encre);
   margin-left: 2px;
 }
 
 .form-field--invalid label {
-  color: light-dark(#b91c1c, #f87171);
+  color: var(--af-rouge-encre);
 }
 
 .form-field--invalid :is(input, select, textarea, quill-editor) {
-  border-color: light-dark(#b91c1c, #f87171);
+  border-color: var(--af-rouge);
 }
 
 .form-field__error {
   font-size: 0.75rem;
-  color: light-dark(#b91c1c, #f87171);
+  color: var(--af-rouge-encre);
   margin-top: 2px;
 }
 
 .form-field__helper {
   font-size: 0.75rem;
-  color: light-dark(#64748b, #94a3b8);
+  color: var(--af-mine);
   margin-top: 2px;
 }

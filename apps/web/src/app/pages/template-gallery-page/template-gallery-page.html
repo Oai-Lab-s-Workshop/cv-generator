@@ -1,13 +1,33 @@
-<main class="gallery-page">
+<main class="af-app">
   <app-navbar />
 
-  <section class="gallery-hero">
-    <div class="gallery-hero__copy">
-      <p class="eyebrow">Apercus</p>
-      <h1>Tous les templates</h1>
-      <p class="lede">Cette galerie utilise des donnees de demonstration en francais issues du seed du projet.</p>
-    </div>
-  </section>
+  <div class="page">
+    <section class="hero hero--warm">
+      <div class="geo" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div>
+        <p class="eyebrow">Bibliothèque · modèles</p>
+        <h1 class="display">Tous les templates</h1>
+        <p class="lede">Cette galerie utilise des donnees de demonstration en francais issues du seed du projet.</p>
+      </div>
+      <aside class="hero__aside">
+        <span class="hero__number">A4</span>
+        <p class="mono muted">APERÇUS FIDÈLES<br>EXPORT SANS DÉCALAGE</p>
+      </aside>
+    </section>
 
-  <app-template-preview-list [allowA4Toggle]="true" [forceA4]="false" [autoLoop]="false"></app-template-preview-list>
+    <section class="section">
+      <div class="section-head">
+        <h2>Galerie</h2>
+        <p class="mono muted">APERÇUS BASÉS SUR VOS DONNÉES</p>
+      </div>
+
+      <app-template-preview-list
+        [allowA4Toggle]="true"
+        [forceA4]="false"
+        [autoLoop]="false"
+      ></app-template-preview-list>
+    </section>
+
+    <footer class="footer">RESUMATE / MODÈLES · APERÇUS BASÉS SUR VOS DONNÉES</footer>
+  </div>
 </main>
