@@ -17,7 +17,7 @@ export class ToastService {
 
     window.setTimeout(() => {
       this.dismiss(id);
-    }, 5000);
+    }, 2600);
   }
 
   success(text: string): void {
