@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
-import { ToastService } from '../../../core/services/toast.service';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-navbar',
@@ -13,15 +15,26 @@ import { ToastService } from '../../../core/services/toast.service';
 })
 export class Navbar {
   private readonly authService = inject(AuthService);
-  private readonly toastService = inject(ToastService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly themeService = inject(ThemeService);
 
   readonly isAuthenticated = this.authService.isAuthenticated ?? computed(() => Boolean(this.authService.currentUser()));
   readonly bugReportUrl = signal(environment.bugReportUrl);
   readonly isLoggingOut = signal(false);
+  readonly menuOpen = signal(false);
 
   constructor() {
     void this.loadRuntimeConfig();
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => this.closeMenu());
   }
+
+  toggleTheme(): void { this.themeService.toggle(); }
+  toggleMenu(): void { this.menuOpen.update((open) => !open); }
+  closeMenu(): void { this.menuOpen.set(false); }
 
   logout(): void {
     this.isLoggingOut.set(true);
