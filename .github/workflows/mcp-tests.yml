@@ -121,15 +121,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
 
-      - name: Start PocketBase
-        run: docker compose -f docker/docker-compose.yml up -d pocketbase
+      - name: Start PocketBase and frontend proxy
+        run: docker compose -f docker/docker-compose.yml up -d pocketbase frontend
 
       - name: Run PocketBase-backed MCP smoke test
         run: scripts/mcp-pocketbase-smoke.sh
 
       - name: Capture service logs on failure
         if: failure()
-        run: docker compose -f docker/docker-compose.yml logs pocketbase mcp > pocketbase-mcp-smoke.log || true
+        run: docker compose -f docker/docker-compose.yml logs pocketbase frontend > pocketbase-mcp-smoke.log || true
 
       - uses: actions/upload-artifact@v4
         if: failure()
