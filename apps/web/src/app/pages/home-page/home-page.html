@@ -396,15 +396,15 @@
                       <div class="profile-cell profile-actions" role="gridcell" data-label="Actions">
                         @if (profile.template) {
                           <button class="btn btn--quiet action-icon" type="button" title="Copier la route" aria-label="Copier la route" (click)="copyRoute(profile)">
-                            Copier
+                            <i class="bi bi-clipboard" aria-hidden="true"></i>
                           </button>
                         }
                         <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="btn btn--quiet action-icon action-icon--edit" title="Editer" aria-label="Editer">
-                          Éditer
+                          <i class="bi bi-pencil" aria-hidden="true"></i>
                         </a>
                         @if (profile.template) {
                           <a [routerLink]="['/', profile.slug]" class="btn btn--quiet action-icon" title="Ouvrir" aria-label="Ouvrir">
-                            Ouvrir
+                            <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
                           </a>
                         }
                         <button
@@ -415,7 +415,7 @@
                           [disabled]="isDeleting() === profile.id"
                           (click)="deleteProfile(profile)"
                         >
-                          Supprimer
+                          <i class="bi bi-trash" aria-hidden="true"></i>
                         </button>
                       </div>
                     </article>

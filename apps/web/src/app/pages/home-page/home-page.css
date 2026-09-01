@@ -211,7 +211,7 @@
 }
 
 .profile-table {
-  --profile-actions-column: 12.5rem;
+  --profile-actions-column: 10rem;
   min-width: 720px;
 }
 
@@ -264,6 +264,19 @@
 .profile-cell--main {
   display: grid;
   gap: 2px;
+  /* Necessaire pour que l'ellipse des enfants fonctionne dans la grille. */
+  min-width: 0;
+}
+
+/* En mode ligne, titre et sous-titre restent sur une seule ligne : sans cela un
+   intitule long fait doubler la hauteur de la ligne. Le mode carte
+   (max-width: 800px) restaure le retour a la ligne. */
+.profile-cell--main h3,
+.profile-cell--main p {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .profile-cell--main h3 {
@@ -477,30 +490,37 @@
 /* ---- Actions de ligne ---- */
 .profile-actions {
   display: flex;
-  flex-wrap: wrap;
+  /* En mode ligne les boutons ne doivent jamais passer a la ligne : la carte
+     (max-width: 800px) redefinit flex-wrap: wrap pour l'empilement. */
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
   min-width: 0;
 }
 
+/* Boutons carres, icone seule : le libelle vit dans title/aria-label. */
 .action-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: auto;
+  width: var(--af-cible);
+  min-width: var(--af-cible);
   height: var(--af-cible);
   min-height: var(--af-cible);
-  padding: 0 10px;
+  padding: 0;
   border-radius: 0;
-  font-family: var(--af-mono);
-  font-size: 10px;
+  font-size: 15px;
   line-height: 1;
-  text-transform: uppercase;
+}
+
+.action-icon i {
+  line-height: 1;
 }
 
 .action-icon--edit {
   display: inline-grid;
+  place-items: center;
 }
 
 .action-icon:disabled {
@@ -663,6 +683,13 @@
 
   .profile-cell--main::before {
     content: none;
+  }
+
+  .profile-cell--main h3,
+  .profile-cell--main p {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
   }
 
   .profile-cell--template {
