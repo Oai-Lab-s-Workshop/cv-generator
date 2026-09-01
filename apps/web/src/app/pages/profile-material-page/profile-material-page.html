@@ -182,8 +182,8 @@
             } @else {
               <ul class="list material-list" [appSortableList]="jobs()" (appSortableListChange)="onReorderJobs($event)">
                 @for (job of jobs(); track job.id; let i = $index) {
-                  <li class="list-item material-row" [class.material-row--editing]="jobForm().id === job.id" [attr.draggable]="true" [attr.data-index]="i">
-                    <span class="drag-handle" aria-hidden="true"></span>
+                  <li class="list-item material-row" [class.material-row--editing]="jobForm().id === job.id" [style.view-transition-name]="'sortable-' + job.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
                     <div class="material-row__content">
                       <span class="list-item__index mono">{{ i + 1 }}</span>
                       <div class="material-row__body">
@@ -288,12 +288,12 @@
             } @else {
               <ul class="list material-list" [appSortableList]="projects()" (appSortableListChange)="onReorderProjects($event)">
                 @for (project of projects(); track project.id; let i = $index) {
-                  <li class="list-item material-row" [class.material-row--editing]="projectForm().id === project.id" [attr.draggable]="true" [attr.data-index]="i">
-                    <span class="drag-handle" aria-hidden="true"></span>
+                  <li class="list-item material-row" [class.material-row--editing]="projectForm().id === project.id" [style.view-transition-name]="'sortable-' + project.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
                     <div class="material-row__content">
                       <span class="list-item__index mono">{{ i + 1 }}</span>
                       @if (project.picture) {
-                        <img class="material-thumb" [src]="project.picture" [alt]="project.name" />
+                        <img class="material-thumb" draggable="false" [src]="project.picture" [alt]="project.name" />
                       }
                       <div class="material-row__body">
                         <h3>{{ project.name }}</h3>
@@ -388,8 +388,8 @@
             } @else {
               <ul class="list material-list" [appSortableList]="skills()" (appSortableListChange)="onReorderSkills($event)">
                 @for (skill of skills(); track skill.id; let i = $index) {
-                  <li class="list-item material-row" [class.material-row--editing]="skillForm().id === skill.id" [attr.draggable]="true" [attr.data-index]="i">
-                    <span class="drag-handle" aria-hidden="true"></span>
+                  <li class="list-item material-row" [class.material-row--editing]="skillForm().id === skill.id" [style.view-transition-name]="'sortable-' + skill.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
                     <div class="material-row__content">
                       <span class="list-item__index mono">{{ i + 1 }}</span>
                       <div class="material-row__body">
@@ -454,8 +454,8 @@
             } @else {
               <ul class="list material-list" [appSortableList]="achievements()" (appSortableListChange)="onReorderAchievements($event)">
                 @for (achievement of achievements(); track achievement.id; let i = $index) {
-                  <li class="list-item material-row" [class.material-row--editing]="achievementForm().id === achievement.id" [attr.draggable]="true" [attr.data-index]="i">
-                    <span class="drag-handle" aria-hidden="true"></span>
+                  <li class="list-item material-row" [class.material-row--editing]="achievementForm().id === achievement.id" [style.view-transition-name]="'sortable-' + achievement.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
                     <div class="material-row__content">
                       <span class="list-item__index mono">{{ i + 1 }}</span>
                       <div class="material-row__body">
@@ -516,8 +516,8 @@
             } @else {
               <ul class="list material-list" [appSortableList]="degrees()" (appSortableListChange)="onReorderDegrees($event)">
                 @for (degree of degrees(); track degree.id; let i = $index) {
-                  <li class="list-item material-row" [class.material-row--editing]="degreeForm().id === degree.id" [attr.draggable]="true" [attr.data-index]="i">
-                    <span class="drag-handle" aria-hidden="true"></span>
+                  <li class="list-item material-row" [class.material-row--editing]="degreeForm().id === degree.id" [style.view-transition-name]="'sortable-' + degree.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
                     <div class="material-row__content">
                       <span class="list-item__index mono">{{ i + 1 }}</span>
                       <div class="material-row__body">
@@ -581,8 +581,8 @@
             } @else {
               <ul class="list material-list" [appSortableList]="hobbies()" (appSortableListChange)="onReorderHobbies($event)">
                 @for (hobby of hobbies(); track hobby.id; let i = $index) {
-                  <li class="list-item material-row" [class.material-row--editing]="hobbyForm().id === hobby.id" [attr.draggable]="true" [attr.data-index]="i">
-                    <span class="drag-handle" aria-hidden="true"></span>
+                  <li class="list-item material-row" [class.material-row--editing]="hobbyForm().id === hobby.id" [style.view-transition-name]="'sortable-' + hobby.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
                     <div class="material-row__content">
                       <span class="list-item__index mono">{{ i + 1 }}</span>
                       <div class="material-row__body">
@@ -648,11 +648,11 @@
             } @else {
               <ul class="list material-list" [appSortableList]="assets()" (appSortableListChange)="onReorderAssets($event)">
                 @for (asset of assets(); track asset.id; let i = $index) {
-                  <li class="list-item material-row" [class.material-row--editing]="assetForm().id === asset.id" [attr.draggable]="true" [attr.data-index]="i">
-                    <span class="drag-handle" aria-hidden="true"></span>
+                  <li class="list-item material-row" [class.material-row--editing]="assetForm().id === asset.id" [style.view-transition-name]="'sortable-' + asset.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
                     <div class="material-row__content">
                       <span class="list-item__index mono">{{ i + 1 }}</span>
-                      @if (asset.kind === 'image') { <img class="material-thumb" [src]="asset.file" [alt]="asset.alt || asset.name || 'Asset'" /> }
+                      @if (asset.kind === 'image') { <img class="material-thumb" draggable="false" [src]="asset.file" [alt]="asset.alt || asset.name || 'Asset'" /> }
                       <div class="material-row__body">
                         <h3>{{ asset.name || 'Asset sans nom' }}</h3>
                         <p>{{ asset.kind || 'other' }} · {{ asset.alt || 'Sans alt' }}</p>

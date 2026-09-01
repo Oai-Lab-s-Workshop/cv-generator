@@ -163,20 +163,60 @@
 }
 
 /* ── Poignée de glisser (géométrie CSS, remplace l'icône) ── */
+/* Boîte de saisie de 44px (--af-cible) ; les points restent à 18×26. */
 .af-app .drag-handle {
-  width: 18px;
-  height: 26px;
+  width: 24px;
+  height: var(--af-cible);
   flex: none;
   align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.af-app .drag-handle::before {
+  content: '';
+  width: 18px;
+  height: 26px;
   background-image: radial-gradient(circle, var(--af-mine) 1.5px, transparent 2px);
   background-size: 8px 8px;
-  background-position: 0 0;
+  background-position: center;
   background-repeat: repeat;
 }
 
 .af-app .drag-handle:active {
   cursor: grabbing;
+}
+
+/* ── Glisser-déposer : retour visuel (classes posées par appSortableList) ── */
+.af-app .sortable-item--dragging {
+  opacity: 0.4;
+}
+
+.af-app .sortable-item--drop-above,
+.af-app .sortable-item--drop-below {
+  position: relative;
+}
+
+.af-app .sortable-item--drop-above::before,
+.af-app .sortable-item--drop-below::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--af-bleu);
+}
+
+.af-app .sortable-item--drop-above::before {
+  top: -1px;
+}
+
+.af-app .sortable-item--drop-below::after {
+  bottom: -1px;
 }
 
 /* ── Indicateur de chargement (géométrie CSS) ── */
@@ -291,5 +331,9 @@
 @media (prefers-reduced-motion: reduce) {
   .af-app .spinner {
     animation: none;
+  }
+
+  .af-app .material-row {
+    view-transition-name: none !important;
   }
 }

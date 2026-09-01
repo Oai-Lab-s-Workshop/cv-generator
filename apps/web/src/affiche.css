@@ -238,7 +238,7 @@ body { background: var(--af-papier); color: var(--af-encre); }
 .af-app .grid-2 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); gap: 20px; }
 .af-app .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .af-app .panel { border: 1px solid var(--af-filet); border-top: 3px solid var(--af-encre); border-radius: 0; background: var(--af-panel-alpha); box-shadow: none; }
-.af-app .panel__head { min-height: 58px; position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 18px; border-bottom: 3px solid var(--af-encre); }
+.af-app .panel__head { min-height: 58px; position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 18px; border-bottom: 3px solid var(--af-encre); }
 .af-app .panel__head::after { content: ''; position: absolute; left: 0; bottom: -3px; width: 72px; height: 3px; background: var(--af-triade); }
 .af-app .panel__head h2, .af-app .panel__head h3 { margin: 0; }
 .af-app .panel__body { padding: 18px; }
@@ -343,6 +343,15 @@ body { background: var(--af-papier); color: var(--af-encre); }
 
 @media (prefers-reduced-motion: reduce) {
   .af-app *, .af-app *::before, .af-app *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+
+/* Transitions de vue (réordonnancement par glisser-déposer). Les pseudo-éléments
+   ::view-transition-* vivent sur la racine du document : ils ne peuvent pas être
+   ciblés depuis un CSS de composant encapsulé, d'où leur place ici. */
+::view-transition-group(*) { animation-duration: 180ms; animation-timing-function: cubic-bezier(.2, 0, .2, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
