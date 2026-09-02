@@ -7,7 +7,6 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   styleUrl: './empty-state.css',
 })
 export class EmptyStateComponent {
-  @Input() icon = 'bi-inbox';
   @Input() title = 'Aucun element pour le moment';
   @Input() description = '';
   @Input() actionLabel = 'Ajouter';

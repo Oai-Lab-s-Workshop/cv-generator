@@ -5,6 +5,7 @@ import { Directive, ElementRef, HostListener, Input, OnDestroy, Renderer2 } from
   selector: '[appTooltip]',
 })
 export class TooltipDirective implements OnDestroy {
+  private static nextId = 0;
   private static activeInstance: TooltipDirective | null = null;
   private static activeTooltipEl: HTMLElement | null = null;
 
@@ -16,6 +17,8 @@ export class TooltipDirective implements OnDestroy {
   private isHovering = false;
   private pointerX = 0;
   private pointerY = 0;
+  private readonly tooltipId = `app-tooltip-${TooltipDirective.nextId++}`;
+  private originalAriaDescribedBy: string | null = null;
 
   constructor(
     private host: ElementRef<HTMLElement>,
@@ -61,10 +64,15 @@ export class TooltipDirective implements OnDestroy {
 
     const el = this.renderer.createElement('div');
     this.renderer.addClass(el, 'app-tooltip');
+    this.renderer.setAttribute(el, 'id', this.tooltipId);
+    this.renderer.setAttribute(el, 'role', 'tooltip');
     this.renderer.appendChild(el, this.renderer.createText(this.content));
     this.applyTooltipStyles(el);
 
     this.renderer.appendChild(document.body, el);
+    this.originalAriaDescribedBy = this.host.nativeElement.getAttribute('aria-describedby');
+    const describedBy = [this.originalAriaDescribedBy, this.tooltipId].filter(Boolean).join(' ');
+    this.renderer.setAttribute(this.host.nativeElement, 'aria-describedby', describedBy);
     this.tooltipEl = el;
     TooltipDirective.activeTooltipEl = el;
     TooltipDirective.activeInstance = this;
@@ -78,6 +86,14 @@ export class TooltipDirective implements OnDestroy {
     if (tooltipEl) {
       this.renderer.removeChild(document.body, tooltipEl);
       this.tooltipEl = null;
+    }
+
+    if (this.host.nativeElement.getAttribute('aria-describedby')?.split(/\s+/).includes(this.tooltipId)) {
+      if (this.originalAriaDescribedBy) {
+        this.renderer.setAttribute(this.host.nativeElement, 'aria-describedby', this.originalAriaDescribedBy);
+      } else {
+        this.renderer.removeAttribute(this.host.nativeElement, 'aria-describedby');
+      }
     }
 
     const activeTooltipEl = TooltipDirective.activeTooltipEl;
@@ -94,12 +110,13 @@ export class TooltipDirective implements OnDestroy {
   private static destroyActiveTooltip(): void {
     if (TooltipDirective.activeInstance) {
       TooltipDirective.activeInstance.clearShowTimeout();
-      TooltipDirective.activeInstance.tooltipEl = null;
+      TooltipDirective.activeInstance.destroyTooltip();
     }
 
     TooltipDirective.activeTooltipEl?.remove();
     document.querySelectorAll('.app-tooltip').forEach((tooltip) => tooltip.remove());
     TooltipDirective.activeTooltipEl = null;
+    TooltipDirective.activeInstance = null;
   }
 
   private applyTooltipStyles(el: HTMLElement): void {
@@ -107,19 +124,17 @@ export class TooltipDirective implements OnDestroy {
       position: 'fixed',
       zIndex: '9999',
       maxWidth: '18rem',
-      padding: '0.55rem 0.7rem',
+      padding: '8px 11px',
       fontSize: '0.8125rem',
-      fontWeight: '700',
+      fontWeight: '600',
       lineHeight: '1.4',
-      color: 'light-dark(#172033, #e2e8f0)',
-      background: 'light-dark(rgba(255, 255, 255, 0.96), rgba(30, 41, 59, 0.96))',
-      border: '1px solid light-dark(rgba(148, 163, 184, 0.42), rgba(148, 163, 184, 0.2))',
-      borderRadius: '0.85rem',
-      boxShadow: 'light-dark(0 18px 50px rgba(15, 23, 42, 0.14), 0 18px 50px rgba(0, 0, 0, 0.35))',
+      fontFamily: 'var(--af-corps)',
+      color: 'var(--af-encre)',
+      background: 'var(--af-planche)',
+      border: '1px solid var(--af-filet)',
+      borderRadius: '0',
+      boxShadow: '3px 3px 0 var(--af-bleu)',
       pointerEvents: 'none',
-      backdropFilter: 'blur(12px)',
-      transform: 'translate3d(0, 0, 0)',
-      transition: 'opacity 120ms ease, transform 120ms ease',
       whiteSpace: 'normal',
     };
 
@@ -180,4 +195,6 @@ export class TooltipDirective implements OnDestroy {
     this.isHovering = false;
     this.hide();
   }
+
+  @HostListener('window:beforeprint') onBeforePrint(): void { this.hide(); }
 }

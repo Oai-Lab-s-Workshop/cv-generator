@@ -1,3 +1,5 @@
+/* ── Floating admin bar (application chrome) ── */
+
 .admin-bar {
   position: fixed;
   right: 1.25rem;
@@ -9,119 +11,106 @@
   max-width: min(21rem, calc(100vw - 2rem));
 }
 
-.admin-bar__panel {
-  width: min(21rem, calc(100vw - 2rem));
-  padding: 0.75rem;
-  background: light-dark(rgba(248, 250, 252, 0.88), rgba(15, 23, 42, 0.88));
-  border: 1px solid var(--app-border);
-  border-radius: 1.15rem;
-  backdrop-filter: blur(14px);
-  box-shadow: light-dark(0 18px 46px rgba(15, 23, 42, 0.18), 0 18px 46px rgba(0, 0, 0, 0.38));
+/* Neutralise the .af-app page-root traits for this floating overlay. */
+.af-app.admin-bar {
+  position: fixed;
+  min-height: 0;
+  min-width: 0;
+  background: transparent;
+  isolation: auto;
 }
 
-.admin-bar__meta,
-.admin-bar__status {
-  margin: 0;
+/* The .af-app root paints a full-viewport grid via ::before; suppress it for this overlay. */
+.af-app.admin-bar::before {
+  display: none;
+}
+
+.admin-bar__panel {
+  width: min(21rem, calc(100vw - 2rem));
 }
 
 .admin-bar__meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
-  padding: 0 0.25rem 0.65rem;
-  color: var(--app-text);
-  font-size: 0.82rem;
-  font-weight: 600;
+  margin: 0 0 0.75rem;
 }
 
 .admin-bar__actions {
   display: grid;
-  gap: 0.45rem;
-}
-
-.speed-dial-action,
-.speed-dial-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font: inherit;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
+  gap: 8px;
 }
 
 .speed-dial-action {
-  gap: 0.55rem;
-  min-height: 2.55rem;
-  border: 1px solid var(--app-border);
-  border-radius: 0.85rem;
-  padding: 0.55rem 0.7rem;
-  background: var(--app-surface-muted);
-  color: var(--app-primary);
-  font-size: 0.8rem;
-  text-align: left;
-}
-
-.speed-dial-action i {
-  font-size: 1rem;
-}
-
-.speed-dial-action:disabled {
-  opacity: 0.72;
-  cursor: wait;
-}
-
-.speed-dial-action--link {
-  border-color: light-dark(rgba(191, 219, 254, 0.9), rgba(96, 165, 250, 0.26));
-}
-
-.speed-dial-action--ghost {
-  background: light-dark(rgba(255, 255, 255, 0.62), rgba(30, 41, 59, 0.62));
-  color: var(--app-muted-strong);
-}
-
-.speed-dial-trigger {
-  width: 3.35rem;
-  height: 3.35rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--app-primary);
-  color: var(--app-on-primary);
-  box-shadow: light-dark(0 16px 34px rgba(15, 61, 140, 0.32), 0 16px 34px rgba(106, 158, 245, 0.16));
-}
-
-.speed-dial-trigger i {
-  font-size: 1.35rem;
-}
-
-.speed-dial-trigger {
-  width: 3.35rem;
-  height: 3.35rem;
-  border: 0;
-  border-radius: 999px;
-  background: #0f3d8c;
-  color: #fff;
-  box-shadow: 0 16px 34px rgba(15, 61, 140, 0.32);
-}
-
-.speed-dial-trigger i {
-  font-size: 1.35rem;
+  width: 100%;
+  justify-content: flex-start;
+  min-height: var(--af-cible);
 }
 
 .admin-bar__status {
-  max-width: min(21rem, calc(100vw - 2rem));
+  width: min(21rem, calc(100vw - 2rem));
+  margin: 0;
   padding: 0.65rem 0.75rem;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: 0.85rem;
-  color: var(--app-muted-strong);
-  font-size: 0.8rem;
-  box-shadow: light-dark(0 12px 28px rgba(15, 23, 42, 0.12), 0 12px 28px rgba(0, 0, 0, 0.3));
+  border: 1px solid var(--af-filet);
+  border-left: 3px solid var(--af-bleu);
+  background: var(--af-planche);
+  color: var(--af-mine);
+  font: 500 12px/1.4 var(--af-corps);
 }
 
 .admin-bar__status--error {
-  color: var(--app-danger);
+  border-left-color: var(--af-rouge);
+  color: var(--af-rouge-encre);
 }
+
+.speed-dial-trigger {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--af-encre);
+  border-radius: 0;
+  background: var(--af-bleu);
+  color: var(--af-noir);
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--af-rouge);
+  transition: transform 110ms linear, box-shadow 110ms linear;
+}
+
+.speed-dial-trigger:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--af-rouge);
+}
+
+.speed-dial-trigger:active {
+  transform: none;
+  box-shadow: none;
+}
+
+.speed-dial-trigger__glyph {
+  position: relative;
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: -9px 0 0 currentColor, 9px 0 0 currentColor;
+}
+
+.speed-dial-trigger__glyph--close {
+  width: 18px;
+  height: 18px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  background-image:
+    linear-gradient(45deg, transparent 44%, currentColor 44%, currentColor 56%, transparent 56%),
+    linear-gradient(-45deg, transparent 44%, currentColor 44%, currentColor 56%, transparent 56%);
+}
+
+/* ── CV document shell (kept outside Affiche scope) ── */
 
 .cv-shell-page {
   max-width: 860px;
@@ -138,36 +127,32 @@
 .cv-preview-enabled {
   max-width: 100%;
   padding: 2rem 1rem 4rem;
-  background: light-dark(linear-gradient(180deg, #eef2f8 0%, #f8fafc 100%), linear-gradient(180deg, #0f172a 0%, #111827 100%));
+  background: var(--af-papier);
 }
 
 .cv-preview-enabled .cv-shell-page__document {
-  box-shadow: light-dark(0 20px 70px rgba(15, 23, 42, 0.12), 0 20px 70px rgba(0, 0, 0, 0.38));
+  box-shadow: 12px 12px 0 var(--af-rouge);
+}
+
+/* ── Fallback states ── */
+
+.cv-shell-page--state {
+  min-height: 100vh;
 }
 
 .state-card {
-  border: 1px solid light-dark(#f0c7c7, rgba(248, 113, 113, 0.28));
-  border-radius: 1rem;
-  background: var(--app-danger-bg);
-  padding: 1.5rem;
+  max-width: 720px;
+  padding: clamp(24px, 4vw, 36px);
 }
 
-.state-card__eyebrow {
-  margin: 0 0 0.5rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--app-danger);
-}
-
-h1 {
+.state-card h1 {
   margin: 0 0 0.75rem;
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font: 700 clamp(24px, 3vw, 40px) / 1 var(--af-titre);
+  letter-spacing: -0.025em;
 }
 
-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+.state-card .eyebrow {
+  color: var(--af-rouge-encre);
 }
 
 @media print {

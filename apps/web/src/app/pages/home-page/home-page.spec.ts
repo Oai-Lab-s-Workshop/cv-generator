@@ -458,23 +458,6 @@ describe('HomePage', () => {
       expect(ids[1]).toBe('nodate'); // no date, treated as 0
     });
 
-    it('returns bi-chevron-expand for inactive sort column', () => {
-      component.sortColumn.set('label');
-      expect(component.getSortIconClass('template')).toBe('bi bi-chevron-expand');
-    });
-
-    it('returns bi-sort-up for active ascending column', () => {
-      component.sortColumn.set('label');
-      component.sortDirection.set('asc');
-      expect(component.getSortIconClass('label')).toBe('bi bi-sort-up');
-    });
-
-    it('returns bi-sort-down for active descending column', () => {
-      component.sortColumn.set('label');
-      component.sortDirection.set('desc');
-      expect(component.getSortIconClass('label')).toBe('bi bi-sort-down');
-    });
-
     it('returns correct aria-sort values', () => {
       component.sortColumn.set('label');
       component.sortDirection.set('asc');

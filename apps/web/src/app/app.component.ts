@@ -32,24 +32,26 @@ import { ToastComponent } from './shared/components/toast/toast';
       align-items: center;
       max-width: min(360px, calc(100vw - 36px));
       padding: 12px 14px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 16px;
-      background: rgba(23, 24, 43, 0.9);
-      box-shadow: 0 18px 52px rgba(20, 20, 40, 0.28);
-      color: #f5f7ff;
-      font: 500 13px/1.3 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      backdrop-filter: blur(14px);
+      border: 1px solid var(--af-filet);
+      border-top: 3px solid var(--af-encre);
+      border-radius: 0;
+      background: var(--af-planche);
+      box-shadow: 6px 6px 0 var(--af-rouge);
+      color: var(--af-encre);
+      font: 500 13px/1.3 var(--af-corps);
     }
 
     .route-loader__code {
       padding: 4px 7px;
-      border-radius: 999px;
-      background: #78a8ff;
-      color: #081326;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      border: 1px solid var(--af-bleu);
+      border-radius: 0;
+      color: var(--af-bleu-encre);
+      font-family: var(--af-mono);
       font-weight: 700;
       white-space: nowrap;
     }
+
+    @media print { .route-loader { display: none !important; } }
   `]
 })
 export class AppComponent {

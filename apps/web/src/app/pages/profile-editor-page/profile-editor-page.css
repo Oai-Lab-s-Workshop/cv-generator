@@ -1,325 +1,317 @@
-.material-hero--with-action {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.5rem;
-}
+/* ================================================================
+   Profile editor — Affiche Harness
+   Editor-specific grammar only. Shared surfaces (.panel, .field,
+   .btn, .tabs, .list, .status, .progress, .hero, .geo) live in
+   global src/affiche.css under the .af-app namespace.
+   ================================================================ */
 
-.hero-cta {
-  flex-shrink: 0;
-  gap: 0.5rem;
-}
-
-.editor-grid {
+/* --- Workspace split + sticky A4 preview ------------------------ */
+.af-app .editor-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
-  grid-column: 2;
-  margin-top: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+  gap: 20px;
+  align-items: start;
 }
 
-.editor-grid--single {
-  grid-template-columns: 1fr;
-}
-
-.material-card--single .editor-grid {
-  grid-column: auto;
-}
-
-.profile-sections {
-  display: grid;
-  gap: 0.8rem;
-  margin-top: 1rem;
-}
-
-.form-actions--subtle {
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-.form-actions--page {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+.af-app .preview-sheet {
+  aspect-ratio: 210 / 297;
   position: sticky;
-  bottom: 0;
-  z-index: 10;
-  border-top: 1px solid var(--home-border);
-  padding: 0.75rem 1rem;
-  margin-top: 1rem;
-  width: min(100%, 76rem);
-  margin-inline: auto;
-  border-radius: 1rem 1rem 0 0;
-  background: var(--home-surface);
+  top: 96px;
+  padding: 7%;
+  background: #f5f2e9;
+  color: #16130f;
+  border: 1px solid var(--af-filet);
+  box-shadow: 12px 12px 0 var(--af-rouge);
 }
 
-@supports (background: color-mix(in srgb, red, blue)) {
-  .form-actions--page {
-    background: color-mix(in srgb, var(--home-surface, #fff) 92%, transparent);
-    backdrop-filter: blur(8px);
-  }
+.af-app .preview-sheet::before {
+  content: '';
+  position: absolute;
+  top: 7%;
+  right: 7%;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1f3ad4;
 }
 
-.profile-toggle-field {
-  align-self: end;
+.af-app .preview-sheet .eyebrow {
+  color: #1f3ad4;
+}
+
+.af-app .preview-sheet h3 {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 48px);
+  text-transform: uppercase;
+}
+
+.af-app .preview-sheet > p {
+  margin: 6px 0 0;
+  color: #5c574a;
+}
+
+.af-app .preview-block {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 2px solid #16130f;
+}
+
+.af-app .preview-block strong {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.af-app .preview-line {
+  height: 6px;
+  margin-top: 12px;
+  background: #d6d0c1;
+}
+
+.af-app .preview-line.short {
+  width: 62%;
+}
+
+/* --- Tabs panels ------------------------------------------------- */
+.af-app .tab-panel[hidden] {
+  display: none;
+}
+
+/* --- Field helpers ----------------------------------------------- */
+.af-app .field-hint {
+  color: var(--af-mine);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.af-app .checkbox-row {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  min-height: 2.75rem;
-  border: 1px solid light-dark(rgba(148, 163, 184, 0.32), rgba(148, 163, 184, 0.18));
-  border-radius: 999px;
-  padding: 0.42rem 0.72rem 0.42rem 0.85rem;
-  background: var(--home-surface);
+  gap: 10px;
+  min-height: var(--af-cible);
+  color: var(--af-encre);
 }
 
-.section-save-state {
-  min-height: 1.25rem;
-  color: var(--home-muted);
-  font-size: 0.84rem;
-  font-weight: 700;
+.af-app .checkbox-row input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  min-height: auto;
+  padding: 0;
+  accent-color: var(--af-bleu);
 }
 
-.material-card__header > .section-save-state {
-  flex: 0 0 auto;
-  text-align: right;
+/* --- Media picker (square, no radius) ---------------------------- */
+.af-app .media-picker {
+  align-content: start;
+  padding: 14px;
+  border: 1px solid var(--af-filet);
+  background: var(--af-creux);
 }
 
-.editor-image {
+.af-app .editor-image {
   width: 120px;
   height: 120px;
   object-fit: cover;
-  border-radius: 1rem;
-  border: 1px solid var(--home-border);
+  border: 1px solid var(--af-filet);
 }
 
-.editor-image--cover {
+.af-app .editor-image--cover {
   width: 100%;
   max-width: 280px;
   height: 140px;
 }
 
-.media-picker {
-  align-content: start;
-  border: 1px solid var(--home-border);
-  border-radius: 1rem;
-  padding: 0.85rem;
-  background:
-    linear-gradient(135deg, light-dark(rgba(255, 255, 255, 0.58), rgba(30, 41, 59, 0.22)), transparent),
-    var(--home-row);
-}
-
-.media-picker--cover {
-  grid-column: span 2;
-}
-
-.media-picker a {
-  color: var(--home-primary);
-  font-weight: 800;
-}
-
-.relation-helper {
-  margin: 0.5rem 0 0;
-  color: var(--home-muted);
-  line-height: 1.5;
-}
-
-.status-control {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  min-height: 2.75rem;
-}
-
-.status-control select {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 2.75rem;
-  border: 1px solid light-dark(#cbd5e1, #475569);
-  border-radius: 0.8rem;
-  padding: 0.7rem 0.85rem;
-  background: light-dark(#fff, #0f172a);
-  color: var(--home-text);
-  font: inherit;
-}
-
-.status-control select:focus {
-  border-color: light-dark(#2563eb, #60a5fa);
-  box-shadow: light-dark(0 0 0 3px rgba(37, 99, 235, 0.14), 0 0 0 3px rgba(96, 165, 250, 0.2));
-  outline: none;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 0.42rem 0.75rem;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.status-badge.gray {
-  background: light-dark(#f1f5f9, rgba(100, 116, 139, 0.25));
-  color: light-dark(#475569, #94a3b8);
-}
-
-.status-badge.blue {
-  background: light-dark(#dbeafe, rgba(30, 58, 138, 0.3));
-  color: light-dark(#1d4ed8, #93c5fd);
-}
-
-.status-badge.red {
-  background: light-dark(#fee2e2, rgba(225, 29, 72, 0.2));
-  color: light-dark(#b91c1c, #fb7185);
-}
-
-.status-badge.green {
-  background: light-dark(#dcfce7, rgba(22, 163, 74, 0.2));
-  color: light-dark(#15803d, #4ade80);
-}
-
-.status-dot {
-  display: inline-flex;
-  width: 0.55rem;
-  height: 0.55rem;
-  flex-shrink: 0;
-  border-radius: 999px;
-}
-
-.status-dot--gray {
-  background: #94a3b8;
-  box-shadow: light-dark(0 0 0 3px rgba(148, 163, 184, 0.16), 0 0 0 3px rgba(148, 163, 184, 0.25));
-}
-
-.status-dot--blue {
-  background: light-dark(#2563eb, #60a5fa);
-  box-shadow: light-dark(0 0 0 3px rgba(37, 99, 235, 0.16), 0 0 0 3px rgba(96, 165, 250, 0.2));
-}
-
-.status-dot--red {
-  background: light-dark(#dc2626, #f87171);
-  box-shadow: light-dark(0 0 0 3px rgba(220, 38, 38, 0.16), 0 0 0 3px rgba(248, 113, 113, 0.2));
-}
-
-.status-dot--green {
-  background: light-dark(#22c55e, #4ade80);
-  box-shadow: light-dark(0 0 0 3px rgba(34, 197, 94, 0.16), 0 0 0 3px rgba(74, 222, 128, 0.2));
-}
-
-.summary-editor {
+/* --- Relation picker --------------------------------------------- */
+.af-app .relation-block {
   display: grid;
-  grid-template-rows: auto minmax(8rem, auto);
-  width: 100%;
-  color: var(--home-text);
-  font-weight: 500;
+  gap: 14px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--af-filet);
 }
 
-:host ::ng-deep .summary-editor .ql-toolbar,
-:host ::ng-deep .summary-editor .ql-container {
-  border-color: light-dark(#cbd5e1, #475569);
-  background: light-dark(#fff, #0f172a);
-  color: var(--home-text);
+.af-app .relation-block:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.af-app .relation-block:first-child {
+  padding-top: 0;
+}
+
+.af-app .relation-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.af-app .relation-head h3 {
+  margin: 0;
+}
+
+.af-app .relation-head p {
+  margin: 0;
+  color: var(--af-mine);
+  font: 500 11px/1.2 var(--af-mono);
+}
+
+.af-app .relation-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.af-app .relation-col {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.af-app .col-label {
+  color: var(--af-mine);
+  font: 600 10px/1.2 var(--af-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.af-app .empty-copy {
+  margin: 0;
+  color: var(--af-mine);
+}
+
+.af-app .empty-copy a {
+  color: var(--af-bleu-encre);
+  font-weight: 700;
+}
+
+/* --- Save state + page toolbar ----------------------------------- */
+.af-app .section-save-state {
+  color: var(--af-mine);
+  font: 600 11px/1.2 var(--af-mono);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.af-app .toolbar--page {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px solid var(--af-filet);
+  border-top: 3px solid var(--af-encre);
+  background: var(--af-panel-alpha);
+  backdrop-filter: blur(8px);
+}
+
+.af-app .toolbar--page .btn--primary {
+  margin-left: auto;
+}
+
+/* --- Hero aside spacing ------------------------------------------ */
+.af-app .hero__aside .mono {
+  margin-top: 14px;
+}
+
+.af-app .hero__aside .progress {
+  margin-top: 12px;
+}
+
+.af-app .hero__aside .status {
+  margin-top: 18px;
+}
+
+/* --- Quill : skinned with field + toolbar primitives only --------- */
+:host ::ng-deep .summary-editor {
+  display: grid;
+  width: 100%;
+  color: var(--af-encre);
+}
+
+:host ::ng-deep .summary-editor .ql-toolbar.ql-snow,
+:host ::ng-deep .summary-editor .ql-container.ql-snow {
+  border: 1px solid var(--af-filet);
+  border-radius: 0;
+  background: var(--af-creux);
+  color: var(--af-encre);
   font: inherit;
 }
 
-:host ::ng-deep .summary-editor .ql-toolbar {
-  border-radius: 0.8rem 0.8rem 0 0;
+:host ::ng-deep .summary-editor .ql-toolbar.ql-snow {
+  border-bottom: 0;
 }
 
-:host ::ng-deep .summary-editor .ql-container {
-  height: auto;
-  min-height: 8rem;
-  border-radius: 0 0 0.8rem 0.8rem;
+:host ::ng-deep .summary-editor .ql-container.ql-snow {
   font-size: 1rem;
 }
 
 :host ::ng-deep .summary-editor .ql-editor {
-  height: auto;
   min-height: 8rem;
-  caret-color: var(--home-primary);
   line-height: 1.55;
+  caret-color: var(--af-bleu);
 }
 
 :host ::ng-deep .summary-editor .ql-editor.ql-blank::before {
-  color: var(--home-muted);
+  color: var(--af-mine);
   font-style: normal;
 }
 
 :host ::ng-deep .summary-editor .ql-snow .ql-stroke {
-  stroke: var(--home-text);
+  stroke: var(--af-encre);
 }
 
 :host ::ng-deep .summary-editor .ql-snow .ql-fill {
-  fill: var(--home-text);
+  fill: var(--af-encre);
 }
 
-:host ::ng-deep .summary-editor .ql-picker,
-:host ::ng-deep .summary-editor .ql-picker-options {
-  color: var(--home-text);
+:host ::ng-deep .summary-editor .ql-snow .ql-picker,
+:host ::ng-deep .summary-editor .ql-snow .ql-picker-options {
+  color: var(--af-encre);
 }
 
-:host ::ng-deep .summary-editor:focus-within .ql-toolbar,
-:host ::ng-deep .summary-editor:focus-within .ql-container {
-  border-color: light-dark(#2563eb, #60a5fa);
-  box-shadow: light-dark(0 0 0 3px rgba(37, 99, 235, 0.14), 0 0 0 3px rgba(96, 165, 250, 0.2));
+:host ::ng-deep .summary-editor .ql-snow .ql-picker-options {
+  background: var(--af-planche);
+  border-color: var(--af-filet);
 }
 
-:host ::ng-deep .summary-editor:focus-within .ql-toolbar {
-  border-bottom-color: light-dark(#cbd5e1, #475569);
+:host ::ng-deep .summary-editor .ql-snow.ql-toolbar button:hover,
+:host ::ng-deep .summary-editor .ql-snow.ql-toolbar button:focus,
+:host ::ng-deep .summary-editor .ql-snow.ql-toolbar button.ql-active {
+  color: var(--af-bleu-encre);
 }
 
-@media (max-width: 1080px) {
-  .material-card {
+:host ::ng-deep .summary-editor .ql-snow.ql-toolbar button:hover .ql-stroke,
+:host ::ng-deep .summary-editor .ql-snow.ql-toolbar button:focus .ql-stroke,
+:host ::ng-deep .summary-editor .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+  stroke: var(--af-bleu-encre);
+}
+
+:host ::ng-deep .summary-editor .ql-snow.ql-toolbar button:hover .ql-fill,
+:host ::ng-deep .summary-editor .ql-snow.ql-toolbar button:focus .ql-fill,
+:host ::ng-deep .summary-editor .ql-snow.ql-toolbar button.ql-active .ql-fill {
+  fill: var(--af-bleu-encre);
+}
+
+:host ::ng-deep .summary-editor:focus-within {
+  outline: 2px solid var(--af-bleu);
+  outline-offset: 3px;
+}
+
+/* --- Responsive --------------------------------------------------- */
+@media (max-width: 760px) {
+  .af-app .editor-layout {
     grid-template-columns: 1fr;
   }
 
-  .editor-grid,
-  .form-actions,
-  .material-list,
-  .material-list--right {
-    grid-column: 1;
+  .af-app .preview-sheet {
+    position: relative;
+    top: 0;
+    width: min(100%, 430px);
+    margin-inline: auto;
   }
 
-  .material-list,
-  .material-list--right {
-    grid-row: auto;
-    margin-top: 0;
-  }
-}
-
-@media (max-width: 800px) {
-  .material-card__header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .media-picker--cover {
-    grid-column: auto;
-  }
-}
-
-@media (max-width: 640px) {
-  .material-card__header,
-  .material-row,
-  .material-row__actions,
-  .form-actions,
-  .form-actions--subtle,
-  .form-actions--page {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .form-actions .text-link {
-    justify-content: center;
-  }
-
-  .primary-button,
-  .secondary-button,
-  .row-action {
-    width: 100%;
+  .af-app .relation-columns {
+    grid-template-columns: 1fr;
   }
 }

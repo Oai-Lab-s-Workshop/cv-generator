@@ -1,84 +1,66 @@
+/* Affiche Harness — helper de configuration MCP (T16).
+   Reprend les tokens et la géométrie d'Affiche ; la structure HTML et
+   les classes restent inchangées (couvertes par les tests). */
+
 .mcp-helper {
-  width: min(100%, 76rem);
-  margin: 0 auto 0.75rem;
-  border: 1px solid var(--home-border);
-  border-radius: 1.15rem;
-  background:
-    linear-gradient(135deg, light-dark(rgba(255, 255, 255, 0.94), rgba(30, 41, 59, 0.94)), light-dark(rgba(239, 246, 255, 0.76), rgba(15, 23, 42, 0.36))),
-    var(--home-surface);
-  box-shadow: var(--home-shadow);
-  padding: clamp(1rem, 2vw, 1.25rem);
+  border: 1px solid var(--af-filet);
+  border-top: 3px solid var(--af-encre);
+  border-radius: 0;
+  background: var(--af-planche);
+  box-shadow: none;
+  padding: clamp(16px, 2vw, 24px);
 }
 
 .mcp-helper__header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 3px solid var(--af-encre);
 }
 
 .mcp-helper__header > div {
   display: grid;
-  gap: 0.3rem;
+  gap: 4px;
 }
 
 .mcp-helper__header > p {
-  color: var(--home-muted);
-  font-size: 0.85rem;
-  font-weight: 800;
+  margin: 0;
+  color: var(--af-mine);
+  font: 500 12px/1.4 var(--af-mono);
+  letter-spacing: 0.02em;
 }
 
 .mcp-helper__grid {
   display: grid;
   grid-template-columns: minmax(16rem, 0.75fr) minmax(0, 1.25fr);
-  gap: 1rem;
+  gap: 16px;
   align-items: stretch;
 }
 
 .mcp-helper__controls {
   display: grid;
-  gap: 0.85rem;
+  align-content: start;
+  gap: 16px;
 }
 
-.mcp-helper__field {
-  gap: 0.45rem;
+.mcp-helper__field small {
+  color: var(--af-mine);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .mcp-helper__field input,
 .mcp-helper__field select {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 2.75rem;
-  border: 1px solid light-dark(rgba(148, 163, 184, 0.3), rgba(148, 163, 184, 0.18));
-  border-radius: 0.8rem;
-  background: light-dark(#fff, #0f172a);
-  color: var(--home-text);
-  font: inherit;
-  padding: 0.7rem 0.85rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.mcp-helper__field select {
-  cursor: pointer;
-}
-
-.mcp-helper__field input:focus,
-.mcp-helper__field select:focus {
-  border-color: light-dark(#2563eb, #60a5fa);
-  box-shadow: light-dark(0 0 0 3px rgba(37, 99, 235, 0.14), 0 0 0 3px rgba(96, 165, 250, 0.2));
-  outline: none;
-}
-
-.mcp-helper__field input::placeholder {
-  color: var(--home-muted);
-  opacity: 1;
-}
-
-.mcp-helper__field small {
-  color: var(--home-muted);
-  font-size: 0.78rem;
-  line-height: 1.35;
+  min-height: var(--af-cible);
+  border: 1px solid var(--af-filet);
+  border-radius: 0;
+  background: var(--af-creux);
+  color: var(--af-encre);
+  padding: 10px 12px;
+  box-shadow: none;
 }
 
 .mcp-helper__url-meta {
@@ -86,32 +68,34 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .mcp-helper__url-source {
   flex: 1 1 auto;
   min-width: 0;
+  color: var(--af-mine);
 }
 
 .mcp-helper__url-reset {
   flex: 0 0 auto;
-  min-height: 1.9rem;
-  padding: 0.3rem 0.65rem;
-  border: 1px solid light-dark(rgba(148, 163, 184, 0.35), rgba(148, 163, 184, 0.22));
-  border-radius: 0.55rem;
-  background: light-dark(#fff, #0f172a);
-  color: var(--home-text);
-  font: inherit;
-  font-size: 0.74rem;
-  font-weight: 700;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--af-filet);
+  border-radius: 0;
+  background: transparent;
+  color: var(--af-encre);
+  font: 600 10px/1 var(--af-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, opacity 0.15s;
+  transition: color 110ms linear, transform 110ms linear;
 }
 
 .mcp-helper__url-reset:hover:not(:disabled) {
-  border-color: light-dark(#2563eb, #60a5fa);
-  color: light-dark(#2563eb, #60a5fa);
+  color: var(--af-bleu-encre);
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--af-encre);
 }
 
 .mcp-helper__url-reset:disabled {
@@ -119,69 +103,75 @@
   cursor: default;
 }
 
+/* ── Console de sortie ── */
+
 .mcp-helper__output {
   display: grid;
   grid-template-rows: auto 1fr;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid light-dark(rgba(148, 163, 184, 0.3), rgba(148, 163, 184, 0.18));
-  border-radius: 1rem;
-  background: light-dark(#0f172a, #020617);
+  border: 1px solid var(--af-filet);
+  background: var(--af-creux);
 }
 
 .mcp-helper__output-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
-  color: #cbd5e1;
-  font-size: 0.82rem;
-  font-weight: 800;
-  padding: 0.75rem;
+  gap: 12px;
+  border-bottom: 3px solid var(--af-encre);
+  color: var(--af-encre);
+  font: 600 10px/1.2 var(--af-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 12px 14px;
 }
 
 .mcp-helper__output-header .secondary-button {
-  min-height: 2.1rem;
-  border-color: rgba(148, 163, 184, 0.28);
-  background: rgba(30, 41, 59, 0.7);
-  color: #e2e8f0;
-  font-size: 0.76rem;
-  padding: 0.55rem 0.7rem;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--af-filet);
+  border-radius: 0;
+  background: transparent;
+  color: var(--af-encre);
+  font: 600 10px/1 var(--af-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .mcp-helper__copy--copied {
-  border-color: light-dark(#22c55e, #4ade80) !important;
-  color: light-dark(#4ade80, #22c55e) !important;
+  border-color: var(--af-vert) !important;
+  color: var(--af-vert) !important;
 }
 
 .mcp-helper__output pre {
   min-height: 16rem;
   margin: 0;
   overflow: auto;
-  padding: 1rem;
-  color: #e2e8f0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.84rem;
+  padding: 16px;
+  color: var(--af-encre);
+  font-family: var(--af-mono);
+  font-size: 13px;
   line-height: 1.55;
 }
 
-/* ---- Custom client key-value list ---- */
+/* ── Liste clé / valeur (client personnalisé) ── */
 
 .mcp-helper__kv-list {
   display: grid;
   gap: 0;
   overflow: auto;
-  padding: 0.5rem 0;
+  padding: 0;
 }
 
 .mcp-helper__kv-item {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.5rem 1rem;
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  gap: 8px 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--af-row-line);
 }
 
 .mcp-helper__kv-item:last-child {
@@ -192,11 +182,10 @@
   flex: 0 0 auto;
   min-width: 8rem;
   max-width: 100%;
-  color: #94a3b8;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  color: var(--af-mine);
+  font: 600 10px/1.2 var(--af-mono);
   letter-spacing: 0.04em;
+  text-transform: uppercase;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -207,7 +196,7 @@
   min-width: 12rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .mcp-helper__kv-value code {
@@ -216,35 +205,34 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #e2e8f0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.82rem;
+  color: var(--af-encre);
+  font-family: var(--af-mono);
+  font-size: 13px;
   line-height: 1.5;
 }
 
 .mcp-helper__kv-copy {
   flex: 0 0 auto;
-  min-height: 1.8rem;
-  padding: 0.35rem 0.55rem;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  border-radius: 0.5rem;
-  background: rgba(30, 41, 59, 0.7);
-  color: #cbd5e1;
-  font-size: 0.7rem;
-  font-weight: 700;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--af-filet);
+  border-radius: 0;
+  background: transparent;
+  color: var(--af-encre);
+  font: 600 10px/1 var(--af-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  transition: color 110ms linear;
 }
 
 .mcp-helper__kv-copy:hover {
-  border-color: rgba(148, 163, 184, 0.5);
-  color: #f1f5f9;
+  color: var(--af-bleu-encre);
 }
 
 .mcp-helper__kv-copy--copied {
-  border-color: #4ade80 !important;
-  color: #4ade80 !important;
-  background: rgba(34, 197, 94, 0.12) !important;
+  border-color: var(--af-vert) !important;
+  color: var(--af-vert) !important;
 }
 
 @media (max-width: 860px) {
@@ -266,20 +254,16 @@
 
   .mcp-helper__output pre {
     min-height: 12rem;
-    font-size: 0.76rem;
+    font-size: 12px;
   }
 
   .mcp-helper__kv-item {
     flex-direction: column;
-    gap: 0.2rem;
-    padding: 0.6rem 0.75rem;
-  }
-
-  .mcp-helper__kv-key {
-    font-size: 0.72rem;
+    gap: 4px;
+    padding: 10px 12px;
   }
 
   .mcp-helper__kv-value code {
-    font-size: 0.74rem;
+    font-size: 12px;
   }
 }

@@ -1,235 +1,261 @@
-<main class="token-management-page">
+<main class="af-app">
   <app-navbar />
 
-  <section class="token-header">
-    <div class="token-header__copy">
-      <p class="eyebrow">Administration</p>
-      <h1>Acces MCP</h1>
-      <p>Choisissez la methode d'authentification compatible avec votre client MCP.</p>
-    </div>
-  </section>
-
-  <section class="auth-tabs" aria-label="Methodes d'authentification MCP">
-    <div class="auth-tabs__list" role="tablist" aria-label="Choix de la methode d'authentification MCP">
-      <button
-        id="oauth-tab"
-        class="auth-tabs__tab"
-        type="button"
-        role="tab"
-        aria-controls="oauth-panel"
-        [attr.aria-selected]="selectedAuthMethod() === 'oauth'"
-        [class.auth-tabs__tab--active]="selectedAuthMethod() === 'oauth'"
-        (click)="selectAuthMethod('oauth')"
-      >
-        <span>OAuth connector</span>
-        <small>Recommande pour claude.ai</small>
-      </button>
-
-      <button
-        id="api-key-tab"
-        class="auth-tabs__tab"
-        type="button"
-        role="tab"
-        aria-controls="api-key-panel"
-        [attr.aria-selected]="selectedAuthMethod() === 'api-key'"
-        [class.auth-tabs__tab--active]="selectedAuthMethod() === 'api-key'"
-        (click)="selectAuthMethod('api-key')"
-      >
-        <span>Cle API</span>
-        <small>Manuel, outils locaux et scripts</small>
-      </button>
-    </div>
-  </section>
-
-  @if (selectedAuthMethod() === 'oauth') {
-    <section id="oauth-panel" class="auth-panel oauth-panel" role="tabpanel" aria-labelledby="oauth-tab">
-      <article class="oauth-guide-card">
-        <div>
-          <p class="eyebrow">OAuth connector</p>
-          <h2>Connexion guidee pour clients distants</h2>
-          <p>OAuth est la methode recommandee pour claude.ai et les clients MCP qui ouvrent un flux navigateur avec consentement.</p>
-        </div>
-
-        <ol class="oauth-steps">
-          <li>
-            <strong>Ajoutez Resumate comme connecteur MCP</strong>
-            <span>Utilisez l'URL du serveur MCP dans votre client compatible OAuth.</span>
-          </li>
-          <li>
-            <strong>Connectez-vous a Resumate</strong>
-            <span>Le navigateur valide votre compte existant, sans copier de secret.</span>
-          </li>
-          <li>
-            <strong>Approuvez l'acces</strong>
-            <span>Le client pourra lire vos materiaux de profil et creer des CV publics.</span>
-          </li>
-        </ol>
-
-        <div class="oauth-reference-grid" aria-label="References OAuth MCP">
-          <div>
-            <span>Endpoint MCP</span>
-            <code>{{ oauthMcpEndpointUrl() }}</code>
-          </div>
-          <div>
-            <span>Decouverte OAuth</span>
-            <code>{{ oauthDiscoveryUrl() }}</code>
-          </div>
-        </div>
-      </article>
-
-      <article class="oauth-clients-card">
-        <div>
-          <p class="eyebrow">Clients OAuth connectes</p>
-          <h2>Acces autorises</h2>
-        </div>
-        <p>Aucun client OAuth connecte pour le moment. Les autorisations apparaitront ici quand la gestion des grants sera exposee dans l'application.</p>
-      </article>
+  <div class="page">
+    <section class="hero hero--neutral">
+      <div class="geo" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div>
+        <p class="eyebrow">Administration</p>
+        <h1 class="display display--medium">Acces MCP</h1>
+        <p class="lede">Choisissez la methode d'authentification compatible avec votre client MCP.</p>
+      </div>
+      <aside class="hero__aside">
+        <span class="hero__number">MCP</span>
+        <p class="mono muted">OAUTH · CLÉ API<br>ACCÈS PROGRAMMATIQUE</p>
+      </aside>
     </section>
-  } @else {
-    <section id="api-key-panel" class="auth-panel" role="tabpanel" aria-labelledby="api-key-tab">
-      <section class="insight-grid" aria-label="Synthese des tokens MCP">
-        <article class="insight-card insight-card--live">
-          <p class="insight-card__label">Cles actives</p>
-          <strong>{{ isLoadingAiTokens() ? '...' : activeAiTokenCount() }}</strong>
-          <span>acces MCP ouverts</span>
-        </article>
 
-        <article class="insight-card">
-          <p class="insight-card__label">Total</p>
-          <strong>{{ isLoadingAiTokens() ? '...' : aiTokens().length }}</strong>
-          <span>cles creees</span>
-        </article>
+    <section class="section" aria-label="Methodes d'authentification MCP">
+      <div class="tabs" role="tablist" aria-label="Choix de la methode d'authentification MCP">
+        <button
+          id="oauth-tab"
+          class="tab"
+          type="button"
+          role="tab"
+          aria-controls="oauth-panel"
+          [attr.aria-selected]="selectedAuthMethod() === 'oauth'"
+          (click)="selectAuthMethod('oauth')"
+        >
+          OAuth connector
+        </button>
 
-        <article class="insight-card">
-          <p class="insight-card__label">A surveiller</p>
-          <strong>{{ isLoadingAiTokens() ? '...' : expiringAiTokenCount() }}</strong>
-          <span>{{ revokedAiTokenCount() }} revoquees ou expirees</span>
-        </article>
-      </section>
-
-  @if (errorMessage()) {
-    <section class="state-card state-card--error">
-      <h2>Erreur</h2>
-      <p>{{ errorMessage() }}</p>
+        <button
+          id="api-key-tab"
+          class="tab"
+          type="button"
+          role="tab"
+          aria-controls="api-key-panel"
+          [attr.aria-selected]="selectedAuthMethod() === 'api-key'"
+          (click)="selectAuthMethod('api-key')"
+        >
+          Cle API
+        </button>
+      </div>
     </section>
-  }
 
-      <section class="cta-panel" aria-label="Creation d'une cle API MCP">
-        <div class="cta-panel__copy">
-          <div>
-            <p class="eyebrow">Cle API</p>
-            <h2>Autoriser un client manuel</h2>
-          </div>
-          <p>Pour les clients qui ne passent pas par OAuth, creez une cle API et ajoutez-la comme bearer token.</p>
-        </div>
-
-        <div class="cta-panel__form">
-          <label class="field field--name">
-            <span>Label</span>
-            <input [ngModel]="newAiTokenLabel()" (ngModelChange)="newAiTokenLabel.set($event)" type="text" placeholder="Ex. Assistant principal" />
-          </label>
-
-          <label class="field">
-            <span>Expiration</span>
-            <input [ngModel]="newAiTokenExpiresAt()" (ngModelChange)="newAiTokenExpiresAt.set($event)" type="datetime-local" />
-          </label>
-
-          <button class="primary-button cta-panel__button" type="button" [disabled]="isCreatingAiToken()" (click)="createAiToken()">
-            {{ isCreatingAiToken() ? 'Creation...' : 'Creer la cle' }}
-          </button>
-        </div>
-      </section>
-
-      @if (latestCreatedAiToken()) {
-        <section class="state-card state-card--success token-secret-card">
-          <div>
-            <p class="eyebrow">Cle generee</p>
-            <h2>Copiez cette cle maintenant</h2>
-            <p>Elle n'est plus affichable apres cette session.</p>
-          </div>
-          <code class="token-secret">{{ latestCreatedAiToken() }}</code>
-          <button class="secondary-button token-copy-button" type="button" (click)="copyLatestAiToken()">Copier</button>
-        </section>
-      }
-
-      <app-mcp-config-helper
-        [activeTokenCount]="activeAiTokenCount()"
-        [mcpEndpointUrl]="mcpEndpointUrl()"
-        [sourceLabel]="mcpSourceLabel()"
-      />
-
-      @if (isLoadingAiTokens()) {
-        <section class="state-card">
-          <p>Chargement des cles API MCP...</p>
-        </section>
-      } @else if (aiTokens().length === 0) {
-        <section class="state-card state-card--empty">
-          <h2>Aucune cle API MCP</h2>
-          <p>Creez une premiere cle API pour autoriser un agent a lire vos donnees CV existantes et generer des profils.</p>
-        </section>
-      } @else {
-        <section class="tokens-panel">
-          <div class="tokens-panel__header">
+    @if (selectedAuthMethod() === 'oauth') {
+      <section id="oauth-panel" class="section auth-panel" role="tabpanel" aria-labelledby="oauth-tab">
+        <article class="panel">
+          <div class="panel__head">
             <div>
-              <p class="eyebrow">Tokens</p>
-              <h2>Cles API existantes</h2>
+              <p class="eyebrow">OAuth connector</p>
+              <h2>Connexion guidee pour clients distants</h2>
             </div>
-            <p>Statut, expiration et revocation.</p>
+            <span class="status status--blue">Recommande</span>
           </div>
 
-          <div class="token-table" role="table" aria-label="Cles API MCP">
-            <div class="token-table__head" role="row">
-              <span role="columnheader">Cle</span>
-              <span role="columnheader">Prefixe</span>
-              <span role="columnheader">Expiration</span>
-              <span role="columnheader">Statut</span>
-              <span role="columnheader">Actions</span>
-            </div>
+          <div class="panel__body">
+            <p class="panel-intro">OAuth est la methode recommandee pour claude.ai et les clients MCP qui ouvrent un flux navigateur avec consentement.</p>
 
-            <div class="token-table__body">
-              @for (token of aiTokens(); track token.id) {
-                <article class="token-row" role="row">
-                  <div class="token-cell token-cell--main" role="cell" data-label="Cle">
-                    <h3>{{ token.label }}</h3>
-                    <p>{{ token.created ? 'Creee le ' + (token.created | date: 'medium') : 'Date de creation inconnue' }}</p>
-                  </div>
+            <ol class="steps">
+              <li>
+                <strong>Ajoutez Resumate comme connecteur MCP</strong>
+                <span>Utilisez l'URL du serveur MCP dans votre client compatible OAuth.</span>
+              </li>
+              <li>
+                <strong>Connectez-vous a Resumate</strong>
+                <span>Le navigateur valide votre compte existant, sans copier de secret.</span>
+              </li>
+              <li>
+                <strong>Approuvez l'acces</strong>
+                <span>Le client pourra lire vos materiaux de profil et creer des CV publics.</span>
+              </li>
+            </ol>
 
-                  <div class="token-cell token-cell--prefix" role="cell" data-label="Prefixe">
-                    <code>{{ token.token_prefix }}...</code>
-                  </div>
-
-                  <div class="token-cell token-cell--expiration" role="cell" data-label="Expiration">
-                    <span>{{ token.expiresAt ? (token.expiresAt | date: 'medium') : 'Sans expiration' }}</span>
-                  </div>
-
-                  <div class="token-cell token-status" role="cell" data-label="Statut">
-                    <span
-                      class="token-status__state"
-                      [class.token-status__state--active]="token.status === 'active'"
-                      [class.token-status__state--revoked]="token.status === 'revoked'"
-                      [class.token-status__state--expired]="token.status === 'expired'"
-                    >
-                      <span class="token-status__dot" aria-hidden="true"></span>
-                      <span>{{ getTokenStatusLabel(token) }}</span>
-                    </span>
-                  </div>
-
-                  <div class="token-cell token-actions" role="cell" data-label="Actions">
-                    <button
-                      class="text-link token-revoke-button"
-                      type="button"
-                      [disabled]="token.status !== 'active' || activeAiTokenMutationId() === token.id"
-                      (click)="revokeAiToken(token)"
-                    >
-                      {{ activeAiTokenMutationId() === token.id ? 'Revocation...' : 'Revoquer' }}
-                    </button>
-                  </div>
-                </article>
-              }
+            <div class="reference-grid" aria-label="References OAuth MCP">
+              <div>
+                <span>Endpoint MCP</span>
+                <code>{{ oauthMcpEndpointUrl() }}</code>
+              </div>
+              <div>
+                <span>Decouverte OAuth</span>
+                <code>{{ oauthDiscoveryUrl() }}</code>
+              </div>
             </div>
           </div>
-        </section>
-      }
-    </section>
-  }
+        </article>
+
+        <article class="panel">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow">Clients OAuth connectes</p>
+              <h2>Acces autorises</h2>
+            </div>
+            <span class="status status--muted">Aucun</span>
+          </div>
+
+          <div class="panel__body">
+            <p class="panel-intro">Aucun client OAuth connecte pour le moment. Les autorisations apparaitront ici quand la gestion des grants sera exposee dans l'application.</p>
+          </div>
+        </article>
+      </section>
+    } @else {
+      <section id="api-key-panel" class="section auth-panel" role="tabpanel" aria-labelledby="api-key-tab">
+        <div class="metric-grid" aria-label="Synthese des tokens MCP">
+          <article class="metric metric--green">
+            <p class="metric__label">Cles actives</p>
+            <strong>{{ isLoadingAiTokens() ? '...' : activeAiTokenCount() }}</strong>
+            <small>acces MCP ouverts</small>
+          </article>
+
+          <article class="metric">
+            <p class="metric__label">Total</p>
+            <strong>{{ isLoadingAiTokens() ? '...' : aiTokens().length }}</strong>
+            <small>cles creees</small>
+          </article>
+
+          <article class="metric metric--warm">
+            <p class="metric__label">A surveiller</p>
+            <strong>{{ isLoadingAiTokens() ? '...' : expiringAiTokenCount() }}</strong>
+            <small>{{ revokedAiTokenCount() }} revoquees ou expirees</small>
+          </article>
+        </div>
+
+        @if (errorMessage()) {
+          <p class="af-message af-message--error">{{ errorMessage() }}</p>
+        }
+
+        <article class="panel" aria-label="Creation d'une cle API MCP">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow">Cle API</p>
+              <h2>Autoriser un client manuel</h2>
+            </div>
+          </div>
+
+          <div class="panel__body">
+            <p class="panel-intro">Pour les clients qui ne passent pas par OAuth, creez une cle API et ajoutez-la comme bearer token.</p>
+
+            <div class="cta-form">
+              <label class="field cta-form__field">
+                <span>Label</span>
+                <input [ngModel]="newAiTokenLabel()" (ngModelChange)="newAiTokenLabel.set($event)" type="text" placeholder="Ex. Assistant principal" />
+              </label>
+
+              <label class="field cta-form__field">
+                <span>Expiration</span>
+                <input [ngModel]="newAiTokenExpiresAt()" (ngModelChange)="newAiTokenExpiresAt.set($event)" type="datetime-local" />
+              </label>
+
+              <button class="btn btn--primary cta-form__button" type="button" [disabled]="isCreatingAiToken()" (click)="createAiToken()">
+                {{ isCreatingAiToken() ? 'Creation...' : 'Creer la cle' }}
+              </button>
+            </div>
+          </div>
+        </article>
+
+        @if (latestCreatedAiToken()) {
+          <article class="panel token-secret-card">
+            <div class="panel__head">
+              <div>
+                <p class="eyebrow">Cle generee</p>
+                <h2>Copiez cette cle maintenant</h2>
+              </div>
+              <span class="status status--yellow">Unique</span>
+            </div>
+
+            <div class="panel__body">
+              <p class="panel-intro">Elle n'est plus affichable apres cette session.</p>
+              <code class="token-secret">{{ latestCreatedAiToken() }}</code>
+              <button class="btn btn--quiet token-copy-button" type="button" (click)="copyLatestAiToken()">Copier</button>
+            </div>
+          </article>
+        }
+
+        <app-mcp-config-helper
+          [activeTokenCount]="activeAiTokenCount()"
+          [mcpEndpointUrl]="mcpEndpointUrl()"
+          [sourceLabel]="mcpSourceLabel()"
+        />
+
+        @if (isLoadingAiTokens()) {
+          <p class="af-message">Chargement des cles API MCP...</p>
+        } @else if (aiTokens().length === 0) {
+          <article class="panel">
+            <div class="panel__head">
+              <h2>Aucune cle API MCP</h2>
+            </div>
+            <div class="panel__body">
+              <p class="panel-intro">Creez une premiere cle API pour autoriser un agent a lire vos donnees CV existantes et generer des profils.</p>
+            </div>
+          </article>
+        } @else {
+          <article class="panel" aria-label="Cles API existantes">
+            <div class="panel__head">
+              <div>
+                <p class="eyebrow">Tokens</p>
+                <h2>Cles API existantes</h2>
+              </div>
+              <span class="mono muted">STATUT · EXPIRATION · REVOCATION</span>
+            </div>
+
+            <div class="panel__body">
+              <div class="token-table" role="table" aria-label="Cles API MCP">
+                <div class="token-table__head" role="row">
+                  <span role="columnheader">Cle</span>
+                  <span role="columnheader">Prefixe</span>
+                  <span role="columnheader">Expiration</span>
+                  <span role="columnheader">Statut</span>
+                  <span role="columnheader">Actions</span>
+                </div>
+
+                <div class="token-table__body">
+                  @for (token of aiTokens(); track token.id) {
+                    <article class="token-row" role="row">
+                      <div class="token-cell token-cell--main" role="cell" data-label="Cle">
+                        <h3>{{ token.label }}</h3>
+                        <p>{{ token.created ? 'Creee le ' + (token.created | date: 'medium') : 'Date de creation inconnue' }}</p>
+                      </div>
+
+                      <div class="token-cell token-cell--prefix" role="cell" data-label="Prefixe">
+                        <code>{{ token.token_prefix }}...</code>
+                      </div>
+
+                      <div class="token-cell token-cell--expiration" role="cell" data-label="Expiration">
+                        <span>{{ token.expiresAt ? (token.expiresAt | date: 'medium') : 'Sans expiration' }}</span>
+                      </div>
+
+                      <div class="token-cell token-status" role="cell" data-label="Statut">
+                        <span
+                          class="status"
+                          [class.status--green]="token.status === 'active'"
+                          [class.status--muted]="token.status === 'revoked'"
+                          [class.status--yellow]="token.status === 'expired'"
+                        >
+                          {{ getTokenStatusLabel(token) }}
+                        </span>
+                      </div>
+
+                      <div class="token-cell token-actions" role="cell" data-label="Actions">
+                        <button
+                          class="btn btn--danger token-revoke-button"
+                          type="button"
+                          [disabled]="token.status !== 'active' || activeAiTokenMutationId() === token.id"
+                          (click)="revokeAiToken(token)"
+                        >
+                          {{ activeAiTokenMutationId() === token.id ? 'Revocation...' : 'Revoquer' }}
+                        </button>
+                      </div>
+                    </article>
+                  }
+                </div>
+              </div>
+            </div>
+          </article>
+        }
+      </section>
+    }
+
+    <footer class="footer">RESUMATE / TOKENS MCP · ACCÈS PROGRAMMATIQUE À VOS DONNÉES</footer>
+  </div>
 </main>

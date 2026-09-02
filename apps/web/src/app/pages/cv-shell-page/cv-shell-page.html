@@ -1,40 +1,39 @@
 @if (profile(); as profile) {
   @if (showAdminBar()) {
-    <aside class="admin-bar" [class.admin-bar--open]="isAdminBarOpen()" aria-label="Actions administrateur">
+    <aside class="af-app admin-bar" [class.admin-bar--open]="isAdminBarOpen()" aria-label="Actions administrateur">
       @if (isAdminBarOpen()) {
-        <div class="admin-bar__panel">
+        <div class="panel admin-bar__panel">
           <p class="admin-bar__meta">
             @if (templateLabel()) {
-              <span>{{ templateLabel() }}</span>
+              <span class="status status--blue">{{ templateLabel() }}</span>
             }
-            <span>/{{ profile.slug }}</span>
-            <span>{{ profile.public === false ? 'Route privee' : 'Route publique' }}</span>
+            <span class="mono">/{{ profile.slug }}</span>
+            <span
+              class="status"
+              [class.status--red]="profile.public === false"
+              [class.status--green]="profile.public !== false"
+            >{{ profile.public === false ? 'Route privee' : 'Route publique' }}</span>
           </p>
 
           <div class="admin-bar__actions">
-            <a [routerLink]="['/home']" class="speed-dial-action speed-dial-action--link" (click)="closeAdminBar()">
-              <i class="bi bi-house" aria-hidden="true"></i>
-              <span>Accueil</span>
+            <a [routerLink]="['/home']" class="btn btn--quiet speed-dial-action speed-dial-action--link" (click)="closeAdminBar()">
+              Accueil
             </a>
-            <button class="speed-dial-action" type="button" (click)="togglePreviewMode(); closeAdminBar()">
-              <i class="bi bi-eye" aria-hidden="true"></i>
-              <span>{{ isPreviewMode() ? 'Quitter apercu' : 'Preview' }}</span>
+            <button class="btn btn--quiet speed-dial-action" type="button" (click)="togglePreviewMode(); closeAdminBar()">
+              {{ isPreviewMode() ? 'Quitter apercu' : 'Preview' }}
             </button>
-            <button class="speed-dial-action" type="button" (click)="printCv(); closeAdminBar()">
-              <i class="bi bi-printer" aria-hidden="true"></i>
-              <span>Imprimer</span>
+            <button class="btn btn--quiet speed-dial-action" type="button" (click)="printCv(); closeAdminBar()">
+              Imprimer
             </button>
             <a
               [routerLink]="['/home/profiles', profile.id, 'edit']"
-              class="speed-dial-action speed-dial-action--link"
+              class="btn btn--quiet speed-dial-action speed-dial-action--link"
               (click)="closeAdminBar()"
             >
-              <i class="bi bi-pencil-square" aria-hidden="true"></i>
-              <span>Gerer</span>
+              Gerer
             </a>
-            <button class="speed-dial-action speed-dial-action--ghost" type="button" (click)="dismissAdminBar()">
-              <i class="bi bi-x-lg" aria-hidden="true"></i>
-              <span>Fermer</span>
+            <button class="btn btn--danger speed-dial-action" type="button" (click)="dismissAdminBar()">
+              Fermer
             </button>
           </div>
         </div>
@@ -51,7 +50,7 @@
         [attr.aria-expanded]="isAdminBarOpen()"
         (click)="toggleAdminBar()"
       >
-        <i class="bi" [class.bi-three-dots]="!isAdminBarOpen()" [class.bi-x-lg]="isAdminBarOpen()" aria-hidden="true"></i>
+        <span class="speed-dial-trigger__glyph" [class.speed-dial-trigger__glyph--close]="isAdminBarOpen()" aria-hidden="true"></span>
       </button>
     </aside>
   }
@@ -63,19 +62,27 @@
       </div>
     </section>
   } @else {
-    <main class="cv-shell-page">
-      <section class="state-card">
-        <p class="state-card__eyebrow">Template inconnu</p>
-        <h1>Ce profil CV n'a aucun template frontal reconnu.</h1>
-        <p>Attribuez un template pris en charge depuis la page d'accueil authentifiee ou dans PocketBase.</p>
-      </section>
+    <main class="af-app cv-shell-page cv-shell-page--state">
+      <div class="page">
+        <div class="page-main">
+          <section class="panel state-card">
+            <p class="eyebrow">Template inconnu</p>
+            <h1>Ce profil CV n'a aucun template frontal reconnu.</h1>
+            <p class="muted">Attribuez un template pris en charge depuis la page d'accueil authentifiee ou dans PocketBase.</p>
+          </section>
+        </div>
+      </div>
     </main>
   }
 } @else {
-  <main class="cv-shell-page">
-    <section class="state-card">
-      <p class="state-card__eyebrow">CV inconnu</p>
-      <h1>Cette route de CV n'a pas pu etre resolue.</h1>
-    </section>
+  <main class="af-app cv-shell-page cv-shell-page--state">
+    <div class="page">
+      <div class="page-main">
+        <section class="panel state-card">
+          <p class="eyebrow">CV inconnu</p>
+          <h1>Cette route de CV n'a pas pu etre resolue.</h1>
+        </section>
+      </div>
+    </div>
   </main>
 }

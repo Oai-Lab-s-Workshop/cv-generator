@@ -1,647 +1,684 @@
-<main class="material-page">
+<div class="af-app">
   <app-navbar />
   <app-help-fab (open)="showHelpModal.set(true)" />
 
-  <section class="material-hero">
-    <div>
-      <p class="eyebrow">Donnees reutilisables</p>
-      <h1>{{ currentUserName() }}</h1>
-      <p class="lede">Gerez toutes les informations que vos CV peuvent reutiliser: experiences, projets, competences, realisations, diplomes, loisirs et assets.</p>
-    </div>
-  </section>
-
-  <section class="insight-grid" aria-label="Synthese des informations">
-    <article class="insight-card insight-card--live">
-      <p class="insight-card__label">Elements</p>
-      <strong>{{ totalMaterialCount() }}</strong>
-      <span>donnees enregistrees</span>
-    </article>
-    <article class="insight-card">
-      <p class="insight-card__label">Projets</p>
-      <strong>{{ projects().length }}</strong>
-      <span>{{ achievements().length }} realisations</span>
-    </article>
-    <article class="insight-card">
-      <p class="insight-card__label">Assets</p>
-      <strong>{{ assets().length }}</strong>
-      <span>fichiers reutilisables</span>
-    </article>
-  </section>
-
-  <section class="personal-info-card" aria-labelledby="personal-info-title">
-    <div class="personal-info-card__header">
+  <main class="page page-main">
+    <section class="hero hero--warm">
+      <div class="geo" aria-hidden="true"><i></i><i></i><i></i></div>
       <div>
-        <p class="eyebrow">Profil</p>
-        <h2 id="personal-info-title">Informations personnelles</h2>
+        <p class="eyebrow">Donnees reutilisables</p>
+        <h1 class="display display--medium">{{ currentUserName() }}</h1>
+        <p class="lede">Gerez toutes les informations que vos CV peuvent reutiliser : experiences, projets, competences, realisations, diplomes, loisirs et assets.</p>
       </div>
-      <span class="count-pill">Identite et contacts</span>
-    </div>
-
-    <div class="editor-grid">
-      <label class="editor-field">
-        <span>Prenom</span>
-        <input [value]="personalInfoForm().firstName ?? ''" (input)="setPersonalInfoField('firstName', $any($event.target).value)" name="user-first-name" type="text" />
-      </label>
-      <label class="editor-field">
-        <span>Nom</span>
-        <input [value]="personalInfoForm().lastName ?? ''" (input)="setPersonalInfoField('lastName', $any($event.target).value)" name="user-last-name" type="text" />
-      </label>
-      <label class="editor-field">
-        <span>LinkedIn</span>
-        <input [value]="personalInfoForm().linkedin ?? ''" (input)="setPersonalInfoField('linkedin', $any($event.target).value)" name="user-linkedin" type="url" placeholder="https://linkedin.com/in/..." />
-      </label>
-      <label class="editor-field">
-        <span>GitHub</span>
-        <input [value]="personalInfoForm().github ?? ''" (input)="setPersonalInfoField('github', $any($event.target).value)" name="user-github" type="url" placeholder="https://github.com/..." />
-      </label>
-      <label class="editor-field">
-        <span>Site web</span>
-        <input [value]="personalInfoForm().website ?? ''" (input)="setPersonalInfoField('website', $any($event.target).value)" name="user-website" type="url" placeholder="https://..." />
-      </label>
-      <label class="editor-field">
-        <span>Telephone</span>
-        <input [value]="personalInfoForm().phone ?? ''" (input)="setPersonalInfoField('phone', $any($event.target).value)" name="user-phone" type="tel" placeholder="+33 6 12 34 56 78" />
-      </label>
-    </div>
-
-    <div class="form-actions">
-      <button type="button" class="primary-button" [disabled]="isSavingPersonalInfo()" (click)="savePersonalInfo()">{{ isSavingPersonalInfo() ? 'Enregistrement...' : 'Enregistrer' }}</button>
-    </div>
-  </section>
-
-  @if (successMessage()) {
-    <section class="state-card state-card--success">
-      <p>{{ successMessage() }}</p>
+      <aside class="hero__aside">
+        <span class="hero__number">{{ totalMaterialCount() }}</span>
+        <p class="mono muted">ELEMENTS ENREGISTRES</p>
+      </aside>
     </section>
-  }
 
-  @if (errorMessage()) {
-    <section class="state-card state-card--error">
-      <p>{{ errorMessage() }}</p>
+    <section class="metric-grid" aria-label="Synthese des informations">
+      <article class="metric metric--blue">
+        <p class="metric__label">Projets</p>
+        <strong>{{ projects().length }}</strong>
+        <small>cas concrets relies aux realisations</small>
+      </article>
+      <article class="metric metric--warm">
+        <p class="metric__label">Realisations</p>
+        <strong>{{ achievements().length }}</strong>
+        <small>preuves d'impact reutilisables</small>
+      </article>
+      <article class="metric metric--green">
+        <p class="metric__label">Assets</p>
+        <strong>{{ assets().length }}</strong>
+        <small>fichiers reutilisables</small>
+      </article>
     </section>
-  }
 
-  @if (isLoading()) {
-    <section class="state-card">
-      <p>Chargement de vos informations...</p>
-    </section>
-  } @else {
-    <div class="material-workspace">
-    <section class="material-tabs-card" aria-labelledby="material-tabs-title">
-      <div class="material-tabs-card__header">
+    <section class="section" aria-labelledby="personal-info-title">
+      <div class="section-head">
         <div>
-          <p class="eyebrow">Bibliotheque</p>
-          <h2 id="material-tabs-title">Choisissez le type de donnee a completer</h2>
+          <p class="eyebrow">Profil</p>
+          <h2 id="personal-info-title">Informations personnelles</h2>
         </div>
-        <span class="count-pill">{{ totalMaterialCount() }} elements</span>
+        <span class="status status--muted">Identite et contacts</span>
       </div>
 
-      <div class="material-tabs" role="tablist" aria-label="Sections de donnees reutilisables">
-        @for (tab of materialTabs; track tab.section) {
-          <button
-            type="button"
-            class="material-tab"
-            role="tab"
-            [id]="tab.section + '-tab'"
-            [class.material-tab--active]="isActiveSection(tab.section)"
-            [attr.aria-selected]="isActiveSection(tab.section)"
-            [attr.aria-controls]="tab.section + '-section'"
-            (click)="setActiveSection(tab.section)"
-            [appTooltip]="tab.tooltipText"
-          >
-            <span class="material-tab__meta">{{ tab.eyebrow }}</span>
-            <span class="material-tab__main">
-              <strong>{{ tab.label }}</strong>
-              <span>{{ getMaterialSectionCount(tab.section) }}</span>
-            </span>
-            <span class="material-tab__description">{{ tab.description }}</span>
-          </button>
-        }
-      </div>
+      <article class="panel">
+        <div class="panel__body">
+          <div class="form-grid">
+            <app-form-field label="Prenom" fieldId="user-first-name">
+              <input [value]="personalInfoForm().firstName ?? ''" (input)="setPersonalInfoField('firstName', $any($event.target).value)" id="user-first-name" name="user-first-name" type="text" />
+            </app-form-field>
+            <app-form-field label="Nom" fieldId="user-last-name">
+              <input [value]="personalInfoForm().lastName ?? ''" (input)="setPersonalInfoField('lastName', $any($event.target).value)" id="user-last-name" name="user-last-name" type="text" />
+            </app-form-field>
+            <app-form-field label="LinkedIn" fieldId="user-linkedin">
+              <input [value]="personalInfoForm().linkedin ?? ''" (input)="setPersonalInfoField('linkedin', $any($event.target).value)" id="user-linkedin" name="user-linkedin" type="url" placeholder="https://linkedin.com/in/..." />
+            </app-form-field>
+            <app-form-field label="GitHub" fieldId="user-github">
+              <input [value]="personalInfoForm().github ?? ''" (input)="setPersonalInfoField('github', $any($event.target).value)" id="user-github" name="user-github" type="url" placeholder="https://github.com/..." />
+            </app-form-field>
+            <app-form-field label="Site web" fieldId="user-website">
+              <input [value]="personalInfoForm().website ?? ''" (input)="setPersonalInfoField('website', $any($event.target).value)" id="user-website" name="user-website" type="url" placeholder="https://..." />
+            </app-form-field>
+            <app-form-field label="Telephone" fieldId="user-phone">
+              <input [value]="personalInfoForm().phone ?? ''" (input)="setPersonalInfoField('phone', $any($event.target).value)" id="user-phone" name="user-phone" type="tel" placeholder="+33 6 12 34 56 78" />
+            </app-form-field>
+          </div>
+
+          <div class="toolbar form-actions">
+            <button type="button" class="btn btn--primary" [disabled]="isSavingPersonalInfo()" (click)="savePersonalInfo()">{{ isSavingPersonalInfo() ? 'Enregistrement...' : 'Enregistrer' }}</button>
+          </div>
+        </div>
+      </article>
     </section>
 
-    @if (isActiveSection('jobs')) {
-    <section class="material-card" id="jobs-section" role="tabpanel" aria-labelledby="jobs-tab">
-      <div class="material-card__header">
-        <div>
-          <p class="eyebrow">Experiences</p>
-          <h2>{{ jobForm().id ? 'Modifier une experience' : 'Ajouter une experience' }}</h2>
-        </div>
-        <span class="count-pill">{{ jobs().length }} elements</span>
+    @if (successMessage()) {
+      <div class="banner banner--success" role="status">
+        <span class="status status--green">Succes</span>
+        <p>{{ successMessage() }}</p>
       </div>
-
-      <div class="editor-grid">
-        <div class="form-section">
-          <span class="form-section__label">Informations principales</span>
-          <app-form-field label="Label" [required]="true" fieldId="job-label" [invalid]="isJobFieldInvalid('label')" errorMessage="Ce champ est requis">
-            <input [value]="jobForm().label" (input)="setJobFormValue('label', $any($event.target).value)" id="job-label" type="text" />
-          </app-form-field>
-          <app-form-field label="Entreprise" [required]="true" fieldId="job-company" [invalid]="isJobFieldInvalid('company')" errorMessage="Ce champ est requis">
-            <input [value]="jobForm().company" (input)="setJobFormValue('company', $any($event.target).value)" id="job-company" type="text" />
-          </app-form-field>
-          <app-form-field label="Poste" [required]="true" fieldId="job-position" [invalid]="isJobFieldInvalid('position')" errorMessage="Ce champ est requis">
-            <input [value]="jobForm().position" (input)="setJobFormValue('position', $any($event.target).value)" id="job-position" type="text" />
-          </app-form-field>
-        </div>
-        <div class="form-section">
-          <span class="form-section__label">Details</span>
-          <app-form-field label="Lieu" fieldId="job-location">
-            <input [value]="jobForm().location" (input)="setJobFormValue('location', $any($event.target).value)" id="job-location" type="text" />
-          </app-form-field>
-          <app-form-field label="Date de debut" [required]="true" fieldId="job-start-date" [invalid]="isJobFieldInvalid('startDate')" errorMessage="Ce champ est requis">
-            <input [value]="jobForm().startDate" (input)="setJobFormValue('startDate', $any($event.target).value)" id="job-start-date" type="date" />
-          </app-form-field>
-          <app-form-field label="Date de fin" fieldId="job-end-date">
-            <input [value]="jobForm().endDate" (input)="setJobFormValue('endDate', $any($event.target).value)" id="job-end-date" type="date" />
-          </app-form-field>
-          <app-form-field label="Type" [required]="true" fieldId="job-type">
-            <select [value]="jobForm().type" (change)="setJobFormValue('type', $any($event.target).value)" id="job-type">
-              <option value="work project">Work project</option>
-              <option value="freelance">Freelance</option>
-              <option value="sideproject">Side project</option>
-            </select>
-          </app-form-field>
-        </div>
-        <app-form-field label="Responsabilites" class="editor-field--full" fieldId="job-responsibilities" helperText="Detaillez vos missions, resultats, contexte...">
-          <quill-editor
-            class="quill-material-editor"
-            format="html"
-            theme="snow"
-            placeholder="Detaillez vos missions, resultats, contexte..."
-            [modules]="editorModules"
-            [sanitize]="true"
-            [ngModel]="jobForm().responsibilities"
-            (ngModelChange)="setJobFormValue('responsibilities', $event ?? '')"
-          />
-        </app-form-field>
-      </div>
-
-      <div class="form-actions">
-        <button type="button" class="primary-button" [disabled]="isSaving('jobs')" (click)="saveJob()">{{ isSaving('jobs') ? 'Enregistrement...' : (jobForm().id ? 'Mettre a jour' : 'Ajouter') }}</button>
-        @if (jobForm().id) {
-          <button type="button" class="secondary-button" [disabled]="isSaving('jobs')" (click)="resetJobForm()">Annuler</button>
-        }
-      </div>
-
-      <div class="material-list" [appSortableList]="jobs()" (appSortableListChange)="onReorderJobs($event)">
-        @if (jobs().length === 0) {
-          <app-empty-state icon="bi-briefcase" title="Aucune experience enregistree" description="Ajoutez votre premiere experience professionnelle" actionLabel="Ajouter" (action)="setActiveSection('jobs')" />
-        } @else {
-          @for (job of jobs(); track job.id; let i = $index) {
-            <article class="material-row" [class.material-row--editing]="jobForm().id === job.id" [attr.draggable]="true" [attr.data-index]="i">
-              <i class="bi bi-grip-vertical drag-handle"></i>
-              <div>
-                <h3>{{ job.company }}</h3>
-                <p>{{ job.position }} · {{ job.label }}</p>
-              </div>
-              <div class="material-row__actions">
-                @if (jobForm().id === job.id) { <span class="editing-pill">En edition</span> }
-                <button type="button" class="row-action" (click)="editJob(job)">Modifier</button>
-              </div>
-            </article>
-          }
-        }
-      </div>
-      @if (sectionOrderDirty().jobs) {
-        <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().jobs" (click)="onUpdateOrder('jobs')">
-          @if (sectionOrderSaving().jobs) { <i class="bi bi-arrow-repeat spin"></i> }
-          {{ sectionOrderSaving().jobs ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
-        </button>
-      }
-    </section>
     }
 
-    @if (isActiveSection('projects')) {
-    <section class="material-card" id="projects-section" role="tabpanel" aria-labelledby="projects-tab">
-      <div class="material-card__header">
-        <div>
-          <p class="eyebrow">Projets</p>
-          <h2>{{ projectForm().id ? 'Modifier un projet' : 'Ajouter un projet' }}</h2>
-        </div>
-        <span class="count-pill">{{ projects().length }} elements</span>
+    @if (errorMessage()) {
+      <div class="banner banner--error" role="alert">
+        <span class="status status--red">Erreur</span>
+        <p>{{ errorMessage() }}</p>
       </div>
+    }
 
-      <div class="editor-grid">
-        <div class="form-section">
-          <span class="form-section__label">Informations principales</span>
-          <app-form-field label="Nom" [required]="true" fieldId="project-name" [invalid]="isProjectFieldInvalid('name')" errorMessage="Ce champ est requis">
-            <input [value]="projectForm().name" (input)="setProjectFormValue('name', $any($event.target).value)" id="project-name" type="text" />
-          </app-form-field>
-          <app-form-field label="URL" fieldId="project-url" helperText="https://example.com" [invalid]="isProjectUrlInvalid()" errorMessage="Format d'URL invalide">
-            <input [value]="projectForm().url" (input)="setProjectFormValue('url', $any($event.target).value)" id="project-url" type="url" />
-          </app-form-field>
-          <app-form-field label="Date" fieldId="project-date">
-            <input [value]="projectForm().date" (input)="setProjectFormValue('date', $any($event.target).value)" id="project-date" type="date" />
-          </app-form-field>
-          <app-form-field label="Type" fieldId="project-type">
-            <select [value]="projectForm().type" (change)="setProjectFormValue('type', $any($event.target).value)" id="project-type">
-              <option value="work project">Work project</option>
-              <option value="freelance">Freelance</option>
-              <option value="sideproject">Side project</option>
-            </select>
-          </app-form-field>
-        </div>
-        <div class="form-section">
-          <span class="form-section__label">Details</span>
-          <app-form-field label="Asset lie" fieldId="project-file">
-            <app-picker
-              mode="single"
-              [items]="assetPickerItems()"
-              [selected]="selectedProjectFileIds()"
-              placeholder="Aucun"
-              (selectionChange)="onProjectAssetSelectionChange($event)"
-            />
-          </app-form-field>
-          <app-form-field label="Image projet" fieldId="project-picture">
-            <input type="file" accept="image/*" (change)="onProjectPictureSelected($event)" id="project-picture" />
-          </app-form-field>
-          <app-form-field label="Description" class="editor-field--full" fieldId="project-description">
-            <quill-editor
-              class="quill-material-editor"
-              format="html"
-              theme="snow"
-              placeholder="Decrivez votre projet..."
-              [modules]="editorModules"
-              [sanitize]="true"
-              [ngModel]="projectForm().description"
-              (ngModelChange)="setProjectFormValue('description', $event ?? '')"
-            />
-          </app-form-field>
-        </div>
-        <app-form-field label="Realisations liees" class="editor-field--full" fieldId="project-achievements">
-          <app-picker
-            mode="multi"
-            [allowCreate]="true"
-            [items]="projectAchievementPickerItems()"
-            [selected]="projectForm().achievements ?? []"
-            placeholder="Rechercher ou creer une realisation..."
-            createLabel="Creer"
-            (selectionChange)="onProjectAchievementSelectionChange($event)"
-            (create)="onProjectAchievementCreate($event)"
-          />
-        </app-form-field>
+    @if (isLoading()) {
+      <div class="banner banner--neutral" role="status">
+        <span class="status status--muted">Chargement</span>
+        <p>Chargement de vos informations...</p>
       </div>
+    } @else {
+      <section class="section" aria-labelledby="material-tabs-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Bibliotheque</p>
+            <h2 id="material-tabs-title">Choisissez le type de donnee a completer</h2>
+          </div>
+          <span class="status status--muted">{{ totalMaterialCount() }} elements</span>
+        </div>
 
-      <div class="form-actions">
-        <button type="button" class="primary-button" [disabled]="isSaving('projects')" (click)="saveProject()">{{ isSaving('projects') ? 'Enregistrement...' : (projectForm().id ? 'Mettre a jour' : 'Ajouter') }}</button>
-        @if (projectForm().id) {
-          <button type="button" class="secondary-button" [disabled]="isSaving('projects')" (click)="resetProjectForm()">Annuler</button>
-        }
-      </div>
+        <div class="tabs" role="tablist" aria-label="Sections de donnees reutilisables">
+          @for (tab of materialTabs; track tab.section) {
+            <button
+              type="button"
+              class="tab"
+              role="tab"
+              [id]="tab.section + '-tab'"
+              [attr.aria-selected]="isActiveSection(tab.section)"
+              [attr.aria-controls]="tab.section + '-section'"
+              (click)="setActiveSection(tab.section)"
+              [appTooltip]="tab.tooltipText"
+            >
+              {{ tab.label }}
+              <span class="tab-count mono">{{ getMaterialSectionCount(tab.section) }}</span>
+            </button>
+          }
+        </div>
 
-      <div class="material-list material-list--cards" [appSortableList]="projects()" (appSortableListChange)="onReorderProjects($event)">
-        @if (projects().length === 0) {
-          <app-empty-state icon="bi-folder" title="Aucun projet enregistre" description="Ajoutez un premier projet pour illustrer vos competences" actionLabel="Ajouter" (action)="setActiveSection('projects')" />
-        } @else {
-          @for (project of projects(); track project.id; let i = $index) {
-            <article class="material-row" [class.material-row--editing]="projectForm().id === project.id" [attr.draggable]="true" [attr.data-index]="i">
-              <i class="bi bi-grip-vertical drag-handle"></i>
-              @if (project.picture) {
-                <img class="material-thumb" [src]="project.picture" [alt]="project.name" />
+        @if (isActiveSection('jobs')) {
+        <section class="panel" id="jobs-section" role="tabpanel" aria-labelledby="jobs-tab">
+          <div class="panel__head">
+            <div class="panel__title">
+              <p class="eyebrow">Experiences</p>
+              <h3>{{ jobForm().id ? 'Modifier une experience' : 'Ajouter une experience' }}</h3>
+            </div>
+            <span class="status status--muted">{{ jobs().length }} elements</span>
+          </div>
+          <div class="panel__body">
+            <div class="form-grid">
+              <app-form-field label="Label" [required]="true" fieldId="job-label" [invalid]="isJobFieldInvalid('label')" errorMessage="Ce champ est requis">
+                <input [value]="jobForm().label" (input)="setJobFormValue('label', $any($event.target).value)" id="job-label" type="text" />
+              </app-form-field>
+              <app-form-field label="Entreprise" [required]="true" fieldId="job-company" [invalid]="isJobFieldInvalid('company')" errorMessage="Ce champ est requis">
+                <input [value]="jobForm().company" (input)="setJobFormValue('company', $any($event.target).value)" id="job-company" type="text" />
+              </app-form-field>
+              <app-form-field label="Poste" [required]="true" fieldId="job-position" [invalid]="isJobFieldInvalid('position')" errorMessage="Ce champ est requis">
+                <input [value]="jobForm().position" (input)="setJobFormValue('position', $any($event.target).value)" id="job-position" type="text" />
+              </app-form-field>
+              <app-form-field label="Lieu" fieldId="job-location">
+                <input [value]="jobForm().location" (input)="setJobFormValue('location', $any($event.target).value)" id="job-location" type="text" />
+              </app-form-field>
+              <app-form-field label="Date de debut" [required]="true" fieldId="job-start-date" [invalid]="isJobFieldInvalid('startDate')" errorMessage="Ce champ est requis">
+                <input [value]="jobForm().startDate" (input)="setJobFormValue('startDate', $any($event.target).value)" id="job-start-date" type="date" />
+              </app-form-field>
+              <app-form-field label="Date de fin" fieldId="job-end-date">
+                <input [value]="jobForm().endDate" (input)="setJobFormValue('endDate', $any($event.target).value)" id="job-end-date" type="date" />
+              </app-form-field>
+              <app-form-field label="Type" [required]="true" fieldId="job-type" class="field--full">
+                <select [value]="jobForm().type" (change)="setJobFormValue('type', $any($event.target).value)" id="job-type">
+                  <option value="work project">Work project</option>
+                  <option value="freelance">Freelance</option>
+                  <option value="sideproject">Side project</option>
+                </select>
+              </app-form-field>
+              <app-form-field label="Responsabilites" class="field--full" fieldId="job-responsibilities" helperText="Detaillez vos missions, resultats, contexte...">
+                <quill-editor
+                  class="quill-material-editor"
+                  format="html"
+                  theme="snow"
+                  placeholder="Detaillez vos missions, resultats, contexte..."
+                  [modules]="editorModules"
+                  [sanitize]="true"
+                  [ngModel]="jobForm().responsibilities"
+                  (ngModelChange)="setJobFormValue('responsibilities', $event ?? '')"
+                />
+              </app-form-field>
+            </div>
+
+            <div class="toolbar form-actions">
+              <button type="button" class="btn btn--primary" [disabled]="isSaving('jobs')" (click)="saveJob()">{{ isSaving('jobs') ? 'Enregistrement...' : (jobForm().id ? 'Mettre a jour' : 'Ajouter') }}</button>
+              @if (jobForm().id) {
+                <button type="button" class="btn btn--quiet" [disabled]="isSaving('jobs')" (click)="resetJobForm()">Annuler</button>
               }
-              <div>
-                <h3>{{ project.name }}</h3>
-                <p>{{ project.type || 'Sans type' }} · {{ project.date || 'Sans date' }}</p>
+            </div>
+
+            @if (jobs().length === 0) {
+              <app-empty-state title="Aucune experience enregistree" description="Ajoutez votre premiere experience professionnelle" actionLabel="Ajouter" (action)="setActiveSection('jobs')" />
+            } @else {
+              <ul class="list material-list" [appSortableList]="jobs()" (appSortableListChange)="onReorderJobs($event)">
+                @for (job of jobs(); track job.id; let i = $index) {
+                  <li class="list-item material-row" [class.material-row--editing]="jobForm().id === job.id" [style.view-transition-name]="'sortable-' + job.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
+                    <div class="material-row__content">
+                      <span class="list-item__index mono">{{ i + 1 }}</span>
+                      <div class="material-row__body">
+                        <h3>{{ job.company }}</h3>
+                        <p>{{ job.position }} · {{ job.label }}</p>
+                      </div>
+                    </div>
+                    <div class="material-row__actions">
+                      @if (jobForm().id === job.id) { <span class="status status--yellow">En edition</span> }
+                      <button type="button" class="btn btn--quiet" (click)="editJob(job)">Modifier</button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+            @if (sectionOrderDirty().jobs) {
+              <div class="toolbar update-order">
+                <button type="button" class="btn btn--primary" [disabled]="sectionOrderSaving().jobs" (click)="onUpdateOrder('jobs')">
+                  @if (sectionOrderSaving().jobs) { <span class="spinner" aria-hidden="true"></span> }
+                  {{ sectionOrderSaving().jobs ? 'Enregistrement...' : "Mettre a jour l'ordre" }}
+                </button>
               </div>
-              <div class="material-row__actions">
-                @if (projectForm().id === project.id) { <span class="editing-pill">En edition</span> }
-                <button type="button" class="row-action" (click)="editProject(project)">Modifier</button>
-              </div>
-            </article>
-          }
-        }
-      </div>
-      @if (sectionOrderDirty().projects) {
-        <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().projects" (click)="onUpdateOrder('projects')">
-          @if (sectionOrderSaving().projects) { <i class="bi bi-arrow-repeat spin"></i> }
-          {{ sectionOrderSaving().projects ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
-        </button>
-      }
-    </section>
-    }
-
-    @if (isActiveSection('skills')) {
-    <section class="material-card" id="skills-section" role="tabpanel" aria-labelledby="skills-tab">
-      <div class="material-card__header">
-        <div>
-          <p class="eyebrow">Competences</p>
-          <h2>{{ skillForm().id ? 'Modifier une competence' : 'Ajouter une competence' }}</h2>
-        </div>
-        <span class="count-pill">{{ skills().length }} elements</span>
-      </div>
-
-      <div class="category-manager" aria-label="Gestion des categories de competences">
-        <label class="editor-field">
-          <span>Ajouter une categorie</span>
-          <input [value]="newSkillCategoryName()" (input)="setNewSkillCategoryName($any($event.target).value)" type="text" placeholder="Ex: Frontend, Data, Architecture..." />
-        </label>
-        <button type="button" class="create-inline-button" [disabled]="!canCreateStandaloneSkillCategory()" (click)="createStandaloneSkillCategory()">
-          {{ creatingSkillCategory() ? 'Creation...' : 'Ajouter la categorie' }}
-        </button>
-        <div class="category-chip-list" aria-label="Categories existantes">
-          @for (category of skillCategories(); track category.id) {
-            <span class="category-chip">{{ category.name }}</span>
-          } @empty {
-            <p class="empty-copy">Aucune categorie personnalisee pour le moment.</p>
-          }
-        </div>
-      </div>
-
-      <div class="editor-grid">
-        <div class="form-section">
-          <span class="form-section__label">Informations principales</span>
-          <app-form-field label="Nom" [required]="true" fieldId="skill-name" [invalid]="isSkillFieldInvalid('name')" errorMessage="Ce champ est requis">
-            <input [value]="skillForm().name" (input)="setSkillFormValue('name', $any($event.target).value)" id="skill-name" type="text" />
-          </app-form-field>
-        </div>
-        <div class="form-section">
-          <span class="form-section__label">Details</span>
-          <app-form-field label="Categorie" class="editor-field--full" fieldId="skill-category">
-            <app-picker
-              mode="single"
-              [allowCreate]="true"
-              [items]="skillCategoryPickerItems()"
-              [selected]="selectedSkillCategoryIds()"
-              placeholder="Rechercher ou creer une categorie..."
-              createLabel="Creer"
-              (selectionChange)="onSkillCategorySelectionChange($event)"
-              (create)="onSkillCategoryCreate($event)"
-            />
-          </app-form-field>
-          <app-form-field label="Type" fieldId="skill-type">
-            <select [value]="skillForm().type" (change)="setSkillFormValue('type', $any($event.target).value)" id="skill-type">
-              <option value="Technical">Technical</option>
-              <option value="Professional">Professional</option>
-              <option value="Language">Language</option>
-              <option value="Software">Software</option>
-            </select>
-          </app-form-field>
-          <app-form-field label="Niveau" fieldId="skill-level" helperText="0-100">
-            <input [value]="skillForm().level ?? ''" (input)="setSkillLevel($any($event.target).value)" id="skill-level" type="number" min="0" max="100" />
-          </app-form-field>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="button" class="primary-button" [disabled]="isSaving('skills')" (click)="saveSkill()">{{ isSaving('skills') ? 'Enregistrement...' : (skillForm().id ? 'Mettre a jour' : 'Ajouter') }}</button>
-        @if (skillForm().id) {
-          <button type="button" class="secondary-button" [disabled]="isSaving('skills')" (click)="resetSkillForm()">Annuler</button>
-        }
-      </div>
-
-      <div class="material-list" [appSortableList]="skills()" (appSortableListChange)="onReorderSkills($event)">
-        @if (skills().length === 0) {
-          <app-empty-state icon="bi-lightbulb" title="Aucune competence enregistree" description="Ajoutez vos competences, organisees par categories" actionLabel="Ajouter" (action)="setActiveSection('skills')" />
-        } @else {
-          @for (skill of skills(); track skill.id; let i = $index) {
-            <article class="material-row" [class.material-row--editing]="skillForm().id === skill.id" [attr.draggable]="true" [attr.data-index]="i">
-              <i class="bi bi-grip-vertical drag-handle"></i>
-              <div>
-                <h3>{{ skill.name }}</h3>
-                <p>{{ getSkillDescription(skill) }}</p>
-              </div>
-              <div class="material-row__actions">
-                @if (skillForm().id === skill.id) { <span class="editing-pill">En edition</span> }
-                <button type="button" class="row-action" (click)="editSkill(skill)">Modifier</button>
-              </div>
-            </article>
-          }
-        }
-      </div>
-      @if (sectionOrderDirty().skills) {
-        <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().skills" (click)="onUpdateOrder('skills')">
-          @if (sectionOrderSaving().skills) { <i class="bi bi-arrow-repeat spin"></i> }
-          {{ sectionOrderSaving().skills ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
-        </button>
-      }
-    </section>
-    }
-
-    @if (isActiveSection('achievements')) {
-      <section class="material-card" id="achievements-section" role="tabpanel" aria-labelledby="achievements-tab">
-        <div class="material-card__header">
-          <div>
-            <p class="eyebrow">Realisations</p>
-            <h2>{{ achievementForm().id ? 'Modifier' : 'Ajouter' }}</h2>
+            }
           </div>
-          <span class="count-pill">{{ achievements().length }}</span>
-        </div>
-        <div class="editor-grid editor-grid--single">
-          <div class="form-section">
-            <span class="form-section__label">Informations principales</span>
-            <app-form-field label="Titre" [required]="true" fieldId="achievement-title" [invalid]="isAchievementFieldInvalid('title')" errorMessage="Ce champ est requis">
-              <input [value]="achievementForm().title" (input)="setAchievementFormValue('title', $any($event.target).value)" id="achievement-title" type="text" />
-            </app-form-field>
+        </section>
+        }
+
+        @if (isActiveSection('projects')) {
+        <section class="panel" id="projects-section" role="tabpanel" aria-labelledby="projects-tab">
+          <div class="panel__head">
+            <div class="panel__title">
+              <p class="eyebrow">Projets</p>
+              <h3>{{ projectForm().id ? 'Modifier un projet' : 'Ajouter un projet' }}</h3>
+            </div>
+            <span class="status status--muted">{{ projects().length }} elements</span>
           </div>
-          <div class="form-section">
-            <span class="form-section__label">Details</span>
-            <app-form-field label="Description" class="editor-field--full" fieldId="achievement-description">
-              <quill-editor
-                class="quill-material-editor"
-                format="html"
-                theme="snow"
-                placeholder="Decrivez votre realisation..."
-                [modules]="editorModules"
-                [sanitize]="true"
-                [ngModel]="achievementForm().description"
-                (ngModelChange)="setAchievementFormValue('description', $event ?? '')"
-              />
-            </app-form-field>
+          <div class="panel__body">
+            <div class="form-grid">
+              <app-form-field label="Nom" [required]="true" fieldId="project-name" [invalid]="isProjectFieldInvalid('name')" errorMessage="Ce champ est requis">
+                <input [value]="projectForm().name" (input)="setProjectFormValue('name', $any($event.target).value)" id="project-name" type="text" />
+              </app-form-field>
+              <app-form-field label="URL" fieldId="project-url" helperText="https://example.com" [invalid]="isProjectUrlInvalid()" errorMessage="Format d'URL invalide">
+                <input [value]="projectForm().url" (input)="setProjectFormValue('url', $any($event.target).value)" id="project-url" type="url" />
+              </app-form-field>
+              <app-form-field label="Date" fieldId="project-date">
+                <input [value]="projectForm().date" (input)="setProjectFormValue('date', $any($event.target).value)" id="project-date" type="date" />
+              </app-form-field>
+              <app-form-field label="Type" fieldId="project-type">
+                <select [value]="projectForm().type" (change)="setProjectFormValue('type', $any($event.target).value)" id="project-type">
+                  <option value="work project">Work project</option>
+                  <option value="freelance">Freelance</option>
+                  <option value="sideproject">Side project</option>
+                </select>
+              </app-form-field>
+              <app-form-field label="Asset lie" fieldId="project-file">
+                <app-picker
+                  mode="single"
+                  [items]="assetPickerItems()"
+                  [selected]="selectedProjectFileIds()"
+                  placeholder="Aucun"
+                  (selectionChange)="onProjectAssetSelectionChange($event)"
+                />
+              </app-form-field>
+              <app-form-field label="Image projet" fieldId="project-picture">
+                <input type="file" accept="image/*" (change)="onProjectPictureSelected($event)" id="project-picture" />
+              </app-form-field>
+              <app-form-field label="Description" class="field--full" fieldId="project-description">
+                <quill-editor
+                  class="quill-material-editor"
+                  format="html"
+                  theme="snow"
+                  placeholder="Decrivez votre projet..."
+                  [modules]="editorModules"
+                  [sanitize]="true"
+                  [ngModel]="projectForm().description"
+                  (ngModelChange)="setProjectFormValue('description', $event ?? '')"
+                />
+              </app-form-field>
+              <app-form-field label="Realisations liees" class="field--full" fieldId="project-achievements">
+                <app-picker
+                  mode="multi"
+                  [allowCreate]="true"
+                  [items]="projectAchievementPickerItems()"
+                  [selected]="projectForm().achievements ?? []"
+                  placeholder="Rechercher ou creer une realisation..."
+                  createLabel="Creer"
+                  (selectionChange)="onProjectAchievementSelectionChange($event)"
+                  (create)="onProjectAchievementCreate($event)"
+                />
+              </app-form-field>
+            </div>
+
+            <div class="toolbar form-actions">
+              <button type="button" class="btn btn--primary" [disabled]="isSaving('projects')" (click)="saveProject()">{{ isSaving('projects') ? 'Enregistrement...' : (projectForm().id ? 'Mettre a jour' : 'Ajouter') }}</button>
+              @if (projectForm().id) {
+                <button type="button" class="btn btn--quiet" [disabled]="isSaving('projects')" (click)="resetProjectForm()">Annuler</button>
+              }
+            </div>
+
+            @if (projects().length === 0) {
+              <app-empty-state title="Aucun projet enregistre" description="Ajoutez un premier projet pour illustrer vos competences" actionLabel="Ajouter" (action)="setActiveSection('projects')" />
+            } @else {
+              <ul class="list material-list" [appSortableList]="projects()" (appSortableListChange)="onReorderProjects($event)">
+                @for (project of projects(); track project.id; let i = $index) {
+                  <li class="list-item material-row" [class.material-row--editing]="projectForm().id === project.id" [style.view-transition-name]="'sortable-' + project.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
+                    <div class="material-row__content">
+                      <span class="list-item__index mono">{{ i + 1 }}</span>
+                      @if (project.picture) {
+                        <img class="material-thumb" draggable="false" [src]="project.picture" [alt]="project.name" />
+                      }
+                      <div class="material-row__body">
+                        <h3>{{ project.name }}</h3>
+                        <p>{{ project.type || 'Sans type' }} · {{ project.date || 'Sans date' }}</p>
+                      </div>
+                    </div>
+                    <div class="material-row__actions">
+                      @if (projectForm().id === project.id) { <span class="status status--yellow">En edition</span> }
+                      <button type="button" class="btn btn--quiet" (click)="editProject(project)">Modifier</button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+            @if (sectionOrderDirty().projects) {
+              <div class="toolbar update-order">
+                <button type="button" class="btn btn--primary" [disabled]="sectionOrderSaving().projects" (click)="onUpdateOrder('projects')">
+                  @if (sectionOrderSaving().projects) { <span class="spinner" aria-hidden="true"></span> }
+                  {{ sectionOrderSaving().projects ? 'Enregistrement...' : "Mettre a jour l'ordre" }}
+                </button>
+              </div>
+            }
           </div>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="primary-button" [disabled]="isSaving('achievements')" (click)="saveAchievement()">{{ achievementForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
-          @if (achievementForm().id) { <button type="button" class="secondary-button" (click)="resetAchievementForm()">Annuler</button> }
-        </div>
-        <div class="material-list" [appSortableList]="achievements()" (appSortableListChange)="onReorderAchievements($event)">
-          @for (achievement of achievements(); track achievement.id; let i = $index) {
-            <article class="material-row" [class.material-row--editing]="achievementForm().id === achievement.id" [attr.draggable]="true" [attr.data-index]="i">
-              <i class="bi bi-grip-vertical drag-handle"></i>
-              <div><h3>{{ achievement.title }}</h3><p>{{ achievement.description || 'Sans description' }}</p></div>
-              <button type="button" class="row-action" (click)="editAchievement(achievement)">Modifier</button>
-            </article>
-          } @empty {
-            <app-empty-state icon="bi-trophy" title="Aucune realisation enregistree" description="Creez des realisations reutilisables dans vos projets" actionLabel="Ajouter" (action)="setActiveSection('achievements')" />
-          }
-        </div>
-        @if (sectionOrderDirty().achievements) {
-          <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().achievements" (click)="onUpdateOrder('achievements')">
-            @if (sectionOrderSaving().achievements) { <i class="bi bi-arrow-repeat spin"></i> }
-            {{ sectionOrderSaving().achievements ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
-          </button>
+        </section>
+        }
+
+        @if (isActiveSection('skills')) {
+        <section class="panel" id="skills-section" role="tabpanel" aria-labelledby="skills-tab">
+          <div class="panel__head">
+            <div class="panel__title">
+              <p class="eyebrow">Competences</p>
+              <h3>{{ skillForm().id ? 'Modifier une competence' : 'Ajouter une competence' }}</h3>
+            </div>
+            <span class="status status--muted">{{ skills().length }} elements</span>
+          </div>
+          <div class="panel__body">
+            <div class="category-manager" aria-label="Gestion des categories de competences">
+              <label class="field">
+                <span>Ajouter une categorie</span>
+                <input [value]="newSkillCategoryName()" (input)="setNewSkillCategoryName($any($event.target).value)" type="text" placeholder="Ex: Frontend, Data, Architecture..." />
+              </label>
+              <button type="button" class="btn btn--primary" [disabled]="!canCreateStandaloneSkillCategory()" (click)="createStandaloneSkillCategory()">
+                {{ creatingSkillCategory() ? 'Creation...' : 'Ajouter la categorie' }}
+              </button>
+              <div class="category-chip-list" aria-label="Categories existantes">
+                @for (category of skillCategories(); track category.id) {
+                  <span class="status status--blue">{{ category.name }}</span>
+                } @empty {
+                  <p class="muted">Aucune categorie personnalisee pour le moment.</p>
+                }
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <app-form-field label="Nom" [required]="true" class="field--full" fieldId="skill-name" [invalid]="isSkillFieldInvalid('name')" errorMessage="Ce champ est requis">
+                <input [value]="skillForm().name" (input)="setSkillFormValue('name', $any($event.target).value)" id="skill-name" type="text" />
+              </app-form-field>
+              <app-form-field label="Categorie" class="field--full" fieldId="skill-category">
+                <app-picker
+                  mode="single"
+                  [allowCreate]="true"
+                  [items]="skillCategoryPickerItems()"
+                  [selected]="selectedSkillCategoryIds()"
+                  placeholder="Rechercher ou creer une categorie..."
+                  createLabel="Creer"
+                  (selectionChange)="onSkillCategorySelectionChange($event)"
+                  (create)="onSkillCategoryCreate($event)"
+                />
+              </app-form-field>
+              <app-form-field label="Type" fieldId="skill-type">
+                <select [value]="skillForm().type" (change)="setSkillFormValue('type', $any($event.target).value)" id="skill-type">
+                  <option value="Technical">Technical</option>
+                  <option value="Professional">Professional</option>
+                  <option value="Language">Language</option>
+                  <option value="Software">Software</option>
+                </select>
+              </app-form-field>
+              <app-form-field label="Niveau" fieldId="skill-level" helperText="0-100">
+                <input [value]="skillForm().level ?? ''" (input)="setSkillLevel($any($event.target).value)" id="skill-level" type="number" min="0" max="100" />
+              </app-form-field>
+            </div>
+
+            <div class="toolbar form-actions">
+              <button type="button" class="btn btn--primary" [disabled]="isSaving('skills')" (click)="saveSkill()">{{ isSaving('skills') ? 'Enregistrement...' : (skillForm().id ? 'Mettre a jour' : 'Ajouter') }}</button>
+              @if (skillForm().id) {
+                <button type="button" class="btn btn--quiet" [disabled]="isSaving('skills')" (click)="resetSkillForm()">Annuler</button>
+              }
+            </div>
+
+            @if (skills().length === 0) {
+              <app-empty-state title="Aucune competence enregistree" description="Ajoutez vos competences, organisees par categories" actionLabel="Ajouter" (action)="setActiveSection('skills')" />
+            } @else {
+              <ul class="list material-list" [appSortableList]="skills()" (appSortableListChange)="onReorderSkills($event)">
+                @for (skill of skills(); track skill.id; let i = $index) {
+                  <li class="list-item material-row" [class.material-row--editing]="skillForm().id === skill.id" [style.view-transition-name]="'sortable-' + skill.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
+                    <div class="material-row__content">
+                      <span class="list-item__index mono">{{ i + 1 }}</span>
+                      <div class="material-row__body">
+                        <h3>{{ skill.name }}</h3>
+                        <p>{{ getSkillDescription(skill) }}</p>
+                      </div>
+                    </div>
+                    <div class="material-row__actions">
+                      @if (skillForm().id === skill.id) { <span class="status status--yellow">En edition</span> }
+                      <button type="button" class="btn btn--quiet" (click)="editSkill(skill)">Modifier</button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+            @if (sectionOrderDirty().skills) {
+              <div class="toolbar update-order">
+                <button type="button" class="btn btn--primary" [disabled]="sectionOrderSaving().skills" (click)="onUpdateOrder('skills')">
+                  @if (sectionOrderSaving().skills) { <span class="spinner" aria-hidden="true"></span> }
+                  {{ sectionOrderSaving().skills ? 'Enregistrement...' : "Mettre a jour l'ordre" }}
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+        }
+
+        @if (isActiveSection('achievements')) {
+        <section class="panel" id="achievements-section" role="tabpanel" aria-labelledby="achievements-tab">
+          <div class="panel__head">
+            <div class="panel__title">
+              <p class="eyebrow">Realisations</p>
+              <h3>{{ achievementForm().id ? 'Modifier' : 'Ajouter' }}</h3>
+            </div>
+            <span class="status status--muted">{{ achievements().length }}</span>
+          </div>
+          <div class="panel__body">
+            <div class="form-grid">
+              <app-form-field label="Titre" [required]="true" class="field--full" fieldId="achievement-title" [invalid]="isAchievementFieldInvalid('title')" errorMessage="Ce champ est requis">
+                <input [value]="achievementForm().title" (input)="setAchievementFormValue('title', $any($event.target).value)" id="achievement-title" type="text" />
+              </app-form-field>
+              <app-form-field label="Description" class="field--full" fieldId="achievement-description">
+                <quill-editor
+                  class="quill-material-editor"
+                  format="html"
+                  theme="snow"
+                  placeholder="Decrivez votre realisation..."
+                  [modules]="editorModules"
+                  [sanitize]="true"
+                  [ngModel]="achievementForm().description"
+                  (ngModelChange)="setAchievementFormValue('description', $event ?? '')"
+                />
+              </app-form-field>
+            </div>
+            <div class="toolbar form-actions">
+              <button type="button" class="btn btn--primary" [disabled]="isSaving('achievements')" (click)="saveAchievement()">{{ achievementForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
+              @if (achievementForm().id) { <button type="button" class="btn btn--quiet" (click)="resetAchievementForm()">Annuler</button> }
+            </div>
+
+            @if (achievements().length === 0) {
+              <app-empty-state title="Aucune realisation enregistree" description="Creez des realisations reutilisables dans vos projets" actionLabel="Ajouter" (action)="setActiveSection('achievements')" />
+            } @else {
+              <ul class="list material-list" [appSortableList]="achievements()" (appSortableListChange)="onReorderAchievements($event)">
+                @for (achievement of achievements(); track achievement.id; let i = $index) {
+                  <li class="list-item material-row" [class.material-row--editing]="achievementForm().id === achievement.id" [style.view-transition-name]="'sortable-' + achievement.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
+                    <div class="material-row__content">
+                      <span class="list-item__index mono">{{ i + 1 }}</span>
+                      <div class="material-row__body">
+                        <h3>{{ achievement.title }}</h3>
+                        <p>{{ achievement.description || 'Sans description' }}</p>
+                      </div>
+                    </div>
+                    <div class="material-row__actions">
+                      <button type="button" class="btn btn--quiet" (click)="editAchievement(achievement)">Modifier</button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+            @if (sectionOrderDirty().achievements) {
+              <div class="toolbar update-order">
+                <button type="button" class="btn btn--primary" [disabled]="sectionOrderSaving().achievements" (click)="onUpdateOrder('achievements')">
+                  @if (sectionOrderSaving().achievements) { <span class="spinner" aria-hidden="true"></span> }
+                  {{ sectionOrderSaving().achievements ? 'Enregistrement...' : "Mettre a jour l'ordre" }}
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+        }
+
+        @if (isActiveSection('degrees')) {
+        <section class="panel" id="degrees-section" role="tabpanel" aria-labelledby="degrees-tab">
+          <div class="panel__head">
+            <div class="panel__title">
+              <p class="eyebrow">Diplomes</p>
+              <h3>{{ degreeForm().id ? 'Modifier' : 'Ajouter' }}</h3>
+            </div>
+            <span class="status status--muted">{{ degrees().length }}</span>
+          </div>
+          <div class="panel__body">
+            <div class="form-grid">
+              <app-form-field label="Titre" [required]="true" fieldId="degree-title" [invalid]="isDegreeFieldInvalid('title')" errorMessage="Ce champ est requis">
+                <input [value]="degreeForm().title" (input)="setDegreeFormValue('title', $any($event.target).value)" id="degree-title" type="text" />
+              </app-form-field>
+              <app-form-field label="Ecole" fieldId="degree-school">
+                <input [value]="degreeForm().school" (input)="setDegreeFormValue('school', $any($event.target).value)" id="degree-school" type="text" />
+              </app-form-field>
+              <app-form-field label="Annee" fieldId="degree-year">
+                <input [value]="degreeForm().year" (input)="setDegreeFormValue('year', $any($event.target).value)" id="degree-year" type="date" />
+              </app-form-field>
+              <app-form-field label="Niveau" fieldId="degree-level">
+                <input [value]="degreeForm().level" (input)="setDegreeFormValue('level', $any($event.target).value)" id="degree-level" type="text" />
+              </app-form-field>
+            </div>
+            <div class="toolbar form-actions">
+              <button type="button" class="btn btn--primary" [disabled]="isSaving('degrees')" (click)="saveDegree()">{{ degreeForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
+              @if (degreeForm().id) { <button type="button" class="btn btn--quiet" (click)="resetDegreeForm()">Annuler</button> }
+            </div>
+
+            @if (degrees().length === 0) {
+              <app-empty-state title="Aucun diplome enregistre" description="Ajoutez vos diplomes et formations" actionLabel="Ajouter" (action)="setActiveSection('degrees')" />
+            } @else {
+              <ul class="list material-list" [appSortableList]="degrees()" (appSortableListChange)="onReorderDegrees($event)">
+                @for (degree of degrees(); track degree.id; let i = $index) {
+                  <li class="list-item material-row" [class.material-row--editing]="degreeForm().id === degree.id" [style.view-transition-name]="'sortable-' + degree.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
+                    <div class="material-row__content">
+                      <span class="list-item__index mono">{{ i + 1 }}</span>
+                      <div class="material-row__body">
+                        <h3>{{ degree.title }}</h3>
+                        <p>{{ degree.school || 'Sans ecole' }} · {{ degree.year || 'Sans annee' }}</p>
+                      </div>
+                    </div>
+                    <div class="material-row__actions">
+                      <button type="button" class="btn btn--quiet" (click)="editDegree(degree)">Modifier</button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+            @if (sectionOrderDirty().degrees) {
+              <div class="toolbar update-order">
+                <button type="button" class="btn btn--primary" [disabled]="sectionOrderSaving().degrees" (click)="onUpdateOrder('degrees')">
+                  @if (sectionOrderSaving().degrees) { <span class="spinner" aria-hidden="true"></span> }
+                  {{ sectionOrderSaving().degrees ? 'Enregistrement...' : "Mettre a jour l'ordre" }}
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+        }
+
+        @if (isActiveSection('hobbies')) {
+        <section class="panel" id="hobbies-section" role="tabpanel" aria-labelledby="hobbies-tab">
+          <div class="panel__head">
+            <div class="panel__title">
+              <p class="eyebrow">Loisirs</p>
+              <h3>{{ hobbyForm().id ? 'Modifier' : 'Ajouter' }}</h3>
+            </div>
+            <span class="status status--muted">{{ hobbies().length }}</span>
+          </div>
+          <div class="panel__body">
+            <div class="form-grid">
+              <app-form-field label="Nom" [required]="true" class="field--full" fieldId="hobby-name" [invalid]="isHobbyFieldInvalid('name')" errorMessage="Ce champ est requis">
+                <input [value]="hobbyForm().name" (input)="setHobbyFormValue('name', $any($event.target).value)" id="hobby-name" type="text" />
+              </app-form-field>
+              <app-form-field label="Description" class="field--full" fieldId="hobby-description">
+                <quill-editor
+                  class="quill-material-editor"
+                  format="html"
+                  theme="snow"
+                  placeholder="Decrivez votre loisir..."
+                  [modules]="editorModules"
+                  [sanitize]="true"
+                  [ngModel]="hobbyForm().description"
+                  (ngModelChange)="setHobbyFormValue('description', $event ?? '')"
+                />
+              </app-form-field>
+            </div>
+            <div class="toolbar form-actions">
+              <button type="button" class="btn btn--primary" [disabled]="isSaving('hobbies')" (click)="saveHobby()">{{ hobbyForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
+              @if (hobbyForm().id) { <button type="button" class="btn btn--quiet" (click)="resetHobbyForm()">Annuler</button> }
+            </div>
+
+            @if (hobbies().length === 0) {
+              <app-empty-state title="Aucun loisir enregistre" description="Partagez vos centres d'interet" actionLabel="Ajouter" (action)="setActiveSection('hobbies')" />
+            } @else {
+              <ul class="list material-list" [appSortableList]="hobbies()" (appSortableListChange)="onReorderHobbies($event)">
+                @for (hobby of hobbies(); track hobby.id; let i = $index) {
+                  <li class="list-item material-row" [class.material-row--editing]="hobbyForm().id === hobby.id" [style.view-transition-name]="'sortable-' + hobby.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
+                    <div class="material-row__content">
+                      <span class="list-item__index mono">{{ i + 1 }}</span>
+                      <div class="material-row__body">
+                        <h3>{{ hobby.name }}</h3>
+                        <p>{{ hobby.description || 'Sans description' }}</p>
+                      </div>
+                    </div>
+                    <div class="material-row__actions">
+                      <button type="button" class="btn btn--quiet" (click)="editHobby(hobby)">Modifier</button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+            @if (sectionOrderDirty().hobbies) {
+              <div class="toolbar update-order">
+                <button type="button" class="btn btn--primary" [disabled]="sectionOrderSaving().hobbies" (click)="onUpdateOrder('hobbies')">
+                  @if (sectionOrderSaving().hobbies) { <span class="spinner" aria-hidden="true"></span> }
+                  {{ sectionOrderSaving().hobbies ? 'Enregistrement...' : "Mettre a jour l'ordre" }}
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+        }
+
+        @if (isActiveSection('assets')) {
+        <section class="panel" id="assets-section" role="tabpanel" aria-labelledby="assets-tab">
+          <div class="panel__head">
+            <div class="panel__title">
+              <p class="eyebrow">Assets</p>
+              <h3>{{ assetForm().id ? 'Modifier' : 'Ajouter' }}</h3>
+            </div>
+            <span class="status status--muted">{{ assets().length }}</span>
+          </div>
+          <div class="panel__body">
+            <div class="form-grid">
+              <app-form-field label="Nom" fieldId="asset-name">
+                <input [value]="assetForm().name" (input)="setAssetFormValue('name', $any($event.target).value)" id="asset-name" type="text" />
+              </app-form-field>
+              <app-form-field label="Texte alternatif" fieldId="asset-alt">
+                <input [value]="assetForm().alt" (input)="setAssetFormValue('alt', $any($event.target).value)" id="asset-alt" type="text" />
+              </app-form-field>
+              <app-form-field label="Type" fieldId="asset-kind" class="field--full">
+                <select [value]="assetForm().kind" (change)="setAssetFormValue('kind', $any($event.target).value)" id="asset-kind">
+                  <option value="image">Image</option>
+                  <option value="video">Video</option>
+                  <option value="document">Document</option>
+                  <option value="other">Autre</option>
+                </select>
+              </app-form-field>
+              <app-form-field label="Fichier" fieldId="asset-file" class="field--full">
+                <input type="file" (change)="onAssetFileSelected($event)" id="asset-file" />
+              </app-form-field>
+            </div>
+            <div class="toolbar form-actions">
+              <button type="button" class="btn btn--primary" [disabled]="isSaving('assets')" (click)="saveAsset()">{{ assetForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
+              @if (assetForm().id) { <button type="button" class="btn btn--quiet" (click)="resetAssetForm()">Annuler</button> }
+            </div>
+
+            @if (assets().length === 0) {
+              <app-empty-state title="Aucun asset enregistre" description="Importez des fichiers media (images, documents)" actionLabel="Ajouter" (action)="setActiveSection('assets')" />
+            } @else {
+              <ul class="list material-list" [appSortableList]="assets()" (appSortableListChange)="onReorderAssets($event)">
+                @for (asset of assets(); track asset.id; let i = $index) {
+                  <li class="list-item material-row" [class.material-row--editing]="assetForm().id === asset.id" [style.view-transition-name]="'sortable-' + asset.id" [attr.data-index]="i">
+                    <span class="drag-handle" draggable="true" aria-hidden="true"></span>
+                    <div class="material-row__content">
+                      <span class="list-item__index mono">{{ i + 1 }}</span>
+                      @if (asset.kind === 'image') { <img class="material-thumb" draggable="false" [src]="asset.file" [alt]="asset.alt || asset.name || 'Asset'" /> }
+                      <div class="material-row__body">
+                        <h3>{{ asset.name || 'Asset sans nom' }}</h3>
+                        <p>{{ asset.kind || 'other' }} · {{ asset.alt || 'Sans alt' }}</p>
+                      </div>
+                    </div>
+                    <div class="material-row__actions">
+                      <button type="button" class="btn btn--quiet" (click)="editAsset(asset)">Modifier</button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+            @if (sectionOrderDirty().assets) {
+              <div class="toolbar update-order">
+                <button type="button" class="btn btn--primary" [disabled]="sectionOrderSaving().assets" (click)="onUpdateOrder('assets')">
+                  @if (sectionOrderSaving().assets) { <span class="spinner" aria-hidden="true"></span> }
+                  {{ sectionOrderSaving().assets ? 'Enregistrement...' : "Mettre a jour l'ordre" }}
+                </button>
+              </div>
+            }
+          </div>
+        </section>
         }
       </section>
     }
 
-    @if (isActiveSection('degrees')) {
-      <section class="material-card" id="degrees-section" role="tabpanel" aria-labelledby="degrees-tab">
-        <div class="material-card__header">
-          <div>
-            <p class="eyebrow">Diplomes</p>
-            <h2>{{ degreeForm().id ? 'Modifier' : 'Ajouter' }}</h2>
-          </div>
-          <span class="count-pill">{{ degrees().length }}</span>
-        </div>
-        <div class="editor-grid editor-grid--single">
-          <div class="form-section">
-            <span class="form-section__label">Informations principales</span>
-            <app-form-field label="Titre" [required]="true" fieldId="degree-title" [invalid]="isDegreeFieldInvalid('title')" errorMessage="Ce champ est requis">
-              <input [value]="degreeForm().title" (input)="setDegreeFormValue('title', $any($event.target).value)" id="degree-title" type="text" />
-            </app-form-field>
-          </div>
-          <div class="form-section">
-            <span class="form-section__label">Details</span>
-            <app-form-field label="Ecole" fieldId="degree-school">
-              <input [value]="degreeForm().school" (input)="setDegreeFormValue('school', $any($event.target).value)" id="degree-school" type="text" />
-            </app-form-field>
-            <app-form-field label="Annee" fieldId="degree-year">
-              <input [value]="degreeForm().year" (input)="setDegreeFormValue('year', $any($event.target).value)" id="degree-year" type="date" />
-            </app-form-field>
-            <app-form-field label="Niveau" fieldId="degree-level">
-              <input [value]="degreeForm().level" (input)="setDegreeFormValue('level', $any($event.target).value)" id="degree-level" type="text" />
-            </app-form-field>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="primary-button" [disabled]="isSaving('degrees')" (click)="saveDegree()">{{ degreeForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
-          @if (degreeForm().id) { <button type="button" class="secondary-button" (click)="resetDegreeForm()">Annuler</button> }
-        </div>
-        <div class="material-list" [appSortableList]="degrees()" (appSortableListChange)="onReorderDegrees($event)">
-          @for (degree of degrees(); track degree.id; let i = $index) {
-            <article class="material-row" [class.material-row--editing]="degreeForm().id === degree.id" [attr.draggable]="true" [attr.data-index]="i">
-              <i class="bi bi-grip-vertical drag-handle"></i>
-              <div><h3>{{ degree.title }}</h3><p>{{ degree.school || 'Sans ecole' }} · {{ degree.year || 'Sans annee' }}</p></div>
-              <button type="button" class="row-action" (click)="editDegree(degree)">Modifier</button>
-            </article>
-          } @empty {
-            <app-empty-state icon="bi-mortarboard" title="Aucun diplome enregistre" description="Ajoutez vos diplomes et formations" actionLabel="Ajouter" (action)="setActiveSection('degrees')" />
-          }
-        </div>
-        @if (sectionOrderDirty().degrees) {
-          <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().degrees" (click)="onUpdateOrder('degrees')">
-            @if (sectionOrderSaving().degrees) { <i class="bi bi-arrow-repeat spin"></i> }
-            {{ sectionOrderSaving().degrees ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
-          </button>
-        }
-      </section>
-    }
-
-    @if (isActiveSection('hobbies')) {
-      <section class="material-card" id="hobbies-section" role="tabpanel" aria-labelledby="hobbies-tab">
-        <div class="material-card__header">
-          <div>
-            <p class="eyebrow">Loisirs</p>
-            <h2>{{ hobbyForm().id ? 'Modifier' : 'Ajouter' }}</h2>
-          </div>
-          <span class="count-pill">{{ hobbies().length }}</span>
-        </div>
-        <div class="editor-grid editor-grid--single">
-          <div class="form-section">
-            <span class="form-section__label">Informations principales</span>
-            <app-form-field label="Nom" [required]="true" fieldId="hobby-name" [invalid]="isHobbyFieldInvalid('name')" errorMessage="Ce champ est requis">
-              <input [value]="hobbyForm().name" (input)="setHobbyFormValue('name', $any($event.target).value)" id="hobby-name" type="text" />
-            </app-form-field>
-          </div>
-          <div class="form-section">
-            <span class="form-section__label">Details</span>
-            <app-form-field label="Description" class="editor-field--full" fieldId="hobby-description">
-              <quill-editor
-                class="quill-material-editor"
-                format="html"
-                theme="snow"
-                placeholder="Decrivez votre loisir..."
-                [modules]="editorModules"
-                [sanitize]="true"
-                [ngModel]="hobbyForm().description"
-                (ngModelChange)="setHobbyFormValue('description', $event ?? '')"
-              />
-            </app-form-field>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="primary-button" [disabled]="isSaving('hobbies')" (click)="saveHobby()">{{ hobbyForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
-          @if (hobbyForm().id) { <button type="button" class="secondary-button" (click)="resetHobbyForm()">Annuler</button> }
-        </div>
-        <div class="material-list" [appSortableList]="hobbies()" (appSortableListChange)="onReorderHobbies($event)">
-          @for (hobby of hobbies(); track hobby.id; let i = $index) {
-            <article class="material-row" [class.material-row--editing]="hobbyForm().id === hobby.id" [attr.draggable]="true" [attr.data-index]="i">
-              <i class="bi bi-grip-vertical drag-handle"></i>
-              <div><h3>{{ hobby.name }}</h3><p>{{ hobby.description || 'Sans description' }}</p></div>
-              <button type="button" class="row-action" (click)="editHobby(hobby)">Modifier</button>
-            </article>
-          } @empty {
-            <app-empty-state icon="bi-heart" title="Aucun loisir enregistre" description="Partagez vos centres d'interet" actionLabel="Ajouter" (action)="setActiveSection('hobbies')" />
-          }
-        </div>
-        @if (sectionOrderDirty().hobbies) {
-          <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().hobbies" (click)="onUpdateOrder('hobbies')">
-            @if (sectionOrderSaving().hobbies) { <i class="bi bi-arrow-repeat spin"></i> }
-            {{ sectionOrderSaving().hobbies ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
-          </button>
-        }
-      </section>
-    }
-
-    @if (isActiveSection('assets')) {
-      <section class="material-card" id="assets-section" role="tabpanel" aria-labelledby="assets-tab">
-        <div class="material-card__header">
-          <div>
-            <p class="eyebrow">Assets</p>
-            <h2>{{ assetForm().id ? 'Modifier' : 'Ajouter' }}</h2>
-          </div>
-          <span class="count-pill">{{ assets().length }}</span>
-        </div>
-        <div class="editor-grid editor-grid--single">
-          <div class="form-section">
-            <span class="form-section__label">Informations principales</span>
-            <app-form-field label="Nom" fieldId="asset-name">
-              <input [value]="assetForm().name" (input)="setAssetFormValue('name', $any($event.target).value)" id="asset-name" type="text" />
-            </app-form-field>
-          </div>
-          <div class="form-section">
-            <span class="form-section__label">Details</span>
-            <app-form-field label="Texte alternatif" fieldId="asset-alt">
-              <input [value]="assetForm().alt" (input)="setAssetFormValue('alt', $any($event.target).value)" id="asset-alt" type="text" />
-            </app-form-field>
-            <app-form-field label="Type" fieldId="asset-kind">
-              <select [value]="assetForm().kind" (change)="setAssetFormValue('kind', $any($event.target).value)" id="asset-kind">
-                <option value="image">Image</option>
-                <option value="video">Video</option>
-                <option value="document">Document</option>
-                <option value="other">Autre</option>
-              </select>
-            </app-form-field>
-            <app-form-field label="Fichier" fieldId="asset-file">
-              <input type="file" (change)="onAssetFileSelected($event)" id="asset-file" />
-            </app-form-field>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="primary-button" [disabled]="isSaving('assets')" (click)="saveAsset()">{{ assetForm().id ? 'Mettre a jour' : 'Ajouter' }}</button>
-          @if (assetForm().id) { <button type="button" class="secondary-button" (click)="resetAssetForm()">Annuler</button> }
-        </div>
-        <div class="material-list" [appSortableList]="assets()" (appSortableListChange)="onReorderAssets($event)">
-          @for (asset of assets(); track asset.id; let i = $index) {
-            <article class="material-row" [class.material-row--editing]="assetForm().id === asset.id" [attr.draggable]="true" [attr.data-index]="i">
-              <i class="bi bi-grip-vertical drag-handle"></i>
-              @if (asset.kind === 'image') { <img class="material-thumb" [src]="asset.file" [alt]="asset.alt || asset.name || 'Asset'" /> }
-              <div><h3>{{ asset.name || 'Asset sans nom' }}</h3><p>{{ asset.kind || 'other' }} · {{ asset.alt || 'Sans alt' }}</p></div>
-              <button type="button" class="row-action" (click)="editAsset(asset)">Modifier</button>
-            </article>
-          } @empty {
-            <app-empty-state icon="bi-file-earmark" title="Aucun asset enregistre" description="Importez des fichiers media (images, documents)" actionLabel="Ajouter" (action)="setActiveSection('assets')" />
-          }
-        </div>
-        @if (sectionOrderDirty().assets) {
-          <button type="button" class="update-order-btn" [disabled]="sectionOrderSaving().assets" (click)="onUpdateOrder('assets')">
-            @if (sectionOrderSaving().assets) { <i class="bi bi-arrow-repeat spin"></i> }
-            {{ sectionOrderSaving().assets ? 'Enregistrement...' : 'Mettre a jour l\'ordre' }}
-          </button>
-        }
-      </section>
-    }
-    </div>
-  }
-
-  <app-help-modal [open]="showHelpModal()" (close)="showHelpModal.set(false)" />
-</main>
+    <app-help-modal [open]="showHelpModal()" (close)="showHelpModal.set(false)" />
+  </main>
+</div>

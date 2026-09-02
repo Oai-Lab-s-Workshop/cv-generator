@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, Injector, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
 import { RouterLink } from '@angular/router';
@@ -40,12 +40,13 @@ type EditorState = {
 };
 
 type PictureField = 'profilePictureFile' | 'coverPictureFile';
+type EditorTab = 'identity' | 'summary' | 'media' | 'relations' | 'template';
 
 @Component({
   selector: 'app-profile-editor-page',
   imports: [FormsModule, Navbar, RouterLink, QuillModule],
   templateUrl: './profile-editor-page.html',
-  styleUrls: ['../../styles/home-shared.css', './profile-editor-page.css'],
+  styleUrls: ['./profile-editor-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileEditorPage implements OnInit, OnDestroy {
@@ -72,6 +73,39 @@ export class ProfileEditorPage implements OnInit, OnDestroy {
       ['clean'],
     ],
   };
+
+  readonly activeTab = signal<EditorTab>('identity');
+  readonly completionPercentage = computed(() => {
+    const state = this.editorState();
+
+    if (!state) {
+      return 0;
+    }
+
+    const profile = state.profile;
+    const checks = [
+      Boolean(profile.profileName?.trim()),
+      Boolean(profile.template),
+      Boolean(profile.professionalSummary),
+      (profile.jobs ?? []).length > 0,
+      (profile.skills ?? []).length > 0,
+      (profile.degrees ?? []).length > 0,
+      Boolean(profile.profilePictureFile),
+      Boolean(profile.coverPictureFile),
+    ];
+    const completed = checks.filter(Boolean).length;
+
+    return Math.round((completed / checks.length) * 100);
+  });
+
+  setActiveTab(tab: EditorTab): void {
+    this.activeTab.set(tab);
+  }
+
+  getStatusTone(status?: CvProfileStatus): string {
+    const tone = this.getStatusOption(status)?.tone;
+    return tone === 'gray' ? 'muted' : tone ?? 'muted';
+  }
 
   ngOnInit(): void {
     effect(

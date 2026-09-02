@@ -32,7 +32,7 @@ function pbDateValue(value?: string): number {
   selector: 'app-home-page',
   imports: [FormsModule, Navbar, RouterLink],
   templateUrl: './home-page.html',
-  styleUrls: ['../../styles/home-shared.css', './home-page.css'],
+  styleUrls: ['./home-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage implements OnInit {
@@ -177,13 +177,6 @@ export class HomePage implements OnInit {
       this.sortColumn.set(column);
       this.sortDirection.set(column === 'updated_at' ? 'desc' : 'asc');
     }
-  }
-
-  getSortIconClass(column: SortColumn): string {
-    if (this.sortColumn() !== column) {
-      return 'bi bi-chevron-expand';
-    }
-    return this.sortDirection() === 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down';
   }
 
   getSortAriaSort(column: SortColumn): string {

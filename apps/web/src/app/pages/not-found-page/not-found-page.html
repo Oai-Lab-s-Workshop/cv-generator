@@ -1,12 +1,12 @@
-<main class="not-found-page">
-  <section class="not-found-card">
+<main class="af-app not-found-page">
+  <section class="panel not-found-card">
     <p class="eyebrow">404</p>
-    <h1>Page introuvable</h1>
+    <h1 class="display display--medium">Page introuvable</h1>
     <p class="lede">Ce CV n'existe pas, n'est plus public, ou necessite une connexion.</p>
 
-    <div class="actions">
-      <a routerLink="/login" [queryParams]="loginQueryParams()" class="primary-action">Se connecter</a>
-      <a routerLink="/" class="secondary-action">Retour</a>
+    <div class="not-found-card__actions">
+      <a routerLink="/login" [queryParams]="loginQueryParams()" class="btn btn--primary primary-action">Se connecter</a>
+      <a routerLink="/" class="btn btn--quiet secondary-action">Retour</a>
     </div>
   </section>
 </main>

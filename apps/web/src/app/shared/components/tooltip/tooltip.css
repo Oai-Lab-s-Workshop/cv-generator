@@ -2,14 +2,15 @@
   position: fixed;
   z-index: 9999;
   max-width: 280px;
-  padding: 6px 10px;
+  padding: 8px 11px;
   font-size: 0.8125rem;
+  font-weight: 600;
   line-height: 1.4;
-  color: light-dark(#18202b, #e2e8f0);
-  background: light-dark(rgba(255, 255, 255, 0.96), rgba(30, 41, 59, 0.96));
-  border: 1px solid light-dark(rgba(148, 163, 184, 0.42), rgba(148, 163, 184, 0.2));
-  border-radius: 0.85rem;
-  box-shadow: light-dark(0 18px 50px rgba(15, 23, 42, 0.14), 0 18px 50px rgba(0, 0, 0, 0.35));
+  font-family: var(--af-corps);
+  color: var(--af-encre);
+  background: var(--af-planche);
+  border: 1px solid var(--af-filet);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--af-bleu);
   pointer-events: none;
-  backdrop-filter: blur(12px);
 }

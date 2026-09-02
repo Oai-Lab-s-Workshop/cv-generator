@@ -1,35 +1,37 @@
 <main class="login-page">
-  <section class="login-card">
-    @if (isDesktop) {
-      <a routerLink="/desktop" class="desktop-home-link">Return to desktop home</a>
-    }
-
-    <p class="eyebrow">Authentification</p>
-    <h1>Connexion</h1>
-    <p class="lede">Utilisez votre identifiant et votre mot de passe pour acceder a vos CV générés.</p>
-
-    <form class="login-form" (ngSubmit)="submit()">
-      <label>
-        <span>Identifiant</span>
-        <input [ngModel]="identity()" (ngModelChange)="identity.set($event)" name="identity" type="text" autocomplete="username" required />
-      </label>
-
-      <label>
-        <span>Mot de passe</span>
-        <input [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" type="password" autocomplete="current-password" required />
-      </label>
-
-      @if (errorMessage()) {
-        <p class="error-message">{{ errorMessage() }}</p>
+  <div class="af-app login-auth">
+    <section class="panel login-card">
+      @if (isDesktop) {
+        <a routerLink="/desktop" class="login-card__back">Return to desktop home</a>
       }
 
-      <button type="submit" [disabled]="isSubmitting()">
-        {{ isSubmitting() ? 'Connexion en cours...' : 'Se connecter' }}
-      </button>
-    </form>
+      <p class="eyebrow">Authentification</p>
+      <h1 class="display display--medium">Connexion</h1>
+      <p class="lede">Utilisez votre identifiant et votre mot de passe pour acceder a vos CV générés.</p>
 
-    <p class="hint">Vous pouvez <a routerLink="/home/templates">voir toute la galerie</a> de templates disponibles sans être connecté.</p>
-  </section>
+      <form class="login-form" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="identity">Identifiant</label>
+          <input id="identity" [ngModel]="identity()" (ngModelChange)="identity.set($event)" name="identity" type="text" autocomplete="username" required />
+        </div>
+
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <input id="password" [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" type="password" autocomplete="current-password" required />
+        </div>
+
+        @if (errorMessage()) {
+          <p class="status status--red login-form__error">{{ errorMessage() }}</p>
+        }
+
+        <button class="btn btn--primary" type="submit" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Connexion en cours...' : 'Se connecter' }}
+        </button>
+      </form>
+
+      <p class="login-card__hint">Vous pouvez <a routerLink="/home/templates">voir toute la galerie</a> de templates disponibles sans être connecté.</p>
+    </section>
+  </div>
 
   <aside class="login-preview-pane">
     <app-template-preview-list [forceA4]="true" [allowA4Toggle]="false" [autoLoop]="true" [templateLimit]="3" [showChrome]="false"></app-template-preview-list>

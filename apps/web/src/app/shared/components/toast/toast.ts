@@ -6,11 +6,11 @@ import { ToastService } from '../../../core/services/toast.service';
   standalone: true,
   template: `
     @for (message of toastService.messages(); track message.id) {
-      <div class="toast toast--{{ message.tone }}" role="alert" (click)="toastService.dismiss(message.id)">
-        <i class="toast__icon bi {{ iconFor(message.tone) }}"></i>
+      <div class="toast toast--{{ message.tone }}" [attr.role]="message.tone === 'error' ? 'alert' : 'status'" (click)="toastService.dismiss(message.id)">
+        <span class="toast__tone" aria-hidden="true">{{ labelFor(message.tone) }}</span>
         <span class="toast__text">{{ message.text }}</span>
         <button class="toast__close" type="button" aria-label="Fermer" (click)="toastService.dismiss(message.id); $event.stopPropagation()">
-          <i class="bi bi-x-lg"></i>
+          Fermer
         </button>
       </div>
     }
@@ -23,7 +23,7 @@ import { ToastService } from '../../../core/services/toast.service';
       z-index: 10000;
       display: flex;
       flex-direction: column-reverse;
-      gap: 10px;
+      gap: 12px;
       max-width: min(420px, calc(100vw - 36px));
       pointer-events: none;
     }
@@ -32,37 +32,21 @@ import { ToastService } from '../../../core/services/toast.service';
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 12px 14px;
-      border-radius: 14px;
-      font: 500 14px/1.35 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      box-shadow: 0 12px 40px rgba(20, 20, 40, 0.22);
+      padding: 15px 16px;
+      border: 1px solid var(--af-encre);
+      border-radius: 0;
+      background: var(--af-planche);
+      color: var(--af-encre);
+      font: 500 14px/1.35 var(--af-corps);
+      box-shadow: 6px 6px 0 var(--af-rouge);
       cursor: pointer;
       pointer-events: auto;
-      animation: toast-in 0.25s ease-out;
     }
 
-    .toast--success {
-      background: #1a3a2a;
-      color: #b5f0c5;
-      border: 1px solid #3a6a4a;
-    }
-
-    .toast--error {
-      background: #3a1a1a;
-      color: #f0b5b5;
-      border: 1px solid #6a3a3a;
-    }
-
-    .toast--info {
-      background: #1a2a3a;
-      color: #b5d0f0;
-      border: 1px solid #3a4a6a;
-    }
-
-    .toast__icon {
-      font-size: 18px;
-      flex-shrink: 0;
-    }
+    .toast--error { border-color: var(--af-rouge); }
+    .toast__tone { flex: 0 0 auto; color: var(--af-bleu-encre); font: 600 10px/1 var(--af-mono); letter-spacing: .08em; text-transform: uppercase; }
+    .toast--success .toast__tone { color: var(--af-vert); }
+    .toast--error .toast__tone { color: var(--af-rouge-encre); }
 
     .toast__text {
       flex: 1 1 auto;
@@ -70,43 +54,31 @@ import { ToastService } from '../../../core/services/toast.service';
 
     .toast__close {
       flex-shrink: 0;
-      border: 0;
-      background: none;
-      color: inherit;
+      min-height: 44px;
+      border: 1px solid var(--af-filet);
+      border-radius: 0;
+      background: transparent;
+      color: var(--af-mine);
       cursor: pointer;
-      padding: 2px;
-      opacity: 0.7;
-      font-size: 12px;
+      padding: 0 10px;
+      font: 600 10px/1 var(--af-mono);
+      text-transform: uppercase;
     }
 
     .toast__close:hover {
-      opacity: 1;
+      color: var(--af-encre);
     }
 
-    @keyframes toast-in {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+    @media print { :host { display: none !important; } }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToastComponent {
   readonly toastService = inject(ToastService);
 
-  iconFor(tone: string): string {
-    switch (tone) {
-      case 'success':
-        return 'bi-check-circle-fill';
-      case 'error':
-        return 'bi-exclamation-triangle-fill';
-      default:
-        return 'bi-info-circle-fill';
-    }
+  labelFor(tone: string): string {
+    if (tone === 'success') return 'Validé';
+    if (tone === 'error') return 'Erreur';
+    return 'Info';
   }
 }

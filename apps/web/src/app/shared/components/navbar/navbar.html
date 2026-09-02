@@ -1,83 +1,55 @@
-<nav class="home-navbar" aria-label="Navigation principale">
-  <a class="home-navbar__brand" routerLink="/home" aria-label="Accueil Resumate">
-    <span class="home-navbar__brand-mark" aria-hidden="true">
-      <i class="bi bi-file-earmark-person"></i>
-    </span>
-    <span class="home-navbar__brand-copy">
-      <strong>Resumate</strong>
-      <span>Console</span>
-    </span>
-  </a>
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" routerLink="/home" aria-label="Accueil Resumate" (click)="closeMenu()">
+      <img src="/assets/affiche/logo.png" alt="">
+      <span>Resumate <small>Console</small></span>
+    </a>
 
-  @if (isAuthenticated()) {
-    <div class="home-navbar__nav">
-      <a
-        class="home-navbar__link"
-        routerLink="/home"
-        routerLinkActive="home-navbar__link--active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        ariaCurrentWhenActive="page"
-        aria-label="Accueil"
+    @if (isAuthenticated()) {
+      <nav
+        class="main-nav"
+        aria-label="Navigation principale"
+        [attr.data-open]="menuOpen() ? 'true' : null"
       >
-        <i class="bi bi-house" aria-hidden="true"></i>
-        <span>Accueil</span>
-      </a>
-      <a
-        class="home-navbar__link"
-        routerLink="/home/profile-material"
-        routerLinkActive="home-navbar__link--active"
-        ariaCurrentWhenActive="page"
-        aria-label="Informations"
-      >
-        <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
-        <span>Informations</span>
-      </a>
-      <a
-        class="home-navbar__link"
-        routerLink="/home/templates"
-        routerLinkActive="home-navbar__link--active"
-        ariaCurrentWhenActive="page"
-        aria-label="Templates"
-      >
-        <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
-        <span>Templates</span>
-      </a>
-      <a
-        class="home-navbar__link"
-        routerLink="/home/tokens"
-        routerLinkActive="home-navbar__link--active"
-        ariaCurrentWhenActive="page"
-        aria-label="Tokens MCP"
-      >
-        <i class="bi bi-key" aria-hidden="true"></i>
-        <span>Tokens MCP</span>
-      </a>
-    </div>
+        <a routerLink="/home" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page" (click)="closeMenu()">Accueil</a>
+        <a routerLink="/home/profile-material" routerLinkActive="is-active" ariaCurrentWhenActive="page" (click)="closeMenu()">Informations</a>
+        <a routerLink="/home/templates" routerLinkActive="is-active" ariaCurrentWhenActive="page" (click)="closeMenu()">Modèles</a>
+        <a routerLink="/home/tokens" routerLinkActive="is-active" ariaCurrentWhenActive="page" (click)="closeMenu()">Tokens MCP</a>
+      </nav>
 
-    <div class="home-navbar__utilities">
-      @if (bugReportUrl()) {
-        <a class="home-navbar__action" [href]="bugReportUrl()" target="_blank" rel="noopener noreferrer" aria-label="Signaler un bug">
-          <i class="bi bi-bug" aria-hidden="true"></i>
-          <span class="home-navbar__action-label">Bug</span>
-        </a>
-      }
-      <a class="home-navbar__action" routerLink="/home/account" aria-label="Parametres du compte">
-        <i class="bi bi-gear" aria-hidden="true"></i>
-        <span class="home-navbar__action-label">Compte</span>
-      </a>
-      <button class="home-navbar__action home-navbar__action--logout" type="button" aria-label="Se deconnecter" (click)="logout()">
-        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
-        <span class="home-navbar__action-label">Sortir</span>
-      </button>
-    </div>
-  }
-</nav>
+      <div class="top-actions">
+        <button
+          class="theme-toggle"
+          type="button"
+          aria-label="Changer de thème"
+          [attr.aria-pressed]="themeService.currentTheme() === 'light'"
+          (click)="toggleTheme()"
+        >
+          <span class="theme-toggle__glyph" aria-hidden="true"></span>
+          <span class="theme-toggle__label">{{ themeService.currentTheme() === 'light' ? 'Sombre' : 'Clair' }}</span>
+        </button>
+        @if (bugReportUrl()) {
+          <a class="top-action" [href]="bugReportUrl()" target="_blank" rel="noopener noreferrer">Signaler un bug</a>
+        }
+        <a class="top-action" routerLink="/home/account" (click)="closeMenu()">Compte</a>
+        <button class="top-action top-action--danger" type="button" (click)="logout()">Sortir</button>
+        <button
+          class="mobile-menu"
+          type="button"
+          aria-label="Ouvrir la navigation"
+          [attr.aria-expanded]="menuOpen()"
+          (click)="toggleMenu()"
+        >☰</button>
+      </div>
+    }
+  </div>
+</header>
 
 @if (isLoggingOut()) {
-  <div class="logout-overlay" aria-live="assertive" aria-label="Deconnexion en cours">
-    <div class="logout-overlay__spinner">
-      <i class="bi bi-arrow-repeat spinning-large" aria-hidden="true"></i>
-      <span>Deconnexion en cours...</span>
+  <div class="logout-overlay" aria-live="assertive" aria-label="Déconnexion en cours">
+    <div class="logout-overlay__status">
+      <span class="logout-overlay__mark" aria-hidden="true">...</span>
+      <span>Déconnexion en cours</span>
     </div>
   </div>
 }

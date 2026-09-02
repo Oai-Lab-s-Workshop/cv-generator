@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "ecran-modeles.html",
+  "entry": "ecran-modeles.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-08-18T09:43:04.734Z",
+  "updatedAt": "2026-08-18T09:43:04.734Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

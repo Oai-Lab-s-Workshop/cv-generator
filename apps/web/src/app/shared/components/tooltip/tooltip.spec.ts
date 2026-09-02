@@ -65,6 +65,8 @@ describe('TooltipDirective', () => {
     expect(tooltip).toBeTruthy();
     expect(tooltip.textContent).toBe('Test tooltip');
     expect(tooltip.style.pointerEvents).toBe('none');
+    expect(tooltip.getAttribute('role')).toBe('tooltip');
+    expect(fixture.nativeElement.querySelector('.with-tooltip').getAttribute('aria-describedby')).toBe(tooltip.id);
   }));
 
   it('removes tooltip on mouseleave', fakeAsync(() => {
@@ -74,6 +76,7 @@ describe('TooltipDirective', () => {
 
     triggerTooltipEvent('mouseleave');
     expect(document.querySelector('.app-tooltip')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.with-tooltip').hasAttribute('aria-describedby')).toBe(false);
   }));
 
   it('follows pointer movement while visible', fakeAsync(() => {

@@ -1,411 +1,431 @@
-<main class="home-page">
+<main class="af-app home-page">
   <app-navbar />
 
-  <section class="home-header">
-    <div class="home-header__copy">
-      <p class="eyebrow">Administration</p>
-      <h1>{{ currentUserName() }}</h1>
-      <p class="lede">Console de gestion des CV, routes publiques, templates et acces MCP.</p>
-    </div>
-  </section>
+  <div class="page">
+    <section class="hero">
+      <div class="geo" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="hero__copy">
+        <p class="eyebrow">Administration</p>
+        <h1 class="display display--medium">{{ currentUserName() }}</h1>
+        <p class="lede">Console de gestion des CV, routes publiques, templates et acces MCP.</p>
+      </div>
+      <aside class="hero__aside" aria-label="Synthese">
+        <span class="hero__number">{{ isLoading() ? '...' : totalProfileCount() }}</span>
+        <p class="mono muted">PROFILS CV AU TOTAL</p>
+        <div class="progress" [style.--progress]="publicPercentage() + '%'">
+          <span></span>
+        </div>
+      </aside>
+    </section>
 
-  <section class="insight-grid" aria-label="Synthese de l'administration">
-    <article class="insight-card">
-      <p class="insight-card__label">Profils CV</p>
-      <strong>{{ isLoading() ? '...' : totalProfileCount() }}</strong>
-      <span>{{ isLoading() ? '...' : privateProfileCount() + ' prives' }}</span>
-    </article>
+    <section class="section" aria-label="Synthese de l'administration">
+      <div class="metric-grid">
+        <article class="metric metric--blue">
+          <p class="metric__label">Profils CV</p>
+          <strong>{{ isLoading() ? '...' : totalProfileCount() }}</strong>
+          <small>{{ isLoading() ? '...' : privateProfileCount() + ' prives' }}</small>
+        </article>
 
-    <article class="insight-card insight-card--live">
-      <p class="insight-card__label">CV publics</p>
-      <strong>{{ isLoading() ? '...' : publicProfileCount() }}</strong>
-      <span>{{ isLoading() ? '...' : publicPercentage() + '% du total' }}</span>
-    </article>
+        <article class="metric metric--green">
+          <p class="metric__label">CV publics</p>
+          <strong>{{ isLoading() ? '...' : publicProfileCount() }}</strong>
+          <small>{{ isLoading() ? '...' : publicPercentage() + '% du total' }}</small>
+        </article>
 
-    <article class="insight-card">
-      <p class="insight-card__label">Acces MCP</p>
-      <strong>{{ isLoadingAiTokens() ? '...' : activeAiTokenCount() }}</strong>
-      <span>cles actives</span>
-    </article>
-  </section>
+        <article class="metric metric--warm">
+          <p class="metric__label">Acces MCP</p>
+          <strong>{{ isLoadingAiTokens() ? '...' : activeAiTokenCount() }}</strong>
+          <small>cles actives</small>
+        </article>
+      </div>
+    </section>
 
-  <section class="status-breakdown" aria-label="Repartition par statut">
-    <h2 class="status-breakdown__title">Statut des CV</h2>
-    <div class="status-breakdown__grid">
-      <button
-        class="status-card status-card--gray"
-        type="button"
-        [class.status-card--active]="isFilterSelected('unsent')"
-        [attr.aria-pressed]="isFilterSelected('unsent')"
-        (click)="setActiveFilter('unsent')"
-      >
-        <span class="status-dot status-dot--gray" aria-hidden="true"></span>
-        <div class="status-card__body">
+    <section class="section" aria-label="Repartition par statut">
+      <div class="section-head">
+        <h2>Statut des CV</h2>
+      </div>
+      <div class="status-breakdown" role="group" aria-label="Filtrer par statut">
+        <button
+          class="status-tile"
+          type="button"
+          [class.status-tile--active]="isFilterSelected('unsent')"
+          [attr.aria-pressed]="isFilterSelected('unsent')"
+          (click)="setActiveFilter('unsent')"
+        >
+          <span class="status status--muted">Non envoyes</span>
           <strong>{{ isLoading() ? '...' : unsentProfileCount() }}</strong>
-          <span>Non envoyes</span>
           <small>{{ isLoading() ? '...' : unsentPercentage() + '%' }}</small>
-        </div>
-      </button>
+        </button>
 
-      <button
-        class="status-card status-card--blue"
-        type="button"
-        [class.status-card--active]="isFilterSelected('sent')"
-        [attr.aria-pressed]="isFilterSelected('sent')"
-        (click)="setActiveFilter('sent')"
-      >
-        <span class="status-dot status-dot--blue" aria-hidden="true"></span>
-        <div class="status-card__body">
+        <button
+          class="status-tile"
+          type="button"
+          [class.status-tile--active]="isFilterSelected('sent')"
+          [attr.aria-pressed]="isFilterSelected('sent')"
+          (click)="setActiveFilter('sent')"
+        >
+          <span class="status status--blue">Envoyes</span>
           <strong>{{ isLoading() ? '...' : sentProfileCount() }}</strong>
-          <span>Envoyes</span>
           <small>{{ isLoading() ? '...' : sentPercentage() + '%' }}</small>
-        </div>
-      </button>
+        </button>
 
-      <button
-        class="status-card status-card--red"
-        type="button"
-        [class.status-card--active]="isFilterSelected('rejected')"
-        [attr.aria-pressed]="isFilterSelected('rejected')"
-        (click)="setActiveFilter('rejected')"
-      >
-        <span class="status-dot status-dot--red" aria-hidden="true"></span>
-        <div class="status-card__body">
+        <button
+          class="status-tile"
+          type="button"
+          [class.status-tile--active]="isFilterSelected('rejected')"
+          [attr.aria-pressed]="isFilterSelected('rejected')"
+          (click)="setActiveFilter('rejected')"
+        >
+          <span class="status status--red">Rejetes</span>
           <strong>{{ isLoading() ? '...' : rejectedProfileCount() }}</strong>
-          <span>Rejetes</span>
           <small>{{ isLoading() ? '...' : rejectedPercentage() + '%' }}</small>
-        </div>
-      </button>
+        </button>
 
-      <button
-        class="status-card status-card--green"
-        type="button"
-        [class.status-card--active]="isFilterSelected('responded')"
-        [attr.aria-pressed]="isFilterSelected('responded')"
-        (click)="setActiveFilter('responded')"
-      >
-        <span class="status-dot status-dot--green" aria-hidden="true"></span>
-        <div class="status-card__body">
+        <button
+          class="status-tile"
+          type="button"
+          [class.status-tile--active]="isFilterSelected('responded')"
+          [attr.aria-pressed]="isFilterSelected('responded')"
+          (click)="setActiveFilter('responded')"
+        >
+          <span class="status status--green">Repondus</span>
           <strong>{{ isLoading() ? '...' : respondedProfileCount() }}</strong>
-          <span>Repondus</span>
           <small>{{ isLoading() ? '...' : respondedPercentage() + '%' }}</small>
-        </div>
-      </button>
+        </button>
 
-      <button
-        class="status-card status-card--yellow"
-        type="button"
-        [class.status-card--active]="isFilterSelected('unanswered')"
-        [attr.aria-pressed]="isFilterSelected('unanswered')"
-        (click)="setActiveFilter('unanswered')"
-      >
-        <span class="status-dot status-dot--yellow" aria-hidden="true"></span>
-        <div class="status-card__body">
+        <button
+          class="status-tile"
+          type="button"
+          [class.status-tile--active]="isFilterSelected('unanswered')"
+          [attr.aria-pressed]="isFilterSelected('unanswered')"
+          (click)="setActiveFilter('unanswered')"
+        >
+          <span class="status status--yellow">Sans reponse</span>
           <strong>{{ isLoading() ? '...' : unansweredProfileCount() }}</strong>
-          <span>Sans reponse</span>
           <small>{{ isLoading() ? '...' : unansweredPercentage() + '%' }}</small>
-        </div>
-      </button>
-    </div>
-  </section>
-
-  <section class="cta-panel" aria-label="Creation d'un CV">
-    <div class="cta-panel__copy">
-      <div>
-        <p class="eyebrow">Nouveau profil</p>
-        <h2>Creer un CV cible</h2>
+        </button>
       </div>
-    </div>
-
-    <div class="cta-panel__form">
-
-      <label class="field field--name">
-        <span>Label (admin)</span>
-        <input [ngModel]="newProfileLabel()" (ngModelChange)="newProfileLabel.set($event)" type="text" placeholder="Ex. Profil senior 2026" />
-      </label>
-
-      <label class="field field--name">
-        <span>Nom du profil (CV)</span>
-        <input [ngModel]="newProfileName()" (ngModelChange)="newProfileName.set($event)" type="text" placeholder="Ex. Developpeur frontend senior" />
-      </label>
-
-      <label class="field">
-        <span>Template</span>
-        <select [ngModel]="newProfileTemplate()" (ngModelChange)="newProfileTemplate.set($event)">
-          @for (template of templateOptions; track template.id) {
-            <option [value]="template.id">{{ template.label }}</option>
-          }
-        </select>
-      </label>
-
-      <button class="primary-button cta-panel__button" type="button" [disabled]="isCreating()" (click)="createProfile()">
-        {{ isCreating() ? 'Creation...' : 'Creer le CV' }}
-      </button>
-    </div>
-  </section>
-
-  @if (isLoading()) {
-    <section class="state-card">
-      <p>Chargement de vos profils CV...</p>
     </section>
-  } @else if (errorMessage()) {
-    <section class="state-card state-card--error">
-      <h2>Impossible de charger vos profils CV</h2>
-      <p>{{ errorMessage() }}</p>
+
+    <section class="section" aria-label="Creation d'un CV">
+      <div class="panel">
+        <div class="panel__head">
+          <h2>Creer un CV cible</h2>
+          <span class="mono muted">Nouveau profil</span>
+        </div>
+        <div class="panel__body">
+          <div class="form-grid">
+            <label class="field">
+              <span>Label (admin)</span>
+              <input [ngModel]="newProfileLabel()" (ngModelChange)="newProfileLabel.set($event)" type="text" placeholder="Ex. Profil senior 2026" />
+            </label>
+
+            <label class="field">
+              <span>Nom du profil (CV)</span>
+              <input [ngModel]="newProfileName()" (ngModelChange)="newProfileName.set($event)" type="text" placeholder="Ex. Developpeur frontend senior" />
+            </label>
+
+            <label class="field field--full">
+              <span>Template</span>
+              <select [ngModel]="newProfileTemplate()" (ngModelChange)="newProfileTemplate.set($event)">
+                @for (template of templateOptions; track template.id) {
+                  <option [value]="template.id">{{ template.label }}</option>
+                }
+              </select>
+            </label>
+          </div>
+
+          <div class="cta-actions">
+            <button class="btn btn--primary" type="button" [disabled]="isCreating()" (click)="createProfile()">
+              {{ isCreating() ? 'Creation...' : 'Creer le CV' }}
+            </button>
+          </div>
+        </div>
+      </div>
     </section>
-  } @else {
-    <section class="profiles-panel">
-      <div class="profiles-panel__header">
-        <div>
-          <p class="eyebrow">Profils</p>
+
+    @if (isLoading()) {
+      <section class="section" aria-label="Chargement des profils">
+        <div class="panel">
+          <div class="panel__body">
+            <p class="mono muted">Chargement de vos profils CV...</p>
+          </div>
+        </div>
+      </section>
+    } @else if (errorMessage()) {
+      <section class="section" aria-label="Erreur de chargement">
+        <div class="panel state-panel state-panel--error">
+          <div class="panel__head">
+            <h2>Impossible de charger vos profils CV</h2>
+          </div>
+          <div class="panel__body">
+            <p>{{ errorMessage() }}</p>
+          </div>
+        </div>
+      </section>
+    } @else {
+      <section class="section" aria-label="Profils">
+        <div class="section-head">
           <h2>CV generes</h2>
+          <p>Templates, visibilite et routes publiques.</p>
         </div>
-        <p>Templates, visibilite et routes publiques.</p>
-      </div>
 
-      @if (isSelectionActive()) {
-        <div class="bulk-action-bar">
-          <span class="bulk-action-bar__count">{{ selectedCount() }} sélectionné(s)</span>
-          <button class="bulk-action-bar__clear"
-                  (click)="clearSelection()"
-                  [disabled]="isBatchProcessing()">
-            Annuler
-          </button>
-          <div class="bulk-action-bar__actions">
-            <select class="bulk-action-bar__select"
-                    #templateSelect
-                    (change)="batchChangeTemplate(templateSelect.value); templateSelect.value = ''"
+        @if (isSelectionActive()) {
+          <div class="bulk-action-bar">
+            <span class="bulk-action-bar__count">{{ selectedCount() }} sélectionné(s)</span>
+            <button class="bulk-action-bar__clear"
+                    type="button"
+                    (click)="clearSelection()"
                     [disabled]="isBatchProcessing()">
-              <option value="">Template</option>
-              @for (opt of templateOptions; track opt.id) {
-                <option [value]="opt.id">{{ opt.label }}</option>
-              }
-            </select>
-            <select class="bulk-action-bar__select"
-                    #statusSelect
-                    (change)="batchChangeStatus(statusSelect.value); statusSelect.value = ''"
-                    [disabled]="isBatchProcessing()">
-              <option value="">Statut</option>
-              @for (opt of selectableStatusOptions; track opt.value) {
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
-            <button class="bulk-action-bar__btn"
-                    (click)="batchChangeVisibility(true)"
-                    [disabled]="isBatchProcessing()">
-              Public
+              Annuler
             </button>
-            <button class="bulk-action-bar__btn"
-                    (click)="batchChangeVisibility(false)"
-                    [disabled]="isBatchProcessing()">
-              Privé
-            </button>
-            <button class="bulk-action-bar__btn bulk-action-bar__btn--danger"
-                    (click)="batchDelete()"
-                    [disabled]="isBatchProcessing()">
-              Supprimer
-            </button>
-          </div>
-        </div>
-      }
-
-      @if (isFilterActive()) {
-        <div class="filter-summary">
-          <span class="filter-summary__label">
-            Filtre actif : <strong>{{ activeFilterLabel() }}</strong>
-          </span>
-          <button class="filter-summary__clear" type="button" (click)="clearFilter()">
-            <i class="bi bi-x" aria-hidden="true"></i>
-            Effacer
-          </button>
-        </div>
-      }
-
-      @if (profiles().length === 0) {
-        <section class="state-card state-card--empty">
-          <h2>Aucun CV genere pour le moment</h2>
-          <p>Creez un premier profil avec un template pour generer une route CV.</p>
-        </section>
-      } @else if (filteredSortedProfiles().length === 0) {
-        <section class="state-card">
-          <h2>Aucun profil ne correspond au filtre</h2>
-          <p>Essayez de selectionner un autre statut ou <a href="#" (click)="clearFilter(); $event.preventDefault()">effacez le filtre</a>.</p>
-        </section>
-      } @else {
-        <div class="profile-table" role="table" aria-label="Profils CV generes">
-          <div class="profile-table__head" role="row">
-            <div class="profile-row__checkbox" role="columnheader">
-              <input type="checkbox"
-                     [checked]="isAllSelected()"
-                     (change)="toggleSelectAll()"
-                     [disabled]="isBatchProcessing()"
-                     aria-label="Tout sélectionner" />
-            </div>
-            <span role="columnheader" class="sort-header-cell">
-              <button
-                class="sort-header-btn"
-                type="button"
-                [attr.aria-sort]="getSortAriaSort('label')"
-                (click)="toggleSort('label')"
-              >
-                Profil
-                <i class="sort-header-btn__icon" [class]="getSortIconClass('label')" aria-hidden="true"></i>
-              </button>
-              <button
-                class="sort-header-btn sort-header-btn--icon-only"
-                type="button"
-                aria-label="Trier par date"
-                [attr.aria-sort]="getSortAriaSort('updated_at')"
-                (click)="toggleSort('updated_at')"
-              >
-                <i class="sort-header-btn__icon" [class]="getSortIconClass('updated_at')" aria-hidden="true"></i>
-              </button>
-            </span>
-            <span role="columnheader" class="sort-header-cell">
-              <button
-                class="sort-header-btn"
-                type="button"
-                [attr.aria-sort]="getSortAriaSort('template')"
-                (click)="toggleSort('template')"
-              >
-                Template
-                <i class="sort-header-btn__icon" [class]="getSortIconClass('template')" aria-hidden="true"></i>
-              </button>
-            </span>
-            <span role="columnheader" class="sort-header-cell">
-              <button
-                class="sort-header-btn"
-                type="button"
-                [attr.aria-sort]="getSortAriaSort('status')"
-                (click)="toggleSort('status')"
-              >
-                Statut
-                <i class="sort-header-btn__icon" [class]="getSortIconClass('status')" aria-hidden="true"></i>
-              </button>
-            </span>
-            <span role="columnheader">Visibilite</span>
-            <span role="columnheader">Actions</span>
-          </div>
-
-          <div class="profile-table__body">
-            @for (profile of filteredSortedProfiles(); track profile.id) {
-              <article
-                class="profile-row"
-                role="row"
-                [attr.tabindex]="isWideTableMode() ? 0 : null"
-                [attr.aria-label]="isWideTableMode() ? 'Editer ' + (profile.label || profile.profileName) : null"
-                (click)="openProfileFromRow(profile, $event)"
-                (keydown)="openProfileFromRowKeyboard(profile, $event)">
-                <div class="profile-row__checkbox" role="cell" (click)="$event.stopPropagation()">
-                  <input type="checkbox"
-                         [checked]="selectedIds().has(profile.id)"
-                         (change)="toggleSelection(profile.id, $event)"
-                         [disabled]="isBatchProcessing()"
-                         aria-label="Sélectionner {{ profile.label || profile.profileName }}" />
-                </div>
-                <div class="profile-cell profile-cell--main" role="cell" data-label="Profil">
-                  <h3>{{ profile.label || profile.profileName }}</h3>
-                  <p>{{ profile.profileName }} · {{ formatDate(profile.updated_at) }}</p>
-                </div>
-
-                <label class="profile-cell profile-cell--template field field--compact" role="cell" data-label="Template">
-                  <span class="sr-only">Template</span>
-                  <select
-                    class="profile-grid-control"
-                    [ngModel]="templateSelections()[profile.id]"
-                    [disabled]="isSaving() === profile.id"
-                    (ngModelChange)="changeTemplate(profile, $event)"
-                  >
-                    @for (template of templateOptions; track template.id) {
-                      <option [value]="template.id">{{ template.label }}</option>
-                    }
-                  </select>
-                </label>
-
-                <div class="profile-cell profile-cell--status" role="cell" data-label="Statut">
-                  <div class="status-menu" (mouseleave)="closeStatusMenu($event)">
-                    <button
-                      class="status-menu__trigger profile-grid-control"
+            <div class="bulk-action-bar__actions">
+              <select class="bulk-action-bar__select"
+                      #templateSelect
+                      (change)="batchChangeTemplate(templateSelect.value); templateSelect.value = ''"
+                      [disabled]="isBatchProcessing()">
+                <option value="">Template</option>
+                @for (opt of templateOptions; track opt.id) {
+                  <option [value]="opt.id">{{ opt.label }}</option>
+                }
+              </select>
+              <select class="bulk-action-bar__select"
+                      #statusSelect
+                      (change)="batchChangeStatus(statusSelect.value); statusSelect.value = ''"
+                      [disabled]="isBatchProcessing()">
+                <option value="">Statut</option>
+                @for (opt of selectableStatusOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+              <button class="btn btn--quiet bulk-action-bar__btn"
                       type="button"
-                      [disabled]="isSaving() === profile.id"
-                      [attr.aria-expanded]="openStatusMenuFor() === profile.id"
-                      [attr.aria-label]="'Changer le statut: ' + getStatusLabel(profile)"
-                      (click)="toggleStatusMenu(profile.id, $event)">
-                      <span class="status-dot" [class]="'status-dot--' + getStatusTone(profile)"></span>
-                      <span>{{ isSaving() === profile.id ? '...' : getStatusLabel(profile) }}</span>
-                      <i class="bi bi-chevron-down" aria-hidden="true"></i>
-                    </button>
+                      (click)="batchChangeVisibility(true)"
+                      [disabled]="isBatchProcessing()">
+                Public
+              </button>
+              <button class="btn btn--quiet bulk-action-bar__btn"
+                      type="button"
+                      (click)="batchChangeVisibility(false)"
+                      [disabled]="isBatchProcessing()">
+                Privé
+              </button>
+              <button class="btn btn--danger bulk-action-bar__btn"
+                      type="button"
+                      (click)="batchDelete()"
+                      [disabled]="isBatchProcessing()">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        }
 
-                    @if (openStatusMenuFor() === profile.id) {
-                      <div class="status-menu__list" role="menu">
-                        @for (statusOption of selectableStatusOptions; track statusOption.value) {
+        @if (isFilterActive()) {
+          <div class="filter-summary">
+            <span class="filter-summary__label">
+              Filtre actif : <strong>{{ activeFilterLabel() }}</strong>
+            </span>
+            <button class="filter-summary__clear" type="button" (click)="clearFilter()">
+              Effacer
+            </button>
+          </div>
+        }
+
+        @if (profiles().length === 0) {
+          <div class="panel">
+            <div class="panel__head">
+              <h2>Aucun CV genere pour le moment</h2>
+            </div>
+            <div class="panel__body">
+              <p>Creez un premier profil avec un template pour generer une route CV.</p>
+            </div>
+          </div>
+        } @else if (filteredSortedProfiles().length === 0) {
+          <div class="panel">
+            <div class="panel__body">
+              <p>Aucun profil ne correspond au filtre</p>
+              <p>Essayez de selectionner un autre statut ou <a href="#" (click)="clearFilter(); $event.preventDefault()">effacez le filtre</a>.</p>
+            </div>
+          </div>
+        } @else {
+          <div class="panel table-panel">
+            <div class="table-wrap">
+              <div class="profile-table" role="grid" aria-label="Profils CV generes">
+                <div class="profile-table__head" role="row">
+                  <div class="profile-row__checkbox" role="columnheader">
+                    <input type="checkbox"
+                           [checked]="isAllSelected()"
+                           (change)="toggleSelectAll()"
+                           [disabled]="isBatchProcessing()"
+                           aria-label="Tout sélectionner" />
+                  </div>
+                  <span role="columnheader" class="sort-header-cell">
+                    <button
+                      class="sort-header-btn"
+                      type="button"
+                      [attr.aria-pressed]="sortColumn() === 'label'"
+                      [attr.data-sort]="getSortAriaSort('label')"
+                      [attr.aria-label]="'Trier par profil, ordre ' + getSortAriaSort('label')"
+                      (click)="toggleSort('label')"
+                    >
+                      Profil
+                      <span class="sort-arrow" aria-hidden="true"></span>
+                    </button>
+                    <button
+                      class="sort-header-btn sort-header-btn--icon-only"
+                      type="button"
+                      [attr.aria-pressed]="sortColumn() === 'updated_at'"
+                      [attr.data-sort]="getSortAriaSort('updated_at')"
+                      [attr.aria-label]="'Trier par date, ordre ' + getSortAriaSort('updated_at')"
+                      (click)="toggleSort('updated_at')"
+                    >
+                      <span class="sort-arrow" aria-hidden="true"></span>
+                    </button>
+                  </span>
+                  <span role="columnheader" class="sort-header-cell">
+                    <button
+                      class="sort-header-btn"
+                      type="button"
+                      [attr.aria-pressed]="sortColumn() === 'template'"
+                      [attr.data-sort]="getSortAriaSort('template')"
+                      [attr.aria-label]="'Trier par modèle, ordre ' + getSortAriaSort('template')"
+                      (click)="toggleSort('template')"
+                    >
+                      Template
+                      <span class="sort-arrow" aria-hidden="true"></span>
+                    </button>
+                  </span>
+                  <span role="columnheader" class="sort-header-cell">
+                    <button
+                      class="sort-header-btn"
+                      type="button"
+                      [attr.aria-pressed]="sortColumn() === 'status'"
+                      [attr.data-sort]="getSortAriaSort('status')"
+                      [attr.aria-label]="'Trier par statut, ordre ' + getSortAriaSort('status')"
+                      (click)="toggleSort('status')"
+                    >
+                      Statut
+                      <span class="sort-arrow" aria-hidden="true"></span>
+                    </button>
+                  </span>
+                  <span role="columnheader">Visibilite</span>
+                  <span role="columnheader">Actions</span>
+                </div>
+
+                <div class="profile-table__body">
+                  @for (profile of filteredSortedProfiles(); track profile.id) {
+                    <article
+                      class="profile-row"
+                      role="row"
+                      [attr.tabindex]="isWideTableMode() ? 0 : null"
+                      [attr.aria-label]="isWideTableMode() ? 'Editer ' + (profile.label || profile.profileName) : null"
+                      (click)="openProfileFromRow(profile, $event)"
+                      (keydown)="openProfileFromRowKeyboard(profile, $event)">
+                      <div class="profile-row__checkbox" role="gridcell" (click)="$event.stopPropagation()">
+                        <input type="checkbox"
+                               [checked]="selectedIds().has(profile.id)"
+                               (change)="toggleSelection(profile.id, $event)"
+                               [disabled]="isBatchProcessing()"
+                               aria-label="Sélectionner {{ profile.label || profile.profileName }}" />
+                      </div>
+                      <div class="profile-cell profile-cell--main" role="gridcell" data-label="Profil">
+                        <h3>{{ profile.label || profile.profileName }}</h3>
+                        <p class="mono muted">{{ profile.profileName }} · {{ formatDate(profile.updated_at) }}</p>
+                      </div>
+
+                      <label class="profile-cell profile-cell--template" role="gridcell" data-label="Template">
+                        <span class="sr-only">Template</span>
+                        <select
+                          class="profile-grid-control"
+                          [ngModel]="templateSelections()[profile.id]"
+                          [disabled]="isSaving() === profile.id"
+                          (ngModelChange)="changeTemplate(profile, $event)"
+                        >
+                          @for (template of templateOptions; track template.id) {
+                            <option [value]="template.id">{{ template.label }}</option>
+                          }
+                        </select>
+                      </label>
+
+                      <div class="profile-cell profile-cell--status" role="gridcell" data-label="Statut">
+                        <div class="status-menu" (mouseleave)="closeStatusMenu($event)">
                           <button
-                            class="status-menu__option"
+                            class="status-menu__trigger"
                             type="button"
-                            role="menuitemradio"
-                            [attr.aria-checked]="(profile.status || 'unsent') === statusOption.value"
-                            [class.status-menu__option--active]="(profile.status || 'unsent') === statusOption.value"
-                            (click)="selectStatus(profile, statusOption.value, $event)">
-                            <span class="status-dot" [class]="'status-dot--' + statusOption.tone"></span>
-                            <span>{{ statusOption.label }}</span>
+                            [disabled]="isSaving() === profile.id"
+                            [attr.aria-expanded]="openStatusMenuFor() === profile.id"
+                            [attr.aria-label]="'Changer le statut: ' + getStatusLabel(profile)"
+                            (click)="toggleStatusMenu(profile.id, $event)">
+                            <span class="status" [class]="'status status--' + getStatusTone(profile)">{{ isSaving() === profile.id ? '...' : getStatusLabel(profile) }}</span>
+                            <i class="status-menu__caret" aria-hidden="true"></i>
+                          </button>
+
+                          @if (openStatusMenuFor() === profile.id) {
+                            <div class="status-menu__list" role="menu">
+                              @for (statusOption of selectableStatusOptions; track statusOption.value) {
+                                <button
+                                  class="status-menu__option"
+                                  type="button"
+                                  role="menuitemradio"
+                                  [attr.aria-checked]="(profile.status || 'unsent') === statusOption.value"
+                                  [class.status-menu__option--active]="(profile.status || 'unsent') === statusOption.value"
+                                  (click)="selectStatus(profile, statusOption.value, $event)">
+                                  <span class="status" [class]="'status status--' + statusOption.tone">{{ statusOption.label }}</span>
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+
+                      <div class="profile-cell profile-cell--visibility" role="gridcell" data-label="Visibilite">
+                        <button
+                          class="visibility-control"
+                          type="button"
+                          [disabled]="!profile.template || isSaving() === profile.id"
+                          [attr.aria-pressed]="profile.template ? (publicSelections()[profile.id] ?? (profile.public !== false)) : null"
+                          [attr.aria-label]="'Basculer la visibilite: ' + getVisibilityLabel(profile)"
+                          (click)="togglePublic(profile)"
+                        >
+                          <span class="status" [class]="'status status--' + getVisibilityTone(profile)">
+                            {{ isSaving() === profile.id ? 'Enregistrement...' : getVisibilityLabel(profile) }}
+                          </span>
+                        </button>
+                      </div>
+
+                      <div class="profile-cell profile-actions" role="gridcell" data-label="Actions">
+                        @if (profile.template) {
+                          <button class="btn btn--quiet action-icon" type="button" title="Copier la route" aria-label="Copier la route" (click)="copyRoute(profile)">
+                            <i class="bi bi-clipboard" aria-hidden="true"></i>
                           </button>
                         }
+                        <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="btn btn--quiet action-icon action-icon--edit" title="Editer" aria-label="Editer">
+                          <i class="bi bi-pencil" aria-hidden="true"></i>
+                        </a>
+                        @if (profile.template) {
+                          <a [routerLink]="['/', profile.slug]" class="btn btn--quiet action-icon" title="Ouvrir" aria-label="Ouvrir">
+                            <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                          </a>
+                        }
+                        <button
+                          class="btn btn--danger action-icon"
+                          type="button"
+                          title="Supprimer"
+                          aria-label="Supprimer"
+                          [disabled]="isDeleting() === profile.id"
+                          (click)="deleteProfile(profile)"
+                        >
+                          <i class="bi bi-trash" aria-hidden="true"></i>
+                        </button>
                       </div>
-                    }
-                  </div>
-                </div>
-
-                <div class="profile-cell profile-cell--visibility" role="cell" data-label="Visibilite">
-                  <button
-                    class="visibility-control"
-                    type="button"
-                    [disabled]="!profile.template || isSaving() === profile.id"
-                    [attr.aria-pressed]="profile.template ? (publicSelections()[profile.id] ?? (profile.public !== false)) : null"
-                    [attr.aria-label]="'Basculer la visibilite: ' + getVisibilityLabel(profile)"
-                    (click)="togglePublic(profile)"
-                  >
-                    <span
-                      class="visibility-control__state"
-                      [class.visibility-control__state--live]="getVisibilityTone(profile) === 'live'"
-                      [class.visibility-control__state--private]="getVisibilityTone(profile) === 'private'"
-                      [class.visibility-control__state--missing]="getVisibilityTone(profile) === 'missing'"
-                    >
-                      <span class="visibility-control__dot" aria-hidden="true"></span>
-                      <span>{{ isSaving() === profile.id ? 'Enregistrement...' : getVisibilityLabel(profile) }}</span>
-                    </span>
-                  </button>
-                </div>
-
-                <div class="profile-cell profile-actions" role="cell" data-label="Actions">
-                  @if (profile.template) {
-                    <button class="action-icon" type="button" title="Copier la route" aria-label="Copier la route" (click)="copyRoute(profile)">
-                      <i class="bi bi-clipboard" aria-hidden="true"></i>
-                    </button>
+                    </article>
                   }
-                  <a [routerLink]="['/home/profiles', profile.id, 'edit']" class="action-icon action-icon--edit" title="Editer" aria-label="Editer">
-                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                  </a>
-                  @if (profile.template) {
-                    <a [routerLink]="['/', profile.slug]" class="action-icon" title="Ouvrir" aria-label="Ouvrir">
-                      <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
-                    </a>
-                  }
-                  <button
-                    class="action-icon action-icon--danger"
-                    type="button"
-                    title="Supprimer"
-                    aria-label="Supprimer"
-                    [disabled]="isDeleting() === profile.id"
-                    (click)="deleteProfile(profile)"
-                  >
-                    <i class="bi bi-trash" aria-hidden="true"></i>
-                  </button>
                 </div>
-              </article>
-            }
+              </div>
+            </div>
           </div>
-        </div>
-      }
-    </section>
-  }
+        }
+      </section>
+    }
+  </div>
 </main>
