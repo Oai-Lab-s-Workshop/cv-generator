@@ -1,21 +1,32 @@
 import { Injectable, signal } from '@angular/core';
 
-type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark';
+
+const THEME_KEY = 'resumate:theme';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  readonly currentTheme = signal<Theme>('system');
+  readonly currentTheme = signal<Theme>('dark');
 
   constructor() {
-    const saved = localStorage.getItem('theme') as Theme | null;
-    this.currentTheme.set(saved === 'light' || saved === 'dark' ? saved : 'system');
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem(THEME_KEY);
+    } catch {
+      // Storage can be unavailable in privacy-restricted contexts.
+    }
+    this.currentTheme.set(saved === 'light' ? 'light' : 'dark');
     this.applyTheme();
   }
 
   toggle(): void {
     this.currentTheme.update((t) => {
-      const next: Theme = t === 'light' ? 'dark' : t === 'dark' ? 'system' : 'light';
-      localStorage.setItem('theme', next);
+      const next: Theme = t === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {
+        // The active theme still applies for this session.
+      }
       return next;
     });
     this.applyTheme();
@@ -23,16 +34,21 @@ export class ThemeService {
 
   setTheme(theme: Theme): void {
     this.currentTheme.set(theme);
-    localStorage.setItem('theme', theme);
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // The active theme still applies for this session.
+    }
     this.applyTheme();
   }
 
   private applyTheme(): void {
-    const t = this.currentTheme();
-    if (t === 'system') {
-      document.documentElement.style.removeProperty('color-scheme');
+    const theme = this.currentTheme();
+    document.documentElement.style.setProperty('color-scheme', theme);
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
     } else {
-      document.documentElement.style.setProperty('color-scheme', t);
+      document.documentElement.removeAttribute('data-theme');
     }
   }
 }

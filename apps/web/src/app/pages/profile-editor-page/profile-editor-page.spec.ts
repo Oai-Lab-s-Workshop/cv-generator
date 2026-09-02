@@ -425,6 +425,21 @@ describe('ProfileEditorPage', () => {
     expect(component.getPicturePreview(noFileState, 'profilePictureFile')).toBeUndefined();
   });
 
+  it('computes completion percentage and maps status tones', () => {
+    expect(component.completionPercentage()).toBe(75);
+    expect(component.getStatusTone('sent')).toBe('blue');
+    expect(component.getStatusTone('unsent')).toBe('muted');
+    expect(component.getStatusTone('unanswered')).toBe('yellow');
+    expect(component.getStatusTone(undefined)).toBe('muted');
+    expect(component.getStatusTone('nonexistent' as never)).toBe('muted');
+
+    component.setActiveTab('relations');
+    expect(component.activeTab()).toBe('relations');
+
+    component.editorState.set(null);
+    expect(component.completionPercentage()).toBe(0);
+  });
+
   function state() {
     return {
       profile: {

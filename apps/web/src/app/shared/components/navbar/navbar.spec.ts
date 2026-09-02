@@ -9,6 +9,8 @@ describe('Navbar', () => {
   let fetchMock: jest.Mock;
 
   beforeEach(async () => {
+    localStorage.clear();
+    document.documentElement.removeAttribute('data-theme');
     fetchMock = jest.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({}),
@@ -149,5 +151,33 @@ describe('Navbar', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Config MCP');
     expect(hrefs).toContain('/home/tokens');
     expect(hrefs).not.toContain('/home/mcp-config');
+  });
+
+  it('toggles the responsive navigation state', () => {
+    const fixture = TestBed.createComponent(Navbar);
+    fixture.detectChanges();
+
+    const menu = fixture.nativeElement.querySelector('.mobile-menu') as HTMLButtonElement;
+    menu.click();
+    fixture.detectChanges();
+    expect(menu.getAttribute('aria-expanded')).toBe('true');
+    expect(fixture.nativeElement.querySelector('.main-nav').getAttribute('data-open')).toBe('true');
+
+    fixture.componentInstance.closeMenu();
+    fixture.detectChanges();
+    expect(menu.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('toggles and persists the Affiche theme', () => {
+    const fixture = TestBed.createComponent(Navbar);
+    fixture.detectChanges();
+
+    const toggle = fixture.nativeElement.querySelector('.theme-toggle') as HTMLButtonElement;
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(localStorage.getItem('resumate:theme')).toBe('light');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
   });
 });

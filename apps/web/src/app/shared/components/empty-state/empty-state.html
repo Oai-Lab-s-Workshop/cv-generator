@@ -1,12 +1,12 @@
 <div class="empty-state">
-  <i class="bi {{ icon }} empty-state__icon"></i>
+  <span class="empty-state__glyph" aria-hidden="true"></span>
   <h3 class="empty-state__title">{{ title }}</h3>
   @if (description) {
     <p class="empty-state__description">{{ description }}</p>
   }
   @if (actionLabel) {
     <button type="button" class="empty-state__action" (click)="action.emit()">
-      <i class="bi bi-plus-lg"></i>
+      <span class="empty-state__action-plus" aria-hidden="true">+</span>
       {{ actionLabel }}
     </button>
   }

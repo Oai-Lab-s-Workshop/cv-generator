@@ -1,90 +1,117 @@
-<main class="desktop-home-page">
-  <section class="hero">
-    <div class="hero-content">
-      <p class="eyebrow">Resumate Desktop</p>
-      <h1>Local control center</h1>
-      <p class="lede">Choose where to go next and inspect the local services running on this device.</p>
+<main class="af-app desktop-home-page">
+  <div class="page">
+    <div class="page-main">
+      <section class="hero hero--neutral">
+        <div>
+          <p class="eyebrow">Resumate Desktop</p>
+          <h1 class="display display--medium">Local control center</h1>
+          <p class="lede">Choose where to go next and inspect the local services running on this device.</p>
+        </div>
+        <div class="hero__actions">
+          <button type="button" class="btn btn--quiet" (click)="refreshStatus()">Refresh Status</button>
+          @if (copyMessage()) {
+            <span class="status status--green">{{ copyMessage() }}</span>
+          }
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>Services</h2>
+          <p>Local services on this device</p>
+        </div>
+
+        <div class="grid-3">
+          <article class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="eyebrow">Frontend</p>
+                <h3>Resumate App</h3>
+              </div>
+            </div>
+            <div class="panel__body">
+              <p class="muted">Manage your CV data, templates, public profiles, and MCP API tokens.</p>
+              <div class="service-actions">
+                <a routerLink="/login" class="btn btn--primary">Open Resumate Login</a>
+                <a routerLink="/desktop/users/setup" class="btn btn--quiet">Setup Users</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="eyebrow">Database</p>
+                <h3>PocketBase Admin</h3>
+              </div>
+              <span
+                class="status"
+                [class.status--green]="pocketBaseStatus() === 'running'"
+                [class.status--red]="pocketBaseStatus() === 'unavailable'"
+                [class.status--yellow]="pocketBaseStatus() === 'checking'"
+              >{{ statusLabel(pocketBaseStatus()) }}</span>
+            </div>
+            <div class="panel__body">
+              <p class="muted">Manage the local PocketBase database records and schema.</p>
+
+              <dl class="service-details">
+                <div>
+                  <dt>Admin URL</dt>
+                  <dd>{{ pocketBaseAdminUrl() }}</dd>
+                </div>
+              </dl>
+
+              <div class="service-actions">
+                <button type="button" class="btn btn--primary" (click)="openPocketBaseAdmin()">Open Admin</button>
+                <a routerLink="/desktop/users/setup" class="btn btn--quiet">Setup Users</a>
+              </div>
+
+              <p class="service-warning">Administrator credentials stay in the desktop main process and are not exposed to the app UI.</p>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel__head">
+              <div>
+                <p class="eyebrow">AI Integration</p>
+                <h3>MCP Server</h3>
+              </div>
+              <span
+                class="status"
+                [class.status--green]="mcpStatus() === 'running'"
+                [class.status--red]="mcpStatus() === 'unavailable'"
+                [class.status--yellow]="mcpStatus() === 'checking'"
+              >{{ statusLabel(mcpStatus()) }}</span>
+            </div>
+            <div class="panel__body">
+              <p class="muted">Connect local AI clients to Resumate using the streamable HTTP MCP endpoint.</p>
+
+              <dl class="service-details">
+                <div>
+                  <dt>Transport</dt>
+                  <dd>Streamable HTTP</dd>
+                </div>
+                <div>
+                  <dt>Endpoint</dt>
+                  <dd>{{ config?.mcpUrl }}</dd>
+                </div>
+                <div>
+                  <dt>Health</dt>
+                  <dd>{{ config?.mcpHealthUrl }}</dd>
+                </div>
+                <div>
+                  <dt>Authentication</dt>
+                  <dd>Use an MCP API key from the Resumate app token page.</dd>
+                </div>
+              </dl>
+
+              <div class="service-actions">
+                <button type="button" class="btn btn--primary" (click)="copy(config?.mcpUrl, 'Endpoint MCP')">Copy MCP Endpoint</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
     </div>
-    <div class="hero-actions">
-      <button type="button" class="secondary-action" (click)="refreshStatus()">Refresh Status</button>
-      @if (copyMessage()) {
-        <p class="copy-message">{{ copyMessage() }}</p>
-      }
-    </div>
-  </section>
-
-  <section class="service-grid">
-    <article class="service-card app-card">
-      <div>
-        <p class="card-kicker">Frontend</p>
-        <h2>Resumate App</h2>
-        <p>Manage your CV data, templates, public profiles, and MCP API tokens.</p>
-      </div>
-      <div class="actions-row">
-        <a routerLink="/login" class="primary-action">Open Resumate Login</a>
-        <a routerLink="/desktop/users/setup" class="secondary-action app-card-secondary">Setup Users</a>
-      </div>
-    </article>
-
-    <article class="service-card">
-      <div class="card-heading">
-        <div>
-          <p class="card-kicker">Database</p>
-          <h2>PocketBase Admin</h2>
-        </div>
-        <span class="status" [class.running]="pocketBaseStatus() === 'running'">{{ statusLabel(pocketBaseStatus()) }}</span>
-      </div>
-
-      <p>Manage the local PocketBase database records and schema.</p>
-
-      <dl class="service-details">
-        <div>
-          <dt>Admin URL</dt>
-          <dd>{{ pocketBaseAdminUrl() }}</dd>
-        </div>
-      </dl>
-
-      <div class="actions-row">
-        <button type="button" class="primary-action" (click)="openPocketBaseAdmin()">Open Admin</button>
-        <a routerLink="/desktop/users/setup" class="secondary-action">Setup Users</a>
-      </div>
-
-      <p class="warning">Administrator credentials stay in the desktop main process and are not exposed to the app UI.</p>
-    </article>
-
-    <article class="service-card">
-      <div class="card-heading">
-        <div>
-          <p class="card-kicker">AI Integration</p>
-          <h2>MCP Server</h2>
-        </div>
-        <span class="status" [class.running]="mcpStatus() === 'running'">{{ statusLabel(mcpStatus()) }}</span>
-      </div>
-
-      <p>Connect local AI clients to Resumate using the streamable HTTP MCP endpoint.</p>
-
-      <dl class="service-details">
-        <div>
-          <dt>Transport</dt>
-          <dd>Streamable HTTP</dd>
-        </div>
-        <div>
-          <dt>Endpoint</dt>
-          <dd>{{ config?.mcpUrl }}</dd>
-        </div>
-        <div>
-          <dt>Health</dt>
-          <dd>{{ config?.mcpHealthUrl }}</dd>
-        </div>
-        <div>
-          <dt>Authentication</dt>
-          <dd>Use an MCP API key from the Resumate app token page.</dd>
-        </div>
-      </dl>
-
-      <div class="actions-row">
-        <button type="button" class="primary-action" (click)="copy(config?.mcpUrl, 'Endpoint MCP')">Copy MCP Endpoint</button>
-      </div>
-    </article>
-  </section>
+  </div>
 </main>

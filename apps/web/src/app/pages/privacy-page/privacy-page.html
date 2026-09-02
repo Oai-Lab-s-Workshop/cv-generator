@@ -1,151 +1,169 @@
-<main class="privacy-page">
+<main class="af-app privacy-page">
   <app-navbar />
 
-  <section class="privacy-header">
-    <div class="privacy-header__copy">
-      <p class="eyebrow">Légal</p>
-      <h1>Politique de confidentialité</h1>
-      <p class="lede">Comment Resumate traite, héberge et protège vos données personnelles selon que vous utilisez la version web hébergée ou une version desktop / auto-hébergée.</p>
+  <div class="page">
+    <div class="page-main">
+      <section class="section">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Légal</p>
+            <h2>Politique de confidentialité</h2>
+          </div>
+        </div>
+        <p class="lede">Comment Resumate traite, héberge et protège vos données personnelles selon que vous utilisez la version web hébergée ou une version desktop / auto-hébergée.</p>
+      </section>
+
+      <section class="section" aria-label="Points clés de confidentialité">
+        <div class="privacy-points">
+          <article class="panel">
+            <div class="panel__head">
+              <h3>Version web</h3>
+            </div>
+            <div class="panel__body">
+              <p><strong>Hébergée</strong></p>
+              <p class="muted">Accès soumis à un abonnement via Stripe</p>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel__head">
+              <h3>Version desktop</h3>
+            </div>
+            <div class="panel__body">
+              <p><strong>Locale</strong></p>
+              <p class="muted">Utilisation autonome, vendue ou open source selon la distribution</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section privacy-section" aria-labelledby="privacy-section-1">
+        <article class="panel">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow">1. Responsable</p>
+              <h3 id="privacy-section-1">Responsable du traitement</h3>
+            </div>
+          </div>
+          <div class="panel__body">
+            <p>Pour la version web hébergée, le traitement des données personnelles est effectué dans le cadre du service Resumate accessible en ligne. Pour la version desktop ou auto-hébergée, l'exploitant de l'instance ou l'utilisateur qui l'installe sur sa propre infrastructure devient responsable du traitement pour les données qu'il stocke et administre.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="section privacy-section" aria-labelledby="privacy-section-2">
+        <article class="panel">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow">2. Données</p>
+              <h3 id="privacy-section-2">Données collectées</h3>
+            </div>
+          </div>
+          <div class="panel__body">
+            <p>Resumate traite les données que vous fournissez volontairement dans l'application, notamment :</p>
+            <ul class="privacy-list">
+              <li>Informations de profil et de contact</li>
+              <li>CV, profils professionnels et contenus rédactionnels associés</li>
+              <li>Expériences, projets, formations, compétences, réalisations et loisirs</li>
+              <li>Fichiers téléversés comme les photos ou autres assets liés au CV</li>
+              <li>Dans la version web hébergée, les informations de facturation strictement nécessaires à la gestion de l'abonnement, traitées via Stripe</li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <section class="section privacy-section" aria-labelledby="privacy-section-3">
+        <article class="panel">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow">3. Authentification</p>
+              <h3 id="privacy-section-3">Cookies, session et stockage local</h3>
+            </div>
+          </div>
+          <div class="panel__body">
+            <p>Resumate utilise le stockage local du navigateur pour conserver le token d'authentification nécessaire à l'utilisation de l'application. Aucun cookie publicitaire ou de suivi comportemental n'est utilisé dans le fonctionnement standard de l'application. Dans la version web hébergée, des traces techniques minimales peuvent être conservées pour sécuriser la session, gérer les accès et maintenir le service.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="section privacy-section" aria-labelledby="privacy-section-4">
+        <article class="panel">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow">4. Base légale</p>
+              <h3 id="privacy-section-4">Base légale du traitement</h3>
+            </div>
+          </div>
+          <div class="panel__body">
+            <p>Le traitement repose sur l'exécution du service que vous utilisez, sur votre consentement lors de la création de votre compte lorsque cela est nécessaire, et sur l'intérêt légitime de sécuriser l'application, prévenir les abus et assurer la maintenance du service hébergé.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="section privacy-section" aria-labelledby="privacy-section-5">
+        <article class="panel">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow">5. Conservation</p>
+              <h3 id="privacy-section-5">Durée de conservation</h3>
+            </div>
+          </div>
+          <div class="panel__body">
+            <p>Vos données sont conservées tant que votre compte ou votre instance reste active. Dans la version web hébergée, certaines données contractuelles ou comptables liées à la facturation peuvent être conservées plus longtemps pour répondre aux obligations légales applicables. Dans la version desktop / auto-hébergée, la durée de conservation dépend de l'administrateur de l'instance ou de vos propres choix si vous l'exploitez vous-même.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="section privacy-section" aria-labelledby="privacy-section-6">
+        <article class="panel">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow">6. Sécurité</p>
+              <h3 id="privacy-section-6">Mesures de sécurité</h3>
+            </div>
+          </div>
+          <div class="panel__body">
+            <p>Resumate s'appuie sur PocketBase pour la gestion des comptes et des données applicatives. Les mots de passe sont hashés, les accès sont authentifiés, et les données de la version desktop ou auto-hébergée restent sur l'infrastructure choisie par l'utilisateur ou l'administrateur. Pour la version web hébergée, des mesures complémentaires d'administration, de journalisation technique et de maintenance peuvent être appliquées pour protéger le service.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="section privacy-section" aria-labelledby="privacy-section-7">
+        <article class="panel">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow">7. Vos droits</p>
+              <h3 id="privacy-section-7">Accès, rectification, portabilité et effacement</h3>
+            </div>
+          </div>
+          <div class="panel__body">
+            <p>Selon votre contexte d'utilisation, vous disposez de droits sur vos données personnelles, notamment :</p>
+            <ul class="privacy-list">
+              <li><strong>Droit d'accès</strong> : consulter les données qui vous concernent</li>
+              <li><strong>Droit de rectification</strong> : corriger les informations inexactes</li>
+              <li><strong>Droit à la portabilité</strong> : exporter vos données lorsqu'un export est disponible</li>
+              <li><strong>Droit à l'effacement</strong> : demander la suppression de votre compte ou supprimer les données de votre instance selon le mode d'hébergement</li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <section class="section privacy-section" aria-labelledby="privacy-section-8">
+        <article class="panel">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow">8. Tiers et contact</p>
+              <h3 id="privacy-section-8">Prestataires et contact</h3>
+            </div>
+          </div>
+          <div class="panel__body">
+            <p>Dans la version web hébergée, Stripe peut intervenir comme prestataire de paiement pour la souscription et la gestion des abonnements. Dans la version desktop ou auto-hébergée, aucun prestataire de paiement n'est nécessaire sauf si vous en intégrez un vous-même. Pour toute question relative à la protection de vos données, vous pouvez consulter le <a href="https://github.com/pcsfpsi037/cv-generator" target="_blank" rel="noopener noreferrer">dépôt GitHub du projet</a> ou contacter l'administrateur de votre instance.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="section privacy-section" aria-labelledby="privacy-back-title">
+        <a class="btn btn--quiet" routerLink="/home/account">Retour aux paramètres</a>
+      </section>
     </div>
-  </section>
-
-  <section class="insight-grid" aria-label="Points clés de confidentialité">
-    <article class="insight-card insight-card--live">
-      <p class="insight-card__label">Version web</p>
-      <strong>Hébergée</strong>
-      <span>Accès soumis à un abonnement via Stripe</span>
-    </article>
-    <article class="insight-card">
-      <p class="insight-card__label">Version desktop</p>
-      <strong>Locale</strong>
-      <span>Utilisation autonome, vendue ou open source selon la distribution</span>
-    </article>
-  </section>
-
-  <section class="material-card material-card--single privacy-section" aria-labelledby="privacy-section-1">
-    <div class="material-card__header">
-      <div>
-        <p class="eyebrow">1. Responsable</p>
-        <h2 id="privacy-section-1">Responsable du traitement</h2>
-      </div>
-    </div>
-
-    <div class="privacy-section__body">
-      <p>Pour la version web hébergée, le traitement des données personnelles est effectué dans le cadre du service Resumate accessible en ligne. Pour la version desktop ou auto-hébergée, l'exploitant de l'instance ou l'utilisateur qui l'installe sur sa propre infrastructure devient responsable du traitement pour les données qu'il stocke et administre.</p>
-    </div>
-  </section>
-
-  <section class="material-card material-card--single privacy-section" aria-labelledby="privacy-section-2">
-    <div class="material-card__header">
-      <div>
-        <p class="eyebrow">2. Données</p>
-        <h2 id="privacy-section-2">Données collectées</h2>
-      </div>
-    </div>
-
-    <div class="privacy-section__body">
-      <p>Resumate traite les données que vous fournissez volontairement dans l'application, notamment :</p>
-      <ul class="privacy-list">
-        <li>Informations de profil et de contact</li>
-        <li>CV, profils professionnels et contenus rédactionnels associés</li>
-        <li>Expériences, projets, formations, compétences, réalisations et loisirs</li>
-        <li>Fichiers téléversés comme les photos ou autres assets liés au CV</li>
-        <li>Dans la version web hébergée, les informations de facturation strictement nécessaires à la gestion de l'abonnement, traitées via Stripe</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="material-card material-card--single privacy-section" aria-labelledby="privacy-section-3">
-    <div class="material-card__header">
-      <div>
-        <p class="eyebrow">3. Authentification</p>
-        <h2 id="privacy-section-3">Cookies, session et stockage local</h2>
-      </div>
-    </div>
-
-    <div class="privacy-section__body">
-      <p>Resumate utilise le stockage local du navigateur pour conserver le token d'authentification nécessaire à l'utilisation de l'application. Aucun cookie publicitaire ou de suivi comportemental n'est utilisé dans le fonctionnement standard de l'application. Dans la version web hébergée, des traces techniques minimales peuvent être conservées pour sécuriser la session, gérer les accès et maintenir le service.</p>
-    </div>
-  </section>
-
-  <section class="material-card material-card--single privacy-section" aria-labelledby="privacy-section-4">
-    <div class="material-card__header">
-      <div>
-        <p class="eyebrow">4. Base légale</p>
-        <h2 id="privacy-section-4">Base légale du traitement</h2>
-      </div>
-    </div>
-
-    <div class="privacy-section__body">
-      <p>Le traitement repose sur l'exécution du service que vous utilisez, sur votre consentement lors de la création de votre compte lorsque cela est nécessaire, et sur l'intérêt légitime de sécuriser l'application, prévenir les abus et assurer la maintenance du service hébergé.</p>
-    </div>
-  </section>
-
-  <section class="material-card material-card--single privacy-section" aria-labelledby="privacy-section-5">
-    <div class="material-card__header">
-      <div>
-        <p class="eyebrow">5. Conservation</p>
-        <h2 id="privacy-section-5">Durée de conservation</h2>
-      </div>
-    </div>
-
-    <div class="privacy-section__body">
-      <p>Vos données sont conservées tant que votre compte ou votre instance reste active. Dans la version web hébergée, certaines données contractuelles ou comptables liées à la facturation peuvent être conservées plus longtemps pour répondre aux obligations légales applicables. Dans la version desktop / auto-hébergée, la durée de conservation dépend de l'administrateur de l'instance ou de vos propres choix si vous l'exploitez vous-même.</p>
-    </div>
-  </section>
-
-  <section class="material-card material-card--single privacy-section" aria-labelledby="privacy-section-6">
-    <div class="material-card__header">
-      <div>
-        <p class="eyebrow">6. Sécurité</p>
-        <h2 id="privacy-section-6">Mesures de sécurité</h2>
-      </div>
-    </div>
-
-    <div class="privacy-section__body">
-      <p>Resumate s'appuie sur PocketBase pour la gestion des comptes et des données applicatives. Les mots de passe sont hashés, les accès sont authentifiés, et les données de la version desktop ou auto-hébergée restent sur l'infrastructure choisie par l'utilisateur ou l'administrateur. Pour la version web hébergée, des mesures complémentaires d'administration, de journalisation technique et de maintenance peuvent être appliquées pour protéger le service.</p>
-    </div>
-  </section>
-
-  <section class="material-card material-card--single privacy-section" aria-labelledby="privacy-section-7">
-    <div class="material-card__header">
-      <div>
-        <p class="eyebrow">7. Vos droits</p>
-        <h2 id="privacy-section-7">Accès, rectification, portabilité et effacement</h2>
-      </div>
-    </div>
-
-    <div class="privacy-section__body">
-      <p>Selon votre contexte d'utilisation, vous disposez de droits sur vos données personnelles, notamment :</p>
-      <ul class="privacy-list">
-        <li><strong>Droit d'accès</strong> : consulter les données qui vous concernent</li>
-        <li><strong>Droit de rectification</strong> : corriger les informations inexactes</li>
-        <li><strong>Droit à la portabilité</strong> : exporter vos données lorsqu'un export est disponible</li>
-        <li><strong>Droit à l'effacement</strong> : demander la suppression de votre compte ou supprimer les données de votre instance selon le mode d'hébergement</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="material-card material-card--single privacy-section" aria-labelledby="privacy-section-8">
-    <div class="material-card__header">
-      <div>
-        <p class="eyebrow">8. Tiers et contact</p>
-        <h2 id="privacy-section-8">Prestataires et contact</h2>
-      </div>
-    </div>
-
-    <div class="privacy-section__body">
-      <p>Dans la version web hébergée, Stripe peut intervenir comme prestataire de paiement pour la souscription et la gestion des abonnements. Dans la version desktop ou auto-hébergée, aucun prestataire de paiement n'est nécessaire sauf si vous en intégrez un vous-même. Pour toute question relative à la protection de vos données, vous pouvez consulter le <a href="https://github.com/pcsfpsi037/cv-generator" target="_blank" rel="noopener noreferrer">dépôt GitHub du projet</a> ou contacter l'administrateur de votre instance.</p>
-    </div>
-  </section>
-
-  <section class="material-card material-card--single privacy-section" aria-labelledby="privacy-back-title">
-
-    <div class="privacy-section__body">
-      <a class="secondary-button" routerLink="/home/account">
-        <i class="bi bi-arrow-left" aria-hidden="true"></i>
-        Retour aux paramètres
-      </a>
-    </div>
-  </section>
+  </div>
 </main>

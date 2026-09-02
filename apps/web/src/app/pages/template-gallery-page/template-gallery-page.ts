@@ -6,7 +6,7 @@ import { Navbar } from '../../shared/components/navbar/navbar';
   selector: 'app-template-gallery-page',
   imports: [Navbar, TemplatePreviewList],
   templateUrl: './template-gallery-page.html',
-  styleUrls: ['../../styles/home-shared.css', './template-gallery-page.css'],
+  styleUrls: ['./template-gallery-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TemplateGalleryPage {}

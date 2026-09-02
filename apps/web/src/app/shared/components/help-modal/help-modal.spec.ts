@@ -31,6 +31,21 @@ describe('HelpModalComponent', () => {
     fixture.detectChanges();
     const panel = fixture.nativeElement.querySelector('.help-modal__panel');
     expect(panel).toBeTruthy();
+    expect(panel.getAttribute('role')).toBe('dialog');
+    expect(panel.getAttribute('aria-modal')).toBe('true');
+    expect(panel.getAttribute('aria-labelledby')).toBe('help-modal-title');
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.help-modal__close'));
+  });
+
+  it('should keep tab focus inside the dialog', () => {
+    fixture.componentRef.setInput('open', true);
+    fixture.detectChanges();
+    const closeButton = fixture.nativeElement.querySelector('.help-modal__close') as HTMLButtonElement;
+    const doneButton = fixture.nativeElement.querySelector('.help-modal__done-btn') as HTMLButtonElement;
+
+    doneButton.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement).toBe(closeButton);
   });
 
   it('should emit close on backdrop click', () => {

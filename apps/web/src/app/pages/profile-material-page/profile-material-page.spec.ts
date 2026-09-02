@@ -136,7 +136,7 @@ describe('ProfileMaterialPage', () => {
   });
 
   it('renders 7 tab buttons', () => {
-    const tabs = fixture.nativeElement.querySelectorAll('.material-tab');
+    const tabs = fixture.nativeElement.querySelectorAll('.tab');
     expect(tabs.length).toBe(7);
   });
 
@@ -172,7 +172,7 @@ describe('ProfileMaterialPage', () => {
   });
 
   it('displays material count in insight grid', () => {
-    const countEl = fixture.nativeElement.querySelector('.insight-card strong');
+    const countEl = fixture.nativeElement.querySelector('.metric strong');
     expect(countEl).toBeTruthy();
   });
 
@@ -417,7 +417,7 @@ describe('ProfileMaterialPage', () => {
     component.editJob(component.jobs()[0]);
     fixture.detectChanges();
 
-    const editingPill = fixture.nativeElement.querySelector('.editing-pill');
+    const editingPill = fixture.nativeElement.querySelector('.status--yellow');
     expect(editingPill).toBeTruthy();
   });
 

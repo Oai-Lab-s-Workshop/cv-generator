@@ -10,7 +10,7 @@ import { getErrorMessage } from '../../core/utils/error-message';
   selector: 'app-account-page',
   imports: [FormsModule, Navbar, RouterLink],
   templateUrl: './account-page.html',
-  styleUrls: ['../../styles/home-shared.css', './account-page.css'],
+  styleUrls: ['./account-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountPage implements OnInit {

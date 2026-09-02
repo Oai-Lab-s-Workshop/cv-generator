@@ -110,7 +110,7 @@ const EMPTY_ASSET_FORM: AssetForm = {
   selector: 'app-profile-material-page',
   imports: [FormsModule, Navbar, QuillModule, HelpFabComponent, HelpModalComponent, TooltipDirective, FormFieldComponent, PickerComponent, SortableListDirective, EmptyStateComponent],
   templateUrl: './profile-material-page.html',
-  styleUrls: ['../../styles/home-shared.css', './profile-material-page.css'],
+  styleUrls: ['./profile-material-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileMaterialPage implements OnInit, OnDestroy {

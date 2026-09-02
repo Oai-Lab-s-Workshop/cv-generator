@@ -1,216 +1,201 @@
-.auth-tabs,
-.auth-panel {
-  width: min(100%, 76rem);
-  margin: 0 auto;
+/* Affiche Harness — tokens MCP (T16).
+   Hero utilitaire neutre, panneaux, métriques, champs, statuts, actions. */
+
+.af-app .page {
+  padding-bottom: 72px;
 }
 
-.auth-tabs__list {
+/* ── Tête de panneau ── */
+
+.auth-panel .panel__head h2 {
+  font-size: clamp(18px, 2.2vw, 24px);
+}
+
+.auth-panel .panel__head .eyebrow {
+  margin-bottom: 4px;
+}
+
+.auth-panel .panel__head .status {
+  flex: none;
+}
+
+/* ── Empilement des panneaux ── */
+
+.af-app .auth-panel {
+  margin-top: 20px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 20px;
 }
 
-.auth-tabs__tab {
+/* ── Paragraphe d'introduction ── */
+
+.panel-intro {
+  max-width: 62ch;
+  margin: 0 0 18px;
+  color: var(--af-mine);
+  line-height: 1.5;
+}
+
+/* ── Messages d'état ── */
+
+.af-message {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid currentColor;
+  font: 500 12px/1.4 var(--af-mono);
+  letter-spacing: 0.02em;
+  color: var(--af-mine);
+}
+
+.af-message--error {
+  color: var(--af-rouge-encre);
+}
+
+.af-message--success {
+  color: var(--af-vert);
+}
+
+/* ── Métriques (3 colonnes) ── */
+
+.af-app .metric-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 20px;
+}
+
+@media (max-width: 1050px) {
+  .af-app .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .af-app .metric-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Étapes numérotées (OAuth) ── */
+
+.steps {
   display: grid;
-  gap: 0.3rem;
-  min-height: 5rem;
-  border: 1px solid var(--home-border);
-  border-radius: 1.15rem;
-  background: light-dark(rgba(255, 255, 255, 0.78), rgba(15, 23, 42, 0.62));
-  box-shadow: var(--home-shadow);
-  color: var(--home-text);
-  cursor: pointer;
-  font: inherit;
-  justify-items: start;
-  padding: clamp(1rem, 2vw, 1.25rem) clamp(1rem, 2vw, 1.25rem) clamp(1.25rem, 2.4vw, 1.6rem);
-  text-align: left;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-}
-
-.auth-tabs__tab:hover,
-.auth-tabs__tab:focus-visible {
-  border-color: light-dark(#2563eb, #60a5fa);
-  box-shadow: light-dark(0 18px 40px rgba(37, 99, 235, 0.14), 0 18px 40px rgba(96, 165, 250, 0.16));
-  outline: none;
-  transform: translateY(-1px);
-}
-
-.auth-tabs__tab--active {
-  border-color: light-dark(#2563eb, #60a5fa);
-  background: linear-gradient(135deg, light-dark(#eff6ff, rgba(30, 41, 59, 0.96)), light-dark(#fff, rgba(15, 23, 42, 0.92)));
-}
-
-.auth-tabs__tab span {
-  font-size: 1.05rem;
-  font-weight: 900;
-}
-
-.auth-tabs__tab small {
-  color: var(--home-muted);
-  font-size: 0.83rem;
-  font-weight: 800;
-}
-
-.auth-panel {
-  display: grid;
-  gap: 1rem;
-}
-
-.oauth-guide-card,
-.oauth-clients-card {
-  display: grid;
-  gap: 1.1rem;
-  border: 1px solid var(--home-border);
-  border-radius: 1.15rem;
-  background: var(--home-surface);
-  box-shadow: var(--home-shadow);
-  padding: clamp(1rem, 2vw, 1.35rem);
-}
-
-.oauth-guide-card h2,
-.oauth-guide-card p,
-.oauth-clients-card h2,
-.oauth-clients-card p {
-  margin: 0;
-}
-
-.oauth-guide-card p:not(.eyebrow),
-.oauth-clients-card p {
-  color: var(--home-muted);
-  line-height: 1.6;
-}
-
-.oauth-steps {
-  display: grid;
-  gap: 0.8rem;
-  margin: 0;
+  gap: 0;
+  margin: 0 0 20px;
   padding: 0;
   list-style: none;
 }
 
-.oauth-steps li {
+.steps li {
   display: grid;
-  gap: 0.25rem;
-  border: 1px solid light-dark(rgba(148, 163, 184, 0.24), rgba(148, 163, 184, 0.16));
-  border-radius: 0.9rem;
-  padding: 0.85rem 1rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--af-filet);
 }
 
-.oauth-steps strong {
-  color: var(--home-text);
+.steps li::before {
+  content: counter(step);
+  counter-increment: step;
+  min-width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--af-encre);
+  border-radius: 999px;
+  font: 600 10px/1 var(--af-mono);
+  color: var(--af-encre);
 }
 
-.oauth-steps span {
-  color: var(--home-muted);
+.steps {
+  counter-reset: step;
+}
+
+.steps strong {
+  color: var(--af-encre);
+}
+
+.steps span {
+  grid-column: 2;
+  color: var(--af-mine);
   line-height: 1.45;
 }
 
-.oauth-reference-grid {
+/* ── Grille de références (endpoint / découverte) ── */
+
+.reference-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
+  gap: 12px;
 }
 
-.oauth-reference-grid > div {
+.reference-grid > div {
   display: grid;
-  gap: 0.45rem;
+  gap: 8px;
   min-width: 0;
-  border-radius: 0.9rem;
-  background: light-dark(#0f172a, #020617);
-  padding: 0.9rem 1rem;
+  padding: 14px 16px;
+  border: 1px solid var(--af-filet);
+  background: var(--af-creux);
 }
 
-.oauth-reference-grid span {
-  color: #cbd5e1;
-  font-size: 0.78rem;
-  font-weight: 900;
+.reference-grid span {
+  color: var(--af-mine);
+  font: 600 10px/1.2 var(--af-mono);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.oauth-reference-grid code {
-  color: #e2e8f0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.84rem;
+.reference-grid code {
+  color: var(--af-encre);
+  font-family: var(--af-mono);
+  font-size: 13px;
   overflow-wrap: anywhere;
 }
 
-.token-table__head,
-.token-row {
-  grid-template-columns: minmax(12rem, 1.25fr) minmax(9rem, 0.8fr) minmax(12rem, 1fr) minmax(9rem, 0.75fr) minmax(6rem, 0.55fr);
-}
+/* ── Formulaire de création de clé ── */
 
-.token-cell--main p,
-.token-cell--expiration span {
-  font-size: 0.84rem;
-}
-
-.token-cell--prefix code {
-  color: light-dark(#1e293b, #cbd5e1);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.86rem;
-  overflow-wrap: anywhere;
-}
-
-.token-status__state {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--home-muted);
-  font-weight: 800;
-  font-size: 0.86rem;
-}
-
-.token-status__dot {
-  width: 0.62rem;
-  height: 0.62rem;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: #94a3b8;
-  box-shadow: light-dark(0 0 0 4px rgba(148, 163, 184, 0.16), 0 0 0 4px rgba(148, 163, 184, 0.25));
-}
-
-.token-status__state--active {
-  color: light-dark(#166534, #86efac);
-}
-
-.token-status__state--active .token-status__dot {
-  background: light-dark(#22c55e, #4ade80);
-  box-shadow: light-dark(0 0 0 4px rgba(34, 197, 94, 0.16), 0 0 0 4px rgba(74, 222, 128, 0.2));
-}
-
-.token-status__state--revoked {
-  color: light-dark(#475569, #94a3b8);
-}
-
-.token-status__state--expired {
-  color: light-dark(#92400e, #fbbf24);
-}
-
-.token-status__state--expired .token-status__dot {
-  background: light-dark(#f59e0b, #fbbf24);
-  box-shadow: light-dark(0 0 0 4px rgba(245, 158, 11, 0.16), 0 0 0 4px rgba(251, 191, 36, 0.2));
-}
-
-.token-actions {
+.cta-form {
   display: flex;
-  justify-content: flex-start;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
 }
 
-.token-secret-card {
+.cta-form__field {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.cta-form__button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .cta-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cta-form__button {
+    width: 100%;
+  }
+}
+
+/* ── Secret à copie unique ── */
+
+.token-secret-card .panel__body {
   display: grid;
-  gap: 0.9rem;
+  gap: 14px;
 }
 
 .token-secret {
   display: block;
   overflow-wrap: anywhere;
-  padding: 0.85rem 1rem;
-  border-radius: 0.8rem;
-  background: light-dark(#10203b, #0a1628);
-  color: #f8fbff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 14px 16px;
+  border: 1px solid var(--af-filet);
+  background: var(--af-creux);
+  color: var(--af-encre);
+  font-family: var(--af-mono);
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -218,25 +203,153 @@
   justify-self: start;
 }
 
+/* ── Tableau des clés (div-based, responsive) ── */
+
+.token-table {
+  border: 1px solid var(--af-filet);
+  background: var(--af-planche);
+}
+
+.token-table__head,
+.token-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.25fr) minmax(9rem, 0.8fr) minmax(12rem, 1fr) minmax(9rem, 0.75fr) minmax(6rem, 0.55fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.token-table__head {
+  padding: 11px 14px;
+  border-bottom: 3px solid var(--af-encre);
+  color: var(--af-encre);
+  font: 600 10px/1.2 var(--af-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.token-row {
+  padding: 14px;
+  border-top: 1px solid var(--af-row-line);
+}
+
+.token-row:first-child {
+  border-top: 0;
+}
+
+.token-row:hover {
+  background: var(--af-hover);
+}
+
+.token-cell {
+  min-width: 0;
+}
+
+.token-cell--main {
+  display: grid;
+  gap: 4px;
+}
+
+.token-cell--main h3 {
+  margin: 0;
+}
+
+.token-cell--main p,
+.token-cell--expiration span {
+  margin: 0;
+  color: var(--af-mine);
+  font-size: 13px;
+}
+
+.token-cell--prefix code {
+  color: var(--af-mine);
+  font-family: var(--af-mono);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.token-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.token-revoke-button {
+  min-height: var(--af-cible);
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+.token-revoke-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 @media (max-width: 860px) {
-  .auth-tabs__list,
-  .oauth-reference-grid {
+  .reference-grid {
     grid-template-columns: 1fr;
   }
 
-  .token-cell--main,
-  .token-status,
-  .token-actions {
+  .token-table {
+    border: 0;
+    background: transparent;
+  }
+
+  .token-table__head {
+    display: none;
+  }
+
+  .token-table__body {
+    display: grid;
+    gap: 12px;
+  }
+
+  .token-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    border: 1px solid var(--af-filet);
+    border-top: 3px solid var(--af-encre);
+  }
+
+  .token-cell {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 0.35fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+  }
+
+  .token-cell::before {
+    content: attr(data-label);
+    color: var(--af-mine);
+    font: 600 10px/1.2 var(--af-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .token-cell--main {
     grid-template-columns: minmax(6.5rem, 0.35fr) minmax(0, 1fr);
   }
 
-  .token-actions .text-link {
-    justify-self: start;
+  .token-cell--main h3,
+  .token-cell--main p {
+    grid-column: 2;
   }
 }
 
 @media (max-width: 640px) {
-  .token-copy-button {
+  .token-cell,
+  .token-cell--main,
+  .token-status,
+  .token-actions {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .token-cell--main h3,
+  .token-cell--main p {
+    grid-column: auto;
+  }
+
+  .token-actions .btn {
     width: 100%;
   }
 }

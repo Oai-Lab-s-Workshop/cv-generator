@@ -1,180 +1,128 @@
-.material-card--danger {
-  border-color: light-dark(#fecaca, #450a0a);
-  background: light-dark(#fff1f2, #1a0a0a);
+/* Affiche Harness — paramètres du compte (T15).
+   Hero neutre, panneaux, formulaires, lignes de réglage, statuts. */
+
+.af-app .page {
+  padding-bottom: 72px;
 }
 
-.account-danger-text {
-  color: light-dark(#b91c1c, #fca5a5);
-}
+/* ── Empilement des panneaux ── */
 
-.password-form {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-top: 1rem;
-  max-width: 100%;
-}
-
-.password-form__intro,
-.password-form__full,
-.password-form__actions {
-  flex: 1 1 100%;
-}
-
-.password-form__half {
+.account-panels {
   display: grid;
-  align-content: start;
-  flex: 1 1 18rem;
+  gap: 20px;
 }
 
-.password-form__full input,
-.password-form__half input {
-  min-height: 2.75rem;
+/* ── Tête de panneau : titre modéré, eyebrow compact ── */
+
+.account-panels .panel__head h2 {
+  font-size: clamp(18px, 2.2vw, 24px);
 }
 
-.password-form__half small {
-  min-height: 1.1rem;
+.account-panels .panel__head .eyebrow {
+  margin-bottom: 4px;
 }
 
-.password-form__actions .primary-button {
-  width: 100%;
+.account-panels .panel__head .status {
+  flex: none;
 }
 
-.billing-summary {
+/* ── Paragraphe d'introduction de panneau ── */
+
+.panel-intro {
+  max-width: 62ch;
+  margin: 0 0 18px;
+  color: var(--af-mine);
+  line-height: 1.5;
+}
+
+/* ── Messages d'état (erreur / succès) ── */
+
+.af-message {
+  grid-column: 1 / -1;
+  padding: 10px 12px;
+  border: 1px solid currentColor;
+  font: 500 12px/1.4 var(--af-mono);
+  letter-spacing: 0.02em;
+}
+
+.af-message + .af-message {
+  margin-top: -8px;
+}
+
+.af-message--error {
+  color: var(--af-rouge-encre);
+}
+
+.af-message--success {
+  color: var(--af-vert);
+}
+
+/* ── Lignes de réglage (titre + description | contrôle) ── */
+
+.setting-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.account-action-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-top: 1rem;
-}
-
-.account-action-row__copy {
-  flex: 1 1 24rem;
-  max-width: 42rem;
-}
-
-.account-action-row__copy .relation-helper {
-  margin-top: 0;
-}
-
-.account-action-row__cta {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  flex: 0 0 auto;
-}
-
-.danger-button {
-  display: inline-flex;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 2.55rem;
-  padding: 0.98rem 0.9rem;
-  border: 1px solid light-dark(#fecaca, #7f1d1d);
-  border-radius: 0.8rem;
-  background: light-dark(#fff, #1e293b);
-  color: light-dark(#dc2626, #f87171);
-  font: inherit;
-  font-weight: 800;
-  line-height: 1;
-  cursor: pointer;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--af-filet);
 }
 
-.danger-button:hover,
-.danger-button:focus-visible {
-  background: light-dark(#fff1f2, rgba(239, 68, 68, 0.15));
-  border-color: light-dark(#dc2626, #f87171);
-  outline: none;
+.setting-row:first-child {
+  padding-top: 0;
 }
 
-.danger-button:disabled {
-  opacity: 0.68;
-  cursor: wait;
+.setting-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
-.danger-button--solid {
-  border: 0;
-  background: light-dark(#dc2626, #ef4444);
-  color: light-dark(#fff, #0f172a);
-  box-shadow: light-dark(0 14px 28px rgba(220, 38, 38, 0.25), 0 14px 28px rgba(239, 68, 68, 0.2));
+.setting-row h3 {
+  margin: 0;
 }
 
-.danger-button--solid:hover,
-.danger-button--solid:focus-visible {
-  background: light-dark(#b91c1c, #f87171);
+.setting-row p {
+  max-width: 62ch;
+  margin: 5px 0 0;
+  color: var(--af-mine);
+  line-height: 1.5;
 }
 
-.delete-confirm {
-  display: grid;
-  gap: 0.75rem;
-  width: 100%;
+/* ── Petits libellés d'aide sous les champs ── */
+
+.field small {
+  color: var(--af-mine);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
-.delete-confirm__warning {
+/* ── Actions de formulaire ── */
+
+.form-actions {
   display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid light-dark(#fecaca, #450a0a);
-  border-radius: 0.75rem;
-  background: light-dark(#fff, #0f172a);
-  color: light-dark(#b91c1c, #fca5a5);
-  font-size: 0.88rem;
-  font-weight: 600;
-  line-height: 1.45;
-}
-
-.delete-confirm__warning i {
-  font-size: 1.1rem;
-  flex-shrink: 0;
-  margin-top: 0.02rem;
-}
-
-.delete-confirm__actions {
-  display: flex;
-  gap: 0.75rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
 }
 
-@media (max-width: 800px) {
-  .material-card__header {
-    flex-direction: column;
-    align-items: stretch;
-  }
+/* ── Responsive ── */
 
-  .account-action-row {
-    align-items: stretch;
-  }
-
-  .account-action-row__copy,
-  .account-action-row__cta {
-    max-width: none;
-    flex: 1 1 100%;
-  }
-
-  .delete-confirm__actions {
-    flex-direction: column;
-  }
-
-  .billing-summary {
+@media (max-width: 760px) {
+  .setting-row {
     grid-template-columns: 1fr;
+    align-items: stretch;
   }
-}
 
-@media (max-width: 640px) {
-  .danger-button,
-  .account-action-row__cta .secondary-button,
-  .account-action-row__cta a.secondary-button {
+  .setting-row .btn {
+    justify-self: start;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .form-actions .btn {
     width: 100%;
   }
 }

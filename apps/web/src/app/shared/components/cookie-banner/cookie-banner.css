@@ -5,10 +5,18 @@
   bottom: 0;
   z-index: 9998;
   padding: 1rem;
-  border-top: 1px solid light-dark(rgba(148, 163, 184, 0.32), rgba(148, 163, 184, 0.18));
-  background: light-dark(rgba(255, 255, 255, 0.95), rgba(15, 23, 42, 0.95));
-  box-shadow: light-dark(0 -8px 32px rgba(15, 23, 42, 0.08), 0 -8px 32px rgba(0, 0, 0, 0.3));
-  backdrop-filter: blur(18px);
+  border-top: 3px solid var(--af-encre);
+  background: var(--af-topbar);
+}
+
+.cookie-banner::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -3px;
+  width: 180px;
+  height: 3px;
+  background: var(--af-triade);
 }
 
 .cookie-banner__content {
@@ -24,42 +32,43 @@
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  color: light-dark(#475569, #cbd5e1);
-  font-size: 0.88rem;
-  line-height: 1.45;
   margin: 0;
+  color: var(--af-mine);
+  font: 400 14px/1.45 var(--af-corps);
 }
 
-.cookie-banner__text i {
+.cookie-banner__status {
   flex-shrink: 0;
-  margin-top: 0.05rem;
-  color: light-dark(#166534, #86efac);
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  background: var(--af-vert);
 }
 
 .cookie-banner__text a {
-  color: var(--home-primary);
-  font-weight: 600;
+  color: var(--af-bleu-encre);
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .cookie-banner__accept {
   flex-shrink: 0;
-  min-height: 2.35rem;
-  padding: 0.62rem 1rem;
-  border: 0;
-  border-radius: 0.8rem;
-  background: var(--home-primary);
-  color: light-dark(#fff, #0f172a);
-  font: inherit;
-  font-weight: 800;
-  line-height: 1;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--af-bleu);
+  border-radius: 0;
+  background: var(--af-bleu);
+  color: var(--af-noir);
+  font: 700 14px/1 var(--af-corps);
   cursor: pointer;
-  box-shadow: light-dark(0 10px 24px rgba(15, 61, 140, 0.18), 0 10px 24px rgba(106, 158, 245, 0.12));
+  box-shadow: 3px 3px 0 var(--af-rouge);
+  transition: transform 110ms linear, box-shadow 110ms linear;
 }
 
 .cookie-banner__accept:hover,
 .cookie-banner__accept:focus-visible {
-  background: light-dark(#0d3475, #5b8ef0);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--af-rouge);
   outline: none;
 }
 
@@ -74,3 +83,5 @@
     align-self: flex-end;
   }
 }
+
+@media print { :host { display: none !important; } }
