@@ -17,7 +17,7 @@ echo "{\"bugReportUrl\": \"${BUG_REPORT_URL:-}\", \"mcpPublicBaseUrl\": \"${MCP_
 export NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
 for template in /etc/nginx/templates/*.template; do
   output="/etc/nginx/conf.d/$(basename "${template}" .template)"
-  envsubst '${POCKETBASE_INTERNAL_PORT}' < "${template}" > "${output}"
+  envsubst '${POCKETBASE_INTERNAL_PORT} ${MCP_INTERNAL_PORT} ${MATERIAL_MCP_INTERNAL_PORT}' < "${template}" > "${output}"
 done
 
 exec nginx -g 'daemon off;'

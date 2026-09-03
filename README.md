@@ -186,7 +186,8 @@ Services disponibles ensuite :
 - Frontend : `${FRONTEND_BASE_URL}` avec `http://localhost:${FRONTEND_PORT:-4200}` par défaut
 - PocketBase Admin : `${FRONTEND_BASE_URL}/_/` via le proxy frontend
 - API PocketBase : `${FRONTEND_BASE_URL}/api/` via le proxy frontend
-- MCP : `${MCP_PUBLIC_BASE_URL}/mcp` pour un déploiement public, ou `http://localhost:${MCP_PORT:-8081}/mcp` en local
+- MCP CV : `${MCP_PUBLIC_BASE_URL}/mcp` pour un déploiement public, ou `http://localhost:${MCP_PORT:-8081}/mcp` en local
+- MCP matériaux : `${MCP_PUBLIC_BASE_URL}/mcp/materials` via le proxy web en déploiement public
 
 PocketBase n'expose pas de port hôte par défaut dans Docker Compose. Le frontend nginx est le point d'entrée public pour l'admin et l'API PocketBase.
 
@@ -243,6 +244,7 @@ PB_ADMIN_PASSWORD=
 POCKETBASE_INTERNAL_PORT=8090
 MCP_PORT=8081
 MCP_INTERNAL_PORT=8081
+MATERIAL_MCP_INTERNAL_PORT=8082
 FRONTEND_PORT=4200
 FRONTEND_INTERNAL_PORT=4200
 FRONTEND_BASE_URL=http://localhost:${FRONTEND_PORT:-4200}
