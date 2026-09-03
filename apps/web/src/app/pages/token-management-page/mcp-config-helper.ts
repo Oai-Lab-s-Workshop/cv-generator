@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
-import { resolveMcpEndpointUrl, resolveMcpUrl } from '../../core/utils/desktop-runtime-config';
+import { resolveMaterialMcpEndpointUrl, resolveMcpEndpointUrl, resolveMcpUrl } from '../../core/utils/desktop-runtime-config';
 
 interface AgentPreset {
   id: string;
@@ -116,11 +116,15 @@ const AGENT_PRESETS: AgentPreset[] = [
 export class McpConfigHelper {
   readonly activeTokenCount = input(0);
   readonly mcpEndpointUrl = input(resolveMcpEndpointUrl());
+  readonly materialMcpEndpointUrl = input(resolveMaterialMcpEndpointUrl());
   readonly sourceLabel = input<string | undefined>(undefined);
   readonly agentPresets = AGENT_PRESETS;
   readonly selectedAgent = signal<string>(AGENT_PRESETS[0]?.id ?? '');
+  readonly selectedServer = signal<'cv' | 'materials'>('cv');
   readonly customToken = signal('');
-  private readonly defaultMcpUrl = computed(() => this.mcpEndpointUrl());
+  private readonly defaultMcpUrl = computed(() =>
+    this.selectedServer() === 'materials' ? this.materialMcpEndpointUrl() : this.mcpEndpointUrl(),
+  );
   readonly customUrl = signal(this.mcpEndpointUrl());
   readonly copiedAgent = signal<string | null>(null);
   readonly copiedField = signal<string | null>(null);
@@ -165,6 +169,13 @@ export class McpConfigHelper {
   onUrlEdited(value: string): void {
     this.userEditedUrl.set(true);
     this.customUrl.set(value);
+  }
+
+  onServerChanged(value: 'cv' | 'materials'): void {
+    this.selectedServer.set(value);
+    if (!this.userEditedUrl()) {
+      this.customUrl.set(this.defaultMcpUrl());
+    }
   }
 
   isUrlModified(): boolean {
@@ -216,7 +227,13 @@ export class McpConfigHelper {
       { key: "Méthode d'authentification", value: 'Clé API', copyable: false },
       { key: "Header d'autorisation", value: authHeader, copyable: true },
       { key: 'Clé API', value: token, copyable: true },
-      { key: 'Outils disponibles', value: 'list_resumes, generate_cv, get_token_status, create_token, revoke_token, list_tokens', copyable: false },
+      {
+        key: 'Outils disponibles',
+        value: this.selectedServer() === 'materials'
+          ? 'createProject, updateProject, createAchievement, updateAchievement, createSkill, updateSkill, createJob, updateJob, createDegree, updateDegree, createHobby, updateHobby'
+          : 'listTemplates, whoAmI, listProfileMaterial, listCvProfiles, createTailoredCvProfile, updateCvProfile',
+        copyable: false,
+      },
     ];
   }
 

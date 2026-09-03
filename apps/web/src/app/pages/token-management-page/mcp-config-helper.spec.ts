@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { resolveMcpEndpointUrl } from '../../core/utils/desktop-runtime-config';
+import { resolveMaterialMcpEndpointUrl, resolveMcpEndpointUrl } from '../../core/utils/desktop-runtime-config';
 import { McpConfigHelper } from './mcp-config-helper';
 
 describe('McpConfigHelper', () => {
@@ -36,7 +36,7 @@ describe('McpConfigHelper', () => {
   });
 
   it('uses a select for agent choice', () => {
-    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement | null;
+    const select = fixture.nativeElement.querySelectorAll('select')[1] as HTMLSelectElement | null;
     const agentButtons = fixture.nativeElement.querySelectorAll('.mcp-helper__agent');
 
     expect(select).toBeTruthy();
@@ -45,7 +45,7 @@ describe('McpConfigHelper', () => {
   });
 
   it('updates selected agent from the select', () => {
-    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
+    const select = fixture.nativeElement.querySelectorAll('select')[1] as HTMLSelectElement;
     select.value = 'opencode';
     select.dispatchEvent(new Event('change'));
     fixture.detectChanges();
@@ -66,7 +66,7 @@ describe('McpConfigHelper', () => {
     expect(config).toContain('Transport          : HTTP (Streamable)');
     expect(config).toContain('Méthode auth       : Clé API');
     expect(config).toContain('Clé API            : rmcp_custom');
-    expect(config).toContain('Outils disponibles : list_resumes');
+    expect(config).toContain('Outils disponibles : listTemplates');
   });
 
   it('generates config for the selected agent', () => {
@@ -312,6 +312,16 @@ describe('McpConfigHelper', () => {
       fixture.detectChanges();
 
       expect(component['defaultMcpUrl']()).toBe('https://input.example.com/mcp');
+    });
+
+    it('switches to the Material MCP endpoint', () => {
+      fixture.componentRef.setInput('materialMcpEndpointUrl', 'https://input.example.com/mcp/materials');
+      component.onServerChanged('materials');
+      fixture.detectChanges();
+
+      expect(component.customUrl()).toBe('https://input.example.com/mcp/materials');
+      expect(component['defaultMcpUrl']()).toBe('https://input.example.com/mcp/materials');
+      expect(resolveMaterialMcpEndpointUrl()).toContain('/mcp/materials');
     });
 
     it('reset uses the latest mcpEndpointUrl input value', () => {
