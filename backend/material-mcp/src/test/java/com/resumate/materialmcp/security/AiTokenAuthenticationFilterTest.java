@@ -13,14 +13,14 @@ class AiTokenAuthenticationFilterTest {
     private final TestableAiTokenAuthenticationFilter filter = new TestableAiTokenAuthenticationFilter();
 
     @ParameterizedTest
-    @ValueSource(strings = {"/mcp", "/mcp/tools", "/api/materials", "/api/materials/projects"})
-    void filtersProtectedMcpAndMaterialApiPaths(String path) {
+    @ValueSource(strings = {"/mcp", "/mcp/materials"})
+    void filtersProtectedMcpPaths(String path) {
         assertFalse(filter.shouldSkip(path));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/", "/api/material", "/api/materials-extra", "/actuator/health"})
-    void skipsPathsOutsideProtectedMcpAndMaterialApiPaths(String path) {
+    @ValueSource(strings = {"/", "/api/material", "/api/materials", "/api/materials-extra", "/actuator/health"})
+    void skipsPathsOutsideProtectedMcpPaths(String path) {
         assertTrue(filter.shouldSkip(path));
     }
 
