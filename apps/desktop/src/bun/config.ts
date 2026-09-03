@@ -5,6 +5,8 @@ export interface ResumateDesktopConfig {
   desktopApiToken: string;
   mcpUrl: string;
   mcpHealthUrl: string;
+  materialMcpUrl?: string;
+  materialMcpHealthUrl?: string;
 }
 
 export function renderConfigScript(config: ResumateDesktopConfig): string {
