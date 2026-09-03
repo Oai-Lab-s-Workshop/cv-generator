@@ -11,7 +11,6 @@ public class MaterialRequest {
      * Request for creating/updating a project.
      */
     public record CreateProjectRequest(
-            String userId,
             ProjectData data,
             boolean userConfirmed
     ) {}
@@ -20,7 +19,6 @@ public class MaterialRequest {
      * Request for creating/updating an achievement.
      */
     public record CreateAchievementRequest(
-            String userId,
             AchievementData data,
             boolean userConfirmed
     ) {}
@@ -29,7 +27,6 @@ public class MaterialRequest {
      * Request for creating/updating a skill.
      */
     public record CreateSkillRequest(
-            String userId,
             SkillData data,
             boolean userConfirmed
     ) {}
@@ -38,7 +35,6 @@ public class MaterialRequest {
      * Request for creating/updating a job.
      */
     public record CreateJobRequest(
-            String userId,
             JobData data,
             boolean userConfirmed
     ) {}
@@ -47,7 +43,6 @@ public class MaterialRequest {
      * Request for creating/updating a degree.
      */
     public record CreateDegreeRequest(
-            String userId,
             DegreeData data,
             boolean userConfirmed
     ) {}
@@ -56,7 +51,6 @@ public class MaterialRequest {
      * Request for creating/updating a hobby.
      */
     public record CreateHobbyRequest(
-            String userId,
             HobbyData data,
             boolean userConfirmed
     ) {}

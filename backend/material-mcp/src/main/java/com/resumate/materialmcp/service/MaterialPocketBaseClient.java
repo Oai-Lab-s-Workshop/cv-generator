@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.List;
 
 /**
  * PocketBase client for material operations.
@@ -309,6 +310,16 @@ public class MaterialPocketBaseClient {
                 .body(Map.class);
         if (record == null || !userId.equals(record.get("user"))) {
             throw new IllegalArgumentException("Record does not belong to the authenticated user.");
+        }
+    }
+
+    /** Validates every supplied relation id before a write. */
+    public void validateOwnedRecordIds(String collectionName, String userId, List<String> recordIds) {
+        if (recordIds == null) {
+            return;
+        }
+        for (String recordId : recordIds) {
+            validateOwnedRecordId(collectionName, userId, recordId);
         }
     }
 
