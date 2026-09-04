@@ -14,6 +14,7 @@ export interface DesktopPaths {
   pocketbaseBinary: string;
   javaBinary: string;
   mcpJar: string;
+  materialMcpJar: string;
 }
 
 export function resolveDesktopPaths(): DesktopPaths {
@@ -44,6 +45,7 @@ export function resolveDesktopPaths(): DesktopPaths {
     pocketbaseBinary: resolve(resourcesRoot, 'pocketbase', platformArch, pocketbaseName),
     javaBinary: resolve(resourcesRoot, 'java-runtime', platformArch, 'bin', javaName),
     mcpJar: resolve(resourcesRoot, 'mcp', 'resumate-mcp.jar'),
+    materialMcpJar: resolve(resourcesRoot, 'mcp', 'resumate-material-mcp.jar'),
   };
 
   mkdirSync(paths.pbDataDir, { recursive: true });

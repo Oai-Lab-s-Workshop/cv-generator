@@ -6,14 +6,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 /**
  * Authentication filter for Material MCP.
- * Handles API_KEY header and Bearer token authentication.
+ * Handles API_KEY and API-key bearer authentication.
  */
+@Component
 public class AiTokenAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String API_KEY_HEADER = "API_KEY";
@@ -30,7 +32,7 @@ public class AiTokenAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         return !(path.equals("/mcp") || path.startsWith("/mcp/")
-                || path.equals("/api/materials") || path.startsWith("/api/materials/"));
+                );
     }
 
     @Override
@@ -43,8 +45,8 @@ public class AiTokenAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String bearerToken = bearerToken(request);
-        if (bearerToken != null) {
-            authenticateBearerToken(bearerToken, request, response, filterChain);
+        if (bearerToken != null && bearerToken.startsWith("resm_")) {
+            authenticateApiKey(bearerToken, request, response, filterChain);
             return;
         }
 
@@ -73,38 +75,6 @@ public class AiTokenAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private void authenticateBearerToken(
-            String bearerToken,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws IOException, ServletException {
-        if (bearerToken.startsWith("resm_")) {
-            authenticateApiKeyFromBearer(bearerToken, request, response, filterChain);
-            return;
-        }
-
-        // TODO: Implement OAuth token validation
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid bearer token.");
-    }
-
-    private void authenticateApiKeyFromBearer(
-            String bearerToken,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws IOException, ServletException {
-        try {
-            AiTokenPrincipal principal = authenticationService.authenticate(bearerToken.trim());
-            setAiTokenAuthentication(principal);
-            filterChain.doFilter(request, response);
-        } catch (IllegalArgumentException ex) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
-        } finally {
-            SecurityContextHolder.clearContext();
-        }
-    }
-
     private void setAiTokenAuthentication(AiTokenPrincipal principal) {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 principal,
@@ -120,7 +90,7 @@ public class AiTokenAuthenticationFilter extends OncePerRequestFilter {
             return null;
         }
         String token = authorization.substring(BEARER_PREFIX.length()).trim();
-        return !token.isEmpty() ? token : null;
+        return token.isEmpty() ? null : token;
     }
 
     private void unauthorizedWithDiscovery(HttpServletResponse response) throws IOException {

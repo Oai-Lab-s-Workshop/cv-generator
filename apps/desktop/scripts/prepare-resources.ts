@@ -10,8 +10,9 @@ rmSync(distRoot, { recursive: true, force: true });
 mkdirSync(resourcesRoot, { recursive: true });
 
 copyAngularBuild();
-copyPocketBaseRuntimeFiles();
-copyMcpJar();
+  copyPocketBaseRuntimeFiles();
+  copyMcpJar();
+  copyMaterialMcpJar();
 copyOptionalSidecars();
 
 function copyAngularBuild(): void {
@@ -35,6 +36,17 @@ function copyMcpJar(): void {
     return;
   }
   copyFileSync(jar, resolve(targetDir, 'resumate-mcp.jar'));
+}
+
+function copyMaterialMcpJar(): void {
+  const targetDir = resolve(resourcesRoot, 'mcp');
+  mkdirSync(targetDir, { recursive: true });
+  const jar = firstExistingFile(resolve(root, 'backend/material-mcp/target'), (name) => name.endsWith('.jar') && !name.endsWith('-plain.jar'));
+  if (!jar) {
+    warnOrThrow('Material MCP jar is missing. Run `bun run prepare:mcp` from apps/desktop/.');
+    return;
+  }
+  copyFileSync(jar, resolve(targetDir, 'resumate-material-mcp.jar'));
 }
 
 function copyOptionalSidecars(): void {

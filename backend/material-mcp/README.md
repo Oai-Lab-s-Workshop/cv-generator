@@ -1,27 +1,21 @@
-# Material API
+# Material MCP
 
-Spring Boot REST API for creating and updating resume materials. All endpoints are under `/api/materials`.
+Spring AI MCP server for creating and updating the authenticated user's resume materials. The Streamable HTTP endpoint is `/mcp/materials`.
 
-## Endpoints
+## Tools
 
-| Method | Endpoint |
+| Tool |
 |---|---|
-| POST | `/api/materials/projects` |
-| PATCH | `/api/materials/projects/{projectId}` |
-| POST | `/api/materials/achievements` |
-| PATCH | `/api/materials/achievements/{achievementId}` |
-| POST | `/api/materials/skills` |
-| PATCH | `/api/materials/skills/{skillId}` |
-| POST | `/api/materials/jobs` |
-| PATCH | `/api/materials/jobs/{jobId}` |
-| POST | `/api/materials/degrees` |
-| PATCH | `/api/materials/degrees/{degreeId}` |
-| POST | `/api/materials/hobbies` |
-| PATCH | `/api/materials/hobbies/{hobbyId}` |
+| `createProject` / `updateProject` |
+| `createAchievement` / `updateAchievement` |
+| `createSkill` / `updateSkill` |
+| `createJob` / `updateJob` |
+| `createDegree` / `updateDegree` |
+| `createHobby` / `updateHobby` |
 
 ### Request data
 
-Every body contains `userId`, `data`, and `userConfirmed`. `userId`, when supplied, must match the authenticated API-token user; the server derives the persisted owner from that token. `userConfirmed` must be `true`.
+Every tool request contains `data` and `userConfirmed`. The server derives the persisted owner from the authenticated API token; callers cannot supply an owner. `userConfirmed` must be `true`.
 
 | Material | Required `data` fields | Optional `data` fields |
 |---|---|---|
@@ -43,9 +37,9 @@ Every body contains `userId`, `data`, and `userConfirmed`. `userId`, when suppli
 - **Action**: Throws `IllegalArgumentException` with guidance to create authentic materials
 
 ### **🔸 Authentication and ownership validation**
-- Protected `/api/materials/**` routes accept either `API_KEY: <key>` or `Authorization: Bearer resm_<key>`.
+- The `/mcp/materials` route accepts `API_KEY: <key>` or `Authorization: Bearer resm_<key>`.
 - OAuth bearer tokens are currently rejected; OAuth validation is not implemented.
-- Create operations always use the authenticated token's user. Update operations authenticate to PocketBase, load the target record, and require its `user` relation to match that user.
+- Create operations always use the authenticated token's user. Update operations authenticate to PocketBase, load the target record, and require its `user` relation to match that user. Project file/achievement links and job skill/project/achievement links are also verified as user-owned before writes.
 
 ## 🔹 Configuration
 
@@ -66,7 +60,7 @@ frontend.base-url=https://cv-generator.example.com
 
 ## 🔹 Usage
 
-Use one of the supported API-key headers above for protected routes.
+Configure an MCP client with the `/mcp/materials` URL and the `API_KEY` header.
 
 ## 🔹 Testing
 

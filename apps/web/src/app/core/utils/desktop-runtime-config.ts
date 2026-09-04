@@ -7,6 +7,8 @@ export interface DesktopRuntimeConfig {
   desktopApiToken?: string;
   mcpUrl?: string;
   mcpHealthUrl?: string;
+  materialMcpUrl?: string;
+  materialMcpHealthUrl?: string;
 }
 
 interface RuntimeConfig {
@@ -15,6 +17,7 @@ interface RuntimeConfig {
 
 const DEFAULT_MCP_PORT = '8081';
 const MCP_ENDPOINT_PATH = '/mcp';
+const MATERIAL_MCP_ENDPOINT_PATH = '/mcp/materials';
 const OAUTH_DISCOVERY_PATH = '/.well-known/oauth-protected-resource';
 const RUNTIME_CONFIG_CACHE_KEY = 'resumate:runtime-config';
 const RUNTIME_CONFIG_CACHE_TTL_MS = 300_000; // 5 minutes
@@ -142,6 +145,15 @@ export function resolveMcpEndpointUrl(): string {
   return `${resolveMcpPublicBaseUrl()}${MCP_ENDPOINT_PATH}`;
 }
 
+export function resolveMaterialMcpEndpointUrl(): string {
+  const desktopMaterialUrl = window.__RESUMATE_DESKTOP_CONFIG__?.materialMcpUrl;
+  if (desktopMaterialUrl) {
+    return withEndpointPath(stripTrailingSlash(desktopMaterialUrl), MATERIAL_MCP_ENDPOINT_PATH);
+  }
+
+  return `${resolveMcpPublicBaseUrl()}${MATERIAL_MCP_ENDPOINT_PATH}`;
+}
+
 export function resolveOAuthDiscoveryUrl(): string {
   return `${resolveMcpPublicBaseUrl()}${OAUTH_DISCOVERY_PATH}`;
 }
@@ -152,7 +164,11 @@ function stripMcpEndpointPath(url: string): string {
 }
 
 function withMcpEndpointPath(url: string): string {
-  return url.endsWith(MCP_ENDPOINT_PATH) ? url : `${url}${MCP_ENDPOINT_PATH}`;
+  return withEndpointPath(url, MCP_ENDPOINT_PATH);
+}
+
+function withEndpointPath(url: string, endpointPath: string): string {
+  return url.endsWith(endpointPath) ? url : `${url}${endpointPath}`;
 }
 
 function stripTrailingSlash(url: string): string {

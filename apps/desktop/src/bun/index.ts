@@ -9,6 +9,7 @@ import { resolveDesktopPaths } from './sidecars/paths';
 import { getFreeLocalPort } from './sidecars/ports';
 import { startPocketBase } from './sidecars/pocketbase';
 import { startMcp } from './sidecars/mcp';
+import { startMaterialMcp } from './sidecars/material-mcp';
 import type { ManagedProcess } from './sidecars/process';
 import { StartupStatusStore } from './startup-status';
 
@@ -44,13 +45,14 @@ async function main(): Promise<void> {
 
   startupStatus.start('BOOT-010');
   const desktopApiToken = randomBytes(32).toString('base64url');
-  const [loadingPort, pocketbasePort, mcpPort, frontendPort] = await Promise.all([
+  const [loadingPort, pocketbasePort, mcpPort, materialMcpPort, frontendPort] = await Promise.all([
+    getFreeLocalPort(),
     getFreeLocalPort(),
     getFreeLocalPort(),
     getFreeLocalPort(),
     getFreeLocalPort(),
   ]);
-  startupStatus.ok('BOOT-010', `loading=${loadingPort}, pb=${pocketbasePort}, mcp=${mcpPort}, web=${frontendPort}`);
+  startupStatus.ok('BOOT-010', `loading=${loadingPort}, pb=${pocketbasePort}, mcp=${mcpPort}, material-mcp=${materialMcpPort}, web=${frontendPort}`);
 
   const loadingServer = startLoadingServer(loadingPort, startupStatus);
   servers.push(loadingServer.server);
@@ -76,6 +78,8 @@ async function main(): Promise<void> {
 
     const mcp = await startMcp(paths, mcpPort, pocketbase.url, pocketbase.serviceUser, startupStatus.reporter);
     sidecars.push(mcp.process);
+    const materialMcp = await startMaterialMcp(paths, materialMcpPort, pocketbase.url, pocketbase.serviceUser, startupStatus.reporter);
+    sidecars.push(materialMcp.process);
 
     startupStatus.start('WEB-010', paths.angularIndex);
     const frontend = startAngularServer(paths.angularIndex, frontendPort, {
@@ -85,6 +89,8 @@ async function main(): Promise<void> {
       desktopApiToken,
       mcpUrl: mcp.url,
       mcpHealthUrl: mcp.healthUrl,
+      materialMcpUrl: materialMcp.url,
+      materialMcpHealthUrl: materialMcp.healthUrl,
       createLocalUser: (body) => createLocalPocketBaseUser(pocketbase.url, pocketbase.superuserEmail, pocketbase.superuserPassword, body),
     }, () => win);
     servers.push(frontend.server);

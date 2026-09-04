@@ -10,6 +10,15 @@
   <div class="mcp-helper__grid">
     <div class="mcp-helper__controls">
       <label class="field mcp-helper__field">
+        <span>Serveur MCP</span>
+        <select [ngModel]="selectedServer()" (ngModelChange)="onServerChanged($event)">
+          <option value="cv">CV ciblés</option>
+          <option value="materials">Matériaux de carrière</option>
+        </select>
+        <small>Les matériaux créent ou mettent à jour vos expériences, projets et compétences.</small>
+      </label>
+
+      <label class="field mcp-helper__field">
         <span>Agent MCP</span>
         <select [ngModel]="selectedAgent()" (ngModelChange)="selectedAgent.set($event)">
           @for (preset of agentPresets; track preset.id) {

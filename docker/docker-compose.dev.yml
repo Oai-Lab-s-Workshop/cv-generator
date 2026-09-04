@@ -42,6 +42,21 @@ services:
       pocketbase:
         condition: service_healthy
 
+  material-mcp:
+    build:
+      context: ../backend/material-mcp
+    container_name: resumate-material-mcp
+    restart: unless-stopped
+    environment:
+      PORT: ${MATERIAL_MCP_INTERNAL_PORT:-8082}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:${FRONTEND_PORT:-4200}}
+      POCKETBASE_BASE_URL: ${POCKETBASE_BASE_URL:-http://pocketbase:${POCKETBASE_INTERNAL_PORT:-8090}}
+      POCKETBASE_SERVICE_USER_EMAIL: ${POCKETBASE_SERVICE_USER_EMAIL:-}
+      POCKETBASE_SERVICE_PASSWORD: ${POCKETBASE_SERVICE_USER_PASSWORD:-}
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+
   frontend:
     image: node:22-alpine
     container_name: resumate-web-dev
