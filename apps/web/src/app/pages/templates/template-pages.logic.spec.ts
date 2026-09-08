@@ -1,4 +1,4 @@
-import { ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, ElementRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { CvProfileExtraService } from '../../core/services/cv-profile-extra.service';
 import { PocketBaseService } from '../../core/services/pocketbase.service';
@@ -32,6 +32,7 @@ describe('CV template page logic', () => {
         CvProfileExtraService,
         { provide: PocketBaseService, useValue: pocketBaseService },
         { provide: ChangeDetectorRef, useValue: { detectChanges: jest.fn(), markForCheck: jest.fn() } },
+        { provide: ElementRef, useValue: new ElementRef(document.createElement('div')) },
       ],
     });
   });
@@ -238,6 +239,9 @@ describe('CV template page logic', () => {
 
     // Parcours: most recent first, freelance missions extracted.
     expect((api['getSortedJobs'](data.jobs) as { id: string }[]).map((job) => job.id)).toEqual(['job-2', 'job-1']);
+    // The timeline drops freelance work: it already has its own list right below.
+    expect((api['getTimelineJobs'](data.jobs) as { id: string }[]).map((job) => job.id)).toEqual(['job-1']);
+    expect(api['getTimelineJobs']([{ id: 'job-3', type: 'freelance' }])).toEqual([]);
     expect(api['getJobDateRange']({ startDate: '2020-01-01', endDate: '2022-01-01' })).toContain('—');
     expect(api['getJobDateRange']({ startDate: null, endDate: null })).toBe("Début — Aujourd'hui");
     const missions = api['getFreelanceMissions'](data.jobs) as { id: string; year: string; label: string }[];
@@ -309,9 +313,15 @@ describe('CV template page logic', () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelectorAll('.page')).toHaveLength(2);
+    // No `showAllPages` extra on this fixture, so the verso stays out of the render.
+    expect(host.querySelectorAll('.page')).toHaveLength(1);
     expect(host.querySelector('.display')?.textContent?.trim()).toBe('Jane Doe');
-    expect(host.querySelectorAll('.timeline-item')).toHaveLength(2);
+    // Two jobs on the fixture, one of them freelance: the timeline keeps the salaried one and the
+    // freelance one shows up once, in the missions list.
+    expect(host.querySelectorAll('.timeline-item')).toHaveLength(1);
+    expect(host.querySelector('.timeline-item h3')?.textContent?.trim()).toBe('Developer');
+    expect(host.querySelectorAll('.missions li')).toHaveLength(1);
+    expect(host.querySelector('.missions li')?.textContent).toContain('Lead · Globex');
     expect(host.querySelector('.project-hero h3')?.textContent?.trim()).toBe('Project One');
     expect(host.querySelector('.universe-gallery')).toBeNull();
     expect(fixture.componentInstance.qrCodeUrl()).toBe('data:image/png;base64,qr');
